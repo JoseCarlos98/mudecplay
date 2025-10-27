@@ -21,19 +21,12 @@ export class Header implements OnInit {
 
 
   ngOnInit() {
-    this.modules = this.navigationService.getModules();
-    this.navigationService.activeModule$.subscribe(m => this.activeModule = m);
-
-    // Escuchar el evento global toggleSidebar
-    document.addEventListener('toggleSidebar', () => {
-      this.toggleSidebar.emit();
-    });
 
   }
 
 onToggleClick(event: MouseEvent) {
   event.stopPropagation();
-  this.toggleSidebar.emit(); // dispara el Output al componente padre
+  this.toggleSidebar.emit(); 
 }
 
   

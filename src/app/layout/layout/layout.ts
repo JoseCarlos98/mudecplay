@@ -1,19 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Sidebar } from '../sidebar/sidebar';
 import { Header } from '../header/header';
-import { MatSidenavContainer, MatSidenavContent } from '@angular/material/sidenav';
+import { MatSidenav, MatSidenavContainer, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, Sidebar, Header, RouterOutlet, MatSidenavContainer, MatSidenavContent],
+  imports: [CommonModule, Sidebar, Header, RouterOutlet, MatSidenavContainer, MatSidenavContent, MatSidenavModule],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
 export class Layout {
-  isSidebarOpen: any
+  @ViewChild('sidenav') sidenav!: MatSidenav;
+
   toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
+    if (this.sidenav) {
+      this.sidenav.toggle();
+    }
   }
 }
