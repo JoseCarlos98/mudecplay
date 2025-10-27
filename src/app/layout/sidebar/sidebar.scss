@@ -1,0 +1,41 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #1e1e2f;
+  color: white;
+  transition: width 0.3s ease;
+  overflow-x: hidden;
+
+  &.collapsed {
+    width: 80px;
+
+    span {
+      display: none;
+    }
+
+    .mat-expansion-panel-header {
+      justify-content: center;
+    }
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    font-weight: bold;
+    font-size: 1.1rem;
+    mat-icon {
+      margin-right: 0.5rem;
+    }
+  }
+
+  mat-nav-list {
+    padding: 0;
+    .mat-list-item {
+      color: #fff;
+      mat-icon {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+}

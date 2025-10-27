@@ -1,0 +1,11 @@
+<mat-sidenav-container class="c-sidenav-container">
+  <app-sidebar></app-sidebar>
+
+  <mat-sidenav-content>
+    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+
+    <main>
+      <router-outlet></router-outlet>
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
