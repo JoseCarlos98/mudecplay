@@ -1,15 +1,12 @@
-
 @use '@angular/material' as mat;
 
 html {
-  @include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
+  @include mat.theme((color: (primary: mat.$azure-palette,
+        tertiary: mat.$blue-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    ));
 }
 
 body {
@@ -20,20 +17,60 @@ body {
 
   margin: 0;
 }
-/* You can add global styles to this file, and also import other style files */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body { height: 100%; }
-body { margin: 0;  font-family: "Poppins", sans-serif, sans-serif; }
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif, sans-serif;
+}
 
 
 // COLORS 
-.text-color-blue {
-    color: rgb(14, 166, 185);
+.color-primary {
+  color: #27AAE1;
 }
 
-.text-color-black {
-     color: rgb(51, 51, 51);
+.color-secundary {
+  color: #231F20;
 }
+
+// RADIUS 
+.radius-10 {
+    border-radius: 10px;
+}
+
+// BORDER 
+.border-bottom-gray {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.border-top-gray {
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+// PADDING 
+.p-10 {
+  padding: 10px;
+}
+
+.pt-10 {
+  padding-top: 10px;
+}
+.pb-10 {
+  padding-bottom: 10px;
+}
+
+// PROPIERTIS
+.cursor-pointer {
+  cursor: pointer;
+}
+
+
