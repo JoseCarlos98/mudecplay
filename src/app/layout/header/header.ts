@@ -13,21 +13,9 @@ import { Router } from '@angular/router';
   styleUrl: './header.scss',
 })
 export class Header implements OnInit {
-  @Output() toggleSidebar = new EventEmitter<void>();
-  modules: any[] = [];
-  activeModule: any = null;
+   @Output() toggleSidebar = new EventEmitter<void>();
 
-  constructor(private navigationService: NavigationService, private router: Router) { }
-
-
-  ngOnInit() {
-
+  ngOnInit(): void {
+    
   }
-
-onToggleClick(event: MouseEvent) {
-  event.stopPropagation();
-  this.toggleSidebar.emit(); 
-}
-
-  
-}
+  }

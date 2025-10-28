@@ -1,5 +1,5 @@
 import { Component, ViewChild } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterModule, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Sidebar } from '../sidebar/sidebar';
 import { Header } from '../header/header';
@@ -7,16 +7,13 @@ import { MatSidenav, MatSidenavContainer, MatSidenavContent, MatSidenavModule } 
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, Sidebar, Header, RouterOutlet, MatSidenavContainer, MatSidenavContent, MatSidenavModule],
+imports: [CommonModule, Sidebar, Header, RouterModule,],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
 export class Layout {
-  @ViewChild('sidenav') sidenav!: MatSidenav;
+  isSidebarCollapsed = true;
+  toggleSidebar() { this.isSidebarCollapsed = !this.isSidebarCollapsed; }
 
-  toggleSidebar() {
-    if (this.sidenav) {
-      this.sidenav.toggle();
-    }
-  }
+  
 }

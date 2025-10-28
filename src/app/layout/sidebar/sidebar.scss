@@ -1,0 +1,65 @@
+.c-sidebar {
+  padding: 15px;
+
+  .c-sidebar-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    padding: 10px 0;
+
+    span {
+      font-weight: 500;
+      font-size: 20px;
+    }
+  }
+
+  mat-icon {
+    overflow: unset;
+  }
+
+  a {
+    color: rgb(51, 51, 51);
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  .menu-info {
+      font-weight: 500;
+      color: rgb(107 114 128);
+      margin: 0px 0 10px 0;
+      font-size: 12px;
+    }
+}
+
+.c-card-menu:hover {
+  transition: 300ms all ease;
+  background: #0ea6b930;
+  cursor: pointer;
+
+  mat-icon,
+  h1 {
+    color: #0ea6b9;
+  }
+}
+
+.c-card-menu {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 3px;
+    height: 100%;
+    background-color: #0ea6b9;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  &:hover::after {
+    transform: translateX(0);
+  }
+}

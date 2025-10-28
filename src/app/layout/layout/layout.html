@@ -1,12 +1,9 @@
-<mat-sidenav-container class="c-sidenav-container">
-  <mat-sidenav #sidenav [mode]="'over'" class="sidenav">
-    <app-sidebar></app-sidebar>
-  </mat-sidenav>
-
-  <mat-sidenav-content>
-    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
-    <main>
-      <router-outlet></router-outlet>
-    </main>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+ <div class="app-container">
+      <app-sidebar ></app-sidebar>
+      <div class="main-area">
+        <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+        <div class="content">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
+    </div>

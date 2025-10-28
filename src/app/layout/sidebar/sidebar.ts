@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterModule } from '@angular/router';
@@ -8,61 +8,25 @@ import { NavigationService } from '../navigation.service';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, RouterModule, MatToolbarModule, MatIconModule, MatListModule, MatExpansionModule, MatSidenavModule],
+  imports: [CommonModule, MatTooltipModule, MatButtonModule, RouterModule, MatToolbarModule, MatIconModule, MatListModule, MatExpansionModule, MatSidenavModule],
 
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar implements OnInit, OnChanges {
-  @ViewChild('sidenav') sidenav!: MatSidenav;
-  @Input() isSidebarOpen = true;
-  modules: Module[] | any = [];
-  activeModule: Module | null | any = null;
-  activeSubModule: SubModule | null = null;
-  expandedSections: { [key: string]: boolean } = {};
+export class Sidebar implements OnInit {
+  menuItems:any = [
+    { name: 'Gastos', icon: 'dashboard', route: '/' },
+    { name: 'Usuarios', icon: 'people', route: '/usuarios' },
+    { name: 'Configuración', icon: 'settings', route: '/configuracion' }
+  ];
 
-  constructor(private navigationService: NavigationService, private router: Router) { }
 
-  ngOnInit() {
-    this.modules = this.navigationService.getModules();
-    this.navigationService.activeModule$.subscribe(m => {
-      this.activeModule = m;
-    });
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['isSidebarOpen'] && this.sidenav) {
-      if (this.isSidebarOpen) {
-        this.sidenav.toggle();
-      } else {
-        this.sidenav.close();
-      }
-    }
-  }
-
-  selectModule(module: Module) {
-    if (module.subModules?.length) {
-      this.activeModule = module;
-      this.activeSubModule = null;
-    } else {
-      this.router.navigateByUrl(module.route!);
-    }
-  }
-
-  selectSubModule(sub: SubModule) {
-    this.activeSubModule = sub;
-  }
-
-  returnToMainMenu() { this.activeModule = null; this.activeSubModule = null; }
-  returnToSubModules() { this.activeSubModule = null; }
-
-  goToUrl(route: string) { this.router.navigateByUrl(route); }
-
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
+  ngOnInit(): void {
+    
   }
 }

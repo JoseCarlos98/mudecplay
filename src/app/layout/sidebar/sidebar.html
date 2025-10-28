@@ -1,30 +1,30 @@
-<mat-sidenav #sidenav [mode]="'over'" [opened]="isSidebarOpen" class="sidenav">
-  <div class="sidenav-header">
-    <mat-icon>business</mat-icon>
-    <h1 class="logo">ERP SAAS</h1>
+<aside class="c-sidebar h-screen text-white flex flex-col w-16 hover:w-60 transition-all duration-300 shadow-lg relative group">
+
+  <div class="c-sidebar-header flex items-center justify-start p-4 border-gray-800 gap-2">
+    <mat-icon class="text-color-black">business</mat-icon>
+    <span
+      class="text-color-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+      MUDECPLAY
+    </span>
   </div>
 
-  <!-- Nivel 1 - Módulo Principal -->
-  <ng-container *ngIf="!activeModule && !activeSubModule">
-    <h1 class="menu-info">MÓDULOS PRINCIPALES</h1>
-    <div class="modules-grid">
-      <div class="c-card-menu" *ngFor="let module of modules" (click)="selectModule(module)">
-        <mat-icon class="icon-menu">{{module.icon}}</mat-icon>
-        <div class="info-card-menu">
-          <h1>{{module.name}}</h1>
-          <h2>{{module.description}}</h2>
-        </div>
-        <mat-icon *ngIf="module.subModules?.length" class="icon-right">arrow_forward_ios</mat-icon>
-      </div>
-    </div>
-  </ng-container>
+  <!-- Navegación -->
+  <nav class="flex-1 mt-4">
+    <a *ngFor="let item of menuItems"
+      class="flex items-center gap-4 px-4 py-3 hover:bg-gray-800 transition-colors duration-100 c-card-menu">
+      <mat-icon class="text-color-blue">{{item.icon}}</mat-icon>
 
-  <!-- ... copia todo lo demás EXACTAMENTE ... -->
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+        {{item.name}}
+      </span>
 
-  <div class="c-sidenav-footer">
-    <div class="user-info">
-      <mat-icon>account_circle</mat-icon>
-      <span>Admin</span>
-    </div>
-  </div>
-</mat-sidenav>
+    </a>
+  </nav>
+
+  <!-- Logout -->
+  <!-- <div class="p-4 border-t border-gray-800">
+    <button class="w-full py-2 bg-green-400 text-gray-900 rounded hover:bg-green-500 transition">
+      Logout
+    </button>
+  </div> -->
+</aside>
