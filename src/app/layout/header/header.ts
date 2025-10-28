@@ -3,19 +3,14 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { NavigationService } from '../navigation.service';
-import { Router } from '@angular/router';
 @Component({
   selector: 'app-header',
-  standalone: true,
   imports: [CommonModule, MatIconModule, MatToolbarModule, MatButtonModule],
   templateUrl: './header.html',
   styleUrl: './header.scss',
 })
 export class Header implements OnInit {
-   @Output() toggleSidebar = new EventEmitter<void>();
+  @Output() toggleSidebar = new EventEmitter<void>();
 
-  ngOnInit(): void {
-    
-  }
-  }
+  ngOnInit(): void {}
+}
