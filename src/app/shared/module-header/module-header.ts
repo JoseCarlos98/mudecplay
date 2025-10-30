@@ -11,7 +11,7 @@ import { MatIcon } from '@angular/material/icon';
 export class ModuleHeader {
   @Input() title: string = '';
   @Input() icon: string = 'dashboard';
-  @Input() showDownload: boolean = false;
+  @Input() showNew: boolean = false;
   @Input() showUploadXml: boolean = false;
   @Input() extraButtons: { icon: string; label: string; action: string }[] = [];
 
