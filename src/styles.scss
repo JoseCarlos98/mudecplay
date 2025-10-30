@@ -1,26 +1,9 @@
-@use '@angular/material' as mat;
-
-html {
-  @include mat.theme((color: (primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
-      ),
-      typography: Roboto,
-      density: 0,
-    ));
-}
-
-body {
-  color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  margin: 0;
-}
+@import url('./app/styles/material.scss');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 html,
 body {
@@ -28,12 +11,19 @@ body {
 }
 
 body {
-  margin: 0;
-  font-family: "Poppins", sans-serif, sans-serif;
+  font-family: "Poppins", sans-serif;
 }
 
 
-// COLORS 
+body {
+  color-scheme: light;
+  margin: 0;
+}
+
+.color-primary-input {
+  color: #1e86b1;
+}
+
 .color-primary {
   color: #27AAE1;
 }
@@ -42,12 +32,10 @@ body {
   color: #231F20;
 }
 
-// RADIUS 
 .radius-10 {
-    border-radius: 10px;
+  border-radius: 10px;
 }
 
-// BORDER 
 .border-bottom-gray {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
@@ -56,7 +44,6 @@ body {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
-// PADDING 
 .p-10 {
   padding: 10px;
 }
@@ -64,13 +51,11 @@ body {
 .pt-10 {
   padding-top: 10px;
 }
+
 .pb-10 {
   padding-bottom: 10px;
 }
 
-// PROPIERTIS
 .cursor-pointer {
   cursor: pointer;
 }
-
-

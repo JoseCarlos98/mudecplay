@@ -15,5 +15,13 @@
     flex: 1;
     padding: 20px;
     margin-top: 1px;
-    background-color: #f5f5f5;
+    background-color: rgb(39 170 225 / 9%);
+
+    .card-content {
+      background: white;
+      height: 100%;
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+    }
  }

@@ -1,0 +1,59 @@
+.mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background: none !important;
+}
+
+.input-ER {
+    width: 100% !important;
+
+    .mat-mdc-text-field-wrapper {
+        padding: 0 !important;
+        height: 30px !important;
+        border: none !important;
+    }
+}
+
+.c-input {
+    text-align: left;
+    margin-bottom: 8px;
+
+    p {
+        color: #1e86b1;
+        font-weight: 500;
+        font-size: 12px;
+    }
+
+    input {
+        padding-left: 7px !important;
+        font-size: 12.5px !important;
+        height: 30px !important;
+    }
+}
+
+.mat-focused {
+    height: 30px !important;
+}
+
+.mat-mdc-form-field-infix {
+    padding: 0 !important;
+}
+
+.mdc-text-field--outlined .mat-mdc-form-field-infix,
+.mdc-text-field--no-label .mat-mdc-form-field-infix {
+    font-size: 12px !important;
+}
+
+.mat-mdc-form-field {
+    width: 200px !important;
+    height: 30px !important;
+    padding: 0 !important;
+}
+
+.mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+.mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
+    border-color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.mdc-text-field--outlined:hover .mdc-notched-outline__leading,
+.mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
+    border-color: #9ea7ad !important;
+}

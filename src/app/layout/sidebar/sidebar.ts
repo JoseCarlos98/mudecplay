@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -16,14 +16,11 @@ import { MenuItems } from './models/siderbar-models';
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar implements OnInit {
-
+export class Sidebar {
   menuItems: MenuItems[] = [
-    { name: 'Gastos', icon: 'dashboard', route: '/' },
-    { name: 'Usuarios', icon: 'people', route: '/usuarios' },
-    { name: 'Configuración', icon: 'settings', route: '/configuracion' }
+    { name: 'Gastos', icon: 'attach_money', route: '/gastos' },
+    // { name: 'Usuarios', icon: 'people', route: '/usuarios' },
+    // { name: 'Configuración', icon: 'settings', route: '/configuracion' }
   ];
 
-
-  ngOnInit(): void {}
 }

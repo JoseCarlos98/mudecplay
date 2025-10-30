@@ -6,7 +6,7 @@ export const routes: Routes = [
     path: '',
     component: Layout,
     children: [
-      { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'gastos', loadComponent: () => import('./pages/bills/bills').then(m => m.Bills) },
       { path: '', redirectTo: 'clientes', pathMatch: 'full' }
     ]
   }
