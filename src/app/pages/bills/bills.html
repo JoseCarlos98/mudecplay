@@ -8,47 +8,50 @@
 <br>
 <br>
 
-<div class="overflow-x-auto">
-  <table mat-table [dataSource]="dataSource" class="min-w-full border-collapse">
-    <!-- ID -->
-    <ng-container matColumnDef="id">
-      <th mat-header-cell *matHeaderCellDef class="text-left">ID</th>
-      <td mat-cell *matCellDef="let element">{{ element.id }}</td>
-    </ng-container>
+<div class="table-container p-4 rounded-2xl shadow-md bg-white">
+  <div class="overflow-x-auto">
+    <table mat-table [dataSource]="dataSource" class="min-w-full border-collapse">
+      <!-- ID -->
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef class="text-left">ID</th>
+        <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+      </ng-container>
 
-    <!-- Nombre -->
-    <ng-container matColumnDef="nombre">
-      <th mat-header-cell *matHeaderCellDef class="text-left">Nombre</th>
-      <td mat-cell *matCellDef="let element">{{ element.nombre }}</td>
-    </ng-container>
+      <!-- Nombre -->
+      <ng-container matColumnDef="nombre">
+        <th mat-header-cell *matHeaderCellDef class="text-left">Nombre</th>
+        <td mat-cell *matCellDef="let element">{{ element.nombre }}</td>
+      </ng-container>
 
-    <!-- Correo -->
-    <ng-container matColumnDef="correo">
-      <th mat-header-cell *matHeaderCellDef class="text-left">Correo</th>
-      <td mat-cell *matCellDef="let element">{{ element.correo }}</td>
-    </ng-container>
+      <!-- Correo -->
+      <ng-container matColumnDef="correo">
+        <th mat-header-cell *matHeaderCellDef class="text-left">Correo</th>
+        <td mat-cell *matCellDef="let element">{{ element.correo }}</td>
+      </ng-container>
 
-    <!-- Rol -->
-    <ng-container matColumnDef="rol">
-      <th mat-header-cell *matHeaderCellDef class="text-left">Rol</th>
-      <td mat-cell *matCellDef="let element">{{ element.rol }}</td>
-    </ng-container>
+      <!-- Rol -->
+      <ng-container matColumnDef="rol">
+        <th mat-header-cell *matHeaderCellDef class="text-left">Rol</th>
+        <td mat-cell *matCellDef="let element">{{ element.rol }}</td>
+      </ng-container>
 
-    <!-- Acciones -->
-    <ng-container matColumnDef="acciones">
-      <th mat-header-cell *matHeaderCellDef class="text-center">Acciones</th>
-      <td mat-cell *matCellDef="let element" class="text-center">
-        <button mat-icon-button class="text-[#27AAE1] hover:bg-[#27AAE1]/10 rounded-full" (click)="editar(element)">
-          <mat-icon>edit</mat-icon>
-        </button>
-        <button mat-icon-button class="text-red-500 hover:bg-red-100 rounded-full" (click)="eliminar(element)">
-          <mat-icon>delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
+      <!-- Acciones -->
+      <ng-container matColumnDef="acciones">
+        <th mat-header-cell *matHeaderCellDef class="text-center">Acciones</th>
+        <td mat-cell *matCellDef="let element" class="text-center">
+          <button mat-icon-button class="text-[#27AAE1]" (click)="editar(element)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button class="text-red-500 hover:bg-red-100" (click)="eliminar(element)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
 
-    <!-- Filas -->
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-[#27AAE1]/5 transition-all"></tr>
-  </table>
+      <!-- Filas -->
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-[#27AAE1]/5 transition-all"></tr>
+    </table>
+  </div>
+
 </div>
