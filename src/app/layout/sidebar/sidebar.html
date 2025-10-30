@@ -1,5 +1,5 @@
 <aside class="c-sidebar h-screen flex flex-col w-16 hover:w-60 transition-all duration-300 shadow-lg relative group">
-  <div class="c-sidebar-header border-bottom-gray flex items-center gap-3 p-4">
+  <div class="c-sidebar-header border-bottom-white flex items-center gap-3 p-4">
     <mat-icon class="color-secundary">business</mat-icon>
     <span
       class="color-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap font-semibold">
@@ -10,7 +10,7 @@
   <nav class="flex-1 mt-4">
     @for (item of menuItems; track item.name) {
     <a [routerLink]="item.route" routerLinkActive="active-link"
-      class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800 rounded-md cursor-pointer">
+      class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800  cursor-pointer">
       <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
       <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
         {{ item.name }}
@@ -19,7 +19,7 @@
     }
   </nav>
 
-<div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
+<div class="transition-colors duration-100 c-card-menu border-top-white p-10">
     <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
      <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
         Salir
