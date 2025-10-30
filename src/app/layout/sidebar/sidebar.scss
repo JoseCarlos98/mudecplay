@@ -68,5 +68,10 @@
   &:hover::after {
     transform: translateX(0);
   }
-  
+}
+
+.menu-selected {  
+   background-color: #27AAE130;
+   color: white;
+   padding-left: 6px!important; 
 }

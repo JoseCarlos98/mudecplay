@@ -1,1 +1,28 @@
-<p>module-header works!</p>
+<header class="c-module-header">
+  <div>
+    <h2 class="color-secundary">
+      {{ title }}
+    </h2>
+  </div>
+
+  <div>
+    <button *ngIf="showDownload" mat-stroked-button
+      class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all" (click)="download.emit()">
+      <mat-icon>download</mat-icon>
+      Descargar
+    </button>
+
+    <button *ngIf="showUploadXml" mat-flat-button
+      class=" radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all" (click)="uploadXml.emit()">
+      <mat-icon>file_upload</mat-icon>
+      Cargar XML
+    </button>
+
+    <button *ngFor="let btn of extraButtons" mat-stroked-button
+      class="radius border-gray-300 text-gray-700 hover:bg-gray-100 transition-all"
+      (click)="customAction.emit(btn.action)">
+      <mat-icon>{{ btn.icon }}</mat-icon>
+      {{ btn.label }}
+    </button>
+  </div>
+</header>

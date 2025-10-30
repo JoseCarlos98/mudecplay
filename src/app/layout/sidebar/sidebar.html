@@ -9,7 +9,7 @@
 
   <nav class="flex-1 mt-4">
     @for (item of menuItems; track item.name) {
-    <a [routerLink]="item.route" routerLinkActive="active-link"
+    <a [routerLink]="item.route" routerLinkActive="menu-selected"
       class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800 rounded-md cursor-pointer">
       <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
       <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
