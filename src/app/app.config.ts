@@ -2,11 +2,15 @@ import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChang
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
+import { getSpanishPaginatorIntl } from './shared/customs/custom-paginator-intl';
+import { MatPaginatorIntl } from '@angular/material/paginator';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes)
+    provideRouter(routes),
+
+    { provide: MatPaginatorIntl, useValue: getSpanishPaginatorIntl() }
   ]
 };

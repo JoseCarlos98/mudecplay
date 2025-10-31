@@ -1,0 +1,67 @@
+.table-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+  table {
+    width: 100%;
+    border-spacing: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    th {
+      color: #231f20;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid rgba(39, 170, 225, 0.2);
+    }
+
+    td {
+      color: #333;
+      font-size: 14px;
+      padding: 0 15px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+
+  mat-card {
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(39, 170, 225, 0.1);
+    }
+  }
+
+  .c-actions-cells {
+    button[mat-icon-button] {
+      color: #555;
+      border-radius: 10px;
+      transition: all 0.25s ease;
+      padding: 9px;
+
+      mat-icon {
+        font-size: 22px;
+      }
+
+      &:hover {
+        transform: scale(1.1);
+      }
+    }
+
+    .edit-btn {
+      &:hover {
+        color: #27AAE1;
+      }
+    }
+
+    .delete-btn {
+      &:hover {
+        color: #ff4757;
+      }
+    }
+  }
+}

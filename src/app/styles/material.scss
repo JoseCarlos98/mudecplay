@@ -2,16 +2,6 @@
     background: none !important;
 }
 
-.input-ER {
-    width: 100% !important;
-
-    .mat-mdc-text-field-wrapper {
-        padding: 0 !important;
-        height: 30px !important;
-        border: none !important;
-    }
-}
-
 .c-input {
     text-align: left;
     margin-bottom: 8px;
@@ -56,4 +46,39 @@
 .mdc-text-field--outlined:hover .mdc-notched-outline__leading,
 .mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
     border-color: #9ea7ad !important;
+}
+
+.mat-mdc-paginator-page-size-label {
+    display: none !important;
+}
+
+.mat-mdc-paginator-page-size {
+    width: 70px;
+}
+
+.mat-mdc-select-arrow-wrapper {
+    padding-top: 8px !important;
+}
+
+.mat-mdc-paginator .mat-mdc-select-value {
+    font-size: 15px !important;
+    margin-top: 10px !important;
+}
+
+.mat-mdc-paginator {
+    border-top: 2px solid rgba(39, 170, 225, 0.2);
+    margin-top: 10px;
+    color: #231F20;
+
+    .mat-mdc-paginator-range-label {
+        font-size: 0.9rem;
+    }
+
+    .mat-mdc-icon-button {
+        color: #27AAE1;
+    }
+}
+
+.mat-mdc-paginator-range-actions {
+    padding-top: 8px;
 }

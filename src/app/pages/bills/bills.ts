@@ -4,8 +4,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { DataTable } from '../../shared/data-table/data-table';
 interface UserData {
   id: number;
   nombre: string;
@@ -14,25 +16,31 @@ interface UserData {
 }
 @Component({
   selector: 'app-bills',
-  imports: [ModuleHeader, FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
+  imports: [DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })
 export class Bills {
   emailFormControl = new FormControl('', [Validators.required, Validators.email]);
-
-  displayedColumns: string[] = ['id', 'nombre', 'correo', 'rol', 'acciones'];
-  dataSource = new MatTableDataSource<UserData>([
+  users = [
     { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
     { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
     { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-  ]);
+  ];
 
-  editar(element: UserData) {
-    console.log('Editar', element);
+  columnsConfig = [
+    { key: 'nombre', label: 'Nombre' },
+    { key: 'correo', label: 'Correo' },
+    { key: 'rol', label: 'Rol' }
+  ];
+
+  displayedColumns = ['nombre', 'correo', 'rol', 'acciones'];
+
+  onEdit(user: any) {
+    console.log('Editar', user);
   }
 
-  eliminar(element: UserData) {
-    console.log('Eliminar', element);
+  onDelete(user: any) {
+    console.log('Eliminar', user);
   }
 }
