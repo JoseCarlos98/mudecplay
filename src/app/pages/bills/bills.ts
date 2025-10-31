@@ -26,6 +26,21 @@ export class Bills {
     { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
     { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
     { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
   ];
 
   columnsConfig = [
