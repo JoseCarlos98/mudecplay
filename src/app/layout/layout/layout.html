@@ -1,11 +1,9 @@
 <div class="app-container">
   <app-sidebar></app-sidebar>
   <div class="main-area">
-    <app-header (toggleSidebar)="toggleSidebar()"></app-header>
+    <app-header></app-header>
     <div class="content">
-      <div class="card-content shadow-md">
-        <router-outlet></router-outlet>
-      </div>
+      <router-outlet></router-outlet>
     </div>
   </div>
 </div>

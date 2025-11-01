@@ -1,8 +1,18 @@
 .table-container {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 245px);
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  height: calc(100vh - 240px);
+  overflow: hidden;
+
+  .table-scroll {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+  }
 
   table {
     width: 100%;
@@ -15,6 +25,10 @@
       font-size: 16px;
       padding: 0.75rem 1rem;
       border-bottom: 2px solid rgba(39, 170, 225, 0.2);
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
     }
 
     td {
@@ -29,20 +43,20 @@
     }
   }
 
-  mat-card {
-    transition: box-shadow 0.2s ease;
-
-    &:hover {
-      box-shadow: 0 4px 12px rgba(39, 170, 225, 0.1);
-    }
+  mat-paginator {
+    flex-shrink: 0;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 4px;
+    background: white;
   }
 
   .c-actions-cells {
     button[mat-icon-button] {
+      margin-top: 5px;
       color: #555;
       border-radius: 10px;
       transition: all 0.25s ease;
-      padding: 9px;
+      padding: 5px;
 
       mat-icon {
         font-size: 22px;
@@ -53,16 +67,12 @@
       }
     }
 
-    .edit-btn {
-      &:hover {
-        color: #27AAE1;
-      }
+    .edit-btn:hover {
+      color: #27AAE1;
     }
 
-    .delete-btn {
-      &:hover {
-        color: #ff4757;
-      }
+    .delete-btn:hover {
+      color: #ff4757;
     }
   }
 }

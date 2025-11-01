@@ -25,3 +25,11 @@
        border-radius: 10px;
     }
  }
+
+
+ @media screen and (max-width: 875px) {
+  .content {
+   padding-left: 85px!important;
+  }
+
+}

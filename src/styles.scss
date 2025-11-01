@@ -60,7 +60,53 @@ body {
   cursor: pointer;
 }
 
+.w-100 {
+  width: 100% !important;
+}
+
 
 .radius {
   border-radius: 7px;
+}
+
+.card-content {
+  background: white;
+  min-height: 155px;
+  width: 100%;
+  padding: 10px 15px 15px 15px;
+  border-radius: 10px;
+}
+
+.c-filters {
+  border-top: 2px solid rgba(39, 170, 225, 0.2);
+  padding: 5px 0;
+  margin-top: 15px;
+}
+
+.c-filters {
+  // @apply border-t border-[rgba(39, 170, 225, 0.2)] pt-3 mt-4;
+}
+
+.c-input {
+  // @apply flex flex-col;
+}
+
+
+
+@media screen and (max-width: 875px) {
+  .section-btns-module-header {
+    justify-content: space-between;
+    display: flex;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .c-sidebar {
+        position: absolute;
+    z-index: 1000;
+    left: 0;
+    right: 0;
+    background: white;
+  }
+
 }

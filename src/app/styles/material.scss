@@ -2,9 +2,27 @@
     background: none !important;
 }
 
+// .input-ER {
+//     width: 100% !important;
+
+//     .mat-mdc-text-field-wrapper {
+//         padding: 0 !important;
+//         height: 30px !important;
+//         border: none !important;
+//     }
+// }
+
 .c-input {
     text-align: left;
     margin-bottom: 8px;
+
+    mat-form-field {
+        .mat-mdc-text-field-wrapper {
+            padding: 0 !important;
+            height: 30px !important;
+            border: none !important;
+        }
+    }
 
     p {
         color: #1e86b1;
@@ -58,6 +76,7 @@
 
 .mat-mdc-select-arrow-wrapper {
     padding-top: 8px !important;
+    padding-right: 10px!important;
 }
 
 .mat-mdc-paginator .mat-mdc-select-value {

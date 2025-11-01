@@ -1,15 +1,55 @@
-<app-module-header title="Gastos" icon="attach_money" [showNew]="true" [showUploadXml]="true" [extraButtons]="[
+<div class="card-content shadow-md">
+  <app-module-header title="Gastos" icon="attach_money" [showNew]="true" [showUploadXml]="true" [extraButtons]="[
     { icon: 'refresh', label: 'Actualizar', action: 'refresh' },
     { icon: 'filter_list', label: 'Filtrar', action: 'filter' }
   ]"></app-module-header>
 
+  <!-- <div class="c-filters">
+    <div class="c-input">
+      <p class="font-medium text-gray-700">Client Id :</p>
+      <mat-form-field appearance="outline">
+        <input matInput>
+      </mat-form-field>
+    </div>
+  </div> -->
+
+  <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5 gap-4">
+    <div class="c-input">
+      <p class="font-medium text-gray-700 mb-1">Client Id :</p>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput />
+      </mat-form-field>
+    </div>
+
+    <div class="c-input">
+      <p class="font-medium text-gray-700 mb-1">Client Name :</p>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput />
+      </mat-form-field>
+    </div>
+    
+    <div class="c-input">
+      <p class="font-medium text-gray-700 mb-1">Client Name :</p>
+      <mat-form-field appearance="outline" class="w-100">
+        <input matInput />
+      </mat-form-field>
+    </div>
+
+    <div class="c-input">
+      <p class="font-medium text-gray-700 mb-1">Status :</p>
+      <mat-form-field appearance="outline" class="w-100">
+        <mat-select>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+
+</div>
 <br>
-<br>
-<br>
-<app-data-table
-  [data]="users"
-  [columnsConfig]="columnsConfig"
-  [displayedColumns]="displayedColumns"
-  (edit)="onEdit($event)"
-  (delete)="onDelete($event)">
+
+<app-data-table [data]="users" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+  (edit)="onEdit($event)" (delete)="onDelete($event)">
 </app-data-table>

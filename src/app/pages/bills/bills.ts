@@ -8,6 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { DataTable } from '../../shared/data-table/data-table';
+import { MatSelectModule } from '@angular/material/select';
 interface UserData {
   id: number;
   nombre: string;
@@ -16,7 +17,7 @@ interface UserData {
 }
 @Component({
   selector: 'app-bills',
-  imports: [DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
+  imports: [DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
   templateUrl: './bills.html',
   styleUrl: './bills.scss',
 })
