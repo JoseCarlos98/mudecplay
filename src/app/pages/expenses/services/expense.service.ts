@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as entity from '../interfaces/expense-interfaces';
 import { map, Observable } from 'rxjs';
@@ -20,19 +20,17 @@ export class ExpenseService {
 
   getExpenses(filters?: entity.FiltersExpenses) {
     const url = `${this.apiUrl}`;
+    let params = new HttpParams();
 
-    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url).pipe(
+    if (filters) {
+      if (filters.page) params = params.set('page', String(filters.page));
+      if (filters.limit) params = params.set('limit', String(filters.limit));
+    }
+
+    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params }).pipe(
       map((response) => {
         return Mapper.mapToExpenseList(response);
       })
     )
   }
-
-
-
-  //   // const params = new HttpParams()
-  //   //   .set('pageSize', filters.pageSize)
-  //   //   .set('page', filters.page)
-  //   //   .set('startDate', filters.startDate)
-  //   //   .set('endDate', filters.endDate!);
 }

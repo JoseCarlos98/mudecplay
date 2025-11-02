@@ -1,7 +1,9 @@
 export interface FiltersExpenses {
-    proveedores: string[];
-    proyectos: string[];
-    fecha: string;
+    proveedores?: string[];
+    proyectos?: string[];
+    fecha?: string;
+    limit: number;
+    page: number;
 }
 
 export interface ExpenseResponseDto  {

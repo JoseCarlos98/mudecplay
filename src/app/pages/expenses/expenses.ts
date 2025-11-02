@@ -11,7 +11,8 @@ import { DataTable } from '../../shared/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
 import { PaginatedResponse } from '../../shared/general-interfaces/general-interfaces';
-import { ExpenseResponseDtoMapper } from './interfaces/expense-interfaces';
+import { ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
+import { CommonModule } from '@angular/common';
 interface UserData {
   id: number;
   nombre: string;
@@ -20,7 +21,7 @@ interface UserData {
 }
 @Component({
   selector: 'app-expenses',
-  imports: [DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
+  imports: [CommonModule, DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -35,7 +36,8 @@ export class Expenses implements OnInit {
 
   displayedColumns = ['concept', 'date', 'amount', 'supplier', 'project', 'actions'];
 
-  expensesTableData: ExpenseResponseDtoMapper[] = [];
+  filters: FiltersExpenses = { page: 1, limit: 10 };
+  expensesTableData: PaginatedResponse<ExpenseResponseDtoMapper> | any = null;
 
   constructor(
     private readonly expenseService: ExpenseService
@@ -46,9 +48,9 @@ export class Expenses implements OnInit {
   }
 
   getExpensesForTable() {
-    this.expenseService.getExpenses().subscribe((response: PaginatedResponse<ExpenseResponseDtoMapper>) => {
+    this.expenseService.getExpenses(this.filters).subscribe((response: PaginatedResponse<ExpenseResponseDtoMapper>) => {
       console.log('getExpensesForTable', response);
-      this.expensesTableData = response.data;
+      this.expensesTableData = response;
     });
   }
 
