@@ -34,6 +34,7 @@
         padding-left: 7px !important;
         font-size: 12.5px !important;
         height: 30px !important;
+        font-weight: 500 !important;
     }
 }
 
@@ -74,14 +75,21 @@
     width: 70px;
 }
 
-.mat-mdc-select-arrow-wrapper {
-    padding-top: 8px !important;
-    padding-right: 10px!important;
+.mat-mdc-paginator-page-size {
+    .mat-mdc-select-arrow-wrapper {
+        padding-top: 5px !important;
+    }
 }
+
+.mat-mdc-select-arrow-wrapper {
+    padding-top: 0px !important;
+    padding-right: 10px !important;
+}
+
 
 .mat-mdc-paginator .mat-mdc-select-value {
     font-size: 15px !important;
-    margin-top: 10px !important;
+    margin-top: 7px !important;
 }
 
 .mat-mdc-paginator {
@@ -90,7 +98,10 @@
     color: #231F20;
 
     .mat-mdc-paginator-range-label {
-        font-size: 0.9rem;
+        // font-size: 0.9rem;
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0;
     }
 
     .mat-mdc-icon-button {
@@ -100,4 +111,29 @@
 
 .mat-mdc-paginator-range-actions {
     padding-top: 8px;
+}
+
+.mat-mdc-select {
+    padding-left: 7px;
+    padding-top: 3px;
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.mat-mdc-paginator .mat-mdc-select {
+    padding-left: 0px !important;
+    width: 45px !important;
+}
+
+// MOVIL DESIGN
+@media screen and (max-width: 875px) {
+    .mat-mdc-paginator-container {
+        padding: 10px 0 0 0 !important;
+        justify-content: space-around !important;
+    }
+
+    .mat-mdc-paginator-range-actions {
+        padding-top: 22px !important;
+        height: 36px !important;
+    }
 }

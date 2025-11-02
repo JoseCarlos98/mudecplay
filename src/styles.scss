@@ -71,26 +71,44 @@ body {
 
 .card-content {
   background: white;
-  min-height: 155px;
+  min-height: 145px;
   width: 100%;
-  padding: 10px 15px 15px 15px;
+  padding: 10px 15px 10px 15px;
   border-radius: 10px;
+  margin-bottom: 15px;
 }
 
 .c-filters {
   border-top: 2px solid rgba(39, 170, 225, 0.2);
-  padding: 5px 0;
+  // padding: 11px 0;
+  padding-top: 15px;
   margin-top: 15px;
+  gap: 15px;
+
+  .btn-primary {
+    width: 30px !important;
+    height: 30px !important;
+    margin-top: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    mat-icon {
+      margin: 0;
+    }
+  }
 }
 
-.c-filters {
-  // @apply border-t border-[rgba(39, 170, 225, 0.2)] pt-3 mt-4;
+.btn-primary {
+  font-size: 15px;
+  background: #1e86b1 !important;
+  color: white !important;
+  transition: all 0.25s ease;
 }
 
-.c-input {
-  // @apply flex flex-col;
+.btn-primary:hover {
+  background: #167195 !important;
 }
-
 
 
 @media screen and (max-width: 875px) {
@@ -102,11 +120,21 @@ body {
   }
 
   .c-sidebar {
-        position: absolute;
+    position: absolute;
     z-index: 1000;
     left: 0;
     right: 0;
     background: white;
   }
 
+  .c-filters {
+    position: relative;
+    padding-bottom: 30px;
+
+    .btn-primary {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+    }
+  }
 }

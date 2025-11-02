@@ -24,33 +24,32 @@ interface UserData {
 export class Bills {
   emailFormControl = new FormControl('', [Validators.required, Validators.email]);
   users = [
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
-    { id: 1, nombre: 'Carlos López', correo: 'carlos@empresa.com', rol: 'Administrador' },
-    { id: 2, nombre: 'Ana Torres', correo: 'ana@empresa.com', rol: 'Editor' },
-    { id: 3, nombre: 'Luis Pérez', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    
+    { id: 1, nombre: 'Carlos López', razon_social: 'ASD678AS7', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', razon_social: 'KJKS8765S6', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', razon_social: 'ASD678AS7', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', razon_social: 'ASD678AS7', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', razon_social: 'KJKS8765S6', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', razon_social: 'ASD678AS7', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', razon_social: 'ASD678AS7', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', razon_social: 'KJKS8765S6', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', razon_social: 'ASD678AS7', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', razon_social: 'ASD678AS7', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', razon_social: 'KJKS8765S6', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', razon_social: 'ASD678AS7', correo: 'luis@empresa.com', rol: 'Visualizador' },
+    { id: 1, nombre: 'Carlos López', razon_social: 'ASD678AS7', correo: 'carlos@empresa.com', rol: 'Administrador' },
+    { id: 2, nombre: 'Ana Torres', razon_social: 'KJKS8765S6', correo: 'ana@empresa.com', rol: 'Editor' },
+    { id: 3, nombre: 'Luis Pérez', razon_social: 'ASD678AS7', correo: 'luis@empresa.com', rol: 'Visualizador' },
   ];
 
   columnsConfig = [
     { key: 'nombre', label: 'Nombre' },
     { key: 'correo', label: 'Correo' },
+    { key: 'razon_social', label: 'Razon Social' },
     { key: 'rol', label: 'Rol' }
   ];
 
-  displayedColumns = ['nombre', 'correo', 'rol', 'acciones'];
+  displayedColumns = ['nombre', 'correo', 'razon_social', 'rol', 'acciones'];
 
   onEdit(user: any) {
     console.log('Editar', user);
