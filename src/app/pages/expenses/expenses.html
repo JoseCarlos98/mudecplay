@@ -44,6 +44,9 @@
   
 </div>
 
-<app-data-table [data]="users" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+<app-data-table 
+  [data]="expensesTableData" 
+  [columnsConfig]="columnsConfig" 
+  [displayedColumns]="displayedColumns"
   (edit)="onEdit($event)" (delete)="onDelete($event)">
 </app-data-table>

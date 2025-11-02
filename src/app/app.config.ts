@@ -4,12 +4,14 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { getSpanishPaginatorIntl } from './shared/customs/custom-paginator-intl';
 import { MatPaginatorIntl } from '@angular/material/paginator';
+import { provideHttpClient } from '@angular/common/http';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    provideHttpClient(),
 
     { provide: MatPaginatorIntl, useValue: getSpanishPaginatorIntl() }
   ]

@@ -6,8 +6,8 @@ export const routes: Routes = [
     path: '',
     component: Layout,
     children: [
-      { path: 'gastos', loadComponent: () => import('./pages/bills/bills').then(m => m.Bills) },
-      { path: '', redirectTo: 'clientes', pathMatch: 'full' }
+      { path: 'gastos', loadComponent: () => import('./pages/expenses/expenses').then(m => m.Expenses) },
+      { path: '', redirectTo: 'gastos', pathMatch: 'full' }
     ]
   }
 ];
