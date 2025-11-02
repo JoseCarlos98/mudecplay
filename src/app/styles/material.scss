@@ -2,16 +2,6 @@
     background: none !important;
 }
 
-// .input-ER {
-//     width: 100% !important;
-
-//     .mat-mdc-text-field-wrapper {
-//         padding: 0 !important;
-//         height: 30px !important;
-//         border: none !important;
-//     }
-// }
-
 .c-input {
     text-align: left;
     margin-bottom: 8px;
@@ -98,7 +88,6 @@
     color: #231F20;
 
     .mat-mdc-paginator-range-label {
-        // font-size: 0.9rem;
         font-size: 12px;
         font-weight: 600;
         margin: 0;
@@ -133,7 +122,6 @@
     }
 
     .mat-mdc-paginator-range-actions {
-        padding-top: 22px !important;
         height: 36px !important;
     }
 }
