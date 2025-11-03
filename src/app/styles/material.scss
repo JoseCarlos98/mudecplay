@@ -114,6 +114,16 @@
     width: 45px !important;
 }
 
+.mat-mdc-dialog-surface {
+    border-radius: 10px !important;
+    padding: 10px 15px 10px 15px;
+}
+
+.mat-mdc-select-value-text {
+    font-size: 12.5;
+    font-weight: 500;
+}
+
 // MOVIL DESIGN
 @media screen and (max-width: 500px) {
     .mat-mdc-paginator-container {

@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 
+
 html,
 body {
   height: 100%;
@@ -20,6 +21,14 @@ body {
   margin: 0;
 }
 
+:root {
+  --color-primary: #27AAE1;
+  --color-primary-two: #1e86b1;
+  --color-secundary: #231F20;
+  --color-third: #878787;
+}
+
+
 .color-primary-input {
   color: #1e86b1;
 }
@@ -28,8 +37,13 @@ body {
   color: #27AAE1;
 }
 
+
 .color-secundary {
   color: #231F20;
+}
+
+.color-third {
+    color: #878787 
 }
 
 .radius-10 {
@@ -80,9 +94,8 @@ body {
 
 .c-filters {
   border-top: 2px solid rgba(39, 170, 225, 0.2);
-  // padding: 11px 0;
   padding-top: 15px;
-  margin-top: 15px;
+  margin-top: 5px;
   gap: 15px;
 
   .btn-primary {
@@ -101,7 +114,7 @@ body {
 
 .btn-primary {
   font-size: 15px;
-  background: #1e86b1 !important;
+  background: var(--color-primary-two) !important;
   color: white !important;
   transition: all 0.25s ease;
 }

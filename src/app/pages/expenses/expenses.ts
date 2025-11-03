@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { ModuleHeader } from "../../shared/module-header/module-header";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormControl, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,12 +13,9 @@ import { ExpenseService } from './services/expense.service';
 import { PaginatedResponse } from '../../shared/general-interfaces/general-interfaces';
 import { ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
-interface UserData {
-  id: number;
-  nombre: string;
-  correo: string;
-  rol: string;
-}
+import { MatDialog } from '@angular/material/dialog';
+import { ExpenseModal } from './expense-modal/expense-modal';
+
 @Component({
   selector: 'app-expenses',
   imports: [CommonModule, DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
@@ -26,6 +23,9 @@ interface UserData {
   styleUrl: './expenses.scss',
 })
 export class Expenses implements OnInit {
+  private readonly dialog = inject(MatDialog);
+
+
   columnsConfig = [
     { key: 'concept', label: 'Concepto' },
     { key: 'date', label: 'Fecha' },
@@ -40,7 +40,8 @@ export class Expenses implements OnInit {
   expensesTableData: PaginatedResponse<ExpenseResponseDtoMapper> | any = null;
 
   constructor(
-    private readonly expenseService: ExpenseService
+    private readonly expenseService: ExpenseService,
+    // private readonly dialog: MatDialog
   ) { }
 
   ngOnInit(): void {
@@ -60,5 +61,16 @@ export class Expenses implements OnInit {
 
   onDelete(user: any) {
     console.log('Eliminar', user);
+  }
+
+  expenseModal(data: any) {
+    this.dialog.open(ExpenseModal, {
+      data: {
+        data,
+      },
+      width: '80vw',
+      maxWidth: '700px',
+      minHeight: '50vh'
+    });
   }
 }

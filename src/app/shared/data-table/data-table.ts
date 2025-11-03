@@ -32,7 +32,9 @@ export class DataTable<T> implements AfterViewInit {
   dataSource = new MatTableDataSource<T>();
 
   ngAfterViewInit() {
-    this.dataSource.paginator = this.paginator;
+    // this.dataSource.paginator = this.paginator;
+    // this.paginator.pageSize = pageSize;
+    // this.paginator.pageIndex = pageIndex;
   }
 
   ngOnChanges() {

@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
+import { MatTooltip } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-module-header',
-  imports: [CommonModule, MatIcon],
+  imports: [CommonModule, MatIcon, MatTooltip],
   templateUrl: './module-header.html',
   styleUrl: './module-header.scss',
 })
 export class ModuleHeader {
   @Input() title: string = '';
   @Input() icon: string = 'dashboard';
+  @Input() modal: boolean = false;
   @Input() showNew: boolean = false;
   @Input() showUploadXml: boolean = false;
   @Input() extraButtons: { icon: string; label: string; action: string }[] = [];
@@ -18,6 +20,7 @@ export class ModuleHeader {
   @Output() download = new EventEmitter<void>();
   @Output() uploadXml = new EventEmitter<void>();
   @Output() customAction = new EventEmitter<string>();
+  @Output() closeMOdal = new EventEmitter<string>();
 
   onDescargar() {
     console.log('Descargando...');

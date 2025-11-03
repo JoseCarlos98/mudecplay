@@ -1,7 +1,7 @@
 .table-container {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 275px);
+  height: calc(100vh - 260px);
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -83,13 +83,8 @@
 
 }
 
-// .mat-mdc-select-arrow-wrapper {
-//   padding-top: 8px !important;
-//   padding-right: 10px !important;
-// }
-
 @media screen and (max-width: 875px) {
   .table-container {
-    height: calc(100vh - 415px);
+    height: calc(100vh - 365px);
   }
 }

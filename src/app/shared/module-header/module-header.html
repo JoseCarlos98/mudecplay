@@ -1,6 +1,6 @@
 <header class="c-module-header">
   <div>
-    <h2 class="color-secundary">
+    <h2 class="color-secundary" [ngClass]="{'c-modal': modal}">
       {{ title }}
     </h2>
   </div>
@@ -13,9 +13,11 @@
     </button>
 
     <button *ngIf="showNew" mat-flat-button class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
-      (click)="uploadXml.emit()">
+      (click)="customAction.emit()">
       <mat-icon>add</mat-icon>
       Nuevo
     </button>
+
+    <mat-icon (click)="closeMOdal.emit()" matTooltip="Salir del registro" class="cursor-pointer" *ngIf="modal">close</mat-icon>
   </div>
 </header>
