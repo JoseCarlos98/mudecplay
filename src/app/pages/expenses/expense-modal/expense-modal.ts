@@ -12,7 +12,25 @@ import { ModuleHeader } from '../../../shared/module-header/module-header';
 export class ExpenseModal {
 readonly data = inject(MAT_DIALOG_DATA);
 
-
+  onHeaderAction(action: string) {
+  switch (action) {
+    case 'new':
+      break;
+    case 'upload':
+      // subir XML
+      break;
+    case 'refresh':
+      break;
+    case 'filter':
+      // abrir filtro
+      console.log('filter');
+      
+      break;
+    case 'close':
+      // cerrar modal o navegar atrás
+      break;
+  }
+}
   cerrarModal(event?:any) {
     console.log(event);
     console.log(this.data);

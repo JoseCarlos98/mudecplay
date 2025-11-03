@@ -1,8 +1,13 @@
 <div class="card-content shadow-md">
-  <app-module-header (customAction)="expenseModal($event)" title="Gastos" icon="attach_money" [showNew]="true" [showUploadXml]="true" [extraButtons]="[
-    { icon: 'refresh', label: 'Actualizar', action: 'refresh' },
-    { icon: 'filter_list', label: 'Filtrar', action: 'filter' }
-  ]"></app-module-header>
+  <app-module-header 
+    title="Gastos" 
+    [config]="{
+      showNew: true,
+      showUploadXml: true
+    }" 
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
 
   <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
     <div class="c-input">

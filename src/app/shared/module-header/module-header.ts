@@ -1,37 +1,53 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MatIcon } from '@angular/material/icon';
-import { MatTooltip } from '@angular/material/tooltip';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+
+// 🔹 Acciones disponibles en el header
+export type ModuleHeaderAction =
+  | 'new'
+  | 'upload'
+  | 'download'
+  | 'close'
+  | 'custom';
+
+// 🔹 Botón adicional configurable
+export interface ExtraButton {
+  icon: string;
+  label: string;
+  action: string;
+}
+
+// 🔹 Config general del header
+export interface ModuleHeaderConfig {
+  modal?: boolean;
+  showNew?: boolean;
+  showUploadXml?: boolean;
+  showDownload?: boolean;
+}
 
 @Component({
   selector: 'app-module-header',
-  imports: [CommonModule, MatIcon, MatTooltip],
+  standalone: true,
+  imports: [CommonModule, MatIconModule, MatTooltipModule],
   templateUrl: './module-header.html',
   styleUrl: './module-header.scss',
 })
 export class ModuleHeader {
-  @Input() title: string = '';
-  @Input() icon: string = 'dashboard';
-  @Input() modal: boolean = false;
-  @Input() showNew: boolean = false;
-  @Input() showUploadXml: boolean = false;
-  @Input() extraButtons: { icon: string; label: string; action: string }[] = [];
+  /** Título mostrado en el header */
+  @Input() title = '';
 
-  @Output() download = new EventEmitter<void>();
-  @Output() uploadXml = new EventEmitter<void>();
-  @Output() customAction = new EventEmitter<string>();
-  @Output() closeMOdal = new EventEmitter<string>();
+  /** Configuración visual y funcional */
+  @Input() config: ModuleHeaderConfig = {};
 
-  onDescargar() {
-    console.log('Descargando...');
+  /** Botones adicionales personalizados */
+  @Input() extraButtons: ExtraButton[] = [];
+
+  /** Evento único para todas las acciones del header */
+  @Output() action = new EventEmitter<ModuleHeaderAction | string>();
+
+  /** Emite acción estándar */
+  emit(action: ModuleHeaderAction | string): void {
+    this.action.emit(action);
   }
-
-  onCargarXml() {
-    console.log('Subiendo XML...');
-  }
-
-  onHeaderAction(action: string) {
-    console.log('Acción:', action);
-  }
-
 }

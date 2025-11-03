@@ -1,6 +1,5 @@
-  <app-module-header (closeMOdal)="cerrarModal($event)" [modal]="true" title="Registrar gasto" icon="attach_money"  [extraButtons]="[
-    { icon: 'refresh', label: 'Actualizar', action: 'refresh' },
-    { icon: 'filter_list', label: 'Filtrar', action: 'filter' }
-  ]"></app-module-header>
-
-  <!-- <button  matButton mat-dialog-close cdkFocusInitial (click)="cerrarModal()">ds</button> -->
+<app-module-header 
+  title="Registrar gasto" 
+  [config]="{ modal: true}"
+  (action)="onHeaderAction($event)">
+</app-module-header>

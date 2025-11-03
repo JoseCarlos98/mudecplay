@@ -55,8 +55,24 @@ export class Expenses implements OnInit {
     });
   }
 
+
+  onHeaderAction(action: string) {
+    switch (action) {
+      case 'new':
+        this.expenseModal(null);
+        console.log('new');
+        break;
+      case 'upload':
+        console.log('upload');
+        // subir XML
+        break;
+    }
+  }
+
+
   onEdit(user: any) {
     console.log('Editar', user);
+    this.expenseModal(user);
   }
 
   onDelete(user: any) {
@@ -66,7 +82,7 @@ export class Expenses implements OnInit {
   expenseModal(data: any) {
     this.dialog.open(ExpenseModal, {
       data: {
-        data,
+        data
       },
       width: '80vw',
       maxWidth: '700px',

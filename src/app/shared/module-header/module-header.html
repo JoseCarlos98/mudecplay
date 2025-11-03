@@ -1,23 +1,48 @@
 <header class="c-module-header">
   <div>
-    <h2 class="color-secundary" [ngClass]="{'c-modal': modal}">
+    <h2 class="color-secundary" [ngClass]="{ 'c-modal': config.modal }">
       {{ title }}
     </h2>
   </div>
 
   <div class="section-btns-module-header">
-    <button *ngIf="showUploadXml" mat-stroked-button
-      class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all" (click)="download.emit()">
+    @if (config.showUploadXml) {
+    <button mat-stroked-button class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+      (click)="emit('upload')">
       <mat-icon>file_upload</mat-icon>
       Cargar XML
     </button>
+    }
 
-    <button *ngIf="showNew" mat-flat-button class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
-      (click)="customAction.emit()">
+    @if (config.showNew) {
+    <button mat-flat-button class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
+      (click)="emit('new')">
       <mat-icon>add</mat-icon>
       Nuevo
     </button>
+    }
 
-    <mat-icon (click)="closeMOdal.emit()" matTooltip="Salir del registro" class="cursor-pointer" *ngIf="modal">close</mat-icon>
+    @if (config.showDownload) {
+    <button mat-stroked-button class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+      (click)="emit('download')">
+      <mat-icon>download</mat-icon>
+      Descargar
+    </button>
+    }
+
+    @for (btn of extraButtons; track btn.action) {
+    <button mat-stroked-button class="radius border-gray-400 text-gray-600 hover:bg-gray-100 transition-all"
+      (click)="emit(btn.action)">
+      <mat-icon>{{ btn.icon }}</mat-icon>
+      {{ btn.label }}
+    </button>
+    }
+
+    @if (config.modal) {
+    <mat-icon class="cursor-pointer" matTooltip="Salir del registro" (click)="emit('close')">
+      close
+    </mat-icon>
+    }
+
   </div>
 </header>
