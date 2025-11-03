@@ -40,13 +40,14 @@
   }
 }
 
-.c-modal {
+.modal-text-format {
   font-size: 25px !important;
   letter-spacing: 0 !important;
   font-weight: 600 !important;
   border-left: unset !important;
   color: var(--color-third)!important;
 }
+
 
 @media screen and (max-width: 500px) {
   .c-module-header {

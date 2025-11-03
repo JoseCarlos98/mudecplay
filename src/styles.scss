@@ -43,7 +43,7 @@ body {
 }
 
 .color-third {
-    color: #878787 
+  color: #878787
 }
 
 .radius-10 {
@@ -122,6 +122,50 @@ body {
 .btn-primary:hover {
   background: #167195 !important;
 }
+
+.c-modal {}
+
+.c-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 15px ;
+
+  button {
+    display: flex;
+    align-items: center;
+    padding: 3px 10px;
+    font-size: 15px;
+    border-radius: 7px;
+    gap: 5px;
+    transition: all 0.25s ease;
+    cursor: pointer;
+  }
+
+  .btn-cancel {
+    color: #4b5563 !important;
+    border-color: #9ca3af !important;
+
+    &:hover {
+      background-color: rgba(156, 163, 175, 0.1);
+    }
+  }
+
+  .btn-primary {
+    background-color: #1e86b1 !important;
+    color: white !important;
+
+    &:hover {
+      background-color: #167195 !important;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: unset;
+    }
+  }
+}
+
 
 
 @media screen and (max-width: 875px) {

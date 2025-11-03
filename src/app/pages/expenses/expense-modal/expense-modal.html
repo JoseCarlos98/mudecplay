@@ -1,2 +1,69 @@
-<app-module-header title="Gastos" [config]="headerConfig" (action)="onHeaderAction($event)">
-</app-module-header>
+<div class="c-modal">
+    <app-module-header title="Registrar gasto" [config]="headerConfig" (action)="closeModal()">
+    </app-module-header>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="c-form">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- Concepto -->
+            <div class="c-input">
+                <p class="label">Concepto <span class="required">*</span></p>
+                <mat-form-field appearance="outline" class="w-100">
+                    <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
+                    @if (form.get('concept')?.touched && form.get('concept')?.invalid) {
+                    <mat-error>El concepto es obligatorio.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <!-- Fecha -->
+            <div class="c-input">
+                <p class="label">Fecha <span class="required">*</span></p>
+                <mat-form-field appearance="outline" class="w-100">
+                    <input matInput type="date" formControlName="date" />
+                    @if (form.get('date')?.touched && form.get('date')?.invalid) {
+                    <mat-error>Selecciona una fecha.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <!-- Monto -->
+            <div class="c-input">
+                <p class="label">Monto <span class="required">*</span></p>
+                <mat-form-field appearance="outline" class="w-100">
+                    <input matInput type="number" step="0.01" formControlName="amount" placeholder="Ej. 1250.50" />
+                    @if (form.get('amount')?.touched && form.get('amount')?.invalid) {
+                    <mat-error>El monto es obligatorio.</mat-error>
+                    }
+                </mat-form-field>
+            </div>
+
+            <!-- Proveedor (autocomplete después) -->
+            <div class="c-input">
+                <p class="label">Proveedor</p>
+                <mat-form-field appearance="outline" class="w-100">
+                    <input matInput placeholder="Seleccionar proveedor" formControlName="supplier_id" />
+                </mat-form-field>
+            </div>
+
+            <!-- Proyecto (autocomplete después) -->
+            <div class="c-input">
+                <p class="label">Proyecto</p>
+                <mat-form-field appearance="outline" class="w-100">
+                    <input matInput placeholder="Seleccionar proyecto" formControlName="project_id" />
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="c-modal-actions">
+            <button mat-stroked-button type="button" (click)="closeModal()" class="btn-cancel">
+                Cancelar
+            </button>
+
+            <button mat-flat-button type="submit" class="btn-primary" [disabled]="form.invalid">
+                Guardar
+            </button>
+        </div>
+    </form>
+</div>

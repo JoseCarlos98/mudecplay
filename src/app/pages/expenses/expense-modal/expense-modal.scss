@@ -1,0 +1,52 @@
+.c-modal {
+  background: var(--mat-sys-surface-container-low);
+  border-radius: 1rem;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.c-form {
+  margin-top: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.c-input {
+  display: flex;
+  flex-direction: column;
+
+  .label {
+    font-weight: 500;
+    color: #374151; // gris oscuro
+    margin-bottom: 4px;
+
+    .required {
+      color: #e53935; // rojo suave
+    }
+  }
+
+  mat-form-field {
+    font-size: 15px;
+  }
+}
+
+.btn-cancelar {
+  color: #4b5563 !important;
+  border-color: #9ca3af !important;
+
+  &:hover {
+    background-color: rgba(156, 163, 175, 0.1);
+  }
+}
+
+.btn-guardar {
+  background-color: #1e86b1 !important;
+
+  &:hover {
+    background-color: #167195 !important;
+  }
+}
