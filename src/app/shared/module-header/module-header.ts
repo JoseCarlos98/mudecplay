@@ -38,7 +38,7 @@ export class ModuleHeader {
   @Input() title = '';
 
   /** Configuración visual y funcional */
-  @Input() config: ModuleHeaderConfig = {};
+  @Input() config: ModuleHeaderConfig = { };
 
   /** Botones adicionales personalizados */
   @Input() extraButtons: ExtraButton[] = [];

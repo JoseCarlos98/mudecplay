@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ModuleHeader } from "../../shared/module-header/module-header";
+import { ModuleHeader, ModuleHeaderConfig } from "../../shared/module-header/module-header";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +30,10 @@ const DISPLAYED_COLUMNS: string[] = [
   'actions',
 ];
 
+const HEADER_CONFIG: ModuleHeaderConfig = {
+  showNew: true,
+  showUploadXml: true
+};
 
 @Component({
   selector: 'app-expenses',
@@ -43,10 +47,10 @@ export class Expenses implements OnInit {
 
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
+  readonly headerConfig = HEADER_CONFIG;
 
   filters: FiltersExpenses = { page: 1, limit: 10 };
-  expensesTableData: PaginatedResponse<ExpenseResponseDtoMapper> | any = null;
-
+  expensesTableData!: PaginatedResponse<ExpenseResponseDtoMapper>;
 
   ngOnInit(): void {
     this.getExpensesForTable();

@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ModuleHeader } from '../../../shared/module-header/module-header';
+import { ModuleHeader, ModuleHeaderConfig } from '../../../shared/module-header/module-header';
+
+const HEADER_CONFIG: ModuleHeaderConfig = {
+  modal: true
+};
 
 @Component({
   selector: 'app-expense-modal',
@@ -12,6 +16,8 @@ import { ModuleHeader } from '../../../shared/module-header/module-header';
 export class ExpenseModal implements AfterViewInit {
   private readonly data = inject(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
+
+  readonly headerConfig = HEADER_CONFIG;
 
   ngAfterViewInit(): void {
     console.log('Data', this.data);
