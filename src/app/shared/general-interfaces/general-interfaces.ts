@@ -6,3 +6,8 @@ export interface PaginatedResponse<T> {
     limit: number;
   };
 }
+
+export interface ColumnsConfig {
+  key: string;
+  label: string;
+}

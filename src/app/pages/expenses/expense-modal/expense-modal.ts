@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogClose } from '@angular/material/dialog';
+import { AfterViewInit, Component, inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ModuleHeader } from '../../../shared/module-header/module-header';
 
 @Component({
@@ -9,32 +9,24 @@ import { ModuleHeader } from '../../../shared/module-header/module-header';
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',
 })
-export class ExpenseModal {
-readonly data = inject(MAT_DIALOG_DATA);
+export class ExpenseModal implements AfterViewInit {
+  private readonly data = inject(MAT_DIALOG_DATA);
+  private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
+
+  ngAfterViewInit(): void {
+    console.log('Data', this.data);
+  }
 
   onHeaderAction(action: string) {
-  switch (action) {
-    case 'new':
-      break;
-    case 'upload':
-      // subir XML
-      break;
-    case 'refresh':
-      break;
-    case 'filter':
-      // abrir filtro
-      console.log('filter');
-      
-      break;
-    case 'close':
-      // cerrar modal o navegar atrás
-      break;
+    switch (action) {
+      case 'close':
+        this.cerrarModal();
+        break;
+    }
   }
-}
-  cerrarModal(event?:any) {
-    console.log(event);
-    console.log(this.data);
-    
-    this.data.dialogRef.close();
+
+
+  cerrarModal() {
+    this.dialogRef.close();
   }
 }

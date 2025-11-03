@@ -45,14 +45,14 @@
       <mat-icon>search</mat-icon>
     </button>
   </div>
-
-  
 </div>
 
-<app-data-table *ngIf="expensesTableData?.data?.length"
+@if (expensesTableData?.data?.length) {
+  <app-data-table
   [data]="expensesTableData.data" 
   [columnsConfig]="columnsConfig" 
   [displayedColumns]="displayedColumns"
   (edit)="onEdit($event)"
   (delete)="onDelete($event)">
-</app-data-table>
+  </app-data-table>
+}
