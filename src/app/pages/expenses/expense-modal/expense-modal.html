@@ -1,5 +1,5 @@
 <div class="c-modal">
-    <app-module-header title="Registrar gasto" [config]="headerConfig" (action)="closeModal()">
+    <app-module-header title="Registrar Gasto" [config]="headerConfig" (action)="closeModal()">
     </app-module-header>
 
     <form [formGroup]="form" (ngSubmit)="save()" id="form" class="c-form">
@@ -46,24 +46,54 @@
             </div>
 
             <!-- Proveedor (autocomplete después) -->
+            <!-- Proveedor -->
             <div class="md:col-span-1">
                 <div class="c-input">
                     <p class="label">Proveedor</p>
                     <mat-form-field appearance="outline" class="w-100">
-                        <input matInput placeholder="Seleccionar proveedor" formControlName="supplier_id" />
+                        <input matInput type="text" placeholder="Seleccionar proveedor" formControlName="supplier_id"
+                            [matAutocomplete]="autoSupplier" />
+
+                        <mat-autocomplete #autoSupplier="matAutocomplete" [displayWith]="displayCatalog">
+                            @for (supplier of filteredSuppliers$ | async; track supplier.id) {
+                            <mat-option [value]="supplier.id">
+                                {{ supplier.name }}
+                            </mat-option>
+                            }
+                        </mat-autocomplete>
                     </mat-form-field>
                 </div>
             </div>
 
-            <!-- Proyecto (autocomplete después) -->
+            <!-- Proyecto -->
             <div class="md:col-span-1">
+                <div class="c-input">
+                    <p class="label">Proyecto</p>
+                    <mat-form-field appearance="outline" class="w-100">
+                        <input matInput type="text" placeholder="Seleccionar proyecto" formControlName="project_id"
+                            [matAutocomplete]="autoProject" />
+
+                        <mat-autocomplete #autoProject="matAutocomplete" [displayWith]="displayCatalog">
+                            @for (project of filteredProjects$ | async; track project.id) {
+                            <mat-option [value]="project.id">
+                                {{ project.name }}
+                            </mat-option>
+                            }
+                        </mat-autocomplete>
+                    </mat-form-field>
+                </div>
+            </div>
+
+
+            <!-- Proyecto (autocomplete después) -->
+            <!-- <div class="md:col-span-1">
                 <div class="c-input">
                     <p class="label">Proyecto</p>
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput placeholder="Seleccionar proyecto" formControlName="project_id" />
                     </mat-form-field>
                 </div>
-            </div>
+            </div> -->
         </div>
     </form>
 

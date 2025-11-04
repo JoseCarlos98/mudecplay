@@ -11,3 +11,8 @@ export interface ColumnsConfig {
   key: string;
   label: string;
 }
+
+export interface Catalog {
+  id: string;
+  name: string;
+}
