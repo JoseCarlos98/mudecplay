@@ -75,7 +75,7 @@ body {
 }
 
 .not-cursor-pointer {
-  cursor: unset!important;
+  cursor: unset !important;
 }
 
 .w-100 {
@@ -131,7 +131,7 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 15px ;
+  margin-top: 15px;
 
   button {
     display: flex;
@@ -168,7 +168,34 @@ body {
   }
 }
 
+.c-autocomplete {
+  position: relative;
 
+  .field-error {
+    position: absolute;
+    bottom: -21px;
+    color: #f44336;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    margin: 3px 0 0 0;
+    padding-left: 0.25rem;
+    display: block;
+    animation: fieldErrorIn 250ms ease-out;
+    padding: 0 16px;
+  }
+
+  @keyframes fieldErrorIn {
+    from {
+      opacity: 0;
+      transform: translateY(-2px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
 
 @media screen and (max-width: 875px) {
   .c-sidebar {

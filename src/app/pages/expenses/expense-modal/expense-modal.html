@@ -47,13 +47,15 @@
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete label="Proveedor" placeholder="Seleccionar proveedor" catalogType="supplier"
-                    [remote]="true" (optionSelected)="form.patchValue({ supplier_id: $event.id })">
-                </app-autocomplete>
+                <div class="c-autocomplete">
+                    <app-autocomplete label="Proveedor" placeholder="Seleccionar proveedor" catalogType="supplier"
+                        [remote]="true" (optionSelected)="form.patchValue({ supplier_id: $event.id })">
+                    </app-autocomplete>
 
-                <!-- @if (form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) {
-                <mat-error>El proveedor es obligatorio.</mat-error>
-                } -->
+                    @if (form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) {
+                    <p class="field-error">El proveedor es obligatorio.</p>
+                    }
+                </div>
             </div>
 
             <!-- Proyecto -->
