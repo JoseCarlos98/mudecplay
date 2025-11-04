@@ -27,7 +27,7 @@ export class DialogService {
   ) {
     const finalConfig: MatDialogConfig = {
       ...this.sizes[size],
-      minHeight: '50vh',
+      minHeight: '40vh',
       disableClose: true,
       data,
       ...config,

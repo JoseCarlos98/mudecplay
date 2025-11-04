@@ -74,6 +74,10 @@ body {
   cursor: pointer;
 }
 
+.not-cursor-pointer {
+  cursor: unset!important;
+}
+
 .w-100 {
   width: 100% !important;
 }
@@ -93,9 +97,7 @@ body {
 }
 
 .c-filters {
-  // border-top: 2px solid rgba(39, 170, 225, 0.2);
   padding-top: 15px;
-  // margin-top: 5px;
   gap: 15px;
 
   .btn-primary {
@@ -134,12 +136,12 @@ body {
   button {
     display: flex;
     align-items: center;
-    padding: 3px 10px;
+    padding: 3px 15px;
     font-size: 15px;
     border-radius: 7px;
     gap: 5px;
     transition: all 0.25s ease;
-    cursor: pointer;
+    // cursor: pointer;
   }
 
   .btn-cancel {
