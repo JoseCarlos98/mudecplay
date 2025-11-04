@@ -1,0 +1,17 @@
+<div class="c-input">
+  <p class="label">{{ label }}</p>
+  <mat-form-field appearance="outline" class="w-100">
+    <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef" (input)="onInputChange($event.target.value)"
+      [value]="innerValue" />
+
+    <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
+      @for (item of filtered$ | async; track item.id) {
+      <mat-option (onSelectionChange)="onOptionSelected(item)">
+        {{ item.name }}
+      </mat-option>
+      }
+    </mat-autocomplete>
+
+    
+  </mat-form-field>
+</div>

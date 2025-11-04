@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ModuleHeader, ModuleHeaderConfig } from "../../shared/module-header/module-header";
+import { ModuleHeader, ModuleHeaderConfig } from "../../shared/ui/module-header/module-header";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -7,14 +7,14 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { DataTable } from '../../shared/data-table/data-table';
+import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
-import { ColumnsConfig, PaginatedResponse } from '../../shared/general-interfaces/general-interfaces';
+import { ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import { ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
-import { DialogService } from '../../shared/general-services/dialog.service';
+import { DialogService } from '../../shared/services/dialog.service';
 
 // 👇 Definimos las columnas fuera de la clase, como constantes inmutables
 const COLUMNS_CONFIG: ColumnsConfig[] = [

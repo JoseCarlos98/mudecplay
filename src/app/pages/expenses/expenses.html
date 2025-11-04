@@ -44,7 +44,7 @@
   </div>
 </div>
 
-@if (expensesTableData?.data?.length) {
+@if (expensesTableData?.data) {
   <app-data-table
   [data]="expensesTableData.data" 
   [columnsConfig]="columnsConfig" 

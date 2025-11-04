@@ -45,30 +45,21 @@
                 </div>
             </div>
 
-            <!-- Proveedor (autocomplete después) -->
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <div class="c-input">
-                    <p class="label">Proveedor</p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput type="text" placeholder="Seleccionar proveedor" formControlName="supplier_id"
-                            [matAutocomplete]="autoSupplier" />
+                <app-autocomplete label="Proveedor" placeholder="Seleccionar proveedor" catalogType="supplier"
+                    [remote]="true" (optionSelected)="form.patchValue({ supplier_id: $event.id })">
+                </app-autocomplete>
 
-                        <mat-autocomplete #autoSupplier="matAutocomplete" [displayWith]="displayCatalog">
-                            @for (supplier of filteredSuppliers$ | async; track supplier.id) {
-                            <mat-option [value]="supplier.id">
-                                {{ supplier.name }}
-                            </mat-option>
-                            }
-                        </mat-autocomplete>
-                    </mat-form-field>
-                </div>
+                <!-- @if (form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) {
+                <mat-error>El proveedor es obligatorio.</mat-error>
+                } -->
             </div>
 
             <!-- Proyecto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <p class="label">Proyecto</p>
+                    <!-- <p class="label">Proyecto</p>
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput type="text" placeholder="Seleccionar proyecto" formControlName="project_id"
                             [matAutocomplete]="autoProject" />
@@ -80,7 +71,7 @@
                             </mat-option>
                             }
                         </mat-autocomplete>
-                    </mat-form-field>
+                    </mat-form-field> -->
                 </div>
             </div>
 

@@ -1,4 +1,4 @@
-import { PaginatedResponse } from '../../../shared/general-interfaces/general-interfaces';
+import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import * as entity from '../interfaces/expense-interfaces';
 export class Mapper {
     static mapToExpenseList(response: PaginatedResponse<entity.ExpenseResponseDto>, formatsService?: any): PaginatedResponse<entity.ExpenseResponseDtoMapper> {
