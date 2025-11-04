@@ -3,17 +3,21 @@
     </app-module-header>
 
     <form [formGroup]="form" (ngSubmit)="save()" class="c-form">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <!-- <div class="grid grid-cols-1 md:grid-cols-3 gap-5"> -->
+        <div class="grid md:grid-cols-2 sm:grid-cols-1 gap-5">
 
             <!-- Concepto -->
-            <div class="c-input">
-                <p class="label">Concepto <span class="required">*</span></p>
-                <mat-form-field appearance="outline" class="w-100">
-                    <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
-                    @if (form.get('concept')?.touched && form.get('concept')?.invalid) {
-                    <mat-error>El concepto es obligatorio.</mat-error>
-                    }
-                </mat-form-field>
+            <div class="col-span-1 md:col-span-2 ">
+
+                <div class="c-input">
+                    <p class="label">Concepto <span class="required">*</span></p>
+                    <mat-form-field appearance="outline" class="w-100">
+                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
+                        @if (form.get('concept')?.touched && form.get('concept')?.invalid) {
+                        <mat-error>El concepto es obligatorio.</mat-error>
+                        }
+                    </mat-form-field>
+                </div>
             </div>
 
             <!-- Fecha -->
