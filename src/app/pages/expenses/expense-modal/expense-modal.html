@@ -48,8 +48,11 @@
             <!-- Proveedor -->
             <div class="md:col-span-1">
                 <div class="c-autocomplete">
-                    <app-autocomplete label="Proveedor" placeholder="Seleccionar proveedor" catalogType="supplier"
-                        [remote]="true" (optionSelected)="form.patchValue({ supplier_id: $event.id })">
+                    <app-autocomplete
+                      formControlName="supplier_id"
+                      label="Proveedor"
+                      remote]="true"
+                      catalogType="supplier">
                     </app-autocomplete>
 
                     @if (form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) {
