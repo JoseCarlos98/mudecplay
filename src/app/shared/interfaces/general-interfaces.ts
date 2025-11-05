@@ -16,3 +16,8 @@ export interface Catalog {
   id: string;
   name: string;
 }
+
+export interface Created {
+  id: number;
+  message : string
+}

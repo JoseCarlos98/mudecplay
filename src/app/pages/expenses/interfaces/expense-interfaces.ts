@@ -6,7 +6,7 @@ export interface FiltersExpenses {
     page: number;
 }
 
-export interface ExpenseResponseDto  {
+export interface ExpenseResponseDto {
     id: number;
     concept: string;
     date: string;
@@ -25,7 +25,7 @@ export interface ExpenseProject {
     name: string;
 }
 
-export interface ExpenseResponseDtoMapper  {
+export interface ExpenseResponseDtoMapper {
     id: number;
     concept: string;
     date: string;
@@ -35,3 +35,10 @@ export interface ExpenseResponseDtoMapper  {
     originData: ExpenseResponseDto;
 }
 
+export interface CreateExpense {
+    concept: string
+    date: string,
+    amount: number,
+    supplier_id?: number | null;
+    project_id?: number | null;
+} 

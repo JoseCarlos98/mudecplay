@@ -1,10 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as entity from '../interfaces/expense-interfaces';
-import { map } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Mapper } from '../mapper/expense-mapper';
-import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { Created, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -31,4 +31,14 @@ export class ExpenseService {
       })
     )
   }
+
+
+  create(formData: entity.CreateExpense): Observable<Created> {
+    const url = `${this.apiUrl}`;
+
+    return this.http.post<Created>(url, formData)
+  }
+
+
+
 }

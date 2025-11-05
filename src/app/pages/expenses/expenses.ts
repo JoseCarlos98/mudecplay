@@ -84,7 +84,7 @@ export class Expenses implements OnInit {
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {
-    this.dialogService.open(ExpenseModal, expense ? { expense } : null, 'medium')
+    this.dialogService.open(ExpenseModal, expense ? expense.originData  : null, 'medium')
       .afterClosed().subscribe((result) => {
         if (result) this.getExpensesForTable();
       });;

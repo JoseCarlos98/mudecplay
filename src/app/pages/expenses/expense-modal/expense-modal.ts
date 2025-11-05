@@ -1,16 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ModuleHeader, ModuleHeaderConfig } from '../../../shared/ui/module-header/module-header';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { CatalogsService } from '../../../shared/services/catalogs.service';
 import { Autocomplete } from '../../../shared/autocomplete/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { toApiDate } from '../../../shared/helpers/date-utils';
+import { ExpenseService } from '../services/expense.service';
+import { ExpenseResponseDto } from '../interfaces/expense-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -25,64 +26,63 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './expense-modal.scss',
   providers: [provideNativeDateAdapter()],
 })
-export class ExpenseModal implements AfterViewInit, OnInit {
-  private readonly data = inject(MAT_DIALOG_DATA);
+export class ExpenseModal implements OnInit {
+  private readonly expenseService = inject(ExpenseService);
+  private readonly data = inject<ExpenseResponseDto>(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
   private readonly fb = inject(FormBuilder);
-  private readonly catalogsService = inject(CatalogsService);
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
     concept: ['', Validators.required],
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
-    supplier_id: ['', Validators.required],
-    project_id: ['', Validators.required]
+    supplier_id: [null],
+    project_id: [1]
   })
 
   ngOnInit(): void {
-    if (this.data?.expense) {
+    console.log(this.data);
+    this.patchEditData()
+  }
+
+  patchEditData() {
+    if (this.data?.id) {
       this.form.patchValue({
-        concept: this.data.expense.concept,
-        date: this.data.expense.date,
-        amount: this.data.expense.amount,
-        supplier_id: this.data.expense.supplier?.id ?? '',
-        project_id: this.data.expense.project?.id ?? ''
+        concept: this.data.concept,
+        date: this.data.date,
+        amount: this.data.amount,
+        supplier_id: this.data.supplier?.id ?? '',
+        project_id: this.data.project?.id ?? ''
       });
     }
   }
 
-  ngAfterViewInit(): void {
-    console.log('Data', this.data);
-  }
-
   save() {
     if (this.form.invalid) {
-      this.form.markAsTouched()
       this.form.markAllAsTouched();
       return;
     }
 
     const raw = this.form.value;
 
-    const payload = {
+    const formData = {
       ...raw,
-      date: toApiDate(raw.date), 
+      date: toApiDate(raw.date),
+      project_id : 1
     };
 
-    console.log('Payload listo para enviar a backend:', payload);
+    console.log('formData listo para enviar a backend:', formData);
+
+    this.expenseService.create(formData).subscribe({
+      next: (response) => (
+        this.closeModal(true)
+      ),
+      error: (err) => console.error('Error al cargar gastos:', err)
+    });
   }
 
-  closeModal() {
-    this.dialogRef.close();
-    this.form.patchValue(
-      {
-        "concept": "daeqw",
-        "date": "2025-11-20",
-        "amount": 282,
-        "supplier_id": 1,
-        "project_id": "df"
-      }
-    )
+  closeModal(saved?: boolean) {
+    this.dialogRef.close(!!saved);
   }
 }

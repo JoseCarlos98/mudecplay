@@ -50,9 +50,11 @@
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
-                    [showError]="(form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) ?? false"
-                    errorMessage="El proveedor es obligatorio.">
+                <app-autocomplete 
+                    formControlName="supplier_id" 
+                    label="Proveedor" 
+                    [remote]="true" 
+                    catalogType="supplier">
                 </app-autocomplete>
 
             </div>
@@ -60,13 +62,16 @@
             <!-- Proyecto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
-                        catalogType="project"
-                        [showError]="(form.get('project_id')?.touched && form.get('project_id')?.invalid) ?? false"
-                        errorMessage="El proyecto es obligatorio.">
+                    <app-autocomplete 
+                        formControlName="project_id" 
+                        label="Proyecto" 
+                        [remote]="true"
+                        catalogType="project">
                     </app-autocomplete>
                 </div>
             </div>
+            <!-- [showError]="(form.get('project_id')?.touched && form.get('project_id')?.invalid) ?? false"
+            errorMessage="El proyecto es obligatorio." -->
 
 
             <!-- Proyecto (autocomplete después) -->
