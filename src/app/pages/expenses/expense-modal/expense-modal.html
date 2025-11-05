@@ -47,13 +47,9 @@
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete
-                formControlName="supplier_id"
-                label="Proveedor"
-                [remote]="true"
-                catalogType="supplier"
-                [showError]="(form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) ?? false"
-                errorMessage="El proveedor es obligatorio pito.">
+                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
+                    [showError]="(form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) ?? false"
+                    errorMessage="El proveedor es obligatorio.">
                 </app-autocomplete>
 
             </div>
@@ -61,19 +57,11 @@
             <!-- Proyecto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <!-- <p class="label">Proyecto</p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput type="text" placeholder="Seleccionar proyecto" formControlName="project_id"
-                            [matAutocomplete]="autoProject" />
-
-                        <mat-autocomplete #autoProject="matAutocomplete" [displayWith]="displayCatalog">
-                            @for (project of filteredProjects$ | async; track project.id) {
-                            <mat-option [value]="project.id">
-                                {{ project.name }}
-                            </mat-option>
-                            }
-                        </mat-autocomplete>
-                    </mat-form-field> -->
+                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                        catalogType="project"
+                        [showError]="(form.get('project_id')?.touched && form.get('project_id')?.invalid) ?? false"
+                        errorMessage="El proyecto es obligatorio.">
+                    </app-autocomplete>
                 </div>
             </div>
 

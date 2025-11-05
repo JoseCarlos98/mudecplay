@@ -6,6 +6,8 @@
       <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef"
         (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="displayValue" />
 
+      <mat-icon matSuffix class="color-primary">search</mat-icon>
+
       <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
         @for (item of filtered$ | async; track item.id) {
         <mat-option (onSelectionChange)="onOptionSelected(item)">

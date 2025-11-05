@@ -37,7 +37,7 @@ export class ExpenseModal implements AfterViewInit, OnInit {
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     supplier_id: ['', Validators.required],
-    project_id: [''],
+    project_id: ['', Validators.required],
   })
 
   ngOnInit(): void {

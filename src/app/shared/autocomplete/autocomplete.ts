@@ -25,6 +25,7 @@ import {
 } from 'rxjs';
 import { Catalog } from '../interfaces/general-interfaces';
 import { CatalogsService } from '../services/catalogs.service';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'app-autocomplete',
@@ -35,6 +36,7 @@ import { CatalogsService } from '../services/catalogs.service';
     MatInputModule,
     MatAutocompleteModule,
     MatOptionModule,
+    MatIcon
   ],
   templateUrl: './autocomplete.html',
   styleUrl: './autocomplete.scss',
