@@ -6,12 +6,11 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core';
-import { Catalog } from '../../../shared/interfaces/general-interfaces';
-import { debounceTime, distinctUntilChanged, map, Observable, of, startWith, switchMap, tap } from 'rxjs';
 import { CatalogsService } from '../../../shared/services/catalogs.service';
 import { Autocomplete } from '../../../shared/autocomplete/autocomplete';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { toApiDate } from '../../../shared/helpers/date-utils';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -19,17 +18,18 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 @Component({
   selector: 'app-expense-modal',
-  imports: [CommonModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-  Autocomplete
+  imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
+    Autocomplete
   ],
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',
+  providers: [provideNativeDateAdapter()],
 })
 export class ExpenseModal implements AfterViewInit, OnInit {
   private readonly data = inject(MAT_DIALOG_DATA);
   private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
-  private readonly fb = inject(FormBuilder)
-  private readonly catalogsService = inject(CatalogsService)
+  private readonly fb = inject(FormBuilder);
+  private readonly catalogsService = inject(CatalogsService);
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
@@ -37,7 +37,7 @@ export class ExpenseModal implements AfterViewInit, OnInit {
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     supplier_id: ['', Validators.required],
-    project_id: ['', Validators.required],
+    project_id: ['', Validators.required]
   })
 
   ngOnInit(): void {
@@ -47,14 +47,13 @@ export class ExpenseModal implements AfterViewInit, OnInit {
         date: this.data.expense.date,
         amount: this.data.expense.amount,
         supplier_id: this.data.expense.supplier?.id ?? '',
-        project_id: this.data.expense.project?.id ?? '',
+        project_id: this.data.expense.project?.id ?? ''
       });
     }
   }
 
   ngAfterViewInit(): void {
     console.log('Data', this.data);
-    // this.initSuppliersAutocomplete();
   }
 
   save() {
@@ -64,11 +63,26 @@ export class ExpenseModal implements AfterViewInit, OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
+    const raw = this.form.value;
+
+    const payload = {
+      ...raw,
+      date: toApiDate(raw.date), 
+    };
+
     console.log('Payload listo para enviar a backend:', payload);
   }
 
   closeModal() {
     this.dialogRef.close();
+    this.form.patchValue(
+      {
+        "concept": "daeqw",
+        "date": "2025-11-20",
+        "amount": 282,
+        "supplier_id": 1,
+        "project_id": "df"
+      }
+    )
   }
 }

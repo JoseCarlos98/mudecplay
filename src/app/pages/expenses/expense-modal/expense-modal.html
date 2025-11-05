@@ -24,8 +24,11 @@
                 <div class="c-input">
                     <p class="label">Fecha <span class="required">*</span></p>
                     <mat-form-field appearance="outline" class="w-100">
-                        <input matInput type="date" formControlName="date" />
-                        @if (form.get('date')?.touched && form.get('date')?.invalid) {
+                        <input formControlName="date" placeholder="Seleccionar fecha" matInput [matDatepicker]="picker">
+                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                        <mat-datepicker #picker></mat-datepicker>
+
+                          @if (form.get('date')?.touched && form.get('date')?.invalid) {
                         <mat-error>Selecciona una fecha.</mat-error>
                         }
                     </mat-form-field>
@@ -80,6 +83,7 @@
 
     <!-- Botones -->
     <div class="c-modal-actions">
+        <!-- <button mat-stroked-button type="button" class="btn-cancel"> -->
         <button mat-stroked-button type="button" (click)="closeModal()" class="btn-cancel">
             Cancelar
         </button>

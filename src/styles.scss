@@ -190,6 +190,34 @@ body {
   display: block;
 }
 
+.c-form {
+  margin-top: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 15px 15px 0 15px;
+
+  .c-input {
+    display: flex;
+    flex-direction: column;
+
+    .label {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+
+      .required {
+        color: #e53935;
+      }
+    }
+
+    mat-form-field {
+      font-size: 15px;
+    }
+  }
+
+}
 
 @media screen and (max-width: 875px) {
   .c-sidebar {
