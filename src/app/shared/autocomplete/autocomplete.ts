@@ -53,10 +53,10 @@ export class Autocomplete implements ControlValueAccessor {
   private readonly catalogsService = inject(CatalogsService);
 
   // ====== Inputs de configuración de UI ======
-  @Input() label = 'Seleccionar';                       
-  @Input() placeholder = 'Buscar...';                  
-  @Input() remote = false;                              
-  @Input() catalogType: 'supplier' | 'project' = 'supplier'; 
+  @Input() label = 'Seleccionar';
+  @Input() placeholder = 'Buscar...';
+  @Input() remote = false;
+  @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
   // manejo de error desde el padre (el form vive afuera)
@@ -74,10 +74,12 @@ export class Autocomplete implements ControlValueAccessor {
 
   // valor interno que se muestra en el input
   innerValue: string | Catalog | null = null;
-  valueSelected: string = ''
+
+  displayValue: string = '';
+
   // funciones que nos da Angular para notificar cambios y "tocado"
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   constructor() {
     // armamos el pipeline una sola vez:
@@ -99,8 +101,23 @@ export class Autocomplete implements ControlValueAccessor {
   // ====== Métodos de ControlValueAccessor ======
 
   // el form padre nos manda un valor (ej. modo edición)
-  writeValue(value: any) {
+  writeValue(value: any): void {
     this.innerValue = value;
+
+    // si viene objeto
+    if (value && typeof value !== 'string') {
+      this.displayValue = value.name;
+      return;
+    }
+
+    // si viene un id (string) y tienes data local, intenta resolverlo
+    if (typeof value === 'string' && this.data?.length) {
+      const found = this.data.find(d => d.id === value);
+      this.displayValue = found ? found.name : '';
+    } else {
+      // si no hay data todavía, lo dejamos vacío
+      this.displayValue = '';
+    }
   }
 
   // el form nos dice qué función usar para notificar cambios
@@ -114,28 +131,23 @@ export class Autocomplete implements ControlValueAccessor {
   }
 
   // ====== Eventos del template ======
-
-  // se llama en (input)
   onInputChange(term: string | Catalog) {
-    // normalizamos el valor a texto
     const text = typeof term === 'string' ? term : term?.name ?? '';
 
-    // notificamos al form que el valor cambió (enviamos id o texto)
+    // actualizamos lo que se ve
+    this.displayValue = text;
+
+    // notificamos al form (si es string no sabemos el id todavía)
     this.onChange(typeof term === 'string' ? term : term?.id);
 
-    // y mandamos el texto al subject para que pase por debounce + búsqueda
+    // disparamos búsqueda
     this.input$.next(text);
   }
 
-  // se llama cuando el usuario selecciona una opción del autocomplete
   onOptionSelected(option: Catalog) {
-    // guardamos el id como valor interno
-    this.innerValue = option.id;
-    this.valueSelected = option.name
-
-    // notificamos al form el id elegido
+    this.innerValue = option.id;      // para el form
+    this.displayValue = option.name;  // para el input
     this.onChange(option.id);
-    // lo marcamos como "tocado"
     this.onTouched();
     // y emitimos el objeto completo por si el padre lo necesita
     this.optionSelected.emit(option);
