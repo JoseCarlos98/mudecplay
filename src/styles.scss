@@ -167,6 +167,28 @@ body {
   }
 }
 
+.field-invalid {
+  --mdc-outlined-text-field-caret-color: #f44336;
+  --mdc-outlined-text-field-focus-outline-color: #f44336;
+
+  .mdc-notched-outline__leading,
+  .mdc-notched-outline__notch,
+  .mdc-notched-outline__trailing {
+    border-color: #f44336 !important;
+  }
+
+  .mat-mdc-form-field-icon-suffix {
+    color: #f44336;
+  }
+}
+
+.field-error {
+  color: #f44336;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin-top: 4px;
+  display: block;
+}
 
 
 @media screen and (max-width: 875px) {

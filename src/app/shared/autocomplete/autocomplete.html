@@ -2,7 +2,7 @@
   <div class="c-input">
     <p class="label">{{ label }}</p>
 
-    <mat-form-field appearance="outline" class="w-100">
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': showError }">
       <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef"
         (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="displayValue" />
 
@@ -17,7 +17,7 @@
       </mat-autocomplete>
 
       @if (showError) {
-      <span class="field-error">{{errorMessage}}</span>
+      <span class="field-error">{{ errorMessage }}</span>
       }
     </mat-form-field>
   </div>
