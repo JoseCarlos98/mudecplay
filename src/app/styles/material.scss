@@ -71,7 +71,7 @@
 
 .mat-mdc-paginator-page-size {
     .mat-mdc-select-arrow-wrapper {
-        padding-top: 5px !important;
+        // padding-top: 5px !important;
     }
 }
 
@@ -83,7 +83,11 @@
 
 .mat-mdc-paginator .mat-mdc-select-value {
     font-size: 15px !important;
-    margin-top: 7px !important;
+    margin-top: 0px !important;
+
+    .mat-mdc-paginator-page-size .mat-mdc-select-arrow-wrapper {
+            padding-bottom: 8px !important;
+    }
 }
 
 .mat-mdc-paginator {
@@ -102,10 +106,6 @@
     }
 }
 
-.mat-mdc-paginator-range-actions {
-    padding-top: 8px;
-}
-
 .mat-mdc-select {
     padding-left: 7px;
     padding-top: 3px;
@@ -116,11 +116,11 @@
 .mat-mdc-paginator .mat-mdc-select {
     padding-left: 0px !important;
     width: 45px !important;
+    display: flex;
 }
 
 .mat-mdc-dialog-surface {
     border-radius: 10px !important;
-    // padding: 10px 15px 10px 15px;
     padding: 15px;
 }
 
