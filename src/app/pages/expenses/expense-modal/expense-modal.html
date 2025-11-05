@@ -47,18 +47,15 @@
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <div class="c-autocomplete">
-                    <app-autocomplete
-                      formControlName="supplier_id"
-                      label="Proveedor"
-                      remote]="true"
-                      catalogType="supplier">
-                    </app-autocomplete>
+                <app-autocomplete
+                formControlName="supplier_id"
+                label="Proveedor"
+                [remote]="true"
+                catalogType="supplier"
+                [showError]="(form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) ?? false"
+                errorMessage="El proveedor es obligatorio pito.">
+                </app-autocomplete>
 
-                    @if (form.get('supplier_id')?.touched && form.get('supplier_id')?.invalid) {
-                    <p class="field-error">El proveedor es obligatorio.</p>
-                    }
-                </div>
             </div>
 
             <!-- Proyecto -->

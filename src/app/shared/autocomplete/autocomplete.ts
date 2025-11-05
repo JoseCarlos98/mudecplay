@@ -48,28 +48,28 @@ import { CatalogsService } from '../services/catalogs.service';
 export class Autocomplete implements ControlValueAccessor {
   private readonly catalogsService = inject(CatalogsService);
 
-  // ui
+  // ----- UI -----
   @Input() label = 'Seleccionar';
   @Input() placeholder = 'Buscar...';
   @Input() remote = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
-  // opcional: si el padre quiere el objeto completo
+  // 👇 control de errores desde el padre
+  @Input() showError:any = false;
+  @Input() errorMessage = 'Este campo es obligatorio.';
+
   @Output() optionSelected = new EventEmitter<Catalog>();
 
   filtered$: Observable<Catalog[]> = of([]);
 
-  // lo que muestra el input (puede ser string o el id)
   innerValue: string | Catalog | null = null;
 
-  // funcs que nos pone Angular
+  // CVA
   private onChange: (val: any) => void = () => {};
   private onTouched: () => void = () => {};
 
-  // ===== CVA =====
   writeValue(value: any): void {
-    // cuando el padre setea el valor (editar)
     this.innerValue = value;
   }
 
@@ -80,7 +80,6 @@ export class Autocomplete implements ControlValueAccessor {
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
-  // ===============
 
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
@@ -95,28 +94,20 @@ export class Autocomplete implements ControlValueAccessor {
       this.filtered$ = of(this.filterLocal(text));
     }
 
-    // avisamos al form que cambió (mandamos id o texto)
     this.onChange(typeof term === 'string' ? term : term?.id);
   }
 
-  // usuario selecciona una opción
   onOptionSelected(option: Catalog) {
-    // lo que se ve en el input
     this.innerValue = option.id;
-    // lo que guarda el form
     this.onChange(option.id);
-    // lo marcamos como tocado ✅
     this.onTouched();
-    // extra: el padre puede recibir el objeto
     this.optionSelected.emit(option);
   }
 
-  // si sale del input sin elegir
   onBlur() {
     this.onTouched();
   }
 
-  // para que muestre nombre y no id
   displayWith = (value: string | Catalog): string => {
     if (!value) return '';
     if (typeof value !== 'string') return value.name;
@@ -124,7 +115,6 @@ export class Autocomplete implements ControlValueAccessor {
     return found ? found.name : value;
   };
 
-  // remoto
   fetchRemote(search: string): Observable<Catalog[]> {
     switch (this.catalogType) {
       case 'supplier':
@@ -134,7 +124,6 @@ export class Autocomplete implements ControlValueAccessor {
     }
   }
 
-  // local
   filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();

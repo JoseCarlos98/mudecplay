@@ -1,21 +1,22 @@
-<div class="c-input">
-  <p class="label">{{ label }}</p>
-  <mat-form-field appearance="outline" class="w-100">
-    <input
-      matInput
-      [placeholder]="placeholder"
-      [matAutocomplete]="autoRef"
-      (input)="onInputChange($event.target.value)"
-      (blur)="onBlur()"
-      [value]="innerValue"
-    />
+<div class="c-autocomplete">
+  <div class="c-input">
+    <p class="label">{{ label }}</p>
 
-    <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
-      @for (item of filtered$ | async; track item.id) {
+    <mat-form-field appearance="outline" class="w-100">
+      <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef"
+        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="innerValue" />
+
+      <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
+        @for (item of filtered$ | async; track item.id) {
         <mat-option (onSelectionChange)="onOptionSelected(item)">
           {{ item.name }}
         </mat-option>
+        }
+      </mat-autocomplete>
+
+      @if (showError) {
+      <span class="field-error">{{errorMessage}}</span>
       }
-    </mat-autocomplete>
-  </mat-form-field>
+    </mat-form-field>
+  </div>
 </div>

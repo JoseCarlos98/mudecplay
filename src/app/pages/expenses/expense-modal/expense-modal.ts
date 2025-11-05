@@ -59,6 +59,7 @@ export class ExpenseModal implements AfterViewInit, OnInit {
 
   save() {
     if (this.form.invalid) {
+      this.form.markAsTouched()
       this.form.markAllAsTouched();
       return;
     }
