@@ -74,7 +74,7 @@ export class Autocomplete implements ControlValueAccessor {
 
   // valor interno que se muestra en el input
   innerValue: string | Catalog | null = null;
-
+  valueSelected: string = ''
   // funciones que nos da Angular para notificar cambios y "tocado"
   private onChange: (val: any) => void = () => {};
   private onTouched: () => void = () => {};
@@ -131,6 +131,8 @@ export class Autocomplete implements ControlValueAccessor {
   onOptionSelected(option: Catalog) {
     // guardamos el id como valor interno
     this.innerValue = option.id;
+    this.valueSelected = option.name
+
     // notificamos al form el id elegido
     this.onChange(option.id);
     // lo marcamos como "tocado"

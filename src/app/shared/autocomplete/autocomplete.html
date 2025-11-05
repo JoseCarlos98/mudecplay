@@ -4,7 +4,7 @@
 
     <mat-form-field appearance="outline" class="w-100">
       <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef"
-        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="innerValue" />
+        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="valueSelected" />
 
       <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
         @for (item of filtered$ | async; track item.id) {
