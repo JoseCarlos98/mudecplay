@@ -1,11 +1,18 @@
 .c-autocomplete {
     position: relative;
 
-    .c-input p {
-        color: #374151;
-        margin-bottom: 5px;
+    .c-input {
+        p {
+
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        mat-icon {
+            color: rgba(0, 0, 0, 0.54)!important;
+        }
     }
-    
+
     span {
         position: absolute;
         bottom: 5px;

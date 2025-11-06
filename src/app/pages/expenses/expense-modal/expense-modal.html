@@ -1,8 +1,9 @@
 <div class="c-modal">
-    <app-module-header title="Registrar Gasto" [config]="headerConfig" (action)="closeModal()">
+    <app-module-header [title]="this.data?.id ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
+        (action)="closeModal()">
     </app-module-header>
 
-    <form [formGroup]="form" (ngSubmit)="save()" id="form" class="c-form">
+    <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
 
         <div class="grid md:grid-cols-2 sm:grid-cols-1 gap-5">
 
@@ -12,7 +13,7 @@
                     <p class="label">Concepto <span class="required">*</span></p>
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
-                        @if (form.get('concept')?.touched && form.get('concept')?.invalid) {
+                        @if (form.get('concept')?.touched || form.get('concept')?.invalid) {
                         <mat-error>El concepto es obligatorio</mat-error>
                         }
                     </mat-form-field>
@@ -28,8 +29,8 @@
                         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
 
-                          @if (form.get('date')?.touched && form.get('date')?.invalid) {
-                        <mat-error>Selecciona una fecha.</mat-error>
+                        @if (form.get('date')?.touched || form.get('date')?.invalid) {
+                        <mat-error>Selecciona una fecha</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -41,7 +42,7 @@
                     <p class="label">Monto <span class="required">*</span></p>
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput type="number" step="0.01" placeholder="Ej. 1250.50" formControlName="amount" />
-                        @if (form.get('amount')?.touched && form.get('amount')?.invalid) {
+                        @if (form.get('amount')?.touched || form.get('amount')?.invalid) {
                         <mat-error>El monto es obligatorio</mat-error>
                         }
                     </mat-form-field>
@@ -50,11 +51,8 @@
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete 
-                    formControlName="supplier_id" 
-                    label="Proveedor" 
-                    [remote]="true" 
-                    catalogType="supplier">
+                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
+                    [initialDisplay]="data?.supplier?.company_name ?? ''">
                 </app-autocomplete>
 
             </div>
@@ -62,27 +60,12 @@
             <!-- Proyecto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-autocomplete 
-                        formControlName="project_id" 
-                        label="Proyecto" 
-                        [remote]="true"
-                        catalogType="project">
+                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                        catalogType="project" [initialDisplay]="data?.project?.name ?? ''">
                     </app-autocomplete>
                 </div>
             </div>
-            <!-- [showError]="(form.get('project_id')?.touched && form.get('project_id')?.invalid) ?? false"
-            errorMessage="El proyecto es obligatorio" -->
 
-
-            <!-- Proyecto (autocomplete después) -->
-            <!-- <div class="md:col-span-1">
-                <div class="c-input">
-                    <p class="label">Proyecto</p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput placeholder="Seleccionar proyecto" formControlName="project_id" />
-                    </mat-form-field>
-                </div>
-            </div> -->
         </div>
     </form>
 

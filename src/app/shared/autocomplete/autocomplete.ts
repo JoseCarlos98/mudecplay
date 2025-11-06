@@ -22,6 +22,7 @@ import {
   debounceTime,
   distinctUntilChanged,
   switchMap,
+  filter,
 } from 'rxjs';
 import { Catalog } from '../interfaces/general-interfaces';
 import { CatalogsService } from '../services/catalogs.service';
@@ -36,14 +37,12 @@ import { MatIcon } from '@angular/material/icon';
     MatInputModule,
     MatAutocompleteModule,
     MatOptionModule,
-    MatIcon
+    MatIcon,
   ],
   templateUrl: './autocomplete.html',
   styleUrl: './autocomplete.scss',
   providers: [
     {
-      // registramos este componente como un control de formulario personalizado
-      // así puede usarse con formControlName / formControl
       provide: NG_VALUE_ACCESSOR,
       useExisting: forwardRef(() => Autocomplete),
       multi: true,
@@ -51,46 +50,45 @@ import { MatIcon } from '@angular/material/icon';
   ],
 })
 export class Autocomplete implements ControlValueAccessor {
-  // servicio para obtener catálogos remotos
   private readonly catalogsService = inject(CatalogsService);
 
-  // ====== Inputs de configuración de UI ======
+  // ====== Inputs de configuración ======
   @Input() label = 'Seleccionar';
   @Input() placeholder = 'Buscar...';
   @Input() remote = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
-  // manejo de error desde el padre (el form vive afuera)
+  // 👇 NUEVO: texto a mostrar cuando vienes en edición y no hay data local
+  @Input() initialDisplay = '';
+
+  // para mostrar error desde afuera
   @Input() showError = false;
   @Input() errorMessage = 'Este campo es obligatorio';
 
-  // si el padre quiere el objeto completo al seleccionar
   @Output() optionSelected = new EventEmitter<Catalog>();
 
-  // observable que consume el template para pintar las opciones
+  // opciones que se pintan
   filtered$: Observable<Catalog[]> = of([]);
 
-  // subject donde empujamos lo que escribe el usuario
+  // lo que el usuario escribe
   private input$ = new Subject<string>();
 
-  // valor interno que se muestra en el input
+  // valor real del control (id o lo que mande el form)
   innerValue: string | Catalog | null = null;
 
-  displayValue: string = '';
+  // lo que se ve en el input
+  displayValue = '';
 
-  // funciones que nos da Angular para notificar cambios y "tocado"
-  private onChange: (val: any) => void = () => { };
-  private onTouched: () => void = () => { };
+  // cva
+  private onChange: (val: any) => void = () => {};
+  private onTouched: () => void = () => {};
 
   constructor() {
-    // armamos el pipeline una sola vez:
-    // 1) esperamos a que el usuario deje de escribir (debounce)
-    // 2) evitamos peticiones repetidas (distinctUntilChanged)
-    // 3) según el modo, buscamos remoto o filtramos local
     this.filtered$ = this.input$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
+      filter((text) => (text ?? '').length >= 2),
       switchMap((text) => {
         if (this.remote) {
           return this.fetchRemote(text);
@@ -100,77 +98,81 @@ export class Autocomplete implements ControlValueAccessor {
     );
   }
 
-  // ====== Métodos de ControlValueAccessor ======
+  // ===== CVA =====
+writeValue(value: any): void {
+  console.log(value);
+  
+  this.innerValue = value;
 
-  // el form padre nos manda un valor (ej. modo edición)
-  writeValue(value: any): void {
-    this.innerValue = value;
-
-    // si viene objeto
-    if (value && typeof value !== 'string') {
-      this.displayValue = value.name;
-      return;
-    }
-
-    // si viene un id (string) y tienes data local, intenta resolverlo
-    if (typeof value === 'string' && this.data?.length) {
-      const found = this.data.find(d => d.id === value);
-      this.displayValue = found ? found.name : '';
-    } else {
-      // si no hay data todavía, lo dejamos vacío
-      this.displayValue = '';
-    }
+  // si viene el objeto completo
+  if (value && typeof value !== 'string') {
+    this.displayValue = value.name ?? '';
+    return;
   }
 
-  // el form nos dice qué función usar para notificar cambios
+  // 2) si viene id y tienes data local, intenta resolverlo
+  if (typeof value === 'string' && this.data?.length) {
+    const found = this.data.find((d) => d.id === value);
+    this.displayValue = found ? found.name : '';
+    return;
+  }
+
+  console.log('init');
+  
+  // 3) si estás en remoto y no tienes data, usa el initialDisplay
+  if (this.initialDisplay) {
+    this.displayValue = this.initialDisplay;
+    return;
+  }
+
+  // 4) fallback
+  this.displayValue = '';
+}
+
+
   registerOnChange(fn: any) {
     this.onChange = fn;
   }
 
-  // el form nos dice qué función usar para marcar como tocado
   registerOnTouched(fn: any) {
     this.onTouched = fn;
   }
 
+  // cuando escribe
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
 
-    // actualizamos lo que se ve
+    // actualizamos lo visible
     this.displayValue = text;
 
-    // notificamos al form (si es string no sabemos el id todavía)
+    // notificamos al form
     this.onChange(typeof term === 'string' ? term : term?.id);
 
     // disparamos búsqueda
     this.input$.next(text);
   }
 
+  // cuando selecciona una opción
   onOptionSelected(option: Catalog) {
-    this.innerValue = option.id;      // para el form
-    this.displayValue = option.name;  // para el input
+    this.innerValue = option.id;
+    this.displayValue = option.name;
     this.onChange(option.id);
     this.onTouched();
-    // y emitimos el objeto completo por si el padre lo necesita
     this.optionSelected.emit(option);
   }
 
-  // cuando el input pierde el foco lo marcamos como tocado
   onBlur() {
     this.onTouched();
   }
 
-
-  // usada por mat-autocomplete para mostrar texto legible
+  // para el mat-autocomplete
   displayWith = (value: string | Catalog): string => {
     if (!value) return '';
-    // si ya viene el objeto, mostramos su name
     if (typeof value !== 'string') return value.name;
-    // si viene un id (string), buscamos en la lista local
     const found = this.data.find((d) => d.id === value);
     return found ? found.name : value;
   };
 
-  // consulta al backend según el tipo
   fetchRemote(search: string): Observable<Catalog[]> {
     switch (this.catalogType) {
       case 'supplier':
@@ -182,7 +184,6 @@ export class Autocomplete implements ControlValueAccessor {
     }
   }
 
-  // filtrado simple en memoria
   filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();

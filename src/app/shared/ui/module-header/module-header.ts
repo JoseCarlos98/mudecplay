@@ -3,7 +3,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
-// 🔹 Acciones disponibles en el header
+// Acciones disponibles en el header
 export type ModuleHeaderAction =
   | 'new'
   | 'upload'
@@ -11,14 +11,14 @@ export type ModuleHeaderAction =
   | 'close'
   | 'custom';
 
-// 🔹 Botón adicional configurable
+// Botón adicional configurable
 export interface ExtraButton {
   icon: string;
   label: string;
   action: string;
 }
 
-// 🔹 Config general del header
+// Config general del header
 export interface ModuleHeaderConfig {
   modal?: boolean;
   showNew?: boolean;
@@ -35,7 +35,7 @@ export interface ModuleHeaderConfig {
 })
 export class ModuleHeader {
   /** Título mostrado en el header */
-  @Input() title = '';
+  @Input() title:string = '';
 
   /** Configuración visual y funcional */
   @Input() config: ModuleHeaderConfig = { };
@@ -49,5 +49,12 @@ export class ModuleHeader {
   /** Emite acción estándar */
   emit(action: ModuleHeaderAction | string): void {
     this.action.emit(action);
+  }
+
+  ngOnInit(): void {
+    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
+    //Add 'implements OnInit' to the class.
+    console.log(this.title);
+    
   }
 }
