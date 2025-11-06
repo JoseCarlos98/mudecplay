@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 7px;
+  padding-bottom: 15px;
   border-bottom: 2px solid rgba(39, 170, 225, 0.2);
 
   >div {
@@ -12,7 +12,7 @@
 
     >div {
       background-color: rgba(30, 134, 177, 0.1);
-      color: var(--color-primary-two)!important;
+      color: var(--color-primary-two) !important;
       padding: 0.5rem;
       border-radius: 0.75rem;
       display: flex;
@@ -31,13 +31,16 @@
       border-bottom-right-radius: 10px;
     }
 
-
     button {
       display: flex;
       align-items: center;
       gap: 5px;
       padding: 3px 8px;
       font-size: 15px;
+    }
+
+    .cursor-pointer {
+      color: #878787;
     }
   }
 }

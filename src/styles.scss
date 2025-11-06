@@ -97,7 +97,7 @@ body {
 }
 
 .c-filters {
-  padding-top: 15px;
+  padding-top: 12px;
   gap: 15px;
 
   .btn-primary {
@@ -125,7 +125,6 @@ body {
   background: #167195 !important;
 }
 
-.c-modal {}
 
 .c-modal-actions {
   display: flex;
@@ -216,8 +215,38 @@ body {
       font-size: 15px;
     }
   }
-
 }
+
+.mat-mdc-snackbar-surface {
+  background: #16A34A !important;
+  color: #fff !important;
+  border-radius: 7px !important;
+  letter-spacing: 1px;
+  max-width: 280px !important;
+  min-width: unset !important;
+  height: 40px !important;
+  padding: 0 12px 0 5px !important;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.snackbar-success .mat-mdc-snackbar-surface {
+  background: #199c49 !important;
+  color: #fff !important;
+}
+
+.snackbar-error .mat-mdc-snackbar-surface {
+  background: #b41e1e !important;
+  color: #fff !important;
+}
+
+.snackbar-info .mat-mdc-snackbar-surface {
+  background: #374151 !important;
+  color: #fff !important;
+}
+
 
 @media screen and (max-width: 875px) {
   .c-sidebar {
