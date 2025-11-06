@@ -63,7 +63,7 @@ export class Autocomplete implements ControlValueAccessor {
 
   // manejo de error desde el padre (el form vive afuera)
   @Input() showError = false;
-  @Input() errorMessage = 'Este campo es obligatorio.';
+  @Input() errorMessage = 'Este campo es obligatorio';
 
   // si el padre quiere el objeto completo al seleccionar
   @Output() optionSelected = new EventEmitter<Catalog>();
@@ -132,7 +132,6 @@ export class Autocomplete implements ControlValueAccessor {
     this.onTouched = fn;
   }
 
-  // ====== Eventos del template ======
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
 
@@ -159,7 +158,7 @@ export class Autocomplete implements ControlValueAccessor {
   onBlur() {
     this.onTouched();
   }
-  // ====== Helpers ======
+
 
   // usada por mat-autocomplete para mostrar texto legible
   displayWith = (value: string | Catalog): string => {
@@ -176,6 +175,8 @@ export class Autocomplete implements ControlValueAccessor {
     switch (this.catalogType) {
       case 'supplier':
         return this.catalogsService.supplierCatalog(search);
+      case 'project':
+        return this.catalogsService.projectsCatalog(search);
       default:
         return of([]);
     }

@@ -43,7 +43,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './expenses.scss',
 })
 export class Expenses implements OnInit {
-      private snackBar = inject(MatSnackBar);
   private readonly expenseService = inject(ExpenseService);
   private readonly dialogService = inject(DialogService);
 
@@ -56,14 +55,6 @@ export class Expenses implements OnInit {
 
   ngOnInit(): void {
     this.getExpensesForTable();
-
-     this.snackBar.open( 'Registro creado correctamente', '', {
-                            horizontalPosition: 'end',
-                            verticalPosition: 'top',
-                            duration: 150,
-
-                            panelClass: ['snackbar-success'],
-                        });
   }
 
   getExpensesForTable(): void {
@@ -94,7 +85,7 @@ export class Expenses implements OnInit {
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {
-    this.dialogService.open(ExpenseModal, expense ? expense.originData  : null, 'medium')
+    this.dialogService.open(ExpenseModal, expense ? expense.originData : null, 'medium')
       .afterClosed().subscribe((result) => {
         if (result) this.getExpensesForTable();
       });;

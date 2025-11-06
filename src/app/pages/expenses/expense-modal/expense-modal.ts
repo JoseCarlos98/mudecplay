@@ -38,7 +38,7 @@ export class ExpenseModal implements OnInit {
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     supplier_id: [null],
-    project_id: [1]
+    project_id: [null]
   })
 
   ngOnInit(): void {

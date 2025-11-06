@@ -13,7 +13,7 @@
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
                         @if (form.get('concept')?.touched && form.get('concept')?.invalid) {
-                        <mat-error>El concepto es obligatorio.</mat-error>
+                        <mat-error>El concepto es obligatorio</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -42,7 +42,7 @@
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput type="number" step="0.01" placeholder="Ej. 1250.50" formControlName="amount" />
                         @if (form.get('amount')?.touched && form.get('amount')?.invalid) {
-                        <mat-error>El monto es obligatorio.</mat-error>
+                        <mat-error>El monto es obligatorio</mat-error>
                         }
                     </mat-form-field>
                 </div>
@@ -71,7 +71,7 @@
                 </div>
             </div>
             <!-- [showError]="(form.get('project_id')?.touched && form.get('project_id')?.invalid) ?? false"
-            errorMessage="El proyecto es obligatorio." -->
+            errorMessage="El proyecto es obligatorio" -->
 
 
             <!-- Proyecto (autocomplete después) -->
