@@ -3,9 +3,15 @@
     <p class="label">{{label}}
       @if (required) { <span class="required">*</span> }
     </p>
-    <mat-form-field appearance="outline" class="w-100">
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{'field-invalid': showError}">
       <input matInput [placeholder]="placeholder" [value]="displayValue" (input)="onInput($event)" (focus)="onFocus()"
-        (blur)="onBlur()" />
+        (blur)="onBlur()" (keydown)="onKeyDown($event)" />
     </mat-form-field>
+
+
+    @if (showError) {
+    <span class="field-error">{{ errorMessage }}</span>
+    }
+
   </div>
 </div>

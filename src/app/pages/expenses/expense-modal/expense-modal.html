@@ -6,21 +6,18 @@
     <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
 
         <div class="grid md:grid-cols-2 sm:grid-cols-1 gap-5">
-
-            <!-- Concepto -->
             <div class="md:col-span-2">
                 <div class="c-input">
                     <p class="label">Concepto <span class="required">*</span></p>
                     <mat-form-field appearance="outline" class="w-100">
                         <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
                         @if (form.get('concept')?.touched || form.get('concept')?.invalid) {
-                        <mat-error>El concepto es obligatorio</mat-error>
+                        <mat-error>Este campo es obligatorio</mat-error>
                         }
                     </mat-form-field>
                 </div>
             </div>
 
-            <!-- Fecha -->
             <div class="md:col-span-1">
                 <div class="c-input">
                     <p class="label">Fecha <span class="required">*</span></p>
@@ -30,30 +27,26 @@
                         <mat-datepicker #picker></mat-datepicker>
 
                         @if (form.get('date')?.touched || form.get('date')?.invalid) {
-                        <mat-error>Selecciona una fecha</mat-error>
+                        <mat-error>Este campo es obligatorio</mat-error>
                         }
                     </mat-form-field>
                 </div>
             </div>
 
-            <!-- Monto -->
             <div class="md:col-span-1">
                 <div class="c-input">
                     <app-input-field 
                         formControlName="amount" 
                         label="Monto" 
-                        placeholder="0.00"
+                        placeholder="0.00" 
                         type="money"
-                        [required] = "true"
-                        >
+                        [showError]="(form.get('amount')?.touched || form.get('amount')?.invalid) ?? false">
                     </app-input-field>
-
                 </div>
             </div>
 
-            <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete 
+                <app-autocomplete
                     formControlName="supplier_id" 
                     label="Proveedor" 
                     [remote]="true" 
@@ -62,11 +55,14 @@
                 </app-autocomplete>
             </div>
 
-            <!-- Proyecto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
-                        catalogType="project" [initialDisplay]="data?.project?.name ?? ''">
+                    <app-autocomplete 
+                        formControlName="project_id" 
+                        label="Proyecto" 
+                        [remote]="true"
+                        catalogType="project" 
+                        [initialDisplay]="data?.project?.name ?? ''">
                     </app-autocomplete>
                 </div>
             </div>

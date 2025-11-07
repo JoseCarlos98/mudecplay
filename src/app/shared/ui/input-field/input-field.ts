@@ -26,7 +26,9 @@ export class InputField implements ControlValueAccessor {
   @Input() prefix = '$';
   @Input() decimals = 2;
   @Input() required: boolean = false;
-
+  @Input() showError = false;
+  @Input() errorMessage = 'Este campo es obligatorio';
+  
   /** valor REAL que se manda al form (sin formato) */
   private _value: string | number | null = null;
   private isFocused = false;
@@ -83,6 +85,48 @@ export class InputField implements ControlValueAccessor {
     // en blur formateo si es money
     this.displayValue = this.formatForDisplay(this._value);
   }
+
+  onKeyDown(event: KeyboardEvent) {
+    // si no es money ni number, no bloqueamos aquí
+    if (this.type !== 'money' && this.type !== 'number') return;
+
+    const allowedControlKeys = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'Tab',
+      'Home',
+      'End',
+    ];
+
+    // permitir ctrl/cmd + a/c/v/x
+    if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) {
+      return;
+    }
+
+    // permitir teclas de control
+    if (allowedControlKeys.includes(event.key)) {
+      return;
+    }
+
+    // permitir números
+    if (event.key >= '0' && event.key <= '9') {
+      return;
+    }
+
+    // permitir un solo punto si es money
+    if (this.type === 'money' && event.key === '.') {
+      const hasDot = (event.target as HTMLInputElement).value.includes('.');
+      if (!hasDot) {
+        return;
+      }
+    }
+
+    // si llegamos aquí, no es válido
+    event.preventDefault();
+  }
+
 
   /**
   * Normaliza lo que escriba el usuario a lo que quieres guardar en el form.
