@@ -44,12 +44,12 @@
   </div>
 </div>
 
-@if (expensesTableData.data) {
+@if (expensesTableData?.data) {
   <app-data-table
   [data]="expensesTableData.data" 
   [columnsConfig]="columnsConfig" 
   [displayedColumns]="displayedColumns"
   (edit)="onEdit($event)"
-  (delete)="onDelete($event)">
+  (delete)="onDelete($event.id)">
   </app-data-table>
 }

@@ -15,9 +15,7 @@ import { ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
-// 👇 Definimos las columnas fuera de la clase, como constantes inmutables
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
   { key: 'date', label: 'Fecha' },
@@ -75,13 +73,13 @@ export class Expenses implements OnInit {
     }
   }
 
-  onEdit(user: any) {
-    console.log('Editar', user);
-    this.expenseModal(user);
+  onEdit(rowData: any) {
+    console.log('Editar', rowData);
+    this.expenseModal(rowData);
   }
 
-  onDelete(user: any) {
-    console.log('Eliminar', user);
+  onDelete(idExpense: number) {
+    console.log('Eliminar', idExpense);
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {
