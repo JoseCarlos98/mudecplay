@@ -81,7 +81,7 @@ export class Expenses implements OnInit {
     this.dialogService
       .confirm({
         title: 'Eliminar gasto',
-        message: `¿Quieres eliminar el gasto "${expense.concept}"?`,
+        message: `¿Quieres eliminar el gasto:\n"${expense.concept.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })

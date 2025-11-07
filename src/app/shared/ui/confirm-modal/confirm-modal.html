@@ -1,12 +1,30 @@
-<h2 mat-dialog-title>{{ data.title }}</h2>
-<mat-dialog-content>
-    <p>{{ data.message }}</p>
-</mat-dialog-content>
-<mat-dialog-actions align="end">
-    <button mat-button (click)="onCancel()">
-        {{ data.cancelText }}
-    </button>
-    <button mat-flat-button color="warn" (click)="onConfirm()">
-        {{ data.confirmText }}
-    </button>
-</mat-dialog-actions>
+<div class="c-dialog">
+    <div class="c-dialog__header">
+        <div class="c-dialog__icon">
+            <mat-icon>warning_amber</mat-icon>
+        </div>
+        <div>
+            <h2 class="c-dialog__title">{{ data.title || 'Confirmar' }}</h2>
+            <p class="c-dialog__subtitle" *ngIf="data.subtitle">
+                {{ data.subtitle }}
+            </p>
+        </div>
+    </div>
+
+    <mat-dialog-content class="c-dialog__content">
+        <p class="c-dialog__text">
+            {{ data.message || '¿Estás seguro de continuar?' }}
+        </p>
+
+    </mat-dialog-content>
+
+    <div class="c-modal-actions c-dialog__actions">
+        <button mat-stroked-button type="button" (click)="onCancel()" class="btn-cancel">
+            {{ data.cancelText || 'Cancelar' }}
+        </button>
+
+        <button (click)="onConfirm()" mat-flat-button type="submit" form="form" class="btn-danger">
+            {{ data.confirmText || 'Eliminar' }}
+        </button>
+    </div>
+</div>

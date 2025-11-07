@@ -1,0 +1,75 @@
+.c-dialog {
+    border-radius: 5px 15px !important;
+    padding: 5px;
+}
+
+.c-dialog__header {
+    display: flex;
+    gap: 0.85rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(225, 39, 39, 0.2);
+}
+
+.c-dialog__icon {
+    padding: 5px;
+    border-radius: 9999px;
+    background: rgba(244, 67, 54, 0.12);
+    display: grid;
+    place-items: center;
+
+    mat-icon {
+        font-size: 22px;
+        color: #f44336;
+    }
+}
+
+.c-dialog__title {
+    font-size: 1.05rem;
+    letter-spacing: 0 !important;
+    font-weight: 600 !important;
+    border-left: unset !important;
+    color: var(--color-third) !important;
+    padding-left: 0 !important;
+}
+
+.c-dialog__subtitle {
+    margin: 0;
+    font-size: 0.78rem;
+    color: rgba(0, 0, 0, 0.55);
+
+}
+
+.c-dialog__content {
+    padding: 5px 15px;
+
+    p {
+        margin: 0;
+        font-size: 16px;
+        text-align: center;
+        line-height: 1.4;
+        font-weight: 500;
+        // letter-spacing: 1px;
+        color: rgba(0, 0, 0, 0.7);
+    }
+}
+
+.c-dialog__actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    button[mat-button] {
+        font-weight: 500;
+    }
+
+    .c-dialog__confirm {
+        border-radius: 9999px;
+    }
+}
+
+.c-dialog__text {
+    white-space: pre-line;
+}

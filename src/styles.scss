@@ -25,6 +25,8 @@ body {
   --color-primary: #27AAE1;
   --color-primary-two: #1e86b1;
   --color-secundary: #231F20;
+  --color-remove: #e5383583;
+  --color-remove-bold: #c62828;
   --color-third: #878787;
 }
 
@@ -125,6 +127,16 @@ body {
   background: #167195 !important;
 }
 
+.btn-danger {
+  font-size: 15px;
+  background: #e53935 !important;
+  color: #fff !important;
+  transition: all 0.25s ease;
+}
+
+.btn-danger:hover {
+  background: #c62828 !important;
+}
 
 .c-modal-actions {
   display: flex;
