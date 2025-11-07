@@ -1,0 +1,11 @@
+<div class="c-input-field">
+  <div class="c-input">
+    <p class="label">{{label}}
+      @if (required) { <span class="required">*</span> }
+    </p>
+    <mat-form-field appearance="outline" class="w-100">
+      <input matInput [placeholder]="placeholder" [value]="displayValue" (input)="onInput($event)" (focus)="onFocus()"
+        (blur)="onBlur()" />
+    </mat-form-field>
+  </div>
+</div>

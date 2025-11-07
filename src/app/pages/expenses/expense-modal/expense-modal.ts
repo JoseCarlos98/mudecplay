@@ -6,12 +6,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { Autocomplete } from '../../../shared/autocomplete/autocomplete';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { toApiDate, toCatalogLike, toIdForm } from '../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../services/expense.service';
 import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfaces';
+import { Autocomplete } from '../../../shared/ui/autocomplete/autocomplete';
+import { InputField } from '../../../shared/ui/input-field/input-field';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -20,7 +21,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-expense-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete
+    Autocomplete, InputField
   ],
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',

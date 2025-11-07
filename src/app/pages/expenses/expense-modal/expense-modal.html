@@ -39,22 +39,27 @@
             <!-- Monto -->
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <p class="label">Monto <span class="required">*</span></p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput type="number" step="0.01" placeholder="Ej. 1250.50" formControlName="amount" />
-                        @if (form.get('amount')?.touched || form.get('amount')?.invalid) {
-                        <mat-error>El monto es obligatorio</mat-error>
-                        }
-                    </mat-form-field>
+                    <app-input-field 
+                        formControlName="amount" 
+                        label="Monto" 
+                        placeholder="0.00"
+                        type="money"
+                        [required] = "true"
+                        >
+                    </app-input-field>
+
                 </div>
             </div>
 
             <!-- Proveedor -->
             <div class="md:col-span-1">
-                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
+                <app-autocomplete 
+                    formControlName="supplier_id" 
+                    label="Proveedor" 
+                    [remote]="true" 
+                    catalogType="supplier"
                     [initialDisplay]="data?.supplier?.company_name ?? ''">
                 </app-autocomplete>
-
             </div>
 
             <!-- Proyecto -->
@@ -65,7 +70,6 @@
                     </app-autocomplete>
                 </div>
             </div>
-
         </div>
     </form>
 

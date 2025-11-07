@@ -24,9 +24,9 @@ import {
   switchMap,
   filter,
 } from 'rxjs';
-import { Catalog } from '../interfaces/general-interfaces';
-import { CatalogsService } from '../services/catalogs.service';
 import { MatIcon } from '@angular/material/icon';
+import { CatalogsService } from '../../services/catalogs.service';
+import { Catalog } from '../../interfaces/general-interfaces';
 
 @Component({
   selector: 'app-autocomplete',
@@ -59,16 +59,13 @@ export class Autocomplete implements ControlValueAccessor {
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
-  // 👇 NUEVO: texto a mostrar cuando vienes en edición y no hay data local
-  @Input() initialDisplay = '';
+  @Input() initialDisplay:string = '';
 
-  // para mostrar error desde afuera
   @Input() showError = false;
   @Input() errorMessage = 'Este campo es obligatorio';
 
   @Output() optionSelected = new EventEmitter<Catalog>();
 
-  // opciones que se pintan
   filtered$: Observable<Catalog[]> = of([]);
 
   // lo que el usuario escribe
@@ -78,11 +75,11 @@ export class Autocomplete implements ControlValueAccessor {
   innerValue: string | Catalog | null = null;
 
   // lo que se ve en el input
-  displayValue = '';
+  displayValue:string = '';
 
   // cva
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   constructor() {
     this.filtered$ = this.input$.pipe(
@@ -99,36 +96,32 @@ export class Autocomplete implements ControlValueAccessor {
   }
 
   // ===== CVA =====
-writeValue(value: any): void {
-  console.log(value);
-  
-  this.innerValue = value;
+  writeValue(value: any): void {
+    console.log(value);
 
-  // si viene el objeto completo
-  if (value && typeof value !== 'string') {
-    this.displayValue = value.name ?? '';
-    return;
+    this.innerValue = value;
+
+    // si viene el objeto completo
+    if (value && typeof value !== 'string') {
+      this.displayValue = value.name ?? '';
+      return;
+    }
+
+    // 2) si viene id y tienes data local, intenta resolverlo
+    if (typeof value === 'string' && this.data?.length) {
+      const found = this.data.find((d) => d.id === value);
+      this.displayValue = found ? found.name : '';
+      return;
+    }
+
+    // 3) si estás en remoto y no tienes data, usa el initialDisplay
+    if (this.initialDisplay) {
+      this.displayValue = this.initialDisplay;
+      return;
+    }
+
+    this.displayValue = '';
   }
-
-  // 2) si viene id y tienes data local, intenta resolverlo
-  if (typeof value === 'string' && this.data?.length) {
-    const found = this.data.find((d) => d.id === value);
-    this.displayValue = found ? found.name : '';
-    return;
-  }
-
-  console.log('init');
-  
-  // 3) si estás en remoto y no tienes data, usa el initialDisplay
-  if (this.initialDisplay) {
-    this.displayValue = this.initialDisplay;
-    return;
-  }
-
-  // 4) fallback
-  this.displayValue = '';
-}
-
 
   registerOnChange(fn: any) {
     this.onChange = fn;
