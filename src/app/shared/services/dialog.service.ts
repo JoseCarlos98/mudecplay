@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
+import { ConfirmModal } from '../ui/confirm-modal/confirm-modal';
 
 @Injectable({ providedIn: 'root' })
 export class DialogService {
@@ -7,7 +8,7 @@ export class DialogService {
 
   /** Tamaños predefinidos */
   private readonly sizes = {
-    small: { width: '400px', maxWidth: '95vw' },
+    small: { width: '350px', maxWidth: '95vw' },
     medium: { width: '700px', maxWidth: '90vw' },
     large: { width: '80vw', maxWidth: '1200px' },
   };
@@ -34,5 +35,29 @@ export class DialogService {
     };
 
     return this.dialog.open(component, finalConfig);
+  }
+
+  /**
+   * Abre un modal de confirmación y devuelve un observable<boolean>
+   */
+  confirm(options: {
+    title?: string;
+    message?: string;
+    confirmText?: string;
+    cancelText?: string;
+  }) {
+    const dialogRef = this.dialog.open(ConfirmModal, {
+      ...this.sizes.small,
+      disableClose: true,
+
+      data: {
+        title: options.title ?? 'Confirmar',
+        message: options.message ?? '¿Estás seguro?',
+        confirmText: options.confirmText ?? 'Sí',
+        cancelText: options.cancelText ?? 'Cancelar',
+      },
+    });
+
+    return dialogRef.afterClosed();
   }
 }

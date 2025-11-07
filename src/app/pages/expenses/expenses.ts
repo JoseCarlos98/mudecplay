@@ -11,7 +11,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
 import { ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
-import { ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
+import { ExpenseResponseDto, ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
@@ -77,20 +77,31 @@ export class Expenses implements OnInit {
     this.expenseModal(rowData);
   }
 
-  onDelete(idExpense: number) {
-    this.expenseService.remove(idExpense).subscribe({
-      next: (response) => {
-        console.log(response);
-        this.getExpensesForTable();
-      },
-      error: (err) => console.error('Error al guardar gastos:', err),
-    });
+  onDelete(expense: ExpenseResponseDto) {
+    this.dialogService
+      .confirm({
+        title: 'Eliminar gasto',
+        message: `¿Quieres eliminar el gasto "${expense.concept}"?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.expenseService.remove(expense.id).subscribe({
+          next: (response) => {
+            console.log(response);
+            this.getExpensesForTable();
+          },
+          error: (err) => console.error('Error al guardar gastos:', err),
+        });
+      });
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {
     this.dialogService.open(ExpenseModal, expense ? expense.originData : null, 'medium')
       .afterClosed().subscribe((result) => {
         if (result) this.getExpensesForTable();
-      });;
+      });
   }
 }

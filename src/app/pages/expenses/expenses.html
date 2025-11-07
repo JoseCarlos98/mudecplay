@@ -50,6 +50,6 @@
   [columnsConfig]="columnsConfig" 
   [displayedColumns]="displayedColumns"
   (edit)="onEdit($event)"
-  (delete)="onDelete($event.id)">
+  (delete)="onDelete($event.originData)">
   </app-data-table>
 }
