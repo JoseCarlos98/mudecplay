@@ -20,7 +20,6 @@ export class AuthInterceptor implements HttpInterceptor {
             },
         });
 
-        // Pasar la request modificada al siguiente interceptor o al servidor
         return next.handle(authReq).pipe(
             tap((event) => {
                 if (event instanceof HttpResponse) {
@@ -33,7 +32,6 @@ export class AuthInterceptor implements HttpInterceptor {
                             case 'POST':
                                 fallbackMsg = 'Registro creado correctamente.';
                                 break;
-                            case 'PUT':
                             case 'PATCH':
                                 fallbackMsg = 'Registro actualizado correctamente.';
                                 break;

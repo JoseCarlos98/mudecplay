@@ -74,12 +74,17 @@ export class Expenses implements OnInit {
   }
 
   onEdit(rowData: any) {
-    console.log('Editar', rowData);
     this.expenseModal(rowData);
   }
 
   onDelete(idExpense: number) {
-    console.log('Eliminar', idExpense);
+    this.expenseService.remove(idExpense).subscribe({
+      next: (response) => {
+        console.log(response);
+        this.getExpensesForTable();
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {

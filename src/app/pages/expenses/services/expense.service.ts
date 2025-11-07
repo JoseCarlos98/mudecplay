@@ -12,9 +12,7 @@ import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/genera
 export class ExpenseService {
   private apiUrl = `${environment.apiUrl}/expenses`;
 
-  constructor(
-    private readonly http: HttpClient
-  ) { }
+  constructor(private readonly http: HttpClient) { }
 
   getExpenses(filters?: entity.FiltersExpenses) {
     const url = `${this.apiUrl}`;
@@ -32,7 +30,6 @@ export class ExpenseService {
     )
   }
 
-
   create(formData: entity.CreateExpense): Observable<ApiSuccess> {
     const url = `${this.apiUrl}`;
 
@@ -43,5 +40,11 @@ export class ExpenseService {
     const url = `${this.apiUrl}/${id}`;
 
     return this.http.patch<ApiSuccess>(url, formData)
+  }
+
+  remove(id: number): Observable<ApiSuccess> {
+    const url = `${this.apiUrl}/${id}`;
+
+    return this.http.delete<ApiSuccess>(url)
   }
 }
