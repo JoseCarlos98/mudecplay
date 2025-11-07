@@ -11,7 +11,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { toApiDate, toCatalogLike, toIdForm } from '../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../services/expense.service';
-import { ExpenseResponseDto } from '../interfaces/expense-interfaces';
+import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -34,7 +34,7 @@ export class ExpenseModal implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
-    concept: ['', [Validators.required, Validators.pattern(/\S+/)]], //requerido y valida espacios vacios
+    concept: ['', [Validators.required, Validators.pattern(/\S+/)]],
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     supplier_id: [null],
@@ -65,10 +65,10 @@ export class ExpenseModal implements OnInit {
   }
 
   saveData() {
-    // if (this.form.invalid) {
-    //   this.form.markAllAsTouched();
-    //   return;
-    // }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     const raw = this.form.value;
 
@@ -79,21 +79,30 @@ export class ExpenseModal implements OnInit {
       project_id: toIdForm(raw.project_id),
     };
 
-    
+    this.expenseService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
+  }
 
-    console.log('formData listo para enviar a backend:', formData);
+  updateData() {
+    const raw = this.form.value;
 
-    console.log(formData);
+    const formData: PatchExpense = {
+      ...raw,
+      date: toApiDate(raw.date),
+      supplier_id: toIdForm(raw.supplier_id),
+      project_id: toIdForm(raw.project_id),
+    };
 
-
-    // this.expenseService.create(formData).subscribe({
-    //   next: (response) => {
-    //     console.log(response);
-    //     // this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al cargar gastos:', err),
-    // });
-
+    this.expenseService.update(this.data.id, formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al editar gastos:', err),
+    });
   }
 
   closeModal(saved?: boolean) {

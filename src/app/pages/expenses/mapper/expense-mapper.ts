@@ -1,27 +1,30 @@
 import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import * as entity from '../interfaces/expense-interfaces';
-export class Mapper {
-    static mapToExpenseList(response: PaginatedResponse<entity.ExpenseResponseDto>, formatsService?: any): PaginatedResponse<entity.ExpenseResponseDtoMapper> {
-        let dataList: entity.ExpenseResponseDtoMapper[] = [];
 
-        response.data.forEach((data: entity.ExpenseResponseDto): void => {
-            dataList.push({
-                ...data,
-                originData: data,
-                concept: data.concept,
-                date: data.date,
-                amount: data.amount.toString(),
-                supplier: data.supplier.company_name,
-                project: data.project.name,
-                // amount: formatsService.moneyFormat(parseFloat(data.amount)),
-                // monthFormatter: formatsService.getMonthName(parseFloat(data.month)),
-            });
+export class ExpenseMapper {
+    static mapToExpenseList(response: PaginatedResponse<entity.ExpenseResponseDto>): PaginatedResponse<entity.ExpenseResponseDtoMapper> {
+        const data = response.data.map((item) => {
+            const originData = item;
+            const amount = item.amount.toString();
+            const supplier = item.supplier ? item.supplier.company_name : 'No asignado';
+            const project = item.project ? item.project.name : 'No asignado';
+
+            const mapped: entity.ExpenseResponseDtoMapper = {
+                ...item,
+                originData,
+                concept: item.concept,
+                date: item.date,
+                amount,
+                supplier,
+                project,
+            };
+
+            return mapped;
         });
-
 
         return {
             ...response,
-            data: dataList
-        }
+            data
+        };
     }
 }

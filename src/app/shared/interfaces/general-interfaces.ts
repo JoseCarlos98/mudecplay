@@ -17,7 +17,8 @@ export interface Catalog {
   name: string;
 }
 
-export interface Created {
+export interface ApiSuccess {
   id: number;
-  message : string
+  message: string
+  success: true
 }

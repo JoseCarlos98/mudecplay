@@ -3,8 +3,8 @@ import { Injectable } from '@angular/core';
 import * as entity from '../interfaces/expense-interfaces';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Mapper } from '../mapper/expense-mapper';
-import { Created, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { ExpenseMapper } from '../mapper/expense-mapper';
+import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 
 @Injectable({
   providedIn: 'root'
@@ -27,18 +27,21 @@ export class ExpenseService {
 
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params }).pipe(
       map((response) => {
-        return Mapper.mapToExpenseList(response);
+        return ExpenseMapper.mapToExpenseList(response);
       })
     )
   }
 
 
-  create(formData: entity.CreateExpense): Observable<Created> {
+  create(formData: entity.CreateExpense): Observable<ApiSuccess> {
     const url = `${this.apiUrl}`;
 
-    return this.http.post<Created>(url, formData)
+    return this.http.post<ApiSuccess>(url, formData)
   }
 
+  update(id: number, formData: entity.PatchExpense): Observable<ApiSuccess> {
+    const url = `${this.apiUrl}/${id}`;
 
-
+    return this.http.patch<ApiSuccess>(url, formData)
+  }
 }

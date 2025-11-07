@@ -3,7 +3,7 @@
         (action)="closeModal()">
     </app-module-header>
 
-    <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
+    <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
 
         <div class="grid md:grid-cols-2 sm:grid-cols-1 gap-5">
 

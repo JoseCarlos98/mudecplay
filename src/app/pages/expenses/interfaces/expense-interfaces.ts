@@ -41,4 +41,12 @@ export interface CreateExpense {
     amount: number,
     supplier_id?: number | null;
     project_id?: number | null;
+}
+
+export interface PatchExpense {
+    concept?: string
+    date?: string,
+    amount?: number,
+    supplier_id?: number | null;
+    project_id?: number | null;
 } 
