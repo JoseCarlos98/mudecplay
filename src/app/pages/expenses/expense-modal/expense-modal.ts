@@ -100,12 +100,14 @@ export class ExpenseModal implements OnInit {
       project_id: toIdForm(raw.project_id),
     };
 
-    this.expenseService.update(this.data.id, formData).subscribe({
-      next: (response) => {
-        if (response.success) this.closeModal(true);
-      },
-      error: (err) => console.error('Error al editar gastos:', err),
-    });
+     console.log(formData);
+     
+    // this.expenseService.update(this.data.id, formData).subscribe({
+    //   next: (response) => {
+    //     if (response.success) this.closeModal(true);
+    //   },
+    //   error: (err) => console.error('Error al editar gastos:', err),
+    // });
   }
 
   closeModal(saved?: boolean) {

@@ -3,7 +3,11 @@
     <p class="label">{{ label }}</p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
-      <mat-icon matSuffix class="color-primary">search</mat-icon>
+      @if (displayValue?.length) {
+        <mat-icon matSuffix (click)="clearInput()" class="cursor-pointer">close</mat-icon>
+      } @else {
+      <mat-icon matSuffix>search</mat-icon>
+      }
 
       <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef" [value]="displayValue"
         (input)="onInputChange($event.target.value)" (blur)="onBlur()" [disabled]="disabled" />

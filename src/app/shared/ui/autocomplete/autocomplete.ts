@@ -47,7 +47,7 @@ export class Autocomplete implements ControlValueAccessor {
   // ====== Inputs de configuración ======
   @Input() label = 'Seleccionar';
   @Input() placeholder = 'Buscar...';
-  @Input() remote:boolean = false;
+  @Input() remote: boolean = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
@@ -72,11 +72,11 @@ export class Autocomplete implements ControlValueAccessor {
   // lo que se ve en el input
   displayValue: string = '';
 
-   disabled: boolean = false;
+  disabled: boolean = false;
 
   // CVA callbacks
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   // para leer estado del form y mostrar errores
   constructor(@Optional() @Self() private ngControl: NgControl) {
@@ -145,7 +145,7 @@ export class Autocomplete implements ControlValueAccessor {
   }
 
   setDisabledState(isDisabled: boolean) {
-     this.disabled = isDisabled;
+    this.disabled = isDisabled;
   }
 
 
@@ -174,6 +174,18 @@ export class Autocomplete implements ControlValueAccessor {
 
   onBlur() {
     this.onTouched();
+  }
+
+  clearInput() {
+    this.displayValue = '';
+    this.innerValue = null;
+
+    // avisamos al form que ahora no hay nada
+    this.onChange(null);
+    this.onTouched();
+
+    // si quieres volver a mostrar la lista completa local
+    if (!this.remote && this.data?.length) this.input$.next('');
   }
 
   // para el mat-autocomplete
