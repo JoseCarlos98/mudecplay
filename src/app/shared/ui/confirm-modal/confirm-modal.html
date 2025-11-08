@@ -4,10 +4,14 @@
             <mat-icon>warning_amber</mat-icon>
         </div>
         <div>
-            <h2 class="c-dialog__title">{{ data.title || 'Confirmar' }}</h2>
-            <p class="c-dialog__subtitle" *ngIf="data.subtitle">
-                {{ data.subtitle }}
-            </p>
+            @if (data.title) {
+                <h2 class="c-dialog__title">{{ data.title || '' }}</h2>
+            }
+            @if (data.subtitle) {
+                <p class="c-dialog__subtitle">
+                    {{ data.subtitle }}
+                </p>
+            }
         </div>
     </div>
 

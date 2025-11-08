@@ -51,7 +51,7 @@ export class DialogService {
       disableClose: true,
 
       data: {
-        title: options.title ?? 'Confirmar',
+        title: options.title ?? '',
         message: options.message ?? '¿Estás seguro?',
         confirmText: options.confirmText ?? 'Sí',
         cancelText: options.cancelText ?? 'Cancelar',

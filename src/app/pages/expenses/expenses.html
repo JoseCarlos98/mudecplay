@@ -1,35 +1,32 @@
 <div class="card-content shadow-md">
-  <app-module-header 
-    title="Gastos" 
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+  <app-module-header title="Gastos" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
-  
+
 
   <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Nombre :</p>
+      <p class="font-medium text-gray-700 mb-1">Nombre</p>
       <mat-form-field appearance="outline" class="w-100">
         <input matInput />
       </mat-form-field>
     </div>
 
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Correo :</p>
+      <p class="font-medium text-gray-700 mb-1">Correo</p>
       <mat-form-field appearance="outline" class="w-100">
         <input matInput />
       </mat-form-field>
     </div>
 
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Razon Social :</p>
+      <p class="font-medium text-gray-700 mb-1">Razon Social</p>
       <mat-form-field appearance="outline" class="w-100">
         <input matInput />
       </mat-form-field>
     </div>
 
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Rol :</p>
+      <p class="font-medium text-gray-700 mb-1">Rol</p>
       <mat-form-field appearance="outline" class="w-100">
         <mat-select>
           <mat-option value="active">Active</mat-option>
@@ -45,11 +42,7 @@
 </div>
 
 @if (expensesTableData?.data) {
-  <app-data-table
-  [data]="expensesTableData.data" 
-  [columnsConfig]="columnsConfig" 
-  [displayedColumns]="displayedColumns"
-  (edit)="onEdit($event)"
-  (delete)="onDelete($event.originData)">
-  </app-data-table>
+<app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+  (edit)="onEdit($event)" (delete)="onDelete($event.originData)">
+</app-data-table>
 }
