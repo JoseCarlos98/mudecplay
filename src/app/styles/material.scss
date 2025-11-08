@@ -4,7 +4,7 @@
 
 .c-input {
     text-align: left;
-    margin-bottom: 8px;
+     margin-bottom: 5px;
 
     mat-form-field {
         .mat-mdc-text-field-wrapper {
@@ -48,6 +48,8 @@
 .mdc-text-field--outlined .mat-mdc-form-field-infix,
 .mdc-text-field--no-label .mat-mdc-form-field-infix {
     font-size: 12px !important;
+    height: 5px!important;
+    min-height: unset!important;
 }
 
 .mat-mdc-form-field {

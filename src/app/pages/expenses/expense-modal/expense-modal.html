@@ -26,7 +26,7 @@
                         <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
                         <mat-datepicker #picker></mat-datepicker>
 
-                        @if (form.get('date')?.touched || form.get('date')?.invalid) {
+                        @if (form.get('date')?.touched && form.get('date')?.invalid) {
                         <mat-error>Este campo es obligatorio</mat-error>
                         }
                     </mat-form-field>
