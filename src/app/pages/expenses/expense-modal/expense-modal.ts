@@ -80,12 +80,14 @@ export class ExpenseModal implements OnInit {
       project_id: toIdForm(raw.project_id),
     };
 
-    this.expenseService.create(formData).subscribe({
-      next: (response) => {
-        if (response.success) this.closeModal(true);
-      },
-      error: (err) => console.error('Error al guardar gastos:', err),
-    });
+    console.log(formData);
+
+    // this.expenseService.create(formData).subscribe({
+    //   next: (response) => {
+    //     if (response.success) this.closeModal(true);
+    //   },
+    //   error: (err) => console.error('Error al guardar gastos:', err),
+    // });
   }
 
   updateData() {

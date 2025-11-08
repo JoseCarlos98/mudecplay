@@ -38,10 +38,10 @@
                     <app-input-field 
                         formControlName="amount" 
                         label="Monto" 
-                        placeholder="0.00" 
                         type="money"
-                        [showError]="(form.get('amount')?.touched || form.get('amount')?.invalid) ?? false">
-                    </app-input-field>
+                        placeholder="0.00" 
+                        ></app-input-field>
+                        <!-- [disabled]="disabled" -->
                 </div>
             </div>
 

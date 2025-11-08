@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { Component, Input, Optional, Self } from '@angular/core';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from "@angular/material/form-field";
 import { MatInputModule } from '@angular/material/input';
 
@@ -10,33 +10,50 @@ import { MatInputModule } from '@angular/material/input';
   imports: [CommonModule, MatFormFieldModule, MatInputModule],
   templateUrl: './input-field.html',
   styleUrl: './input-field.scss',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => InputField),
-      multi: true
-    }
-  ]
 })
 export class InputField implements ControlValueAccessor {
   // CONFIGURACIÓN
-  @Input() label = '';
+  @Input() label: string = '';
   @Input() placeholder: string = '';
   @Input() type: 'text' | 'money' | 'number' = 'text';
-  @Input() prefix = '$';
-  @Input() decimals = 2;
+  @Input() prefix: string = '$';
+  @Input() decimals: number = 2;
   @Input() required: boolean = false;
-  @Input() showError = false;
-  @Input() errorMessage = 'Este campo es obligatorio';
-  
+  @Input() showError: boolean = false;
+  @Input() errorMessage: string = 'Este campo es obligatorio';
+
   /** valor REAL que se manda al form (sin formato) */
   private _value: string | number | null = null;
   private isFocused = false;
 
   displayValue: string = '';
+  disabled: boolean = false;
+
 
   private onChange: (value: any) => void = () => { };
   private onTouched: () => void = () => { };
+
+  constructor(@Optional() @Self() private ngControl: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+  }
+
+  get hasError(): boolean {
+    if (!this.ngControl) return this.showError;
+    const control = this.ngControl.control;
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  get firstErrorMessage(): string {
+    if (!this.ngControl?.control) return this.errorMessage;
+    const errors = this.ngControl.control.errors;
+    if (!errors) return '';
+    if (errors['required']) return 'Este campo es obligatorio';
+    if (errors['min']) return 'El valor es muy pequeño';
+    if (errors['max']) return 'El valor es muy grande';
+    return this.errorMessage;
+  }
 
   writeValue(value: any): void {
     this._value = value;
@@ -51,10 +68,13 @@ export class InputField implements ControlValueAccessor {
   registerOnChange(fn: any): void {
     this.onChange = fn;
   }
+
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
+
   setDisabledState?(isDisabled: boolean): void {
+    this.disabled = isDisabled;
     // si luego quieres manejar disabled, aquí
   }
 
@@ -126,7 +146,6 @@ export class InputField implements ControlValueAccessor {
     // si llegamos aquí, no es válido
     event.preventDefault();
   }
-
 
   /**
   * Normaliza lo que escriba el usuario a lo que quieres guardar en el form.
