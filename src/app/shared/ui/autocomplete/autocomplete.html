@@ -2,22 +2,22 @@
   <div class="c-input">
     <p class="label">{{ label }}</p>
 
-    <mat-form-field appearance="outline" class="w-100 " [ngClass]="{'field-invalid': showError}">
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
       <mat-icon matSuffix class="color-primary">search</mat-icon>
 
-      <input  matInput [placeholder]="placeholder" [matAutocomplete]="autoRef"
-        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [value]="displayValue" />
+      <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef" [value]="displayValue"
+        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [disabled]="disabled" />
 
       <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
         @for (item of filtered$ | async; track item.id) {
-        <mat-option (onSelectionChange)="onOptionSelected(item)">
+        <mat-option (onSelectionChange)="$event.isUserInput && onOptionSelected(item)">
           {{ item.name }}
         </mat-option>
         }
       </mat-autocomplete>
 
-      @if (showError) {
-      <span class="field-error">{{ errorMessage }}</span>
+      @if (hasError) {
+      <span class="field-error">{{ firstErrorMessage }}</span>
       }
     </mat-form-field>
   </div>

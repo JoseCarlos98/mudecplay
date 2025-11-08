@@ -1,6 +1,10 @@
 .c-autocomplete {
     position: relative;
 
+    .field-error {
+        bottom: 5px;
+    }
+
     .c-input {
         p {
 

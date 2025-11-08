@@ -4,17 +4,15 @@ import {
   EventEmitter,
   Input,
   Output,
-  forwardRef,
+  Optional,
+  Self,
   inject,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
-import {
-  ControlValueAccessor,
-  NG_VALUE_ACCESSOR,
-} from '@angular/forms';
+import { ControlValueAccessor, NgControl } from '@angular/forms';
 import {
   Observable,
   of,
@@ -40,48 +38,53 @@ import { Catalog } from '../../interfaces/general-interfaces';
     MatIcon,
   ],
   templateUrl: './autocomplete.html',
-  styleUrl: './autocomplete.scss',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => Autocomplete),
-      multi: true,
-    },
-  ],
+  styleUrls: ['./autocomplete.scss'],
 })
 export class Autocomplete implements ControlValueAccessor {
+  // servicios
   private readonly catalogsService = inject(CatalogsService);
 
   // ====== Inputs de configuración ======
   @Input() label = 'Seleccionar';
   @Input() placeholder = 'Buscar...';
-  @Input() remote = false;
+  @Input() remote:boolean = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
 
-  @Input() initialDisplay:string = '';
+  // cuando en editar ya tienes el nombre, lo muestras
+  @Input() initialDisplay: string = '';
 
-  @Input() showError = false;
+  // mensaje por defecto (solo si no hay formControlName)
   @Input() errorMessage = 'Este campo es obligatorio';
 
+  // output por si el padre quiere el objeto completo
   @Output() optionSelected = new EventEmitter<Catalog>();
 
+  // lista filtrada que ve el usuario
   filtered$: Observable<Catalog[]> = of([]);
 
-  // lo que el usuario escribe
+  // lo que el usuario va escribiendo
   private input$ = new Subject<string>();
 
-  // valor real del control (id o lo que mande el form)
-  innerValue: string | Catalog | null = null;
+  // valor REAL del form (id o lo que mandes)
+  private innerValue: string | Catalog | null = null;
 
   // lo que se ve en el input
-  displayValue:string = '';
+  displayValue: string = '';
 
-  // cva
-  private onChange: (val: any) => void = () => { };
-  private onTouched: () => void = () => { };
+   disabled: boolean = false;
 
-  constructor() {
+  // CVA callbacks
+  private onChange: (val: any) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  // para leer estado del form y mostrar errores
+  constructor(@Optional() @Self() private ngControl: NgControl) {
+    if (this.ngControl) {
+      this.ngControl.valueAccessor = this;
+    }
+
+    // armar el stream de búsqueda
     this.filtered$ = this.input$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
@@ -95,26 +98,36 @@ export class Autocomplete implements ControlValueAccessor {
     );
   }
 
-  // ===== CVA =====
-  writeValue(value: any): void {
-    console.log(value);
+  get hasError(): boolean {
+    const control = this.ngControl?.control;
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
 
+  get firstErrorMessage(): string {
+    const errors = this.ngControl?.control?.errors;
+    if (!errors) return '';
+    if (errors['required']) return 'Este campo es obligatorio';
+    return this.errorMessage;
+  }
+
+  // ======== CVA ========
+  writeValue(value: any) {
     this.innerValue = value;
 
-    // si viene el objeto completo
+    // 1) si viene objeto
     if (value && typeof value !== 'string') {
       this.displayValue = value.name ?? '';
       return;
     }
 
-    // 2) si viene id y tienes data local, intenta resolverlo
+    // 2) si viene id y hay data local
     if (typeof value === 'string' && this.data?.length) {
       const found = this.data.find((d) => d.id === value);
       this.displayValue = found ? found.name : '';
       return;
     }
 
-    // 3) si estás en remoto y no tienes data, usa el initialDisplay
+    // 3) si estás en remoto y te pasan el nombre inicial
     if (this.initialDisplay) {
       this.displayValue = this.initialDisplay;
       return;
@@ -131,6 +144,11 @@ export class Autocomplete implements ControlValueAccessor {
     this.onTouched = fn;
   }
 
+  setDisabledState(isDisabled: boolean) {
+     this.disabled = isDisabled;
+  }
+
+
   // cuando escribe
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
@@ -138,7 +156,7 @@ export class Autocomplete implements ControlValueAccessor {
     // actualizamos lo visible
     this.displayValue = text;
 
-    // notificamos al form
+    // notificamos al form con el valor crudo (texto) por si valida required
     this.onChange(typeof term === 'string' ? term : term?.id);
 
     // disparamos búsqueda
@@ -166,7 +184,8 @@ export class Autocomplete implements ControlValueAccessor {
     return found ? found.name : value;
   };
 
-  fetchRemote(search: string): Observable<Catalog[]> {
+  // ======== data ========
+  private fetchRemote(search: string): Observable<Catalog[]> {
     switch (this.catalogType) {
       case 'supplier':
         return this.catalogsService.supplierCatalog(search);
@@ -177,7 +196,7 @@ export class Autocomplete implements ControlValueAccessor {
     }
   }
 
-  filterLocal(term: string): Catalog[] {
+  private filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();
     return this.data.filter((item) =>

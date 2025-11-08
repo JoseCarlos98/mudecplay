@@ -67,7 +67,7 @@ export class InputField implements ControlValueAccessor {
   }
 
   /** Angular nos pasa un valor desde el form */
-  writeValue(value: any): void {
+  writeValue(value: any) {
     this._value = value;
 
     // si no está enfocado, mostramos con formato (por ej. money)
@@ -77,17 +77,17 @@ export class InputField implements ControlValueAccessor {
   }
 
   /** Angular nos da la función para notificar cambios */
-  registerOnChange(fn: any): void {
+  registerOnChange(fn: any) {
     this.onChange = fn;
   }
 
   /** Angular nos da la función para notificar touched/blur */
-  registerOnTouched(fn: any): void {
+  registerOnTouched(fn: any) {
     this.onTouched = fn;
   }
 
   /** Angular deshabilita el control */
-  setDisabledState(isDisabled: boolean): void {
+  setDisabledState(isDisabled: boolean) {
     this.disabled = isDisabled;
   }
 
