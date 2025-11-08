@@ -195,8 +195,6 @@ body {
 
 .field-error {
   display: block;
-  position: absolute;
-  bottom: -21.5px;
   color: #f44336;
   font-size: 11px;
   line-height: 1.5;
@@ -227,22 +225,27 @@ body {
   justify-content: space-between;
   padding: 15px 15px 0 15px;
 
-  .c-input {
-    display: flex;
-    flex-direction: column;
+  .c-content-form {
+    row-gap: 25px!important;
+    column-gap:30px!important;
 
-    .label {
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 4px;
-
-      .required {
-        color: #e53935;
+    .c-input {
+      display: flex;
+      flex-direction: column;
+      
+      .label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 4px;
+        
+        .required {
+          color: #e53935;
+        }
       }
-    }
-
-    mat-form-field {
-      font-size: 15px;
+      
+      mat-form-field {
+        font-size: 15px;
+      }
     }
   }
 }

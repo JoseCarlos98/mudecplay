@@ -5,7 +5,7 @@
 
     <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
 
-        <div class="grid md:grid-cols-2 sm:grid-cols-1 gap-5">
+        <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
             <div class="md:col-span-2">
                 <div class="c-input">
                     <p class="label">Concepto <span class="required">*</span></p>
@@ -39,8 +39,8 @@
                         formControlName="amount" 
                         label="Monto" 
                         type="money"
-                        placeholder="0.00" 
-                        ></app-input-field>
+                        placeholder="0.00" >
+                    </app-input-field>
                         <!-- [disabled]="disabled" -->
                 </div>
             </div>
@@ -53,6 +53,7 @@
                     catalogType="supplier"
                     [initialDisplay]="data?.supplier?.company_name ?? ''">
                 </app-autocomplete>
+                 
             </div>
 
             <div class="md:col-span-1">
