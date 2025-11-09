@@ -25,7 +25,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
-  ...COLUMNS_CONFIG.map(c => c.key),
+  ...COLUMNS_CONFIG.map((c) => c.key),
   'actions',
 ];
 

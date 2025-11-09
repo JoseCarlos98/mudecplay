@@ -1,44 +1,59 @@
-import { Component, Input, Output, EventEmitter, ViewChild, AfterViewInit } from '@angular/core';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort } from '@angular/material/sort';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  TemplateRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 
-export interface TableColumn {
+export interface ColumnsConfig {
   key: string;
   label: string;
   align?: 'left' | 'center' | 'right';
+  template?: TemplateRef<any>;
 }
 
 @Component({
   selector: 'app-data-table',
-  imports: [CommonModule, MatPaginatorModule, MatIconModule, MatTableModule, MatTooltipModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    MatTableModule,
+    MatIconModule,
+    MatTooltipModule,
+    MatButtonModule,
+  ],
   templateUrl: './data-table.html',
-  styleUrls: ['./data-table.scss']
+  styleUrls: ['./data-table.scss'],
 })
-export class DataTable<T> implements AfterViewInit {
-
+export class DataTable<T> implements OnChanges {
+  /** columnas que se muestran en la tabla (incluye 'actions') */
   @Input() displayedColumns: string[] = [];
-  @Input() columnsConfig: { key: string; label: string }[] = [];
+
+  /** configuración de columnas dinámicas */
+  @Input() columnsConfig: ColumnsConfig[] = [];
+
+  /** datos a renderizar */
   @Input() data: T[] = [];
 
+  /** eventos de acciones */
   @Output() edit = new EventEmitter<T>();
   @Output() delete = new EventEmitter<T>();
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-
+  /** datasource de material */
   dataSource = new MatTableDataSource<T>();
 
-  ngAfterViewInit() {
-    // this.dataSource.paginator = this.paginator;
-    // this.paginator.pageSize = pageSize;
-    // this.paginator.pageIndex = pageIndex;
-  }
-
-  ngOnChanges() {
-    this.dataSource.data = this.data || [];
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['data']) {
+      this.dataSource.data = this.data || [];
+    }
   }
 
   onEdit(row: T) {
