@@ -22,3 +22,10 @@ export interface ApiSuccess {
   message: string
   success: true
 }
+
+export interface ConfirmModalAction {
+  title?: string
+  message: string
+  confirmText: string
+  cancelText: string
+}

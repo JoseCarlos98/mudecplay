@@ -62,7 +62,7 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
-  filters: FiltersExpenses = { page: 1, limit: 2  };
+  filters: FiltersExpenses = { page: 1, limit: 10 };
 
   expensesTableData!: PaginatedResponse<ExpenseResponseDtoMapper>;
 
