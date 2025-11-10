@@ -95,79 +95,35 @@ export class Autocomplete implements ControlValueAccessor {
       this.ngControl.valueAccessor = this;
     }
 
-    // armar el stream de búsqueda
-    // this.filtered$ = this.input$.pipe(
-    //   debounceTime(300),
-    //   distinctUntilChanged(),
-    //   filter((text) => (text ?? '').length >= 2),
-    //   switchMap((text) => {
-    //     if (this.remote) {
-    //       return this.fetchRemote(text);
-    //     }
-    //     return of(this.filterLocal(text));
-    //   }),
-    // );
     this.filtered$ = this.input$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
-      filter((text) => (text ?? '').length >= 2),
       switchMap((text) => {
+        const term = (text ?? '').trim();
+
+        // 1) si no escribió nada o escribió muy poquito -> mostrar últimos 5 del pool
+        if (term.length < 2) return of(this.getLastFromPool(5));
+
+        // 2) remoto con cache en pool
         if (this.remote) {
-          // 1) filtro primero en lo que ya tengo
-          const localMatches = this.filterFromPool(text);
+          const localMatches = this.filterFromPool(term);
 
-          // si con lo local me alcanza (tú decides el mínimo, digamos 5)
-          if (localMatches.length > 0) {
-            return of(localMatches);
-          }
+          // si ya tengo algo parecido, lo muestro y no llamo
+          if (localMatches.length > 0) return of(localMatches);
 
-          // 2) si no me alcanza, voy al backend y meto lo nuevo al pool
-          return this.fetchRemote(text).pipe(
-            tap((results) => this.addToPool(results)),
-            // y regreso lo que vino del backend (para que sea lo más fresco)
+          // si no tengo, voy al backend y lo guardo
+          return this.fetchRemote(term).pipe(
+            tap((results) => this.addToPool(results))
           );
         }
 
-        // modo local de siempre
-        return of(this.filterLocal(text));
+        // 3) modo local
+        return of(this.filterLocal(term));
       }),
     );
-
   }
 
-  private filterFromPool(term: string): Catalog[] {
-    console.log('optionsPool', this.optionsPool);
 
-    const lower = term.toLowerCase().trim();
-    return this.optionsPool.filter(opt =>
-      opt.name.toLowerCase().includes(lower)
-    );
-  }
-
-  private addToPool(results: Catalog[]) {
-    for (const item of results) {
-      const exists = this.optionsPool.some(opt => opt.id === item.id);
-      if (!exists) {
-        this.optionsPool.push(item);
-      }
-    }
-    // opcional: limitar tamaño
-    if (this.optionsPool.length > 200) {
-      this.optionsPool.splice(0, this.optionsPool.length - 200);
-    }
-  }
-
-  get hasError(): boolean {
-    const control = this.ngControl?.control;
-    return !!control && control.invalid && (control.touched || control.dirty);
-  }
-
-  get firstErrorMessage(): string {
-    const errors = this.ngControl?.control?.errors;
-    if (!errors) return '';
-    if (errors['required']) return 'Este campo es obligatorio';
-    return this.errorMessage;
-  }
 
   // ======== CVA ========
   writeValue(value: any) {
@@ -207,18 +163,11 @@ export class Autocomplete implements ControlValueAccessor {
     this.disabled = isDisabled;
   }
 
-
   // cuando escribe
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
-
-    // actualizamos lo visible
     this.displayValue = text;
-
-    // notificamos al form con el valor crudo (texto) por si valida required
     this.onChange(typeof term === 'string' ? term : term?.id);
-
-    // disparamos búsqueda
     this.input$.next(text);
   }
 
@@ -255,7 +204,18 @@ export class Autocomplete implements ControlValueAccessor {
     return found ? found.name : value;
   };
 
-  // ======== data ========
+  get hasError(): boolean {
+    const control = this.ngControl?.control;
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  get firstErrorMessage(): string {
+    const errors = this.ngControl?.control?.errors;
+    if (!errors) return '';
+    if (errors['required']) return 'Este campo es obligatorio';
+    return this.errorMessage;
+  }
+
   private fetchRemote(search: string): Observable<Catalog[]> {
     switch (this.catalogType) {
       case 'supplier':
@@ -273,5 +233,30 @@ export class Autocomplete implements ControlValueAccessor {
     return this.data.filter((item) =>
       item.name.toLowerCase().includes(lower),
     );
+  }
+
+  private getLastFromPool(limit: number): Catalog[] {
+    // toma los últimos agregados (los más recientes)
+    // si los ibas haciendo push, los últimos están al final
+    return this.optionsPool.slice(-limit).reverse(); // reverse para que el último vaya arriba
+  }
+
+  private filterFromPool(term: string): Catalog[] {
+    const lower = term.toLowerCase();
+    return this.optionsPool.filter(opt =>
+      opt.name.toLowerCase().includes(lower)
+    );
+  }
+
+  private addToPool(results: Catalog[]) {
+    for (const item of results) {
+      const exists = this.optionsPool.some(opt => opt.id === item.id);
+      if (!exists) {
+        this.optionsPool.push(item);
+      }
+    }
+    if (this.optionsPool.length > 200) {
+      this.optionsPool.splice(0, this.optionsPool.length - 200);
+    }
   }
 }
