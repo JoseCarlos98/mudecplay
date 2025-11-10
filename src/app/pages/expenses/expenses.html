@@ -42,7 +42,22 @@
 </div>
 
 @if (expensesTableData?.data) {
-<app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
-  (edit)="onEdit($event)" (delete)="onDelete($event.originData)">
-</app-data-table>
+<div class="c-module-table">
+  <app-data-table
+    [data]="expensesTableData.data"
+    [columnsConfig]="columnsConfig"
+    [displayedColumns]="displayedColumns"
+    (edit)="onEdit($event)"
+    (delete)="onDelete($event.originData)">
+  </app-data-table>
+
+  <mat-paginator
+    [length]="expensesTableData.meta.total"
+    [pageSize]="filters.limit"
+    [pageIndex]="filters.page - 1"
+    [pageSizeOptions]="[5, 10, 25, 50]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
+</div>
 }

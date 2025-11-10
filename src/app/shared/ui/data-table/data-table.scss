@@ -45,18 +45,6 @@
     }
   }
 
-  mat-paginator {
-    height: 100px !important;
-    position: absolute;
-    bottom: -40px;
-    right: 0;
-    left: 0;
-    flex-shrink: 0;
-    border-top: 1px solid #f0f0f0;
-    padding-top: 2px;
-    background: white;
-  }
-
   .c-actions-cells {
     >div {
       display: flex;

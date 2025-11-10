@@ -7,6 +7,7 @@ import {
   Optional,
   Self,
   inject,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -39,6 +40,7 @@ import { Catalog } from '../../interfaces/general-interfaces';
   ],
   templateUrl: './autocomplete.html',
   styleUrls: ['./autocomplete.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Autocomplete implements ControlValueAccessor {
   // servicios

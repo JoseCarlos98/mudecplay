@@ -5,6 +5,7 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
+  ChangeDetectionStrategy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -28,6 +29,7 @@ export interface ColumnsConfig {
   ],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTable<T> implements OnChanges {
   /** columnas que se muestran en la tabla (incluye 'actions') */

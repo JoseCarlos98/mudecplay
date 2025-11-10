@@ -6,7 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
@@ -36,7 +36,21 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 @Component({
   selector: 'app-expenses',
-  imports: [CommonModule, DataTable, MatPaginatorModule, ModuleHeader, FormsModule, MatFormFieldModule, MatSelectModule, MatInputModule, ReactiveFormsModule, MatIconModule, MatTableModule, MatButtonModule],
+  standalone: true,
+  imports: [
+    CommonModule,
+    DataTable,
+    MatPaginatorModule,
+    ModuleHeader,
+    FormsModule,
+    MatFormFieldModule,
+    MatSelectModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatTableModule,
+    MatButtonModule,
+  ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
@@ -48,7 +62,8 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
-  filters: FiltersExpenses = { page: 1, limit: 10 };
+  filters: FiltersExpenses = { page: 1, limit: 2  };
+
   expensesTableData!: PaginatedResponse<ExpenseResponseDtoMapper>;
 
   ngOnInit(): void {
@@ -58,8 +73,14 @@ export class Expenses implements OnInit {
   getExpensesForTable(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
       next: (response) => (this.expensesTableData = response),
-      error: (err) => console.error('Error al cargar gastos:', err)
+      error: (err) => console.error('Error al cargar gastos:', err),
     });
+  }
+
+  onPageChange(event: PageEvent) {
+    this.filters.page = event.pageIndex + 1;
+    this.filters.limit = event.pageSize;
+    this.getExpensesForTable();
   }
 
   onHeaderAction(action: string) {
@@ -88,18 +109,21 @@ export class Expenses implements OnInit {
         if (!confirmed) return;
 
         this.expenseService.remove(expense.id).subscribe({
-          next: (response) => {
-            console.log(response);
-            this.getExpensesForTable();
-          },
+          next: () => this.getExpensesForTable(),
           error: (err) => console.error('Error al guardar gastos:', err),
         });
       });
   }
 
   expenseModal(expense?: ExpenseResponseDtoMapper) {
-    this.dialogService.open(ExpenseModal, expense ? expense.originData : null, 'medium')
-      .afterClosed().subscribe((result) => {
+    this.dialogService
+      .open(
+        ExpenseModal,
+        expense ? expense.originData : null,
+        'medium'
+      )
+      .afterClosed()
+      .subscribe((result) => {
         if (result) this.getExpensesForTable();
       });
   }

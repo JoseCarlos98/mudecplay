@@ -97,10 +97,17 @@
     }
 }
 
+.mat-mdc-paginator-range-actions {
+    gap: 5px!important;
+}
+
 .mat-mdc-paginator {
-    border-top: 2px solid rgba(39, 170, 225, 0.2);
     margin-top: 10px;
     color: #231F20;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border-radius: 15px;
 
     .mat-mdc-paginator-range-label {
         font-size: 12px;
@@ -110,6 +117,11 @@
 
     .mat-mdc-icon-button {
         color: #27AAE1;
+        width: 40px !important;
+        height: 40px !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 }
 

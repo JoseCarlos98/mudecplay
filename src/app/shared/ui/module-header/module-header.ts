@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -32,13 +32,14 @@ export interface ModuleHeaderConfig {
   imports: [CommonModule, MatIconModule, MatTooltipModule],
   templateUrl: './module-header.html',
   styleUrl: './module-header.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ModuleHeader {
   /** Título mostrado en el header */
-  @Input() title:string = '';
+  @Input() title: string = '';
 
   /** Configuración visual y funcional */
-  @Input() config: ModuleHeaderConfig = { };
+  @Input() config: ModuleHeaderConfig = {};
 
   /** Botones adicionales personalizados */
   @Input() extraButtons: ExtraButton[] = [];
@@ -55,6 +56,6 @@ export class ModuleHeader {
     //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
     //Add 'implements OnInit' to the class.
     console.log(this.title);
-    
+
   }
 }
