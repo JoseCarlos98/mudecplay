@@ -17,7 +17,7 @@ export class CatalogsService {
 
     return this.http.get<Catalog[]>(url, { params })
   }
-  
+
   projectsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/projects/catalog`;
     let params = new HttpParams();
@@ -25,5 +25,9 @@ export class CatalogsService {
     if (searchTerm) params = params.set('search', searchTerm)
 
     return this.http.get<Catalog[]>(url, { params })
+  }
+
+  statusExpenseCatalog(): Observable<Catalog[]> {
+    return this.http.get<Catalog[]>(`${this.apiUrl}/status-expense`);
   }
 }

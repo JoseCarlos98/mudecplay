@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ModuleHeader, ModuleHeaderConfig } from "../../shared/ui/module-header/module-header";
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
@@ -10,7 +10,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
-import { ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import { Catalog, ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
@@ -18,6 +18,9 @@ import { DialogService } from '../../shared/services/dialog.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { Autocomplete } from '../../shared/ui/autocomplete/autocomplete';
+import { CatalogsService } from '../../shared/services/catalogs.service';
+import { toApiDate } from '../../shared/helpers/general-helpers';
+
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
   { key: 'date', label: 'Fecha', type: 'date' },
@@ -62,20 +65,65 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 export class Expenses implements OnInit {
   private readonly expenseService = inject(ExpenseService);
   private readonly dialogService = inject(DialogService);
+  private readonly catalogsService = inject(CatalogsService);
+  private readonly fb = inject(FormBuilder);
 
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
+
+  catalogStatusExpense: Catalog[] = [];
+
   filters: FiltersExpenses = { page: 1, limit: 5 };
 
   expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 
+  formFilters = this.fb.group({
+    startDate: [null],
+    endDate: [null],
+    supplier_id: [null],
+    project_id: [null],
+    status_id: [null],
+    concept: [''],
+  });
+
   ngOnInit(): void {
-    this.getExpensesForTable();
+    this.loadExpenses();
+    this.loadCatalogs();
   }
 
-  getExpensesForTable(): void {
+  loadCatalogs() {
+     this.catalogsService.statusExpenseCatalog().subscribe({
+      next: (response: any) => {
+        console.log(response);
+        this.catalogStatusExpense = response
+      },
+      error: (err) => console.error('Error al cargar gastos:', err),
+    });
+  }
+
+  searchWithFilters() {
+    const values = this.formFilters.value;
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      startDate: toApiDate(values.startDate),
+      endDate: toApiDate(values.endDate),
+      supplier_id: values.supplier_id,
+      project_id: values.project_id,
+      status_id: values.status_id,
+      concept: values.concept?.trim() || '',
+    };
+
+    console.log(this.filters);
+    
+    this.loadExpenses();
+  }
+
+
+  loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
       next: (response: any) => {
         console.log(response);
@@ -88,7 +136,7 @@ export class Expenses implements OnInit {
   onPageChange(event: PageEvent) {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
-    this.getExpensesForTable();
+    this.loadExpenses();
   }
 
   onHeaderAction(action: string) {
@@ -117,7 +165,7 @@ export class Expenses implements OnInit {
         if (!confirmed) return;
 
         this.expenseService.remove(expense.id).subscribe({
-          next: () => this.getExpensesForTable(),
+          next: () => this.loadExpenses(),
           error: (err) => console.error('Error al guardar gastos:', err),
         });
       });
@@ -132,7 +180,7 @@ export class Expenses implements OnInit {
       )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.getExpensesForTable();
+        if (result) this.loadExpenses();
       });
   }
 }

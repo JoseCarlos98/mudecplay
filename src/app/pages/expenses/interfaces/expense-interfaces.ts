@@ -1,7 +1,12 @@
+// proveedores?: string[];
+// proyectos?: string[];
 export interface FiltersExpenses {
-    proveedores?: string[];
-    proyectos?: string[];
-    fecha?: string;
+    concept?: string | '';
+    startDate?: string | null;
+    endDate?: string | null;
+    supplier_id? : number | null;
+    project_id? : number| null;
+    status_id? : number| null;
     limit: number;
     page: number;
 }

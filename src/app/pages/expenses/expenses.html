@@ -3,46 +3,58 @@
   </app-module-header>
 
 
-  <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
 
-    <div class="c-input">
-      <p class="label">Rango de fecha</p>
-      <mat-form-field appearance="outline" class="w-100">
-        <mat-date-range-input [rangePicker]="picker">
-          <input matStartDate placeholder="Inicio">
-          <input matEndDate placeholder="Fin">
-        </mat-date-range-input>
-        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-        <mat-date-range-picker #picker></mat-date-range-picker>
-      </mat-form-field>
+      <div class="c-input">
+        <p class="label">Rango de fecha</p>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-date-range-input [rangePicker]="picker">
+            <input formControlName="startDate" matStartDate placeholder="Inicio">
+            <input formControlName="endDate" matEndDate placeholder="Fin">
+          </mat-date-range-input>
+          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          <mat-date-range-picker #picker></mat-date-range-picker>
+        </mat-form-field>
+      </div>
+
+
+      <div class="c-input">
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier">
+        </app-autocomplete>
+      </div>
+
+
+      <div class="c-input">
+        <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
+        </app-autocomplete>
+      </div>
+
+      <div class="c-input">
+        <p>Estatus</p>
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-select formControlName="status_id">
+            <mat-option [value]="null">Todos</mat-option>
+            @for (data of catalogStatusExpense; track data.id) {
+            <mat-option [value]="data.id">{{ data.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <div class="c-input">
+        <p>Concepto</p>
+        <mat-form-field appearance="outline" class="w-100">
+          <input formControlName="concept" matInput />
+        </mat-form-field>
+      </div>
+
+      <button (click)="searchWithFilters()" type="button"
+        class="btn-primary radius text-white hover:bg-[#167195] transition-all">
+        <mat-icon>search</mat-icon>
+      </button>
     </div>
-
-
-    <div class="c-input">
-      <!-- formControlName="supplier_id"  -->
-      <app-autocomplete label="Proveedor" [remote]="true" catalogType="supplier">
-      </app-autocomplete>
-    </div>
-
-
-    <div class="c-input">
-      <!-- formControlName="project_id"  -->
-      <app-autocomplete label="Proyecto" [remote]="true" catalogType="project">
-      </app-autocomplete>
-    </div>
-
-
-    <div class="c-input">
-      <p>Concepto</p>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput />
-      </mat-form-field>
-    </div>
-
-    <button class="btn-primary radius text-white hover:bg-[#167195] transition-all">
-      <mat-icon>search</mat-icon>
-    </button>
-  </div>
+  </form>
 </div>
 
 @if (expensesTableData?.data) {

@@ -29,8 +29,9 @@
 
 
  @media screen and (max-width: 875px) {
-  .content {
-   padding-left: 85px!important;
-  }
-
-}
+    .content {
+       overflow: scroll;
+       padding-left: 85px !important;
+       padding-bottom: 230px;
+    }
+ }

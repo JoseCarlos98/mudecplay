@@ -1,7 +1,7 @@
 /**
  * Convierte un Date o un string ISO a 'YYYY-MM-DD' para el backend.
  */
-export function toApiDate(value: Date | string | null): string | null {
+export function toApiDate(value: Date | string | null | undefined): string | null {
   if (!value) return null;
 
   // si ya viene '2025-11-20'
