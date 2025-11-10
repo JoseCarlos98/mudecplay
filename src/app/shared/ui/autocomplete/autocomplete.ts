@@ -22,6 +22,7 @@ import {
   distinctUntilChanged,
   switchMap,
   filter,
+  tap,
 } from 'rxjs';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { CatalogsService } from '../../services/catalogs.service';
@@ -76,6 +77,9 @@ export class Autocomplete implements ControlValueAccessor {
   // valor REAL del form (id o lo que mandes)
   private innerValue: string | Catalog | null = null;
 
+  // cache en memoria del componente
+  private optionsPool: Catalog[] = [];
+
   // lo que se ve en el input
   displayValue: string = '';
 
@@ -92,17 +96,65 @@ export class Autocomplete implements ControlValueAccessor {
     }
 
     // armar el stream de búsqueda
+    // this.filtered$ = this.input$.pipe(
+    //   debounceTime(300),
+    //   distinctUntilChanged(),
+    //   filter((text) => (text ?? '').length >= 2),
+    //   switchMap((text) => {
+    //     if (this.remote) {
+    //       return this.fetchRemote(text);
+    //     }
+    //     return of(this.filterLocal(text));
+    //   }),
+    // );
     this.filtered$ = this.input$.pipe(
       debounceTime(300),
       distinctUntilChanged(),
       filter((text) => (text ?? '').length >= 2),
       switchMap((text) => {
         if (this.remote) {
-          return this.fetchRemote(text);
+          // 1) filtro primero en lo que ya tengo
+          const localMatches = this.filterFromPool(text);
+
+          // si con lo local me alcanza (tú decides el mínimo, digamos 5)
+          if (localMatches.length > 0) {
+            return of(localMatches);
+          }
+
+          // 2) si no me alcanza, voy al backend y meto lo nuevo al pool
+          return this.fetchRemote(text).pipe(
+            tap((results) => this.addToPool(results)),
+            // y regreso lo que vino del backend (para que sea lo más fresco)
+          );
         }
+
+        // modo local de siempre
         return of(this.filterLocal(text));
       }),
     );
+
+  }
+
+  private filterFromPool(term: string): Catalog[] {
+    console.log('optionsPool', this.optionsPool);
+
+    const lower = term.toLowerCase().trim();
+    return this.optionsPool.filter(opt =>
+      opt.name.toLowerCase().includes(lower)
+    );
+  }
+
+  private addToPool(results: Catalog[]) {
+    for (const item of results) {
+      const exists = this.optionsPool.some(opt => opt.id === item.id);
+      if (!exists) {
+        this.optionsPool.push(item);
+      }
+    }
+    // opcional: limitar tamaño
+    if (this.optionsPool.length > 200) {
+      this.optionsPool.splice(0, this.optionsPool.length - 200);
+    }
   }
 
   get hasError(): boolean {
