@@ -16,9 +16,9 @@ export class InputField implements ControlValueAccessor {
   @Input() label: string = '';
   @Input() placeholder: string = '';
   @Input() type: 'text' | 'money' | 'number' = 'text';
-  @Input() prefix: string = '$';               // usado en money
-  @Input() decimals: number = 2;               // usado en money
-  @Input() showError: boolean = false;         // fallback si no hay NgControl
+  @Input() prefix: string = '$';               
+  @Input() decimals: number = 2;         
+  @Input() showError: boolean = false;
   @Input() errorMessage: string = 'Este campo es obligatorio';
 
   /*** Valor REAL que vive en el form (sin formato). */
@@ -43,14 +43,7 @@ export class InputField implements ControlValueAccessor {
     if (this.ngControl) this.ngControl.valueAccessor = this;
   }
 
-  // Getters de estado de error (para mostrar mensajes)
-  get hasError(): boolean {
-    // si no tenemos control (uso fuera de form), usamos el @Input
-    if (!this.ngControl) return this.showError;
-
-    const control = this.ngControl.control;
-    return !!control && control.invalid && (control.touched || control.dirty);
-  }
+  
 
   get firstErrorMessage(): string {
     const control = this.ngControl?.control;
@@ -159,7 +152,14 @@ export class InputField implements ControlValueAccessor {
     event.preventDefault();
   }
 
-  // Helpers internos
+  // Getters
+  get hasError(): boolean {
+    // si no tenemos control (uso fuera de form), usamos el @Input
+    if (!this.ngControl) return this.showError;
+
+    const control = this.ngControl.control;
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
 
   get showRequiredMark(): boolean {
     const control = this.ngControl?.control;
@@ -168,6 +168,8 @@ export class InputField implements ControlValueAccessor {
     const validationResult = control.validator({} as any);
     return !!validationResult?.['required'];
   }
+
+  // Helpers internos
 
   /**
    * Convierte lo que escribe el usuario en el valor que queremos
