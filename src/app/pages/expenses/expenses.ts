@@ -15,7 +15,9 @@ import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interf
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
-
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { Autocomplete } from '../../shared/ui/autocomplete/autocomplete';
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
   { key: 'date', label: 'Fecha', type: 'date' },
@@ -50,6 +52,9 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatIconModule,
     MatTableModule,
     MatButtonModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    Autocomplete
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',

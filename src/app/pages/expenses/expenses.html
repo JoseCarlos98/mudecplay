@@ -4,34 +4,38 @@
 
 
   <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Nombre</p>
+      <p class="label">Rango de fecha</p>
       <mat-form-field appearance="outline" class="w-100">
-        <input matInput />
+        <mat-date-range-input [rangePicker]="picker">
+          <input matStartDate placeholder="Inicio">
+          <input matEndDate placeholder="Fin">
+        </mat-date-range-input>
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-date-range-picker #picker></mat-date-range-picker>
       </mat-form-field>
     </div>
 
-    <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Correo</p>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput />
-      </mat-form-field>
-    </div>
 
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Razon Social</p>
-      <mat-form-field appearance="outline" class="w-100">
-        <input matInput />
-      </mat-form-field>
+      <!-- formControlName="supplier_id"  -->
+      <app-autocomplete label="Proveedor" [remote]="true" catalogType="supplier">
+      </app-autocomplete>
     </div>
 
+
     <div class="c-input">
-      <p class="font-medium text-gray-700 mb-1">Rol</p>
+      <!-- formControlName="project_id"  -->
+      <app-autocomplete label="Proyecto" [remote]="true" catalogType="project">
+      </app-autocomplete>
+    </div>
+
+
+    <div class="c-input">
+      <p>Concepto</p>
       <mat-form-field appearance="outline" class="w-100">
-        <mat-select>
-          <mat-option value="active">Active</mat-option>
-          <mat-option value="inactive">Inactive</mat-option>
-        </mat-select>
+        <input matInput />
       </mat-form-field>
     </div>
 
@@ -43,21 +47,12 @@
 
 @if (expensesTableData?.data) {
 <div class="c-module-table">
-  <app-data-table
-    [data]="expensesTableData.data"
-    [columnsConfig]="columnsConfig"
-    [displayedColumns]="displayedColumns"
-    (edit)="onEdit($event)"
-    (delete)="onDelete($event)">
+  <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+    (edit)="onEdit($event)" (delete)="onDelete($event)">
   </app-data-table>
 
-  <mat-paginator
-    [length]="expensesTableData.meta.total"
-    [pageSize]="filters.limit"
-    [pageIndex]="filters.page - 1"
-    [pageSizeOptions]="[5, 10, 25, 50]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
+  <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
+    [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
   </mat-paginator>
 </div>
 }

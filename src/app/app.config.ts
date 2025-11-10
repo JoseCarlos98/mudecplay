@@ -5,7 +5,7 @@ import { routes } from './app.routes';
 import { getSpanishPaginatorIntl } from './shared/customs/custom-paginator-intl';
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
 import { AuthInterceptor } from './core/interceptor/token.interceptor';
 
 export const MY_DATE_FORMATS = {
@@ -24,7 +24,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-     provideHttpClient(withInterceptorsFromDi()),
+    provideNativeDateAdapter(),
+    provideHttpClient(withInterceptorsFromDi()),
 
     { provide: MatPaginatorIntl, useValue: getSpanishPaginatorIntl() },
     { provide: MAT_DATE_LOCALE, useValue: 'es-MX' },

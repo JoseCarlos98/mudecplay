@@ -7,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { toApiDate, toCatalogLike, toIdForm } from '../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../services/expense.service';
 import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfaces';
@@ -25,7 +24,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   ],
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',
-  providers: [provideNativeDateAdapter()],
 })
 export class ExpenseModal implements OnInit {
   private readonly expenseService = inject(ExpenseService);
