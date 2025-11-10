@@ -122,8 +122,6 @@ export class Autocomplete implements ControlValueAccessor {
     );
   }
 
-
-
   // ======== CVA ========
   writeValue(value: any) {
     this.innerValue = value;
