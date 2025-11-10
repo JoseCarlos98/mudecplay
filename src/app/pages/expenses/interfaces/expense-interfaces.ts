@@ -29,7 +29,7 @@ export interface ExpenseResponseDtoMapper {
     id: number;
     concept: string;
     date: string;
-    amount: string;
+    amount: number;
     supplier: string;
     project: string;
     originData: ExpenseResponseDto;
