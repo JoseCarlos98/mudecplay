@@ -11,7 +11,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
 import { ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
-import { ExpenseResponseDto, ExpenseResponseDtoMapper, FiltersExpenses } from './interfaces/expense-interfaces';
+import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
@@ -62,7 +62,7 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
-  filters: FiltersExpenses = { page: 1, limit: 1 };
+  filters: FiltersExpenses = { page: 1, limit: 5 };
 
   expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 

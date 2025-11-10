@@ -46,21 +46,23 @@
   }
 
   .c-actions-cells {
+    padding-left: 8px!important;
     >div {
       display: flex;
       align-items: center;
       gap: 10px;
     }
+
     button {
       color: #555;
       transition: all 0.25s ease;
       width: 40px !important;
       height: 40px !important;
       min-height: unset !important;
-      padding: 0!important;
-      display: flex!important;
-      align-items: center!important;
-      justify-content: center!important;
+      padding: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
 
       mat-icon {
         font-size: 22px;

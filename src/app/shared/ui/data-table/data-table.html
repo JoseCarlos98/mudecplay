@@ -21,7 +21,7 @@
 
               }
               @case ('date') {
-                {{ element[col.key] | date:'dd-MM-yyyy' }}
+                {{ element[col.key] | date:"d MMM y" : 'es-MX' }}
               }
               @default {
                 {{ element[col.key] ?? col.fallback ?? '' }}
