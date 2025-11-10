@@ -4,7 +4,7 @@
 
 .c-input {
     text-align: left;
-     margin-bottom: 5px;
+    margin-bottom: 5px;
 
     mat-form-field {
         .mat-mdc-text-field-wrapper {
@@ -29,11 +29,11 @@
 }
 
 .mat-mdc-form-field-error {
-    font-size: 11px!important;
-    font-family: "Poppins", sans-serif!important;
+    font-size: 11px !important;
+    font-family: "Poppins", sans-serif !important;
 }
 
-.mat-mdc-form-field-flex{
+.mat-mdc-form-field-flex {
     height: 30px !important;
 }
 
@@ -49,7 +49,7 @@
 .mdc-text-field--no-label .mat-mdc-form-field-infix {
     font-size: 12px !important;
     // height: 5px!important;
-    min-height: unset!important;
+    min-height: unset !important;
 }
 
 .mat-mdc-form-field {
@@ -93,7 +93,7 @@
     margin-top: 0px !important;
 
     .mat-mdc-paginator-page-size .mat-mdc-select-arrow-wrapper {
-            padding-bottom: 8px !important;
+        padding-bottom: 8px !important;
     }
 }
 
@@ -138,6 +138,14 @@
 
 .mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
     // background: var(--color-primary)!important;
+}
+
+.mat-mdc-icon-button .mat-mdc-button-persistent-ripple {
+    width: 40px !important;
+    height: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 // MOVIL DESIGN

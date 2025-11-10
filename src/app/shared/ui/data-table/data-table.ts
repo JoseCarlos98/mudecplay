@@ -5,19 +5,16 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
-  TemplateRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 
 export interface ColumnsConfig {
   key: string;
   label: string;
   align?: 'left' | 'center' | 'right';
-  template?: TemplateRef<any>;
 }
 
 @Component({
@@ -27,7 +24,6 @@ export interface ColumnsConfig {
     CommonModule,
     MatTableModule,
     MatIconModule,
-    MatTooltipModule,
     MatButtonModule,
   ],
   templateUrl: './data-table.html',

@@ -36,7 +36,7 @@
     td {
       color: #333;
       font-size: 14px;
-      padding: 3px 15px;
+      padding: 0px 15px;
       border-bottom: 1px solid #f0f0f0;
     }
 
@@ -58,10 +58,23 @@
   }
 
   .c-actions-cells {
+    >div {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
     button {
       color: #555;
       border-radius: 10px;
       transition: all 0.25s ease;
+
+      width: 40px !important;
+      height: 40px !important;
+      min-height: unset !important;
+      padding: 0!important;
+      display: flex!important;
+      align-items: center!important;
+      justify-content: center!important;
 
       mat-icon {
         font-size: 22px;
