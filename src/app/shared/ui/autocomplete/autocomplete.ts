@@ -23,9 +23,11 @@ import {
   switchMap,
   filter,
 } from 'rxjs';
-import { MatIcon } from '@angular/material/icon';
+import { MatIcon, MatIconModule } from '@angular/material/icon';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-autocomplete',
@@ -37,6 +39,9 @@ import { Catalog } from '../../interfaces/general-interfaces';
     MatAutocompleteModule,
     MatOptionModule,
     MatIcon,
+    MatTooltipModule,
+    MatIconModule,
+    MatButtonModule
   ],
   templateUrl: './autocomplete.html',
   styleUrls: ['./autocomplete.scss'],

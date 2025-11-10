@@ -28,6 +28,8 @@ export class DialogService {
   ) {
     const finalConfig: MatDialogConfig = {
       ...this.sizes[size],
+      autoFocus: false,
+      restoreFocus: false,
       minHeight: '40vh',
       disableClose: true,
       data,

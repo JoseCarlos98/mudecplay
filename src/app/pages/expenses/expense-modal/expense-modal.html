@@ -9,8 +9,8 @@
             <div class="md:col-span-2">
                 <div class="c-input">
                     <p class="label">Concepto <span class="required">*</span></p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" />
+                    <mat-form-field  appearance="outline" class="w-100">
+                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" cdkFocusInitial  />
                         @if (form.get('concept')?.touched || form.get('concept')?.invalid) {
                         <mat-error>Este campo es obligatorio</mat-error>
                         }

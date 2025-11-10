@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, Input, Optional, Self } from '@angular/core';
+import { Component, Input, Optional, Self } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -10,7 +10,6 @@ import { MatInputModule } from '@angular/material/input';
   imports: [CommonModule, MatFormFieldModule, MatInputModule],
   templateUrl: './input-field.html',
   styleUrls: ['./input-field.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InputField implements ControlValueAccessor {
   // Inputs de configuración (lo que controla el que lo usa)

@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -29,7 +30,10 @@ export interface ModuleHeaderConfig {
 @Component({
   selector: 'app-module-header',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatTooltipModule],
+  imports: [CommonModule, MatIconModule, MatTooltipModule, MatTooltipModule,
+    MatIconModule,
+    MatButtonModule
+  ],
   templateUrl: './module-header.html',
   styleUrl: './module-header.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

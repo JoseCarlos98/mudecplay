@@ -4,7 +4,10 @@
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
       @if (displayValue?.length) {
-        <mat-icon matSuffix (click)="clearInput()" class="cursor-pointer">close</mat-icon>
+      <button matSuffix mat-icon-button>
+        <mat-icon matSuffix (click)="clearInput()" class="cursor-pointer"
+          [matTooltip]="'Eliminar selección'">close</mat-icon>
+      </button>
       } @else {
       <mat-icon matSuffix>search</mat-icon>
       }

@@ -31,12 +31,18 @@
       border-bottom-right-radius: 10px;
     }
 
-    button {
+    button:not(.btn-close-modal) {
       display: flex;
       align-items: center;
       gap: 5px;
       padding: 3px 8px;
       font-size: 15px;
+    }
+
+    .btn-close-modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .cursor-pointer {

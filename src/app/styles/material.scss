@@ -117,11 +117,6 @@
 
     .mat-mdc-icon-button {
         color: #27AAE1;
-        width: 40px !important;
-        height: 40px !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
     }
 }
 
@@ -152,13 +147,6 @@
     // background: var(--color-primary)!important;
 }
 
-.mat-mdc-icon-button .mat-mdc-button-persistent-ripple {
-    width: 40px !important;
-    height: 40px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
 
 // MOVIL DESIGN
 @media screen and (max-width: 500px) {

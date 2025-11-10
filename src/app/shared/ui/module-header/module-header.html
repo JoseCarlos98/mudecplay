@@ -7,7 +7,7 @@
 
   <div class="section-btns-module-header">
     @if (config.showUploadXml) {
-    <button mat-stroked-button class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+    <button class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
       (click)="emit('upload')">
       <mat-icon>file_upload</mat-icon>
       Cargar XML
@@ -15,7 +15,7 @@
     }
 
     @if (config.showNew) {
-    <button mat-flat-button class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
+    <button  class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
       (click)="emit('new')">
       <mat-icon>add</mat-icon>
       Nuevo
@@ -39,9 +39,11 @@
     }
 
     @if (config.modal) {
-    <mat-icon class="cursor-pointer" matTooltip="Salir del registro" (click)="emit('close')">
-      close
-    </mat-icon>
+    <button matSuffix mat-icon-button matTooltip="Salir del registro" class="btn-close-modal" (click)="emit('close')">
+      <mat-icon class="cursor-pointer"  >
+        close
+      </mat-icon>
+    </button>
     }
 
   </div>
