@@ -18,10 +18,10 @@ import { DialogService } from '../../shared/services/dialog.service';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
-  { key: 'date', label: 'Fecha' },
-  { key: 'amount', label: 'Monto' },
-  { key: 'supplier', label: 'Proveedor' },
-  { key: 'project', label: 'Proyecto' },
+  { key: 'date', label: 'Fecha', type: 'date' },
+  { key: 'amount', label: 'Monto', type: 'money', align: 'right' },
+  { key: 'supplier', label: 'Proveedor', type: 'relation', path: 'company_name', fallback: 'No asignado' },
+  { key: 'project', label: 'Proyecto', type: 'relation', path: 'name', fallback: 'No asignado' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -64,7 +64,7 @@ export class Expenses implements OnInit {
 
   filters: FiltersExpenses = { page: 1, limit: 1 };
 
-  expensesTableData!: PaginatedResponse<ExpenseResponseDtoMapper>;
+  expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 
   ngOnInit(): void {
     this.getExpensesForTable();
@@ -72,7 +72,10 @@ export class Expenses implements OnInit {
 
   getExpensesForTable(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
-      next: (response) => (this.expensesTableData = response),
+      next: (response: any) => {
+        console.log(response);
+        this.expensesTableData = response
+      },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
@@ -115,11 +118,11 @@ export class Expenses implements OnInit {
       });
   }
 
-  expenseModal(expense?: ExpenseResponseDtoMapper) {
+  expenseModal(expense?: ExpenseResponseDto) {
     this.dialogService
       .open(
         ExpenseModal,
-        expense ? expense.originData : null,
+        expense ? expense : null,
         'medium'
       )
       .afterClosed()

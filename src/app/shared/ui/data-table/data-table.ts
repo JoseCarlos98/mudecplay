@@ -11,12 +11,7 @@ import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-
-export interface ColumnsConfig {
-  key: string;
-  label: string;
-  align?: 'left' | 'center' | 'right';
-}
+import { ColumnsConfig } from '../../interfaces/general-interfaces';
 
 @Component({
   selector: 'app-data-table',
@@ -47,6 +42,13 @@ export class DataTable<T> implements OnChanges {
 
   /** datasource de material */
   dataSource = new MatTableDataSource<T>();
+
+  getRelationValue(value: any, path?: string) {
+    if (!value) return null;
+    if (!path) return value;
+    return value[path] ?? null;
+  }
+
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data']) {

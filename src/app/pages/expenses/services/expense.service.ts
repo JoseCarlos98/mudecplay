@@ -1,9 +1,8 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import * as entity from '../interfaces/expense-interfaces';
-import { map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ExpenseMapper } from '../mapper/expense-mapper';
 import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 
 @Injectable({
@@ -23,11 +22,7 @@ export class ExpenseService {
       if (filters.limit) params = params.set('limit', String(filters.limit));
     }
 
-    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params }).pipe(
-      map((response) => {
-        return ExpenseMapper.mapToExpenseList(response);
-      })
-    )
+    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params })
   }
 
   create(formData: entity.CreateExpense): Observable<ApiSuccess> {
