@@ -80,14 +80,12 @@ export class ExpenseModal implements OnInit {
       project_id: toIdForm(raw.project_id),
     };
 
-    console.log(formData);
-
-    // this.expenseService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.expenseService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {
@@ -99,15 +97,13 @@ export class ExpenseModal implements OnInit {
       supplier_id: toIdForm(raw.supplier_id),
       project_id: toIdForm(raw.project_id),
     };
-
-     console.log(formData);
      
-    // this.expenseService.update(this.data.id, formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al editar gastos:', err),
-    // });
+    this.expenseService.update(this.data.id, formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al editar gastos:', err),
+    });
   }
 
   closeModal(saved?: boolean) {

@@ -2,7 +2,7 @@
   <div class="c-input">
     <p class="label">
       {{ label }}
-      @if (required) { <span class="required">*</span> }
+       @if (showRequiredMark) { <span class="required">*</span>}
     </p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">

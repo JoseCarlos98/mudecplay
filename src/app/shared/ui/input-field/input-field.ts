@@ -18,7 +18,6 @@ export class InputField implements ControlValueAccessor {
   @Input() type: 'text' | 'money' | 'number' = 'text';
   @Input() prefix: string = '$';               // usado en money
   @Input() decimals: number = 2;               // usado en money
-  @Input() required: boolean = false;          // solo para mostrar el *
   @Input() showError: boolean = false;         // fallback si no hay NgControl
   @Input() errorMessage: string = 'Este campo es obligatorio';
 
@@ -26,7 +25,7 @@ export class InputField implements ControlValueAccessor {
   private _value: string | number | null = null;
 
   /** Indicador para saber si el input está enfocado */
-  private isFocused:boolean = false;
+  private isFocused: boolean = false;
 
   /** Valor que se muestra en pantalla (puede estar formateado) */
   displayValue: string = '';
@@ -35,8 +34,8 @@ export class InputField implements ControlValueAccessor {
   disabled: boolean = false;
 
   // callbacks que Angular nos inyecta
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   // Constructor: nos registramos como value accessor y
   // de paso tenemos acceso al control para mostrar errores.
@@ -161,6 +160,14 @@ export class InputField implements ControlValueAccessor {
   }
 
   // Helpers internos
+
+  get showRequiredMark(): boolean {
+    const control = this.ngControl?.control;
+    if (!control || !control.validator) return false;
+
+    const validationResult = control.validator({} as any);
+    return !!validationResult?.['required'];
+  }
 
   /**
    * Convierte lo que escribe el usuario en el valor que queremos
