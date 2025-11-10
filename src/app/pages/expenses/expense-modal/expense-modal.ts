@@ -97,7 +97,7 @@ export class ExpenseModal implements OnInit {
       supplier_id: toIdForm(raw.supplier_id),
       project_id: toIdForm(raw.project_id),
     };
-     
+
     this.expenseService.update(this.data.id, formData).subscribe({
       next: (response) => {
         if (response.success) this.closeModal(true);

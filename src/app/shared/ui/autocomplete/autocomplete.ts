@@ -21,7 +21,6 @@ import {
   debounceTime,
   distinctUntilChanged,
   switchMap,
-  filter,
   tap,
 } from 'rxjs';
 import { MatIcon, MatIconModule } from '@angular/material/icon';
