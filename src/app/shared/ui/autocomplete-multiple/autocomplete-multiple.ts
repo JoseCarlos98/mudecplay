@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   Optional,
@@ -8,15 +9,19 @@ import {
   inject,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
-import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  of,
+  Subject,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-autocomplete-multiple',
@@ -25,17 +30,14 @@ import { MatIconModule } from '@angular/material/icon';
     CommonModule,
     MatFormFieldModule,
     MatInputModule,
-    MatAutocompleteModule,
-    MatChipsModule,
-    MatIconModule,
-    MatSelect,
-    MatSelectTrigger
+    MatSelectModule,
   ],
   templateUrl: './autocomplete-multiple.html',
   styleUrls: ['./autocomplete-multiple.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchMultiSelect implements ControlValueAccessor {
+  //  Inputs de configuración 
   @Input() label = 'Seleccionar';
   @Input() placeholder = 'Selecciona...';
   @Input() searchPlaceholder = 'Buscar...';
@@ -44,39 +46,35 @@ export class SearchMultiSelect implements ControlValueAccessor {
   @Input() data: Catalog[] = [];
   @Input() errorMessage = 'Este campo es obligatorio';
 
+  //  estado interno 
   disabled = false;
 
-  // opciones mostradas en el panel
+  /** opciones que se muestran en el panel en este momento */
   filteredOptions: Catalog[] = [];
 
-  // ids seleccionados
+  /** ids seleccionados que viajan al form */
   private selectedIds: Array<number | string> = [];
 
-  // para mostrar en el trigger
-  get selectedLabels(): string[] {
-    return this.selectedIds
-      .map((id) => this.allOptions.find((o) => o.id === id))
-      .filter((x): x is Catalog => !!x)
-      .map((o) => o.name);
-  }
-
-  // pool para ir guardando lo que venga del backend
+  /** pool local con todo lo que ya fuimos encontrando */
   private optionsPool: Catalog[] = [];
 
-  // stream de búsqueda
+  /** stream de búsqueda */
   private search$ = new Subject<string>();
 
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  // CVA callbacks
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
+  //  inyecciones 
   private readonly catalogsService = inject(CatalogsService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
 
-    // armar búsqueda
+    // armar el flujo de búsqueda
     this.search$
       .pipe(
         debounceTime(300),
@@ -84,24 +82,27 @@ export class SearchMultiSelect implements ControlValueAccessor {
         switchMap((term) => {
           const text = term.trim();
 
-          // si es local
+          // LOCAL
           if (!this.remote) {
             this.filteredOptions = this.filterLocal(text);
+            this.cdr.markForCheck();
             return of(null);
           }
 
-          // remoto: primero intento con pool
+          // REMOTO: primero intento con lo que ya tengo en pool
           const matches = this.filterFromPool(text);
           if (matches.length) {
             this.filteredOptions = matches;
+            this.cdr.markForCheck();
             return of(null);
           }
 
-          // si no hay en pool, le pego al backend
+          // si no hay en pool → pegarle al backend
           return this.fetchRemote(text).pipe(
             tap((results) => {
               this.addToPool(results);
               this.filteredOptions = this.filterFromPool(text);
+              this.cdr.markForCheck();
             })
           );
         })
@@ -109,39 +110,53 @@ export class SearchMultiSelect implements ControlValueAccessor {
       .subscribe();
   }
 
-  // todas las opciones que conozco hasta ahora
+  //  getter de labels para el trigger 
+  get selectedLabels(): string[] {
+    return this.selectedIds
+      .map((id) => this.allOptions.find((o) => o.id === id))
+      .filter((x): x is Catalog => !!x)
+      .map((o) => o.name);
+  }
+
   private get allOptions(): Catalog[] {
     return [...this.data, ...this.optionsPool];
   }
 
-  //CVA
+  //  ControlValueAccessor 
   writeValue(value: any): void {
     if (!value) {
       this.selectedIds = [];
     } else if (Array.isArray(value)) {
       this.selectedIds = value;
     }
+    // como es OnPush, márcalo
+    this.cdr.markForCheck();
   }
 
   registerOnChange(fn: any): void {
     this.onChange = fn;
   }
+
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
+
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
+    this.cdr.markForCheck();
   }
 
-  // cuando se abre el panel, mostramos algo inicial
+  //  eventos del template 
   onOpenedChange(opened: boolean) {
     if (opened) {
-      // primer load: muestra data local o últimos del pool
+      // si es local, muestro todo
       if (!this.remote) {
         this.filteredOptions = this.data;
       } else {
+        // remoto: muestro los últimos 10 que tengo
         this.filteredOptions = this.optionsPool.slice(-10).reverse();
       }
+      this.cdr.markForCheck();
     }
   }
 
@@ -150,14 +165,16 @@ export class SearchMultiSelect implements ControlValueAccessor {
   }
 
   onSelectionChange() {
-    // mat-select ya actualizó el value en el control
+    // el <mat-select> ya actualizó el valor en el form
     const controlVal = this.ngControl?.control?.value;
     this.selectedIds = Array.isArray(controlVal) ? controlVal : [];
     this.onChange(this.selectedIds);
     this.onTouched();
+    // marcar cambio porque OnPush
+    this.cdr.markForCheck();
   }
 
-  // errores 
+  //  errores 
   get hasError(): boolean {
     const control = this.ngControl?.control;
     return !!control && control.invalid && (control.touched || control.dirty);
@@ -170,13 +187,11 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return this.errorMessage;
   }
 
-  // ===== helpers datos =====
+  //  helpers datos 
   private filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();
-    return this.data.filter((item) =>
-      item.name.toLowerCase().includes(lower)
-    );
+    return this.data.filter((item) => item.name.toLowerCase().includes(lower));
   }
 
   private fetchRemote(search: string) {
@@ -186,7 +201,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
       case 'project':
         return this.catalogsService.projectsCatalog(search);
       default:
-        return of([]);
+        return of([] as Catalog[]);
     }
   }
 

@@ -18,24 +18,15 @@
         </mat-form-field>
       </div>
 
+      
+      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" placeholder="Todos" [remote]="true"
+        catalogType="supplier">
+      </app-autocomplete-multiple>
 
-      <div class="c-input">
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true" 
+       catalogType="project">
+      </app-autocomplete-multiple>
 
-        <!-- <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [data]="catalogSuppliers">
-        </app-autocomplete-multiple> -->
-        <!-- 
-        <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
-          catalogType="supplier">
-        </app-autocomplete-multiple> -->
-
-      </div>
-
-
-      <div class="c-input">
-        <app-autocomplete-multiple formControlName="providerIds" label="Proveedores" placeholder="Todos" [remote]="true"
-          catalogType="supplier">
-        </app-autocomplete-multiple>
-      </div>
 
       <div class="c-input">
         <p>Estatus</p>
