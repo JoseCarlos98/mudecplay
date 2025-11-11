@@ -1,1 +1,47 @@
-<p>autocomplete-multiple works!</p>
+<div class="c-autocomplete">
+  <div class="c-input">
+    <p class="label">{{ label }}</p>
+
+    <mat-form-field
+      appearance="outline"
+      class="w-100"
+      [ngClass]="{ 'field-invalid': hasError }"
+    >
+      <!-- chips seleccionados -->
+      <mat-chip-listbox *ngIf="selected.length" class="chips-box">
+        <mat-chip
+          *ngFor="let item of selected"
+          (removed)="removeSelected(item)"
+        >
+          {{ item.name }}
+          <button matChipRemove type="button">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-chip>
+      </mat-chip-listbox>
+
+      <!-- input de búsqueda -->
+      <input
+        matInput
+        [placeholder]="placeholder"
+        [matAutocomplete]="autoRef"
+        [value]="displayValue"
+        (input)="onInputChange($event.target.value)"
+        [disabled]="disabled"
+      />
+
+      <mat-autocomplete
+        #autoRef="matAutocomplete"
+        (optionSelected)="onOptionSelected($event.option.value)"
+      >
+        @for (item of filtered$ | async; track item.id) {
+          <mat-option [value]="item">{{ item.name }}</mat-option>
+        }
+      </mat-autocomplete>
+
+      @if (hasError) {
+        <span class="field-error">{{ firstErrorMessage }}</span>
+      }
+    </mat-form-field>
+  </div>
+</div>

@@ -20,6 +20,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { Autocomplete } from '../../shared/ui/autocomplete/autocomplete';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { toApiDate } from '../../shared/helpers/general-helpers';
+import { AutocompleteMultiple } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -57,7 +58,8 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    Autocomplete
+    Autocomplete,
+    AutocompleteMultiple
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
@@ -82,8 +84,8 @@ export class Expenses implements OnInit {
   formFilters = this.fb.group({
     startDate: [null],
     endDate: [null],
-    supplier_id: [null],
-    project_id: [null],
+    suppliersIds: [[]],
+    projectIds: [[]],
     status_id: [null],
     concept: [''],
   });
@@ -94,7 +96,7 @@ export class Expenses implements OnInit {
   }
 
   loadCatalogs() {
-     this.catalogsService.statusExpenseCatalog().subscribe({
+    this.catalogsService.statusExpenseCatalog().subscribe({
       next: (response: any) => {
         console.log(response);
         this.catalogStatusExpense = response
@@ -111,14 +113,14 @@ export class Expenses implements OnInit {
       page: 1,
       startDate: toApiDate(values.startDate),
       endDate: toApiDate(values.endDate),
-      supplier_id: values.supplier_id,
-      project_id: values.project_id,
+      suppliersIds: values.suppliersIds,
+      projectIds: values.projectIds,
       status_id: values.status_id,
       concept: values.concept?.trim() || '',
     };
 
     console.log(this.filters);
-    
+
     this.loadExpenses();
   }
 

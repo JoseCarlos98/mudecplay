@@ -1,0 +1,25 @@
+.c-autocomplete {
+  .c-input {
+    .label {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .chips-box {
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+  }
+}
+
+.field-invalid {
+  --mdc-outlined-text-field-caret-color: #f44336;
+  --mdc-outlined-text-field-focus-outline-color: #f44336;
+}
+
+.field-error {
+  display: block;
+  color: #f44336;
+  font-size: 11px;
+  margin-top: 4px;
+}

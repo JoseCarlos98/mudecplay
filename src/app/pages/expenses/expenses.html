@@ -20,14 +20,20 @@
 
 
       <div class="c-input">
-        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier">
-        </app-autocomplete>
+
+        <!-- <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [data]="catalogSuppliers">
+        </app-autocomplete-multiple> -->
+
+        <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+          catalogType="supplier">
+        </app-autocomplete-multiple>
+
       </div>
 
 
       <div class="c-input">
-        <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
-        </app-autocomplete>
+        <!-- <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
+        </app-autocomplete> -->
       </div>
 
       <div class="c-input">

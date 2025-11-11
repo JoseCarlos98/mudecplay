@@ -28,8 +28,8 @@ export class ExpenseService {
       if (filters.endDate) params = params.set('endDate', filters.endDate);
 
       // relaciones
-      if (filters.supplier_id) params = params.set('supplier_id', String(filters.supplier_id));
-      if (filters.project_id) params = params.set('project_id', String(filters.project_id));
+      // if (filters.supplier_id) params = params.set('supplier_id', String(filters.supplier_id));
+      // if (filters.project_id) params = params.set('project_id', String(filters.project_id));
 
       // estatus
       if (filters.status_id) params = params.set('status_id', filters.status_id);
