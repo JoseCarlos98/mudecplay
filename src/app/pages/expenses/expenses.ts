@@ -17,10 +17,9 @@ import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { Autocomplete } from '../../shared/ui/autocomplete/autocomplete';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { toApiDate } from '../../shared/helpers/general-helpers';
-import { AutocompleteMultiple } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
+import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -58,8 +57,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    Autocomplete,
-    AutocompleteMultiple
+    SearchMultiSelect
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',

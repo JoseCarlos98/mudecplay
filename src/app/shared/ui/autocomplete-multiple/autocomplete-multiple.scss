@@ -1,25 +1,22 @@
-.c-autocomplete {
-  .c-input {
-    .label {
-      font-weight: 500;
-      margin-bottom: 4px;
+.search-box {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+
+    .c-input {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+
+        .field-error {
+            font-size: 11px;
+            color: #f44336;
+            margin-top: 4px;
+            display: block;
+        }
     }
 
-    .chips-box {
-      gap: 4px;
-      margin-bottom: 4px;
+    .mat-mdc-form-field {
+        width: 90% !important;
     }
-  }
-}
-
-.field-invalid {
-  --mdc-outlined-text-field-caret-color: #f44336;
-  --mdc-outlined-text-field-focus-outline-color: #f44336;
-}
-
-.field-error {
-  display: block;
-  color: #f44336;
-  font-size: 11px;
-  margin-top: 4px;
 }

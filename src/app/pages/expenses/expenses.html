@@ -23,17 +23,18 @@
 
         <!-- <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [data]="catalogSuppliers">
         </app-autocomplete-multiple> -->
-
+        <!-- 
         <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
           catalogType="supplier">
-        </app-autocomplete-multiple>
+        </app-autocomplete-multiple> -->
 
       </div>
 
 
       <div class="c-input">
-        <!-- <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
-        </app-autocomplete> -->
+        <app-autocomplete-multiple formControlName="providerIds" label="Proveedores" placeholder="Todos" [remote]="true"
+          catalogType="supplier">
+        </app-autocomplete-multiple>
       </div>
 
       <div class="c-input">

@@ -1,34 +1,22 @@
 import { CommonModule } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   Input,
-  Output,
   Optional,
   Self,
   inject,
-  ChangeDetectionStrategy,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelect, MatSelectTrigger } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
-import {
-  Observable,
-  of,
-  Subject,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  tap,
-} from 'rxjs';
-import { MatIcon, MatIconModule } from '@angular/material/icon';
+import { debounceTime, distinctUntilChanged, of, Subject, switchMap, tap } from 'rxjs';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatButtonModule } from '@angular/material/button';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-autocomplete-multiple',
@@ -40,92 +28,98 @@ import { MatChipsModule } from '@angular/material/chips';
     MatAutocompleteModule,
     MatChipsModule,
     MatIconModule,
+    MatSelect,
+    MatSelectTrigger
   ],
   templateUrl: './autocomplete-multiple.html',
-  styleUrl: './autocomplete-multiple.scss',
-    // changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./autocomplete-multiple.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AutocompleteMultiple implements ControlValueAccessor {
-  // servicio (igual que tu otro)
-  private readonly catalogsService = inject(CatalogsService);
-
-  // inputs igualitos
+export class SearchMultiSelect implements ControlValueAccessor {
   @Input() label = 'Seleccionar';
-  @Input() placeholder = 'Buscar...';
+  @Input() placeholder = 'Selecciona...';
+  @Input() searchPlaceholder = 'Buscar...';
   @Input() remote = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
+  @Input() data: Catalog[] = [];
   @Input() errorMessage = 'Este campo es obligatorio';
-
-  // pool en memoria para no pegarle al backend siempre
-  private optionsPool: Catalog[] = [];
-
-  // lo que escribe el user
-  private input$ = new Subject<string>();
-
-  // lista que se muestra
-  filtered$: Observable<Catalog[]> = of([]);
-
-  // lo que está seleccionado (múltiple)
-  selected: Catalog[] = [];
-
-  // para mostrar en el input lo que escribe
-  displayValue = '';
 
   disabled = false;
 
-  // cva callbacks
+  // opciones mostradas en el panel
+  filteredOptions: Catalog[] = [];
+
+  // ids seleccionados
+  private selectedIds: Array<number | string> = [];
+
+  // para mostrar en el trigger
+  get selectedLabels(): string[] {
+    return this.selectedIds
+      .map((id) => this.allOptions.find((o) => o.id === id))
+      .filter((x): x is Catalog => !!x)
+      .map((o) => o.name);
+  }
+
+  // pool para ir guardando lo que venga del backend
+  private optionsPool: Catalog[] = [];
+
+  // stream de búsqueda
+  private search$ = new Subject<string>();
+
   private onChange: (val: any) => void = () => {};
   private onTouched: () => void = () => {};
+
+  private readonly catalogsService = inject(CatalogsService);
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
 
-    // misma lógica de búsquedas que tu autocomplete
-    this.filtered$ = this.input$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((text) => {
-        const term = (text ?? '').trim();
+    // armar búsqueda
+    this.search$
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        switchMap((term) => {
+          const text = term.trim();
 
-        // si no escribió nada -> últimos del pool
-        if (term.length < 2) return of(this.getLastFromPool(5));
+          // si es local
+          if (!this.remote) {
+            this.filteredOptions = this.filterLocal(text);
+            return of(null);
+          }
 
-        if (this.remote) {
-          const localMatches = this.filterFromPool(term);
-          if (localMatches.length) return of(localMatches);
+          // remoto: primero intento con pool
+          const matches = this.filterFromPool(text);
+          if (matches.length) {
+            this.filteredOptions = matches;
+            return of(null);
+          }
 
-          return this.fetchRemote(term).pipe(tap((res) => this.addToPool(res)));
-        }
-
-        // modo local (si quisieras pasarle data externa, la podrías meter aquí)
-        return of(this.filterFromPool(term));
-      })
-    );
+          // si no hay en pool, le pego al backend
+          return this.fetchRemote(text).pipe(
+            tap((results) => {
+              this.addToPool(results);
+              this.filteredOptions = this.filterFromPool(text);
+            })
+          );
+        })
+      )
+      .subscribe();
   }
 
-  // ====== CVA ======
-  writeValue(value: any): void {
-    // esperamos un array de ids o de objetos
-    if (!value) {
-      this.selected = [];
-      return;
-    }
+  // todas las opciones que conozco hasta ahora
+  private get allOptions(): Catalog[] {
+    return [...this.data, ...this.optionsPool];
+  }
 
-    // si vienen ids pero en el pool no están, los vamos a ir completando cuando el user busque
-    if (Array.isArray(value)) {
-      // si vienen como [{id,name}, ...]
-      if (value.length && typeof value[0] === 'object') {
-        this.selected = value as Catalog[];
-      } else {
-        // vienen ids: [1,2,3]
-        const ids = value as (string | number)[];
-        this.selected = ids
-          .map((id) => this.optionsPool.find((o) => o.id === id))
-          .filter(Boolean) as Catalog[];
-      }
-      this.emitToForm();
+  //CVA
+  writeValue(value: any): void {
+    if (!value) {
+      this.selectedIds = [];
+    } else if (Array.isArray(value)) {
+      this.selectedIds = value;
     }
   }
 
@@ -135,43 +129,35 @@ export class AutocompleteMultiple implements ControlValueAccessor {
   registerOnTouched(fn: any): void {
     this.onTouched = fn;
   }
-
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
   }
 
-  // ====== eventos ======
-  onInputChange(term: string) {
-    this.displayValue = term;
-    this.input$.next(term);
-  }
-
-  onOptionSelected(option: Catalog) {
-    // si ya está, no lo agregues
-    const exists = this.selected.some((s) => s.id === option.id);
-    if (!exists) {
-      this.selected.push(option);
-      // también lo agregamos al pool
-      this.addToPool([option]);
-      this.emitToForm();
+  // cuando se abre el panel, mostramos algo inicial
+  onOpenedChange(opened: boolean) {
+    if (opened) {
+      // primer load: muestra data local o últimos del pool
+      if (!this.remote) {
+        this.filteredOptions = this.data;
+      } else {
+        this.filteredOptions = this.optionsPool.slice(-10).reverse();
+      }
     }
-    // limpiar input para que pueda buscar otro
-    this.displayValue = '';
   }
 
-  removeSelected(item: Catalog) {
-    this.selected = this.selected.filter((s) => s.id !== item.id);
-    this.emitToForm();
+  onSearch(term: string) {
+    this.search$.next(term);
+  }
+
+  onSelectionChange() {
+    // mat-select ya actualizó el value en el control
+    const controlVal = this.ngControl?.control?.value;
+    this.selectedIds = Array.isArray(controlVal) ? controlVal : [];
+    this.onChange(this.selectedIds);
     this.onTouched();
   }
 
-  // ====== helpers ======
-  private emitToForm() {
-    // mandamos solo ids, igual que harías en un filtro
-    const ids = this.selected.map((s) => s.id);
-    this.onChange(ids);
-  }
-
+  // errores 
   get hasError(): boolean {
     const control = this.ngControl?.control;
     return !!control && control.invalid && (control.touched || control.dirty);
@@ -184,8 +170,16 @@ export class AutocompleteMultiple implements ControlValueAccessor {
     return this.errorMessage;
   }
 
-  // ====== pool ======
-  private fetchRemote(search: string): Observable<Catalog[]> {
+  // ===== helpers datos =====
+  private filterLocal(term: string): Catalog[] {
+    if (!term) return this.data;
+    const lower = term.toLowerCase();
+    return this.data.filter((item) =>
+      item.name.toLowerCase().includes(lower)
+    );
+  }
+
+  private fetchRemote(search: string) {
     switch (this.catalogType) {
       case 'supplier':
         return this.catalogsService.supplierCatalog(search);
@@ -196,25 +190,17 @@ export class AutocompleteMultiple implements ControlValueAccessor {
     }
   }
 
-  private getLastFromPool(limit: number): Catalog[] {
-    return this.optionsPool.slice(-limit).reverse();
+  private addToPool(results: Catalog[]) {
+    for (const item of results) {
+      const exists = this.optionsPool.some((o) => o.id === item.id);
+      if (!exists) this.optionsPool.push(item);
+    }
   }
 
   private filterFromPool(term: string): Catalog[] {
     const lower = term.toLowerCase();
-    return this.optionsPool.filter((opt) =>
-      opt.name.toLowerCase().includes(lower)
+    return this.optionsPool.filter((o) =>
+      o.name.toLowerCase().includes(lower)
     );
-  }
-
-  private addToPool(results: Catalog[]) {
-    for (const item of results) {
-      const exists = this.optionsPool.some((opt) => opt.id === item.id);
-      if (!exists) this.optionsPool.push(item);
-    }
-    // límite de memoria
-    if (this.optionsPool.length > 200) {
-      this.optionsPool.splice(0, this.optionsPool.length - 200);
-    }
   }
 }

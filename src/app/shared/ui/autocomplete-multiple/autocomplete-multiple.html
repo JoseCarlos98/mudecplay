@@ -1,47 +1,45 @@
-<div class="c-autocomplete">
+<div class="c-input">
   <div class="c-input">
     <p class="label">{{ label }}</p>
+    <mat-form-field appearance="outline" class="w-100">
 
-    <mat-form-field
-      appearance="outline"
-      class="w-100"
-      [ngClass]="{ 'field-invalid': hasError }"
-    >
-      <!-- chips seleccionados -->
-      <mat-chip-listbox *ngIf="selected.length" class="chips-box">
-        <mat-chip
-          *ngFor="let item of selected"
-          (removed)="removeSelected(item)"
-        >
+      <!-- el select normal de material -->
+      <mat-select [multiple]="true" [disabled]="disabled" (openedChange)="onOpenedChange($event)"
+        (selectionChange)="onSelectionChange()">
+
+        <!-- lo que se ve cuando hay seleccionados -->
+        <mat-select-trigger>
+          @if (selectedLabels.length) {
+          {{ selectedLabels.join(', ') }}
+          } @else {
+          {{ placeholder }}
+          }
+        </mat-select-trigger>
+
+        <!-- input de búsqueda DENTRO del panel -->
+        <div class="search-box" (click)="$event.stopPropagation()">
+          <div class="c-input">
+            <mat-form-field appearance="outline">
+              <input (input)="onSearch($event.target.value)" [placeholder]="searchPlaceholder" matInput />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <!-- opciones -->
+        @for (item of filteredOptions; track item.id) {
+        <mat-option [value]="item.id">
           {{ item.name }}
-          <button matChipRemove type="button">
-            <mat-icon>close</mat-icon>
-          </button>
-        </mat-chip>
-      </mat-chip-listbox>
-
-      <!-- input de búsqueda -->
-      <input
-        matInput
-        [placeholder]="placeholder"
-        [matAutocomplete]="autoRef"
-        [value]="displayValue"
-        (input)="onInputChange($event.target.value)"
-        [disabled]="disabled"
-      />
-
-      <mat-autocomplete
-        #autoRef="matAutocomplete"
-        (optionSelected)="onOptionSelected($event.option.value)"
-      >
-        @for (item of filtered$ | async; track item.id) {
-          <mat-option [value]="item">{{ item.name }}</mat-option>
+        </mat-option>
         }
-      </mat-autocomplete>
+
+        <!-- opcional: sin resultados -->
+        @if (!filteredOptions.length) {
+        <mat-option disabled>Sin resultados</mat-option>
+        }
+      </mat-select>
 
       @if (hasError) {
-        <span class="field-error">{{ firstErrorMessage }}</span>
+      <span class="field-error">{{ firstErrorMessage }}</span>
       }
     </mat-form-field>
   </div>
-</div>
