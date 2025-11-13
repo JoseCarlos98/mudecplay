@@ -20,37 +20,50 @@ import { Catalog } from '../../interfaces/general-interfaces';
 @Component({
   selector: 'app-autocomplete-multiple',
   standalone: true,
+  // Módulos mínimos para funcionar dentro de cualquier feature module
   imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatInputModule],
   templateUrl: './autocomplete-multiple.html',
   styleUrls: ['./autocomplete-multiple.scss'],
+  // OnPush para rendimiento: solo re-renderiza con cambios de @Input, eventos o markForCheck()
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchMultiSelect implements ControlValueAccessor {
-  @Input() label = 'Seleccionar';
-  @Input() placeholder = 'Todos';
-  @Input() searchPlaceholder = 'Buscar…';
-  @Input() remote = false;
-  @Input() catalogType: 'supplier' | 'project' = 'supplier';
-  @Input() data: Catalog[] = [];
-  @Input() errorMessage = 'Este campo es obligatorio';
+  // ====== API del componente (Inputs personalizables) ======
+  @Input() label = 'Seleccionar';              // Título/etiqueta visible arriba del campo
+  @Input() placeholder = 'Todos';              // Texto cuando no hay selección
+  @Input() searchPlaceholder = 'Buscar…';      // Placeholder del input de búsqueda interno
+  @Input() remote = false;                     // true: busca en backend; false: filtra local
+  @Input() catalogType: 'supplier' | 'project' = 'supplier'; // Qué catálogo consultar cuando es remoto
+  @Input() data: Catalog[] = [];               // Fuente local (modo local)
+  @Input() errorMessage = 'Este campo es obligatorio'; // Mensaje por defecto si hay error
 
-  disabled = false;
-  filteredOptions: Catalog[] = [];
-  selectedIds: Array<number | string> = [];
+  // ====== Estado interno ======
+  disabled = false;                // Deshabilitar el control desde el exterior
+  filteredOptions: Catalog[] = []; // Lista que se muestra en el panel en cada búsqueda
+  selectedIds: Array<number | string> = []; // Valor que viaja al form (ids seleccionados)
 
+  // Pool de resultados ya vistos (cache en memoria) para reducir peticiones remotas
   private optionsPool: Catalog[] = [];
+
+  // Stream de texto que escribe el usuario en el buscador del panel
   private search$ = new Subject<string>();
 
+  // Callbacks de ControlValueAccessor (Angular Forms)
   private onChange: (val: any) => void = () => {};
   private onTouched: () => void = () => {};
 
+  // ====== Inyecciones ======
   private readonly catalogsService = inject(CatalogsService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
+    // Si el componente está dentro de un form control, nos registramos como valueAccessor
     if (this.ngControl) this.ngControl.valueAccessor = this;
 
-    // Búsqueda local/remota con cache + OnPush
+    // ====== Armado del flujo de búsqueda (local/remoto) ======
+    // - debounce: evita spamear la búsqueda
+    // - distinctUntilChanged: ignora texto repetido
+    // - switchMap: cancela búsquedas anteriores si llega una nueva
     this.search$
       .pipe(
         debounceTime(300),
@@ -58,12 +71,15 @@ export class SearchMultiSelect implements ControlValueAccessor {
         switchMap(term => {
           const text = (term ?? '').trim();
 
+          // ---- MODO LOCAL: se filtra sobre `data` ----
           if (!this.remote) {
+            // pinSelected: asegura que opciones ya seleccionadas sigan visibles arriba
             this.filteredOptions = this.pinSelected(this.filterLocal(text));
-            this.cdr.markForCheck();
+            this.cdr.markForCheck(); // OnPush: marca cambios manualmente
             return of(null);
           }
 
+          // ---- MODO REMOTO: primero intento con lo que ya tengo en cache (optionsPool) ----
           const local = this.filterFromPool(text);
           if (local.length) {
             this.filteredOptions = this.pinSelected(local);
@@ -71,6 +87,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
             return of(null);
           }
 
+          // Si no hay matches en cache → pido al backend, guardo en pool y vuelvo a filtrar
           return this.fetchRemote(text).pipe(
             tap(results => {
               this.addToPool(results);
@@ -83,17 +100,32 @@ export class SearchMultiSelect implements ControlValueAccessor {
       .subscribe();
   }
 
-  // ControlValueAccessor
+  // ====== ControlValueAccessor (para integrarse con Reactive Forms) ======
+
+  // Angular escribe el valor externo hacia el componente
   writeValue(value: any): void {
     if (!value) this.selectedIds = [];
     else if (Array.isArray(value)) this.selectedIds = value;
-    this.cdr.markForCheck();
+    this.cdr.markForCheck(); // OnPush
   }
+
+  // Angular registra el callback para propagar cambios al form
   registerOnChange(fn: any) { this.onChange = fn; }
+
+  // Angular registra el callback para el “touched”
   registerOnTouched(fn: any) { this.onTouched = fn; }
+
+  // Angular habilita/deshabilita el control
   setDisabledState(isDisabled: boolean) { this.disabled = isDisabled; this.cdr.markForCheck(); }
 
-  // Eventos UI
+  // ====== Eventos de UI ======
+
+  /**
+   * Se dispara al abrir/cerrar el panel del select.
+   * Al abrir:
+   *  - Local: muestra todo el `data`.
+   *  - Remoto: muestra los últimos 10 vistos (MRU) del pool.
+   */
   onOpenedChange(opened: boolean) {
     if (!opened) return;
     if (!this.remote) {
@@ -104,19 +136,27 @@ export class SearchMultiSelect implements ControlValueAccessor {
     this.cdr.markForCheck();
   }
 
+  /**
+   * Cada vez que el usuario escribe en el buscador interno del panel.
+   * Empuja el término al stream para disparar la tubería de búsqueda.
+   */
   onSearch(term: string) {
     this.search$.next(term);
   }
 
+  /**
+   * Cuando cambia la selección del mat-select (agregar/quitar chips).
+   * Propaga el array de ids seleccionados hacia el form padre.
+   */
   onSelectionChange(e: MatSelectChange) {
     const value = Array.isArray(e.value) ? e.value : [];
     this.selectedIds = value;
-    this.onChange(this.selectedIds);
-    this.onTouched();
-    this.cdr.markForCheck();
+    this.onChange(this.selectedIds); // notifica al form
+    this.onTouched();                // marca touched
+    this.cdr.markForCheck();         // OnPush
   }
 
-  // Errores
+  // ====== Estado de errores para mostrar mensajes bajo el campo ======
   get hasError(): boolean {
     const ctrl = this.ngControl?.control;
     return !!ctrl && ctrl.invalid && (ctrl.touched || ctrl.dirty);
@@ -128,7 +168,12 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return this.errorMessage;
   }
 
-  // ===== Helpers =====
+  // ====== Helpers de datos/filtrado/cache ======
+
+  /**
+   * Mezcla `data` + `optionsPool` y elimina duplicados por id.
+   * Útil para resolver etiquetas (labels) y fijar seleccionados.
+   */
   private get allOptions(): Catalog[] {
     const uniq = new Map<string | number, Catalog>();
     for (const o of [...this.data, ...this.optionsPool]) {
@@ -137,12 +182,19 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return Array.from(uniq.values());
   }
 
+  /**
+   * Filtra en modo local contra `data`.
+   */
   private filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();
     return this.data.filter(i => i.name.toLowerCase().includes(lower));
   }
 
+  /**
+   * Pide al backend según el `catalogType`.
+   * Devuelve observable con resultados para agregarlos a la cache (pool).
+   */
   private fetchRemote(search: string) {
     switch (this.catalogType) {
       case 'supplier': return this.catalogsService.supplierCatalog(search);
@@ -151,6 +203,10 @@ export class SearchMultiSelect implements ControlValueAccessor {
     }
   }
 
+  /**
+   * Agrega resultados al pool si no existen (evita duplicados por id).
+   * Sirve como cache simple en memoria por sesión de componente.
+   */
   private addToPool(results: Catalog[]) {
     for (const item of results) {
       if (!this.optionsPool.some(o => String(o.id) === String(item.id))) {
@@ -159,12 +215,20 @@ export class SearchMultiSelect implements ControlValueAccessor {
     }
   }
 
+  /**
+   * Filtra contra el pool (cache) en modo remoto antes de pegarle al backend.
+   */
   private filterFromPool(term: string): Catalog[] {
     const lower = term.toLowerCase();
-    return this.optionsPool.filter(o => o.name.toLowerCase().includes(lower));
+    return this.optionsPool.filter(o =>
+      o.name.toLowerCase().includes(lower)
+    );
   }
 
-  // Mantén seleccionados en la lista filtrada
+  /**
+   * Asegura que las opciones seleccionadas siempre aparezcan arriba de la lista filtrada,
+   * para que el usuario no “pierda de vista” lo que ya eligió al seguir escribiendo.
+   */
   private pinSelected(list: Catalog[]): Catalog[] {
     const selectedSet = new Set(this.selectedIds.map(String));
     const selectedObjs = this.allOptions.filter(o => selectedSet.has(String(o.id)));
@@ -172,6 +236,9 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return [...selectedObjs, ...rest];
   }
 
-  // Evita mismatches number|string
+  /**
+   * Comparador por id (normaliza a string para evitar mismatch number|string).
+   * — Útil si decides usar [compareWith] en <mat-select>.
+   */
   compareById = (a: any, b: any) => String(a) === String(b);
 }
