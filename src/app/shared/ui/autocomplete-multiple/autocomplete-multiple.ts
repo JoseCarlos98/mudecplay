@@ -8,100 +8,73 @@ import {
   Self,
   inject,
 } from '@angular/core';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
-import {
-  debounceTime,
-  distinctUntilChanged,
-  of,
-  Subject,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule, MatSelectChange } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatInputModule } from '@angular/material/input';
+import { Subject, of, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
 
 @Component({
   selector: 'app-autocomplete-multiple',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-  ],
+  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatInputModule],
   templateUrl: './autocomplete-multiple.html',
   styleUrls: ['./autocomplete-multiple.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchMultiSelect implements ControlValueAccessor {
-  //  Inputs de configuración 
   @Input() label = 'Seleccionar';
-  @Input() placeholder = 'Selecciona';
-  @Input() searchPlaceholder = 'Todos';
+  @Input() placeholder = 'Todos';
+  @Input() searchPlaceholder = 'Buscar…';
   @Input() remote = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
   @Input() errorMessage = 'Este campo es obligatorio';
 
-  //  estado interno 
   disabled = false;
-
-  /** opciones que se muestran en el panel en este momento */
   filteredOptions: Catalog[] = [];
+  selectedIds: Array<number | string> = [];
 
-  /** ids seleccionados que viajan al form */
-   selectedIds: Array<number | string> = [];
-
-  /** pool local con todo lo que ya fuimos encontrando */
   private optionsPool: Catalog[] = [];
-
-  /** stream de búsqueda */
   private search$ = new Subject<string>();
 
-  // CVA callbacks
-  private onChange: (val: any) => void = () => { };
-  private onTouched: () => void = () => { };
+  private onChange: (val: any) => void = () => {};
+  private onTouched: () => void = () => {};
 
-  //  inyecciones 
   private readonly catalogsService = inject(CatalogsService);
   private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
-    if (this.ngControl) {
-      this.ngControl.valueAccessor = this;
-    }
+    if (this.ngControl) this.ngControl.valueAccessor = this;
 
-    // armar el flujo de búsqueda
+    // Búsqueda local/remota con cache + OnPush
     this.search$
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        switchMap((term) => {
-          const text = term.trim();
+        switchMap(term => {
+          const text = (term ?? '').trim();
 
-          // LOCAL
           if (!this.remote) {
-            this.filteredOptions = this.filterLocal(text);
+            this.filteredOptions = this.pinSelected(this.filterLocal(text));
             this.cdr.markForCheck();
             return of(null);
           }
 
-          // REMOTO: primero intento con lo que ya tengo en pool
-          const matches = this.filterFromPool(text);
-          if (matches.length) {
-            this.filteredOptions = matches;
+          const local = this.filterFromPool(text);
+          if (local.length) {
+            this.filteredOptions = this.pinSelected(local);
             this.cdr.markForCheck();
             return of(null);
           }
 
-          // si no hay en pool → pegarle al backend
           return this.fetchRemote(text).pipe(
-            tap((results) => {
+            tap(results => {
               this.addToPool(results);
-              this.filteredOptions = this.filterFromPool(text);
+              this.filteredOptions = this.pinSelected(this.filterFromPool(text));
               this.cdr.markForCheck();
             })
           );
@@ -110,76 +83,44 @@ export class SearchMultiSelect implements ControlValueAccessor {
       .subscribe();
   }
 
-  //  getter de labels para el trigger 
-  get selectedLabels(): string[] {
-    return this.selectedIds
-      .map((id) => this.allOptions.find((o) => o.id === id))
-      .filter((x): x is Catalog => !!x)
-      .map((o) => o.name);
-  }
-
-  private get allOptions(): Catalog[] {
-    return [...this.data, ...this.optionsPool];
-  }
-
-  //  ControlValueAccessor 
+  // ControlValueAccessor
   writeValue(value: any): void {
-    if (!value) {
-      this.selectedIds = [];
-    } else if (Array.isArray(value)) {
-      this.selectedIds = value;
-    }
-    // como es OnPush, márcalo
+    if (!value) this.selectedIds = [];
+    else if (Array.isArray(value)) this.selectedIds = value;
     this.cdr.markForCheck();
   }
+  registerOnChange(fn: any) { this.onChange = fn; }
+  registerOnTouched(fn: any) { this.onTouched = fn; }
+  setDisabledState(isDisabled: boolean) { this.disabled = isDisabled; this.cdr.markForCheck(); }
 
-  registerOnChange(fn: any): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: any): void {
-    this.onTouched = fn;
-  }
-
-  setDisabledState(isDisabled: boolean): void {
-    this.disabled = isDisabled;
-    this.cdr.markForCheck();
-  }
-
-  //  eventos del template 
+  // Eventos UI
   onOpenedChange(opened: boolean) {
-    if (opened) {
-      // si es local, muestro todo
-      if (!this.remote) {
-        this.filteredOptions = this.data;
-      } else {
-        // remoto: muestro los últimos 10 que tengo
-        this.filteredOptions = this.optionsPool.slice(-10).reverse();
-      }
-      this.cdr.markForCheck();
+    if (!opened) return;
+    if (!this.remote) {
+      this.filteredOptions = this.pinSelected(this.data);
+    } else {
+      this.filteredOptions = this.pinSelected(this.optionsPool.slice(-10).reverse());
     }
+    this.cdr.markForCheck();
   }
 
   onSearch(term: string) {
     this.search$.next(term);
   }
 
-  onSelectionChange() {
-    // el <mat-select> ya actualizó el valor en el form
-    const controlVal = this.ngControl?.control?.value;
-    this.selectedIds = Array.isArray(controlVal) ? controlVal : [];
+  onSelectionChange(e: MatSelectChange) {
+    const value = Array.isArray(e.value) ? e.value : [];
+    this.selectedIds = value;
     this.onChange(this.selectedIds);
     this.onTouched();
-    // marcar cambio porque OnPush
     this.cdr.markForCheck();
   }
 
-  //  errores 
+  // Errores
   get hasError(): boolean {
-    const control = this.ngControl?.control;
-    return !!control && control.invalid && (control.touched || control.dirty);
+    const ctrl = this.ngControl?.control;
+    return !!ctrl && ctrl.invalid && (ctrl.touched || ctrl.dirty);
   }
-
   get firstErrorMessage(): string {
     const errors = this.ngControl?.control?.errors;
     if (!errors) return '';
@@ -187,35 +128,50 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return this.errorMessage;
   }
 
-  //  helpers datos 
+  // ===== Helpers =====
+  private get allOptions(): Catalog[] {
+    const uniq = new Map<string | number, Catalog>();
+    for (const o of [...this.data, ...this.optionsPool]) {
+      if (!uniq.has(o.id)) uniq.set(o.id, o);
+    }
+    return Array.from(uniq.values());
+  }
+
   private filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();
-    return this.data.filter((item) => item.name.toLowerCase().includes(lower));
+    return this.data.filter(i => i.name.toLowerCase().includes(lower));
   }
 
   private fetchRemote(search: string) {
     switch (this.catalogType) {
-      case 'supplier':
-        return this.catalogsService.supplierCatalog(search);
-      case 'project':
-        return this.catalogsService.projectsCatalog(search);
-      default:
-        return of([] as Catalog[]);
+      case 'supplier': return this.catalogsService.supplierCatalog(search);
+      case 'project':  return this.catalogsService.projectsCatalog(search);
+      default:         return of([] as Catalog[]);
     }
   }
 
   private addToPool(results: Catalog[]) {
     for (const item of results) {
-      const exists = this.optionsPool.some((o) => o.id === item.id);
-      if (!exists) this.optionsPool.push(item);
+      if (!this.optionsPool.some(o => String(o.id) === String(item.id))) {
+        this.optionsPool.push(item);
+      }
     }
   }
 
   private filterFromPool(term: string): Catalog[] {
     const lower = term.toLowerCase();
-    return this.optionsPool.filter((o) =>
-      o.name.toLowerCase().includes(lower)
-    );
+    return this.optionsPool.filter(o => o.name.toLowerCase().includes(lower));
   }
+
+  // Mantén seleccionados en la lista filtrada
+  private pinSelected(list: Catalog[]): Catalog[] {
+    const selectedSet = new Set(this.selectedIds.map(String));
+    const selectedObjs = this.allOptions.filter(o => selectedSet.has(String(o.id)));
+    const rest = list.filter(o => !selectedSet.has(String(o.id)));
+    return [...selectedObjs, ...rest];
+  }
+
+  // Evita mismatches number|string
+  compareById = (a: any, b: any) => String(a) === String(b);
 }
