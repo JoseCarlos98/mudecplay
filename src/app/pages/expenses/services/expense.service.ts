@@ -4,6 +4,7 @@ import * as entity from '../interfaces/expense-interfaces';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { appendArray, setScalar } from '../../../shared/helpers/general-helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -18,25 +19,18 @@ export class ExpenseService {
     let params = new HttpParams();
 
     if (filters) {
-      // paginación
-      if (filters.page) params = params.set('page', String(filters.page));
-      if (filters.limit) params = params.set('limit', String(filters.limit));
-
-      // fechas
-      if (filters.startDate) params = params.set('startDate', filters.startDate);
-
-      if (filters.endDate) params = params.set('endDate', filters.endDate);
-
-      // relaciones
-      // if (filters.supplier_id) params = params.set('supplier_id', String(filters.supplier_id));
-      // if (filters.project_id) params = params.set('project_id', String(filters.project_id));
-
-      // estatus
-      if (filters.status_id) params = params.set('status_id', filters.status_id);
-
-      // texto
-      if (filters.concept && filters.concept.trim() !== '') params = params.set('concept', filters.concept.trim());
+      params = setScalar(params, 'page', filters.page);
+      params = setScalar(params, 'limit', filters.limit);
+      params = setScalar(params, 'startDate', filters.startDate);
+      params = setScalar(params, 'endDate', filters.endDate);
+      params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
+      params = appendArray(params, 'projectIds',  filters.projectIds   ?? []);
+      params = setScalar(params, 'statusId', filters.status_id);
+      params = setScalar(params, 'concept', filters.concept?.trim());
     }
+
+    console.log('servicio', filters);
+
 
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });
   }

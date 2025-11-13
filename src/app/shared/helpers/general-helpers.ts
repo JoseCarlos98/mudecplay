@@ -1,3 +1,4 @@
+import { HttpParams } from "@angular/common/http";
 /**
  * Convierte un Date o un string ISO a 'YYYY-MM-DD' para el backend.
  */
@@ -43,7 +44,7 @@ export function toCatalogLike(id?: number | null, name?: string | null): { id: n
 
 export function toIdForm(value: any): number | null {
   console.log(value);
-  
+
   if (value == null) return null;
   // si ya es número
   if (typeof value === 'number') return value;
@@ -52,4 +53,23 @@ export function toIdForm(value: any): number | null {
   // si es el objeto { id, name }
   if (typeof value === 'object' && 'id' in value) return Number(value.id);
   return null;
+}
+
+export function setScalar<T extends string | number | null | undefined>(
+  p: HttpParams,
+  key: string,
+  value: T
+): HttpParams {
+  if (value === null || value === undefined || value === '' as any) return p;
+  return p.set(key, String(value));
+}
+
+export function appendArray(
+  p: HttpParams,
+  key: string,
+  values?: ReadonlyArray<string | number> | null
+): HttpParams {
+  if (!values || values.length === 0) return p;
+  for (const v of values) p = p.append(key, String(v));
+  return p;
 }

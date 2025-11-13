@@ -2,9 +2,9 @@ export interface FiltersExpenses {
     concept?: string | '';
     startDate?: string | null;
     endDate?: string | null;
-    suppliersIds? : any;
-    projectIds? : any;
-    status_id? : number| null;
+    suppliersIds?: number[]| null;
+    projectIds?: number[] | null;
+    status_id?: number | null;
     limit: number;
     page: number;
 }

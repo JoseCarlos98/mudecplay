@@ -3,40 +3,32 @@
     <p class="label">{{ label }}</p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
-      <mat-select
-        [multiple]="true"
-        [disabled]="disabled"
-        [value]="selectedIds"
-        [compareWith]="compareById"
-        (openedChange)="onOpenedChange($event)"
-        (selectionChange)="onSelectionChange($event)">
+      <mat-select [multiple]="true" [disabled]="disabled" [value]="selectedIds" [compareWith]="compareById"
+        (openedChange)="onOpenedChange($event)" (selectionChange)="onSelectionChange($event)">
 
         <!-- Buscador dentro del panel -->
         <div class="search-box" (click)="$event.stopPropagation()">
           <div class="c-input">
             <mat-form-field appearance="outline" class="w-100">
-              <input
-                matInput
-                [placeholder]="searchPlaceholder"
-                (input)="onSearch($event.target.value)" />
+              <input matInput [placeholder]="searchPlaceholder" (input)="onSearch($event.target.value)" />
             </mat-form-field>
           </div>
         </div>
 
         <!-- Opciones -->
         @for (item of filteredOptions; track item.id) {
-          <mat-option [value]="item.id">
-            {{ item.name }}
-          </mat-option>
+        <mat-option [value]="item.id">
+          {{ item.name }}
+        </mat-option>
         }
 
         @if (!filteredOptions.length) {
-          <mat-option disabled>Sin resultados</mat-option>
+        <mat-option disabled>Sin resultados</mat-option>
         }
       </mat-select>
 
       @if (hasError) {
-        <span class="field-error">{{ firstErrorMessage }}</span>
+      <span class="field-error">{{ firstErrorMessage }}</span>
       }
     </mat-form-field>
   </div>
