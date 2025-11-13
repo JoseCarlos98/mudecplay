@@ -1,41 +1,43 @@
-<div class="c-input">
-  <p class="label">{{ label }}</p>
+<div class="c-autocomplete-multiple">
+  <div class="c-input">
+    <p class="label">{{ label }}</p>
 
-  <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
-    <mat-select [multiple]="true" [disabled]="disabled" (openedChange)="onOpenedChange($event)"
-      (selectionChange)="onSelectionChange()">
-      <!-- lo que se ve cuando hay selección -->
-      <mat-select-trigger>
-        @if (selectedLabels.length) {
-        {{ selectedLabels.join(', ') }}
-        } @else {
-        {{ placeholder }}
-        }
-      </mat-select-trigger>
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
+      <mat-select [multiple]="true" [disabled]="disabled" (openedChange)="onOpenedChange($event)"
+        (selectionChange)="onSelectionChange()">
+        <!-- lo que se ve cuando hay selección -->
+        <mat-select-trigger>
+          @if (selectedLabels.length) {
+          {{ selectedLabels.join(', ') }}
+          } @else {
+          {{ placeholder }}
+          }
+        </mat-select-trigger>
 
-      <!-- buscador dentro del panel -->
-      <div class="search-box" (click)="$event.stopPropagation()">
-        <div class="c-input">
-          <mat-form-field appearance="outline" class="w-100">
-            <input matInput [placeholder]="searchPlaceholder" (input)="onSearch($event.target.value)" />
-          </mat-form-field>
+        <!-- buscador dentro del panel -->
+        <div class="search-box" (click)="$event.stopPropagation()">
+          <div class="c-input">
+            <mat-form-field appearance="outline" class="w-100">
+              <input matInput [placeholder]="searchPlaceholder" (input)="onSearch($event.target.value)" />
+            </mat-form-field>
+          </div>
         </div>
-      </div>
 
-      <!-- opciones -->
-      @for (item of filteredOptions; track item.id) {
-      <mat-option [value]="item.id">
-        {{ item.name }}
-      </mat-option>
+        <!-- opciones -->
+        @for (item of filteredOptions; track item.id) {
+        <mat-option [value]="item.id">
+          {{ item.name }}
+        </mat-option>
+        }
+
+        @if (!filteredOptions.length) {
+        <mat-option disabled>Sin resultados</mat-option>
+        }
+      </mat-select>
+
+      @if (hasError) {
+      <span class="field-error">{{ firstErrorMessage }}</span>
       }
-
-      @if (!filteredOptions.length) {
-      <mat-option disabled>Sin resultados</mat-option>
-      }
-    </mat-select>
-
-    @if (hasError) {
-    <span class="field-error">{{ firstErrorMessage }}</span>
-    }
-  </mat-form-field>
+    </mat-form-field>
+  </div>
 </div>

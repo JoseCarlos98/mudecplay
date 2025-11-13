@@ -203,18 +203,18 @@ body {
   display: block;
   animation: fieldErrorIn 350ms ease-out;
   padding: 0 16px;
-  
-   @keyframes fieldErrorIn {
-        from {
-            opacity: 0;
-            transform: translateY(-2px);
-        }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+  @keyframes fieldErrorIn {
+    from {
+      opacity: 0;
+      transform: translateY(-2px);
     }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 .c-form {
@@ -226,23 +226,23 @@ body {
   padding: 15px 15px 0 15px;
 
   .c-content-form {
-    row-gap: 25px!important;
-    column-gap:30px!important;
+    row-gap: 25px !important;
+    column-gap: 30px !important;
 
     .c-input {
       display: flex;
       flex-direction: column;
-      
+
       .label {
         font-weight: 600;
         color: #374151;
         margin-bottom: 4px;
-        
+
         .required {
           color: #e53935;
         }
       }
-      
+
       mat-form-field {
         font-size: 15px;
       }
@@ -284,6 +284,20 @@ body {
   position: relative;
 }
 
+.mdc-list-item__primary-text {
+  font-size: 14px !important;
+  margin-right: 0!important;
+  line-height: 18px !important;
+  
+}
+
+.mat-mdc-option.mdc-list-item{
+  padding: 0 8px!important;
+
+  .mat-pseudo-checkbox {
+    margin-right: 8px!important;
+  }
+}
 
 @media screen and (max-width: 875px) {
   .c-sidebar {
