@@ -39,8 +39,8 @@ import { Catalog } from '../../interfaces/general-interfaces';
 export class SearchMultiSelect implements ControlValueAccessor {
   //  Inputs de configuración 
   @Input() label = 'Seleccionar';
-  @Input() placeholder = 'Selecciona...';
-  @Input() searchPlaceholder = 'Buscar...';
+  @Input() placeholder = 'Selecciona';
+  @Input() searchPlaceholder = 'Todos';
   @Input() remote = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
@@ -53,7 +53,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
   filteredOptions: Catalog[] = [];
 
   /** ids seleccionados que viajan al form */
-  private selectedIds: Array<number | string> = [];
+   selectedIds: Array<number | string> = [];
 
   /** pool local con todo lo que ya fuimos encontrando */
   private optionsPool: Catalog[] = [];

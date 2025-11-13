@@ -119,7 +119,7 @@ export class Expenses implements OnInit {
 
     console.log(this.filters);
 
-    this.loadExpenses();
+    // this.loadExpenses();
   }
 
 
