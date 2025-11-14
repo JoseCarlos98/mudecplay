@@ -15,7 +15,7 @@ import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interf
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerModule, MatDateRangePicker } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { toApiDate } from '../../shared/helpers/general-helpers';
@@ -38,6 +38,11 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
   showUploadXml: true
 };
+
+const STATUS_COMPLEMENTS: object[] = [
+  { id: 'missing_supplier', name: 'Sin proveedor' },
+  { id: 'missing_project', name: 'Sin proyecto' },
+]
 
 @Component({
   selector: 'app-expenses',
@@ -72,7 +77,6 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
-
   catalogStatusExpense: Catalog[] = [];
 
   filters: FiltersExpenses = { page: 1, limit: 5 };
@@ -84,7 +88,7 @@ export class Expenses implements OnInit {
     endDate: [null],
     suppliersIds: [[]],
     projectIds: [[]],
-    status_id: [null],
+    status_id: [''],
     concept: [''],
   });
 
@@ -97,7 +101,10 @@ export class Expenses implements OnInit {
     this.catalogsService.statusExpenseCatalog().subscribe({
       next: (response: any) => {
         console.log(response);
-        this.catalogStatusExpense = response
+        this.catalogStatusExpense = [
+          ...response,
+          ...STATUS_COMPLEMENTS
+        ]
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
@@ -182,5 +189,18 @@ export class Expenses implements OnInit {
       .subscribe((result) => {
         if (result) this.loadExpenses();
       });
+  }
+
+  clearInput(control?: string) {
+    if (control === 'concept') this.formFilters.get('concept')?.setValue('');
+     else if (control === 'datePicker') {
+      this.formFilters.get('startDate')?.setValue(null);
+      this.formFilters.get('endDate')?.setValue(null);
+    } else this.formFilters.reset()
+  }
+
+  clearAndOpen(picker: MatDateRangePicker<Date>) {
+    this.formFilters.patchValue({ startDate: null, endDate: null });
+    setTimeout(() => picker.open());
   }
 }

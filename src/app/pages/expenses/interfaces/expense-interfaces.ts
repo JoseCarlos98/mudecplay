@@ -4,7 +4,7 @@ export interface FiltersExpenses {
     endDate?: string | null;
     suppliersIds?: number[]| null;
     projectIds?: number[] | null;
-    status_id?: number | null;
+    status_id?: number | string | null;
     limit: number;
     page: number;
 }

@@ -30,7 +30,7 @@ export interface ModuleHeaderConfig {
 @Component({
   selector: 'app-module-header',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatTooltipModule, MatTooltipModule,
+  imports: [CommonModule, MatIconModule, MatTooltipModule,
     MatIconModule,
     MatButtonModule
   ],

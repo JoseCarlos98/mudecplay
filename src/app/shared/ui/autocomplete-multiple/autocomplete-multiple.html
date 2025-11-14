@@ -1,8 +1,18 @@
 <div class="c-autocomplete-multiple">
   <div class="c-input">
+
+    @if (selectedIds.length) {
+      <button (click)="clearAll($event)" type="button" mat-icon-button matSuffix>
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+
     <p class="label">{{ label }}</p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
+      @if (!selectedIds.length) {
+      <h1 ngif>Todos</h1>
+      }
       <mat-select [multiple]="true" [disabled]="disabled" [value]="selectedIds" [compareWith]="compareById"
         (openedChange)="onOpenedChange($event)" (selectionChange)="onSelectionChange($event)">
 

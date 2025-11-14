@@ -2,48 +2,63 @@
   <app-module-header title="Gastos" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
-
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-
       <div class="c-input">
         <p class="label">Rango de fecha</p>
+
         <mat-form-field appearance="outline" class="w-100">
           <mat-date-range-input [rangePicker]="picker">
             <input formControlName="startDate" matStartDate placeholder="Inicio">
             <input formControlName="endDate" matEndDate placeholder="Fin">
           </mat-date-range-input>
+
+          @if (formFilters.value.startDate || formFilters.value.endDate) {
+          <button type="button" mat-icon-button matSuffix aria-label="Limpiar rango" (click)="clearAndOpen(picker)">
+            <mat-icon>close</mat-icon>
+          </button>
+          } @else {
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+          }
           <mat-date-range-picker #picker></mat-date-range-picker>
         </mat-form-field>
       </div>
 
-      
       <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" placeholder="Todos" [remote]="true"
         catalogType="supplier">
       </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true" 
-       catalogType="project">
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true"
+        catalogType="project">
       </app-autocomplete-multiple>
 
-
       <div class="c-input">
-        <p>Estatus</p>
+        <p>Estado de asignación</p>
         <mat-form-field appearance="outline" class="w-100">
           <mat-select formControlName="status_id">
-            <mat-option [value]="null">Todos</mat-option>
+            <mat-option value="">Todos</mat-option>
             @for (data of catalogStatusExpense; track data.id) {
             <mat-option [value]="data.id">{{ data.name }}</mat-option>
             }
           </mat-select>
+            @if (this.formFilters.get('concept')?.value?.trim()) {
+          <button type="button" matSuffix mat-icon-button>
+            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer color-third">close</mat-icon>
+          </button>
+          }
         </mat-form-field>
       </div>
 
       <div class="c-input">
         <p>Concepto</p>
         <mat-form-field appearance="outline" class="w-100">
-          <input formControlName="concept" matInput />
+          <input placeholder="Buscar por concepto" formControlName="concept" matInput />
+
+          @if (this.formFilters.get('concept')?.value?.trim()) {
+          <button type="button" matSuffix mat-icon-button>
+            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer ">close</mat-icon>
+          </button>
+          }
         </mat-form-field>
       </div>
 

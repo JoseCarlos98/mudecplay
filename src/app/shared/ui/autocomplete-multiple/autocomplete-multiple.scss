@@ -1,4 +1,23 @@
-.c-autocomplete-multiple {}
+.c-autocomplete-multiple {
+    position: relative;
+
+    button {
+        position: absolute;
+        right: 15px;
+        top: 17px;
+        z-index: 1000000;
+
+        mat-icon {
+            margin-bottom: 4px;
+            color: var(--color-third);
+        }
+    }
+
+    ::ng-deep .mat-mdc-select-value-text {
+        width: 80% !important;
+        display: block !important;
+    }
+}
 
 .search-box {
     width: 100%;
@@ -26,4 +45,14 @@
 .mat-mdc-option .mdc-list-item__primary-text {
     font-size: 14px !important;
     line-height: 18px !important;
+}
+
+h1 {
+    position: absolute;
+    top: 4px;
+    padding-left: 7px !important;
+    font-size: 12.5px !important;
+    height: 30px !important;
+    letter-spacing: 1px !important;
+    font-weight: 400;
 }

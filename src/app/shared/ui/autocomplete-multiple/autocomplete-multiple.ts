@@ -16,22 +16,25 @@ import { MatInputModule } from '@angular/material/input';
 import { Subject, of, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-autocomplete-multiple',
   standalone: true,
   // Módulos mínimos para funcionar dentro de cualquier feature module
-  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatInputModule],
+  imports: [CommonModule, MatFormFieldModule, MatSelectModule, MatOptionModule, MatInputModule, MatIconModule, MatButtonModule, MatTooltipModule],
   templateUrl: './autocomplete-multiple.html',
   styleUrls: ['./autocomplete-multiple.scss'],
   // OnPush para rendimiento: solo re-renderiza con cambios de @Input, eventos o markForCheck()
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchMultiSelect implements ControlValueAccessor {
   // ====== API del componente (Inputs personalizables) ======
   @Input() label = 'Seleccionar';              // Título/etiqueta visible arriba del campo
   @Input() placeholder = 'Todos';              // Texto cuando no hay selección
-  @Input() searchPlaceholder = 'Buscar…';      // Placeholder del input de búsqueda interno
+  @Input() searchPlaceholder = 'Buscar';      // Placeholder del input de búsqueda interno
   @Input() remote = false;                     // true: busca en backend; false: filtra local
   @Input() catalogType: 'supplier' | 'project' = 'supplier'; // Qué catálogo consultar cuando es remoto
   @Input() data: Catalog[] = [];               // Fuente local (modo local)
@@ -49,8 +52,8 @@ export class SearchMultiSelect implements ControlValueAccessor {
   private search$ = new Subject<string>();
 
   // Callbacks de ControlValueAccessor (Angular Forms)
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   // ====== Inyecciones ======
   private readonly catalogsService = inject(CatalogsService);
@@ -198,10 +201,27 @@ export class SearchMultiSelect implements ControlValueAccessor {
   private fetchRemote(search: string) {
     switch (this.catalogType) {
       case 'supplier': return this.catalogsService.supplierCatalog(search);
-      case 'project':  return this.catalogsService.projectsCatalog(search);
-      default:         return of([] as Catalog[]);
+      case 'project': return this.catalogsService.projectsCatalog(search);
+      default: return of([] as Catalog[]);
     }
   }
+
+  clearAll(evt?: Event) {
+    evt?.preventDefault();
+    evt?.stopPropagation();
+
+    this.selectedIds = [];
+    this.onChange(this.selectedIds);
+    this.onTouched();
+
+    // Reponer la lista visible a un estado “inicial”
+    this.filteredOptions = this.remote
+      ? this.optionsPool.slice(-10).reverse()
+      : this.data;
+
+    this.cdr.markForCheck();
+  }
+
 
   /**
    * Agrega resultados al pool si no existen (evita duplicados por id).
