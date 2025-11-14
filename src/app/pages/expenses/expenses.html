@@ -34,7 +34,8 @@
 
       <div class="c-input">
         <p>Estado de asignación</p>
-        <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'padding-selection' : formFilters.get('status_id')?.value  }">
+        <mat-form-field appearance="outline" class="w-100"
+          [ngClass]="{ 'padding-selection-select' : formFilters.get('status_id')?.value  }">
           <mat-select #statusSel="matSelect" formControlName="status_id">
             <mat-option value="">Todos</mat-option>
             @for (data of catalogStatusExpense; track data.id) {
@@ -64,10 +65,16 @@
         </mat-form-field>
       </div>
 
-      <button (click)="searchWithFilters()" type="button"
-        class="btn-primary radius text-white hover:bg-[#167195] transition-all">
-        <mat-icon>search</mat-icon>
-      </button>
+      <div class="btns-action-filters">
+        <button type="button" class="btn-primary" (click)="searchWithFilters()">
+          <mat-icon>search</mat-icon>
+        </button>
+
+        <button type="button" class="btn-outline" (click)="clearAllAndSearch()" [disabled]="!hasActiveFilters">
+          Limpiar
+        </button>
+      </div>
+
     </div>
   </form>
 </div>

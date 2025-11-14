@@ -193,7 +193,7 @@ export class Expenses implements OnInit {
 
   clearInput(control?: string) {
     if (control === 'concept') this.formFilters.get('concept')?.setValue('');
-     else if (control === 'datePicker') {
+    else if (control === 'datePicker') {
       this.formFilters.get('startDate')?.setValue(null);
       this.formFilters.get('endDate')?.setValue(null);
     } else if (control === 'statusId') {
@@ -204,5 +204,35 @@ export class Expenses implements OnInit {
   clearAndOpen(picker: MatDateRangePicker<Date>) {
     this.formFilters.patchValue({ startDate: null, endDate: null });
     setTimeout(() => picker.open());
+  }
+
+  get hasActiveFilters(): boolean {
+    const f = this.formFilters.getRawValue();
+    return Boolean(
+      f.startDate || f.endDate ||
+      // (f.suppliersIds?.length) ||
+      // (f.projectIds?.length) ||
+      (f.status_id && f.status_id !== null && f.status_id !== '') ||
+      (f.concept && f.concept.trim() !== '')
+    );
+  }
+
+  // Limpiar todo y aplicar
+  clearAllAndSearch(): void {
+    // limpia form
+    // this.formFilters.reset({
+    //   startDate: null,
+    //   endDate: null,
+    //   // suppliersIds: [],
+    //   // projectIds: [],
+    //   status_id: null,
+    //   concept: '',
+    // }, { emitEvent: false });
+
+    // // resetea filtros que mandas al backend
+    // // this.filters = { ...this.DEFAULT_FILTERS };
+
+    // // dispara búsqueda y vuelve a página 1
+    // // this.getExpensesForTable();
   }
 }

@@ -185,6 +185,26 @@ mat-select-trigger {
     }
 }
 
+.padding-selection-select {
+    position: relative;
+
+    button {
+        position: absolute;
+        right: -9px;
+        top: -24px;
+        z-index: 1000000;
+
+        mat-icon {
+            margin-bottom: 4px;
+            color: var(--color-third);
+        }
+    }
+
+    .mat-mdc-select-arrow-wrapper {
+        padding-right: 31px !important;
+    }
+}
+
 
 // MOVIL DESIGN
 @media screen and (max-width: 500px) {
