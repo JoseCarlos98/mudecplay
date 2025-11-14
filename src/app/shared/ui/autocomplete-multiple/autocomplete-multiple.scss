@@ -3,7 +3,7 @@
 
     button {
         position: absolute;
-        right: 15px;
+        right: -10px;
         top: 17px;
         z-index: 1000000;
 
@@ -14,7 +14,7 @@
     }
 
     ::ng-deep .mat-mdc-select-value-text {
-        width: 80% !important;
+        width: 95% !important;
         display: block !important;
     }
 }

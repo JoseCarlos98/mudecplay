@@ -34,7 +34,7 @@
 
       <div class="c-input">
         <p>Estado de asignación</p>
-        <mat-form-field appearance="outline" class="w-100">
+        <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'padding-selection' : formFilters.get('status_id')?.value  }">
           <mat-select #statusSel="matSelect" formControlName="status_id">
             <mat-option value="">Todos</mat-option>
             @for (data of catalogStatusExpense; track data.id) {

@@ -165,6 +165,27 @@ mat-select-trigger {
     padding-left: 0 !important;
 }
 
+.padding-selection {
+    position: relative;
+
+    button {
+        position: absolute;
+        right: -9px;
+        top: -24px;
+        z-index: 1000000;
+
+        mat-icon {
+            margin-bottom: 4px;
+            color: var(--color-third);
+        }
+    }
+
+    .mat-mdc-select-arrow-wrapper {
+        padding-right: 35px !important;
+    }
+}
+
+
 // MOVIL DESIGN
 @media screen and (max-width: 500px) {
     .mat-mdc-paginator-container {
