@@ -196,6 +196,8 @@ export class Expenses implements OnInit {
      else if (control === 'datePicker') {
       this.formFilters.get('startDate')?.setValue(null);
       this.formFilters.get('endDate')?.setValue(null);
+    } else if (control === 'statusId') {
+      this.formFilters.get('status_id')?.setValue('');
     } else this.formFilters.reset()
   }
 

@@ -45,7 +45,7 @@ body {
 }
 
 .color-third {
-  color: #878787
+  color: #878787!important;
 }
 
 
@@ -298,6 +298,10 @@ body {
   .mat-pseudo-checkbox {
     margin-right: 8px!important;
   }
+}
+
+.z-index {
+  z-index: 9999;
 }
 
 @media screen and (max-width: 875px) {

@@ -15,7 +15,7 @@
 
           @if (formFilters.value.startDate || formFilters.value.endDate) {
           <button type="button" mat-icon-button matSuffix aria-label="Limpiar rango" (click)="clearAndOpen(picker)">
-            <mat-icon>close</mat-icon>
+            <mat-icon class="color-third">close</mat-icon>
           </button>
           } @else {
           <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -35,15 +35,17 @@
       <div class="c-input">
         <p>Estado de asignación</p>
         <mat-form-field appearance="outline" class="w-100">
-          <mat-select formControlName="status_id">
+          <mat-select #statusSel="matSelect" formControlName="status_id">
             <mat-option value="">Todos</mat-option>
             @for (data of catalogStatusExpense; track data.id) {
             <mat-option [value]="data.id">{{ data.name }}</mat-option>
             }
           </mat-select>
-            @if (this.formFilters.get('concept')?.value?.trim()) {
-          <button type="button" matSuffix mat-icon-button>
-            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer color-third">close</mat-icon>
+          @if (formFilters.get('status_id')?.value) {
+          <button type="button" matSuffix mat-icon-button [disableRipple]="true"
+            (mousedown)="$event.preventDefault(); $event.stopPropagation()"
+            (click)="$event.stopPropagation(); clearInput('statusId'); statusSel.close()" aria-label="Limpiar estado">
+            <mat-icon matSuffix (click)="clearInput('statusId')" class="cursor-pointer color-third">close</mat-icon>
           </button>
           }
         </mat-form-field>
@@ -54,9 +56,9 @@
         <mat-form-field appearance="outline" class="w-100">
           <input placeholder="Buscar por concepto" formControlName="concept" matInput />
 
-          @if (this.formFilters.get('concept')?.value?.trim()) {
+          @if (formFilters.get('concept')?.value?.trim()) {
           <button type="button" matSuffix mat-icon-button>
-            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer ">close</mat-icon>
+            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer color-third">close</mat-icon>
           </button>
           }
         </mat-form-field>
