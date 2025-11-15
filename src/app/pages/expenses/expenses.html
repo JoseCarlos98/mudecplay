@@ -14,7 +14,7 @@
           </mat-date-range-input>
 
           @if (formFilters.value.startDate || formFilters.value.endDate) {
-          <button type="button" mat-icon-button matSuffix aria-label="Limpiar rango" (click)="clearAndOpen(picker)">
+          <button type="button" mat-icon-button matSuffix aria-label="Limpiar rango" (click)="clearAndOpen()">
             <mat-icon class="color-third">close</mat-icon>
           </button>
           } @else {

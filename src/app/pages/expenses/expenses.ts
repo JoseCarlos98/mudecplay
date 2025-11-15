@@ -15,7 +15,7 @@ import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interf
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
-import { MatDatepickerModule, MatDateRangePicker } from '@angular/material/datepicker';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { toApiDate } from '../../shared/helpers/general-helpers';
@@ -84,12 +84,12 @@ export class Expenses implements OnInit {
   expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 
   formFilters = this.fb.group({
-    startDate: [null],
-    endDate: [null],
-    suppliersIds: [[]],
-    projectIds: [[]],
-    status_id: [''],
-    concept: [''],
+    startDate: this.fb.control<Date | null>(null),
+    endDate: this.fb.control<Date | null>(null),
+    suppliersIds: this.fb.control<number[]>([]),
+    projectIds: this.fb.control<number[]>([]),
+    status_id: this.fb.control<number | '' | null>(''),
+    concept: this.fb.control<string>(''),
   });
 
   ngOnInit(): void {
@@ -123,8 +123,6 @@ export class Expenses implements OnInit {
       status_id: values.status_id,
       concept: values.concept?.trim() || '',
     };
-
-    console.log(this.filters);
 
     this.loadExpenses();
   }
@@ -201,38 +199,43 @@ export class Expenses implements OnInit {
     } else this.formFilters.reset()
   }
 
-  clearAndOpen(picker: MatDateRangePicker<Date>) {
+  clearAndOpen() {
     this.formFilters.patchValue({ startDate: null, endDate: null });
-    setTimeout(() => picker.open());
   }
+
+  private defaultFilters = (): FiltersExpenses => ({
+    page: 1,
+    limit: this.filters.limit,
+    startDate: null,
+    endDate: null,
+    suppliersIds: [],
+    projectIds: [],
+    status_id: null,
+    concept: '',
+  });
 
   get hasActiveFilters(): boolean {
-    const f = this.formFilters.getRawValue();
-    return Boolean(
-      f.startDate || f.endDate ||
-      // (f.suppliersIds?.length) ||
-      // (f.projectIds?.length) ||
-      (f.status_id && f.status_id !== null && f.status_id !== '') ||
-      (f.concept && f.concept.trim() !== '')
-    );
+    const f = this.formFilters.getRawValue() as any;
+    const hasDates = !!(f.startDate || f.endDate);
+    const hasSuppliers = f.suppliersIds.length;
+    const hasProjects = f.projectIds.length;
+    const hasStatus = f.status_id !== '';
+    const hasConcept = !!(f.concept && f.concept.trim() !== '');
+    return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
   }
 
-  // Limpiar todo y aplicar
   clearAllAndSearch(): void {
-    // limpia form
-    // this.formFilters.reset({
-    //   startDate: null,
-    //   endDate: null,
-    //   // suppliersIds: [],
-    //   // projectIds: [],
-    //   status_id: null,
-    //   concept: '',
-    // }, { emitEvent: false });
+    this.formFilters.reset({
+      startDate: null,
+      endDate: null,
+      suppliersIds: [],
+      projectIds: [],
+      status_id: '',
+      concept: '',
+    }, { emitEvent: false });
 
-    // // resetea filtros que mandas al backend
-    // // this.filters = { ...this.DEFAULT_FILTERS };
+    this.filters = this.defaultFilters();
 
-    // // dispara búsqueda y vuelve a página 1
-    // // this.getExpensesForTable();
+    this.loadExpenses();
   }
 }
