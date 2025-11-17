@@ -3,7 +3,7 @@
         Cancelar
     </button>
 
-    <button mat-flat-button type="submit" form="form" class="btn-primary" [ngClass]="{'not-cursor-pointer': !btnSave}">
+    <button mat-flat-button type="submit" (click)="saveData.emit()" form="form" class="btn-primary" [ngClass]="{'not-cursor-pointer': !btnSave}">
         Guardar
     </button>
 </div>

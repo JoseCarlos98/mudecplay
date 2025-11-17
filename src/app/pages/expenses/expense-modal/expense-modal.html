@@ -14,18 +14,12 @@
             </div>
 
             <div class="md:col-span-1">
-                <div class="c-input">
-                    <p class="label">Fecha <span class="required">*</span></p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input formControlName="date" placeholder="Seleccionar fecha" matInput [matDatepicker]="picker">
-                        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-                        <mat-datepicker #picker></mat-datepicker>
-
-                        @if (form.get('date')?.touched && form.get('date')?.invalid) {
-                        <mat-error>Este campo es obligatorio</mat-error>
-                        }
-                    </mat-form-field>
-                </div>
+                <app-input-date
+                    formControlName="date"
+                    label="Fecha"
+                    mode="single"
+                    [showClear]="true">
+                </app-input-date>
             </div>
 
             <div class="md:col-span-1">
@@ -37,21 +31,28 @@
             </div>
 
             <div class="md:col-span-1">
-                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
+                <app-autocomplete
+                    formControlName="supplier_id" 
+                    label="Proveedor" 
+                    [remote]="true" 
+                    catalogType="supplier"
                     [initialDisplay]="data?.supplier?.company_name ?? ''">
                 </app-autocomplete>
-
             </div>
 
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
-                        catalogType="project" [initialDisplay]="data?.project?.name ?? ''">
+                    <app-autocomplete 
+                        formControlName="project_id" 
+                        label="Proyecto" 
+                        [remote]="true"
+                        catalogType="project" 
+                        [initialDisplay]="data?.project?.name ?? ''">
                     </app-autocomplete>
                 </div>
             </div>
         </div>
     </form>
 
-    <app-footer-modal [btnSave]="!form.valid" (closeModal)="closeModal($event)"></app-footer-modal>
+    <app-footer-modal [btnSave]="!form.valid"  (closeModal)="closeModal($event)"></app-footer-modal>
 </div>

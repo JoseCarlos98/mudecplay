@@ -1,0 +1,112 @@
+<div class="c-input-field">
+  @if (mode === 'single') {
+    <!-- Modo: una sola fecha -->
+    <div class="c-input">
+      <p class="label">
+        {{ label }}
+        @if (showRequiredMark) {
+          <span class="required">*</span>
+        }
+      </p>
+
+      <mat-form-field
+        appearance="outline"
+        class="w-100"
+        [ngClass]="{ 'field-invalid': hasError }"
+      >
+        <input
+          matInput
+          [matDatepicker]="pickerSingle"
+          [placeholder]="placeholder"
+          [disabled]="disabled"
+          [value]="singleDate"
+          (dateChange)="onSingleDateChange($event.value)"
+          (blur)="markAsTouched()"
+        />
+
+        @if (showClear && hasSingleValue) {
+          <button
+            type="button"
+            matSuffix
+            mat-icon-button
+            (mousedown)="$event.preventDefault()"
+            (click)="clearSingle()"
+          >
+            <mat-icon class="color-third">close</mat-icon>
+          </button>
+        } @else {
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="pickerSingle"
+          ></mat-datepicker-toggle>
+        }
+
+        <mat-datepicker #pickerSingle></mat-datepicker>
+      </mat-form-field>
+
+      @if (hasError) {
+        <span class="field-error">{{ firstErrorMessage }}</span>
+      }
+    </div>
+  } @else {
+    <!-- Modo: rango de fechas -->
+    <div class="c-input">
+      <p class="label">
+        {{ label }}
+        @if (showRequiredMark) {
+          <span class="required">*</span>
+        }
+      </p>
+
+      <mat-form-field
+        appearance="outline"
+        class="w-100"
+        [ngClass]="{ 'field-invalid': hasError }"
+      >
+        <mat-date-range-input [rangePicker]="pickerRange">
+          <input
+            matStartDate
+            [placeholder]="startPlaceholder"
+            [disabled]="disabled"
+            [value]="startDate"
+            (dateChange)="onRangeDateChange('start', $event.value)"
+            (blur)="markAsTouched()"
+          />
+
+          <input
+            matEndDate
+            [placeholder]="endPlaceholder"
+            [disabled]="disabled"
+            [value]="endDate"
+            (dateChange)="onRangeDateChange('end', $event.value)"
+            (blur)="markAsTouched()"
+          />
+        </mat-date-range-input>
+
+        @if (showClear && hasRangeValue) {
+          <button
+            type="button"
+            matSuffix
+            mat-icon-button
+            aria-label="Limpiar rango"
+            (mousedown)="$event.preventDefault()"
+            (click)="clearRange(pickerRange)"
+          >
+            <mat-icon class="color-third">close</mat-icon>
+          </button>
+        } @else {
+          <mat-datepicker-toggle
+            matIconSuffix
+            [for]="pickerRange"
+          ></mat-datepicker-toggle>
+        }
+
+        <mat-date-range-picker #pickerRange></mat-date-range-picker>
+      </mat-form-field>
+
+      @if (hasError) {
+        <span class="field-error">{{ firstErrorMessage }}</span>
+      }
+    </div>
+  }
+</div>

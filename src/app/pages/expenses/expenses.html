@@ -4,31 +4,26 @@
 
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-      <div class="c-input">
-        <p class="label">Rango de fecha</p>
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de fecha"
+          mode="range"
+          [showClear]="true">
+        </app-input-date>
 
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-date-range-input [rangePicker]="picker">
-            <input formControlName="startDate" matStartDate placeholder="Inicio">
-            <input formControlName="endDate" matEndDate placeholder="Fin">
-          </mat-date-range-input>
-
-          @if (formFilters.value.startDate || formFilters.value.endDate) {
-          <button type="button" mat-icon-button matSuffix aria-label="Limpiar rango" (click)="clearAndOpen()">
-            <mat-icon class="color-third">close</mat-icon>
-          </button>
-          } @else {
-          <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-          }
-          <mat-date-range-picker #picker></mat-date-range-picker>
-        </mat-form-field>
-      </div>
-
-      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" placeholder="Todos" [remote]="true"
+      <app-autocomplete-multiple 
+        formControlName="suppliersIds" 
+        label="Proveedores" 
+        placeholder="Todos" 
+        [remote]="true"
         catalogType="supplier">
       </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true"
+      <app-autocomplete-multiple 
+        formControlName="projectIds" 
+        label="Proyectos" 
+        placeholder="Todos" 
+        [remote]="true"
         catalogType="project">
       </app-autocomplete-multiple>
 

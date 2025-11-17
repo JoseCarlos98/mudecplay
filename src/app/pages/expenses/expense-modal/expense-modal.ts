@@ -13,6 +13,7 @@ import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfac
 import { Autocomplete } from '../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../shared/ui/input-field/input-field';
 import { FooterModal } from "../../../shared/ui/footer-modal/footer-modal";
+import { InputDate } from '../../../shared/ui/input-date/input-date';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -21,7 +22,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-expense-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, FooterModal],
+    Autocomplete, InputField, FooterModal, InputDate],
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',
 })
@@ -37,7 +38,7 @@ export class ExpenseModal implements OnInit {
     date: ['', Validators.required],
     amount: ['', [Validators.required, Validators.min(0.01)]],
     supplier_id: [null],
-    project_id: [null]
+    project_id: [null],
   })
 
   ngOnInit(): void {
@@ -64,6 +65,8 @@ export class ExpenseModal implements OnInit {
   }
 
   saveData() {
+    console.log('guardar');
+    
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

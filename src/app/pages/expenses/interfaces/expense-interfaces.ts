@@ -1,7 +1,7 @@
 export interface FiltersExpenses {
     concept?: string | '';
-    startDate?: string | null;
-    endDate?: string | null;
+    startDate?: string | null | undefined;
+    endDate?: string | null | undefined;
     suppliersIds?: number[]| null;
     projectIds?: number[] | null;
     status_id?: number | string | null;

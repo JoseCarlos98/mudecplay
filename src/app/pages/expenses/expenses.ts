@@ -20,6 +20,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { toApiDate } from '../../shared/helpers/general-helpers';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
+import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -62,7 +63,8 @@ const STATUS_COMPLEMENTS: object[] = [
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    SearchMultiSelect
+    SearchMultiSelect,
+    InputDate
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
@@ -84,8 +86,10 @@ export class Expenses implements OnInit {
   expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 
   formFilters = this.fb.group({
-    startDate: this.fb.control<Date | null>(null),
-    endDate: this.fb.control<Date | null>(null),
+    dateRange: this.fb.control<DateRangeValue | null>({
+      startDate: null,
+      endDate: null,
+    }),
     suppliersIds: this.fb.control<number[]>([]),
     projectIds: this.fb.control<number[]>([]),
     status_id: this.fb.control<number | '' | null>(''),
@@ -116,15 +120,17 @@ export class Expenses implements OnInit {
     this.filters = {
       ...this.filters,
       page: 1,
-      startDate: toApiDate(values.startDate),
-      endDate: toApiDate(values.endDate),
+      startDate: toApiDate(values.dateRange?.startDate),
+      endDate: toApiDate(values.dateRange?.endDate),
       suppliersIds: values.suppliersIds,
       projectIds: values.projectIds,
       status_id: values.status_id,
       concept: values.concept?.trim() || '',
     };
 
-    this.loadExpenses();
+    console.log(this.filters);
+    
+    // this.loadExpenses();
   }
 
 
@@ -192,15 +198,15 @@ export class Expenses implements OnInit {
   clearInput(control?: string) {
     if (control === 'concept') this.formFilters.get('concept')?.setValue('');
     else if (control === 'datePicker') {
-      this.formFilters.get('startDate')?.setValue(null);
-      this.formFilters.get('endDate')?.setValue(null);
+      // this.formFilters.get('startDate')?.setValue(null);
+      // this.formFilters.get('endDate')?.setValue(null);
     } else if (control === 'statusId') {
       this.formFilters.get('status_id')?.setValue('');
     } else this.formFilters.reset()
   }
 
   clearAndOpen() {
-    this.formFilters.patchValue({ startDate: null, endDate: null });
+    this.formFilters.get('dateRange')?.patchValue({ startDate: null, endDate: null });
   }
 
   private defaultFilters = (): FiltersExpenses => ({
@@ -225,14 +231,14 @@ export class Expenses implements OnInit {
   }
 
   clearAllAndSearch(): void {
-    this.formFilters.reset({
-      startDate: null,
-      endDate: null,
-      suppliersIds: [],
-      projectIds: [],
-      status_id: '',
-      concept: '',
-    }, { emitEvent: false });
+    // this.formFilters.reset({
+    //   startDate: null,
+    //   endDate: null,
+    //   suppliersIds: [],
+    //   projectIds: [],
+    //   status_id: '',
+    //   concept: '',
+    // }, { emitEvent: false });
 
     this.filters = this.defaultFilters();
 

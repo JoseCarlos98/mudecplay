@@ -11,4 +11,5 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, input, Output,
 export class FooterModal {
   @Input() btnSave : boolean = false;
   @Output() closeModal = new EventEmitter<boolean>();
+  @Output() saveData = new EventEmitter<boolean>();
 }

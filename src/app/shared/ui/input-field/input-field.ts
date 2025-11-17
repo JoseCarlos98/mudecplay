@@ -21,7 +21,7 @@ type InputKind = 'text' | 'number' | 'money';
   imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
   templateUrl: './input-field.html',
   styleUrls: ['./input-field.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputField implements ControlValueAccessor {
   /** Config pública */

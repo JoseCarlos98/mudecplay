@@ -78,7 +78,7 @@ export function toIdForm(value: any): number | null {
  * - Ignora null/undefined/'' para no ensuciar la URL.
  * - IMPORTANTE: HttpParams es inmutable; siempre reasigna el retorno.
  */
-export function setScalar<T extends string | number | null | undefined>(
+export function setScalar<T extends string | number | null | undefined | Date >(
   p: HttpParams,
   key: string,
   value: T
