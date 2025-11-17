@@ -43,8 +43,6 @@ export class InputField implements ControlValueAccessor {
     if (this.ngControl) this.ngControl.valueAccessor = this;
   }
 
-  
-
   get firstErrorMessage(): string {
     const control = this.ngControl?.control;
     const errors = control?.errors;
@@ -86,7 +84,7 @@ export class InputField implements ControlValueAccessor {
   // Eventos del input
 
   /** Cada vez que el usuario escribe */
-  onInput(event: Event) {
+  onInputMoney(event: Event) {
     const input = event.target as HTMLInputElement;
     let raw = input.value;
 
@@ -103,20 +101,20 @@ export class InputField implements ControlValueAccessor {
   }
 
   /** Cuando entra al input mostramos el valor crudo */
-  onFocus() {
+  onFocusMoney() {
     this.isFocused = true;
     this.displayValue = this._value !== null ? String(this._value) : '';
   }
 
   /** Cuando sale del input mostramos el valor formateado */
-  onBlur() {
+  onBlurMoney() {
     this.isFocused = false;
     this.onTouched();
     this.displayValue = this.formatForDisplay(this._value);
   }
 
   /** Validación de teclado en tiempo real */
-  onKeyDown(event: KeyboardEvent) {
+  onKeyDownMoney(event: KeyboardEvent) {
     if (this.type !== 'money' && this.type !== 'number') return;
 
     const allowedControlKeys = [

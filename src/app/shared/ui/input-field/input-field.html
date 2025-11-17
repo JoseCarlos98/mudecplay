@@ -10,10 +10,10 @@
         matInput
         [placeholder]="placeholder"
         [value]="displayValue"
-        (input)="onInput($event)"
-        (focus)="onFocus()"
-        (blur)="onBlur()"
-        (keydown)="onKeyDown($event)"
+        (input)="onInputMoney($event)"
+        (focus)="onFocusMoney()"
+        (blur)="onBlurMoney()"
+        (keydown)="onKeyDownMoney($event)"
         [disabled]="disabled"
       />
     </mat-form-field>
