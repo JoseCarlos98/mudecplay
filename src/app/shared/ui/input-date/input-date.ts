@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
   Component,
   Input,
   Optional,
@@ -9,17 +8,17 @@ import {
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDatepickerModule, MatDateRangePicker } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDateRangePicker } from '@angular/material/datepicker';
 import { Validators } from '@angular/forms';
+import { toApiDate } from '../../helpers/general-helpers';
 
 export type DateInputMode = 'single' | 'range';
 
 export interface DateRangeValue {
-  startDate: Date | null;
-  endDate: Date | null;
+  startDate: string | null;
+  endDate: string | null;
 }
 
 @Component({
@@ -35,7 +34,6 @@ export interface DateRangeValue {
   ],
   templateUrl: './input-date.html',
   styleUrls: ['./input-date.scss'],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputDate implements ControlValueAccessor {
   /** Config pública */
@@ -52,7 +50,6 @@ export class InputDate implements ControlValueAccessor {
   @Input() requiredMessage: string = 'Este campo es obligatorio';
   @Input() errorMessage: string = 'Fecha inválida';
 
-  /** Estado interno */
   disabled: boolean = false;
 
   // single
@@ -74,6 +71,29 @@ export class InputDate implements ControlValueAccessor {
     }
   }
 
+  // ========== Helpers de parseo ==========
+  private parseDate(value: Date | string | null | undefined): Date | null {
+    if (!value) return null;
+
+    if (value instanceof Date) return value;
+
+    if (typeof value === 'string') {
+      // 'YYYY-MM-DD'
+      if (value.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split('-').map(Number);
+        if (!y || !m || !d) return null;
+        const dte = new Date(y, m - 1, d);
+        return isNaN(dte.getTime()) ? null : dte;
+      }
+
+      // ISO u otro formato parseable
+      const dte = new Date(value);
+      return isNaN(dte.getTime()) ? null : dte;
+    }
+
+    return null;
+  }
+
   // ========== CVA ==========
   writeValue(value: any): void {
     if (this.mode === 'single') {
@@ -84,30 +104,20 @@ export class InputDate implements ControlValueAccessor {
   }
 
   private writeSingle(value: any) {
-    if (value instanceof Date || value === null) {
-      this.singleDate = value;
-      return;
-    }
-
-    // soportar string 'YYYY-MM-DD'
-    if (typeof value === 'string' && value) {
-      const parsed = new Date(value);
-      this.singleDate = isNaN(parsed.getTime()) ? null : parsed;
-      return;
-    }
-
-    this.singleDate = null;
+    // value puede ser: Date | 'YYYY-MM-DD' | '2025-11-04T07:00:00.000Z' | null
+    this.singleDate = this.parseDate(value);
   }
 
   private writeRange(value: any) {
-    const v = value as DateRangeValue | null | undefined;
-    if (v) {
-      this.startDate = v.startDate ?? null;
-      this.endDate = v.endDate ?? null;
-    } else {
+    const v = value as { startDate?: Date | string | null; endDate?: Date | string | null } | null | undefined;
+    if (!v) {
       this.startDate = null;
       this.endDate = null;
+      return;
     }
+
+    this.startDate = this.parseDate(v.startDate ?? null);
+    this.endDate = this.parseDate(v.endDate ?? null);
   }
 
   registerOnChange(fn: any): void {
@@ -151,8 +161,6 @@ export class InputDate implements ControlValueAccessor {
   get showRequiredMark(): boolean {
     const control = this.ngControl?.control;
     if (!control) return false;
-
-    // Angular >=14
     return control.hasValidator?.(Validators.required) ?? false;
   }
 
@@ -167,7 +175,9 @@ export class InputDate implements ControlValueAccessor {
   // ========== Eventos single ==========
   onSingleDateChange(date: Date | null) {
     this.singleDate = date;
-    this.onChange(date);
+
+    const apiValue = toApiDate(date); // string | null
+    this.onChange(apiValue);
   }
 
   clearSingle() {
@@ -184,21 +194,22 @@ export class InputDate implements ControlValueAccessor {
     }
 
     const value: DateRangeValue = {
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: toApiDate(this.startDate),
+      endDate: toApiDate(this.endDate),
     };
+
     this.onChange(value);
   }
 
   clearRange(picker: MatDateRangePicker<Date>) {
     this.startDate = null;
     this.endDate = null;
-    this.onChange({
+
+    const empty: DateRangeValue = {
       startDate: null,
       endDate: null,
-    } as DateRangeValue);
-
-    // opcional: reabrir picker después de limpiar
-    picker.open();
+    };
+    
+    this.onChange(empty);
   }
 }

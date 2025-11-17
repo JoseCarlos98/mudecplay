@@ -54,5 +54,9 @@
         </div>
     </form>
 
-    <app-footer-modal [btnSave]="!form.valid"  (closeModal)="closeModal($event)"></app-footer-modal>
+    <app-footers 
+        [modal]="true" 
+        [btnSave]="!form.valid"
+        (closeModal)="closeModal()"
+    ></app-footers>
 </div>

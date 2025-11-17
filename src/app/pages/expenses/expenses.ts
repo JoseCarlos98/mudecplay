@@ -18,9 +18,10 @@ import { DialogService } from '../../shared/services/dialog.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { CatalogsService } from '../../shared/services/catalogs.service';
-import { toApiDate } from '../../shared/helpers/general-helpers';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
+import { InputField } from '../../shared/ui/input-field/input-field';
+import { FooterModal } from '../../shared/ui/footer-modal/footer-modal';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -40,7 +41,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   showUploadXml: true
 };
 
-const STATUS_COMPLEMENTS: object[] = [
+const STATUS_COMPLEMENTS: Catalog[] = [
   { id: 'missing_supplier', name: 'Sin proveedor' },
   { id: 'missing_project', name: 'Sin proyecto' },
 ]
@@ -64,7 +65,9 @@ const STATUS_COMPLEMENTS: object[] = [
     MatDatepickerModule,
     MatNativeDateModule,
     SearchMultiSelect,
-    InputDate
+    InputDate,
+    InputField,
+    FooterModal
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
@@ -86,10 +89,7 @@ export class Expenses implements OnInit {
   expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
 
   formFilters = this.fb.group({
-    dateRange: this.fb.control<DateRangeValue | null>({
-      startDate: null,
-      endDate: null,
-    }),
+    dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
     projectIds: this.fb.control<number[]>([]),
     status_id: this.fb.control<number | '' | null>(''),
@@ -103,7 +103,7 @@ export class Expenses implements OnInit {
 
   loadCatalogs() {
     this.catalogsService.statusExpenseCatalog().subscribe({
-      next: (response: any) => {
+      next: (response: Catalog[]) => {
         console.log(response);
         this.catalogStatusExpense = [
           ...response,
@@ -120,29 +120,26 @@ export class Expenses implements OnInit {
     this.filters = {
       ...this.filters,
       page: 1,
-      startDate: toApiDate(values.dateRange?.startDate),
-      endDate: toApiDate(values.dateRange?.endDate),
+      startDate: values.dateRange?.startDate,
+      endDate: values.dateRange?.endDate,
       suppliersIds: values.suppliersIds,
       projectIds: values.projectIds,
       status_id: values.status_id,
       concept: values.concept?.trim() || '',
     };
 
-    console.log(this.filters);
-    
-    // this.loadExpenses();
+    this.loadExpenses();
   }
-
 
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
-      next: (response: any) => {
-        console.log(response);
-        this.expensesTableData = response
+      next: (response: PaginatedResponse<ExpenseResponseDto>) => {
+        this.expensesTableData = response;
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
+
 
   onPageChange(event: PageEvent) {
     this.filters.page = event.pageIndex + 1;
@@ -161,7 +158,7 @@ export class Expenses implements OnInit {
     }
   }
 
-  onEdit(rowData: any) {
+  onEdit(rowData: ExpenseResponseDto) {
     this.expenseModal(rowData);
   }
 
@@ -197,16 +194,34 @@ export class Expenses implements OnInit {
 
   clearInput(control?: string) {
     if (control === 'concept') this.formFilters.get('concept')?.setValue('');
-    else if (control === 'datePicker') {
-      // this.formFilters.get('startDate')?.setValue(null);
-      // this.formFilters.get('endDate')?.setValue(null);
-    } else if (control === 'statusId') {
+    else if (control === 'statusId') {
       this.formFilters.get('status_id')?.setValue('');
-    } else this.formFilters.reset()
+    }
   }
 
-  clearAndOpen() {
-    this.formFilters.get('dateRange')?.patchValue({ startDate: null, endDate: null });
+  get hasActiveFilters(): boolean {
+    const f = this.formFilters.getRawValue();
+
+    const hasDates = !!(f.dateRange?.startDate || f.dateRange?.endDate);
+    const hasSuppliers = (f.suppliersIds?.length ?? 0) > 0;
+    const hasProjects = (f.projectIds?.length ?? 0) > 0;
+    const hasStatus = f.status_id !== '';
+    const hasConcept = !!(f.concept && f.concept.trim() !== '');
+
+    return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
+  }
+
+  clearAllAndSearch(): void {
+    this.formFilters.reset({
+      dateRange: null,
+      suppliersIds: [],
+      projectIds: [],
+      status_id: '',
+      concept: '',
+    }, { emitEvent: false });
+
+    this.filters = this.defaultFilters();
+    this.loadExpenses();
   }
 
   private defaultFilters = (): FiltersExpenses => ({
@@ -219,29 +234,4 @@ export class Expenses implements OnInit {
     status_id: null,
     concept: '',
   });
-
-  get hasActiveFilters(): boolean {
-    const f = this.formFilters.getRawValue() as any;
-    const hasDates = !!(f.startDate || f.endDate);
-    const hasSuppliers = f.suppliersIds.length;
-    const hasProjects = f.projectIds.length;
-    const hasStatus = f.status_id !== '';
-    const hasConcept = !!(f.concept && f.concept.trim() !== '');
-    return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
-  }
-
-  clearAllAndSearch(): void {
-    // this.formFilters.reset({
-    //   startDate: null,
-    //   endDate: null,
-    //   suppliersIds: [],
-    //   projectIds: [],
-    //   status_id: '',
-    //   concept: '',
-    // }, { emitEvent: false });
-
-    this.filters = this.defaultFilters();
-
-    this.loadExpenses();
-  }
 }

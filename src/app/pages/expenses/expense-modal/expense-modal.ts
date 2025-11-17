@@ -33,13 +33,13 @@ export class ExpenseModal implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly headerConfig = HEADER_CONFIG;
 
-  form: FormGroup = this.fb.group({
-    concept: ['', [Validators.required, Validators.pattern(/\S+/)]],
-    date: ['', Validators.required],
-    amount: ['', [Validators.required, Validators.min(0.01)]],
-    supplier_id: [null],
-    project_id: [null],
-  })
+form: FormGroup = this.fb.group({
+  concept: ['', Validators.required],
+  date: this.fb.control<string | null>(null, { validators: Validators.required }),
+  amount: ['', Validators.required],
+  supplier_id: [null],
+  project_id: [null],
+});
 
   ngOnInit(): void {
     console.log(this.data);
@@ -65,8 +65,6 @@ export class ExpenseModal implements OnInit {
   }
 
   saveData() {
-    console.log('guardar');
-    
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -76,20 +74,16 @@ export class ExpenseModal implements OnInit {
 
     const formData = {
       ...raw,
-      date: toApiDate(raw.date),
       supplier_id: toIdForm(raw.supplier_id),
       project_id: toIdForm(raw.project_id),
     };
 
-    console.log('formData', formData);
-    
-
-    // this.expenseService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.expenseService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {

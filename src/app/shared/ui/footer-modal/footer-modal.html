@@ -1,9 +1,24 @@
+@if (modal) {
 <div class="c-modal-actions">
-    <button mat-stroked-button type="button" (click)="closeModal.emit(true)" class="btn-cancel">
+    <button mat-stroked-button type="button" (click)="closeModal.emit()" class="btn-cancel">
         Cancelar
     </button>
 
-    <button mat-flat-button type="submit" (click)="saveData.emit()" form="form" class="btn-primary" [ngClass]="{'not-cursor-pointer': !btnSave}">
+    <button mat-flat-button type="submit" (click)="saveData.emit()" form="form" class="btn-primary"
+        [ngClass]="{'not-cursor-pointer': btnSave}">
         Guardar
     </button>
 </div>
+
+} @else {
+
+<div class="btns-action-filters">
+    <button type="button" class="btn-primary" (click)="searchWithFilters.emit()">
+        <mat-icon>search</mat-icon>
+    </button>
+
+    <button type="button" class="btn-outline" (click)="clearAllAndSearch.emit()" [disabled]="!hasActiveFilters">
+        Limpiar
+    </button>
+</div>
+}

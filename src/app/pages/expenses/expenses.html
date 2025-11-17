@@ -4,26 +4,14 @@
 
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-        <app-input-date
-          formControlName="dateRange"
-          label="Rango de fecha"
-          mode="range"
-          [showClear]="true">
-        </app-input-date>
+      <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range" [showClear]="true">
+      </app-input-date>
 
-      <app-autocomplete-multiple 
-        formControlName="suppliersIds" 
-        label="Proveedores" 
-        placeholder="Todos" 
-        [remote]="true"
+      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" placeholder="Todos" [remote]="true"
         catalogType="supplier">
       </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple 
-        formControlName="projectIds" 
-        label="Proyectos" 
-        placeholder="Todos" 
-        [remote]="true"
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true"
         catalogType="project">
       </app-autocomplete-multiple>
 
@@ -41,35 +29,23 @@
           <button type="button" matSuffix mat-icon-button [disableRipple]="true"
             (mousedown)="$event.preventDefault(); $event.stopPropagation()"
             (click)="$event.stopPropagation(); clearInput('statusId'); statusSel.close()" aria-label="Limpiar estado">
-            <mat-icon matSuffix (click)="clearInput('statusId')" class="cursor-pointer color-third">close</mat-icon>
+            <mat-icon matSuffix class="cursor-pointer color-third">close</mat-icon>
           </button>
           }
         </mat-form-field>
       </div>
 
-      <div class="c-input">
-        <p>Concepto</p>
-        <mat-form-field appearance="outline" class="w-100">
-          <input placeholder="Buscar por concepto" formControlName="concept" matInput />
+      <app-input-field 
+        formControlName="concept" 
+        label="Concepto" 
+        type="text">
+      </app-input-field>
 
-          @if (formFilters.get('concept')?.value?.trim()) {
-          <button type="button" matSuffix mat-icon-button>
-            <mat-icon matSuffix (click)="clearInput('concept')" class="cursor-pointer color-third">close</mat-icon>
-          </button>
-          }
-        </mat-form-field>
-      </div>
-
-      <div class="btns-action-filters">
-        <button type="button" class="btn-primary" (click)="searchWithFilters()">
-          <mat-icon>search</mat-icon>
-        </button>
-
-        <button type="button" class="btn-outline" (click)="clearAllAndSearch()" [disabled]="!hasActiveFilters">
-          Limpiar
-        </button>
-      </div>
-
+      <app-footers 
+        [hasActiveFilters]="hasActiveFilters" 
+        (clearAllAndSearch)="clearAllAndSearch()" 
+        (searchWithFilters)="searchWithFilters()">
+      </app-footers>
     </div>
   </form>
 </div>
