@@ -4,7 +4,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 
 @Component({
-  selector: 'app-footers',
+  selector: 'app-sections-btns',
   imports: [CommonModule, MatIconModule],
   templateUrl: './footer-modal.html',
   styleUrl: './footer-modal.scss',

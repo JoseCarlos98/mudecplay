@@ -192,10 +192,7 @@ export class Expenses implements OnInit {
   }
 
   clearInput(control?: string) {
-    if (control === 'concept') this.formFilters.get('concept')?.setValue('');
-    else if (control === 'statusId') {
-      this.formFilters.get('status_id')?.setValue('');
-    }
+    this.formFilters.get('status_id')?.setValue('');
   }
 
   get hasActiveFilters(): boolean {
