@@ -21,7 +21,7 @@ import { CatalogsService } from '../../shared/services/catalogs.service';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
-import { FooterModal } from '../../shared/ui/footer-modal/footer-modal';
+import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -67,7 +67,7 @@ const STATUS_COMPLEMENTS: Catalog[] = [
     SearchMultiSelect,
     InputDate,
     InputField,
-    FooterModal
+    BtnsSection
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',

@@ -1,16 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-
-
 @Component({
-  selector: 'app-sections-btns',
+  selector: 'app-btns-section',
   imports: [CommonModule, MatIconModule],
-  templateUrl: './footer-modal.html',
-  styleUrl: './footer-modal.scss',
+  templateUrl: './btns-section.html',
+  styleUrl: './btns-section.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class FooterModal {
+export class BtnsSection {
   @Input() btnSave: boolean = false;
   @Input() modal: boolean = false;
   @Input() hasActiveFilters: boolean = false;
