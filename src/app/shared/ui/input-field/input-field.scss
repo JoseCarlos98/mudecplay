@@ -1,4 +1,11 @@
 .c-input-field {
     position: relative;
-    height: 35px!important;
+    height: 65px!important;
+    margin-bottom: 15px;
+
+    button {
+        mat-icon {
+            margin-right: 13px;
+        }
+    }
 }

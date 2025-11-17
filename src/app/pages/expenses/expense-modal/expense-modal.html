@@ -6,16 +6,13 @@
     <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
         <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
             <div class="md:col-span-2">
-                <div class="c-input">
-                    <p class="label">Concepto <span class="required">*</span></p>
-                    <mat-form-field appearance="outline" class="w-100">
-                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept"
-                            cdkFocusInitial />
-                        @if (form.get('concept')?.touched || form.get('concept')?.invalid) {
-                        <mat-error>Este campo es obligatorio</mat-error>
-                        }
-                    </mat-form-field>
-                </div>
+                 <app-input-field 
+                    formControlName="concept" 
+                    label="Concepto" 
+                    type="number"
+                     [numberDecimals]="1"
+                    >
+                </app-input-field>
             </div>
 
             <div class="md:col-span-1">
@@ -34,9 +31,11 @@
             </div>
 
             <div class="md:col-span-1">
-                <app-input-field formControlName="amount" label="Monto" type="money" placeholder="0.00">
+                <app-input-field 
+                    formControlName="amount" 
+                    label="Monto" 
+                    type="money">
                 </app-input-field>
-                <!-- [disabled]="disabled" -->
             </div>
 
             <div class="md:col-span-1">

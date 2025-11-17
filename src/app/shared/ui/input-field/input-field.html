@@ -2,20 +2,30 @@
   <div class="c-input">
     <p class="label">
       {{ label }}
-       @if (showRequiredMark) { <span class="required">*</span>}
+      @if (showRequiredMark) { <span class="required">*</span> }
     </p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
       <input
         matInput
-        [placeholder]="placeholder"
+        [placeholder]="getPlaceholder"
         [value]="displayValue"
-        (input)="onInputMoney($event)"
-        (focus)="onFocusMoney()"
-        (blur)="onBlurMoney()"
-        (keydown)="onKeyDownMoney($event)"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
         [disabled]="disabled"
-      />
+        [attr.inputmode]="inputMode"
+        [attr.autocomplete]="autoComplete"
+        [attr.autocapitalize]="autoCapitalize"
+        [attr.pattern]="pattern"
+        type="text" />
+
+      @if (displayValue) {
+        <button type="button" matSuffix mat-icon-button (click)="writeValue(''); onChange(type==='number'||type==='money'? null : '');">
+          <mat-icon class="color-third">close</mat-icon>
+        </button>
+      }
     </mat-form-field>
 
     @if (hasError) {
