@@ -24,7 +24,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
     Autocomplete, InputField, FooterModal, InputDate],
   templateUrl: './expense-modal.html',
-  styleUrl: './expense-modal.scss',
 })
 export class ExpenseModal implements OnInit {
   private readonly expenseService = inject(ExpenseService);
