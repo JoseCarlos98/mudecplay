@@ -8,7 +8,8 @@
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
       <input
         matInput
-        [placeholder]="getPlaceholder"
+        type="text"
+        [placeholder]="resolvedPlaceholder"
         [value]="displayValue"
         (input)="onInput($event)"
         (focus)="onFocus()"
@@ -19,10 +20,15 @@
         [attr.autocomplete]="autoComplete"
         [attr.autocapitalize]="autoCapitalize"
         [attr.pattern]="pattern"
-        type="text" />
+      />
 
       @if (displayValue) {
-        <button type="button" matSuffix mat-icon-button (click)="writeValue(''); onChange(type==='number'||type==='money'? null : '');">
+        <button
+          type="button"
+          matSuffix
+          mat-icon-button
+          (mousedown)="$event.preventDefault()"
+          (click)="clear()">
           <mat-icon class="color-third">close</mat-icon>
         </button>
       }

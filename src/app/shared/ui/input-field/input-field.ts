@@ -8,125 +8,128 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { normalizeMoney, normalizeTextOnBlur } from '../../helpers/general-helpers';
+
+type InputKind = 'text' | 'number' | 'money';
 
 @Component({
   selector: 'app-input-field',
   standalone: true,
-  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule],
+  imports: [CommonModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
   templateUrl: './input-field.html',
   styleUrls: ['./input-field.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InputField implements ControlValueAccessor {
-  // Config pública
+  /** Config pública */
   @Input() label: string = '';
   @Input() placeholder: string = '';
-  @Input() type: 'text' | 'number' | 'money' = 'text';
+  @Input() type: InputKind = 'text';
 
-  // MONEY
+  /** MONEY */
   @Input() prefix: string = '$';
   @Input() decimals: number = 2;
+  @Input() numberDecimals?: number;
 
-  // NUMBER (nuevo)
-  @Input() numberDecimals: number = 0;         // máximo de decimales
-
-  // Errores
-  @Input() showError: boolean = false;
+  /** Opcionales útiles */
+  @Input() allowNegative: boolean = false;
   @Input() errorMessage: string = 'Este campo es obligatorio';
+  @Input() showError: boolean = false;
 
-  // Estado interno
+  /** Estado interno */
   private _value: string | number | null = null;
-  private isFocused = false;
-  disabled = false;
-
-  // Muestra en input
+  private isFocused: boolean = false;
+  disabled: boolean = false;
   displayValue: string = '';
 
-  // CVA
-  onChange: (value: any) => void = () => { };
+  /** CVA */
+  private onChange: (value: any) => void = () => { };
   private onTouched: () => void = () => { };
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) this.ngControl.valueAccessor = this;
   }
 
-  // ===== CVA =====
+  // ======= Derivados/UI =======
+  private get maxNumDecimals(): number {
+    const d = this.numberDecimals;
+    return Number.isFinite(d) && (d as number) > 0 ? Math.floor(d as number) : 0;
+  }
+
+  get inputMode(): 'decimal' | 'numeric' | undefined {
+    if (this.type === 'money') return 'decimal';
+    if (this.type === 'number') return this.maxNumDecimals ? 'decimal' : 'numeric';
+    return undefined;
+  }
+
+  get autoCapitalize(): 'off' { return 'off'; }
+
+  get autoComplete(): 'off' { return 'off'; }
+
+  get pattern(): string | null {
+    if (this.type === 'money') return '[0-9]*[.,]?[0-9]*';
+    if (this.type === 'number') {
+      const core = this.maxNumDecimals ? '[0-9]*[.,]?[0-9]*' : '\\d*';
+      return this.allowNegative ? `^-?${core}$` : `^${core}$`;
+    }
+    return null;
+  }
+
+  get resolvedPlaceholder(): string {
+    if (this.placeholder) return this.placeholder;
+    switch (this.type) {
+      case 'money': return `${this.prefix} 0.00`;
+      case 'number': {
+        if (!this.maxNumDecimals || this.maxNumDecimals <= 0) return '0';
+        const zeros = '0'.repeat(this.maxNumDecimals);
+        return `0.${zeros}`;
+      }
+      default: return 'Ingrese texto';
+    }
+  }
+
+  // ======= CVA =======
   writeValue(value: any) {
     this._value = value;
-    this.displayValue = this.isFocused ? (value ?? '') : this.formatForDisplay(value);
+
+    if (this.type === 'money') {
+      // money: muestra crudo en foco, formateado fuera de foco
+      this.displayValue = this.isFocused ? (value ?? '') : this.formatMoney(value);
+      return;
+    }
+
+    // number/text: mostrar “tal cual” lo que hay
+    this.displayValue = value !== null && value !== undefined ? String(value) : '';
   }
+
   registerOnChange(fn: any) { this.onChange = fn; }
   registerOnTouched(fn: any) { this.onTouched = fn; }
   setDisabledState(isDisabled: boolean) { this.disabled = isDisabled; }
 
-  // ===== Atributos nativos útiles =====
-  get inputMode(): 'decimal' | 'numeric' | undefined {
-    if (this.type === 'money') return 'decimal';
-    if (this.type === 'number') return this.numberDecimals ? 'decimal' : 'numeric';
-    return undefined;
-  }
-  get autoCapitalize(): 'off' { return 'off'; }
-  get autoComplete(): 'off' { return 'off'; }
-  get pattern(): string | null {
-    if (this.type === 'number') {
-      return this.numberDecimals ? '[0-9]*[.,]?[0-9]*' : '\\d*';
-    }
-    if (this.type === 'money') return '[0-9]*[.,]?[0-9]*';
-    return null;
-  }
-
-  get getPlaceholder(): string {
-    if (this.placeholder) return this.placeholder;
-
-    switch (this.type) {
-      case 'money':
-        return `${this.prefix} 0.00`;
-      case 'number':
-        return 'Ingrese un número';
-      case 'text':
-      default:
-        return 'Ingrese texto';
-    }
-  }
-
-  // ===== Eventos =====
+  // ======= Eventos (routing por tipo para legibilidad) =======
   onInput(event: Event) {
     const input = event.target as HTMLInputElement;
-    let raw = input.value ?? '';
+    const raw = input.value ?? '';
 
-    switch (this.type) {
-      case 'money': {
-        raw = this.sanitizeMoney(raw);
-        this._value = this.normalizeMoney(raw);
-        this.displayValue = raw;
-        this.onChange(this._value);
-        break;
-      }
-      case 'number': {
-        raw = this.sanitizeNumber(raw);
-        this._value = this.normalizeNumber(raw);
-        this.displayValue = raw;
-        this.onChange(this._value);
-        break;
-      }
-      case 'text':
-      default: {
-        raw = this.sanitizeTextInline(raw);
-        this._value = raw;
-        this.displayValue = raw;
-        this.onChange(raw);
-      }
+    if (this.type === 'money') {
+      this.handleInputMoney(raw);
+    } else if (this.type === 'number') {
+      this.handleInputNumber(raw);
+    } else {
+      this.handleInputText(raw);
     }
   }
 
   onFocus() {
     this.isFocused = true;
     if (this.type === 'money') {
-      const val = (this._value ?? '') as number | string;
-      this.displayValue = val === null || val === '' ? '' : String(val);
+      // money: mostrar el valor crudo (sin formato)
+      this.displayValue = this._value !== null ? String(this._value) : '';
     } else {
+      // number/text
       this.displayValue = this._value !== null ? String(this._value) : '';
     }
   }
@@ -135,91 +138,56 @@ export class InputField implements ControlValueAccessor {
     this.isFocused = false;
     this.onTouched();
 
-    switch (this.type) {
-      case 'money': {
-        this.displayValue = this.formatForDisplay(this._value);
-        break;
-      }
-      case 'number': {
-        // Normaliza a número (aplica límite de decimales), muestra sin formato
-        const normalized = this.normalizeNumber(String(this._value ?? ''));
-        this._value = normalized;
-        this.onChange(normalized);
-        this.displayValue = normalized === null ? '' : String(normalized);
-        break;
-      }
-      case 'text': {
-        const norm = this.normalizeTextOnBlur(String(this._value ?? ''));
-        this._value = norm;
-        this.onChange(norm);
-        this.displayValue = norm;
-        break;
-      }
+    if (this.type === 'money') {
+      this.displayValue = this.formatMoney(this._value);
+      return;
+    }
+
+    if (this.type === 'number') {
+      // Normaliza definitivamente y muestra limpio
+      const normalized = this.normalizeNumber(String(this._value ?? ''));
+      this._value = normalized;
+      this.onChange(normalized);
+      this.displayValue = normalized === null ? '' : String(normalized);
+      return;
+    }
+
+    if (this.type === 'text') {
+      const norm = normalizeTextOnBlur(String(this._value ?? ''));
+      this._value = norm;
+      this.onChange(norm);
+      this.displayValue = norm;
     }
   }
 
   onKeyDown(event: KeyboardEvent) {
-    if ((event.ctrlKey || event.metaKey) && ['a', 'c', 'v', 'x'].includes(event.key.toLowerCase())) return;
-
-    const controlKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
-    if (controlKeys.includes(event.key)) return;
+    if (this.allowShortcut(event)) return;
+    if (this.isControlKey(event)) return;
 
     if (this.type === 'number') {
-      // Dígitos siempre permitidos, a menos que superen el máximo de decimales
-      const isDigit = event.key >= '0' && event.key <= '9';
-      const inputEl = event.target as HTMLInputElement;
-
-      // Permitir separador decimal si aplica
-      if (this.numberDecimals && (event.key === '.' || event.key === ',')) {
-        const v = inputEl.value;
-        const hasSep = /[.,]/.test(v);
-        if (!hasSep) return; // primer separador permitido
-        event.preventDefault(); // segundo separador no
-        return;
-      }
-
-      if (isDigit) {
-        if (this.numberDecimals) {
-          const v = inputEl.value.replace(',', '.');
-          const sep = v.indexOf('.');
-          if (sep !== -1) {
-            const selStart = inputEl.selectionStart ?? v.length;
-            const selEnd = inputEl.selectionEnd ?? v.length;
-            const selectionLen = selEnd - selStart;
-
-            // ¿Caret en la parte decimal SIN selección?
-            const caretInDecimals = selStart > sep;
-            if (caretInDecimals && selectionLen === 0) {
-              const decimalsCount = v.slice(sep + 1).length;
-              if (decimalsCount >= this.numberDecimals) {
-                event.preventDefault(); // bloquea más decimales
-                return;
-              }
-            }
-          }
-        }
-        return; // dígito permitido
-      }
-
-      // Cualquier otra tecla: bloquear
-      event.preventDefault();
+      this.keyguardNumber(event);
       return;
     }
-
     if (this.type === 'money') {
-      if (event.key >= '0' && event.key <= '9') return;
-      if (event.key === '.' || event.key === ',') {
-        const v = (event.target as HTMLInputElement).value;
-        const hasSep = /[.,]/.test(v);
-        if (!hasSep) return;
-      }
-      event.preventDefault();
+      this.keyguardMoney(event);
       return;
     }
-    // text: sin restricciones de teclado
   }
 
-  // ===== Errores / UI =====
+  clear() {
+    // Limpia según tipo y propaga
+    if (this.type === 'money' || this.type === 'number') {
+      this._value = null;
+      this.onChange(null);
+      this.displayValue = '';
+      return;
+    }
+    this._value = '';
+    this.onChange('');
+    this.displayValue = '';
+  }
+
+  // ======= Errores / UI =======
   get hasError(): boolean {
     if (!this.ngControl) return this.showError;
     const c = this.ngControl.control;
@@ -231,7 +199,7 @@ export class InputField implements ControlValueAccessor {
     const errors = control?.errors;
     if (!errors) return '';
     if (errors['required']) return 'Este campo es obligatorio';
-    if (errors['blank']) return 'No se permiten sólo espacios';
+    if (errors['blank']) return 'No se permiten solo espacios';
     if (errors['min']) return 'El valor es muy pequeño';
     if (errors['max']) return 'El valor es muy grande';
     return this.errorMessage;
@@ -244,81 +212,153 @@ export class InputField implements ControlValueAccessor {
     return !!res?.['required'];
   }
 
-  // ===== Sanitizers / Normalizers / Formatters =====
-  // TEXT
-  private sanitizeTextInline(v: string): string {
-    return v.replace(/\s+/g, ' ').replace(/^\s+/, '');
-  }
-  private normalizeTextOnBlur(v: string): string {
-    return v.replace(/\s+/g, ' ').trim();
+  // ======= Handlers por tipo =======
+  private handleInputText(v: string) {
+    const clean = v.replace(/\s+/g, ' ').replace(/^\s+/, '');
+    this._value = clean;
+    this.displayValue = clean;
+    this.onChange(clean);
   }
 
-  // NUMBER (con o sin decimales)
-  private sanitizeNumber(v: string): string {
-    v = (v ?? '').replace(/\s+/g, '').replace(/,/g, '.');
-    // deja dígitos y puntos
-    v = v.replace(/[^0-9.]/g, '');
-    if (!this.numberDecimals) {
-      // si no se permiten decimales, elimina todos los puntos
-      return v.replace(/\./g, '');
+  private handleInputNumber(v: string) {
+    let s = (v ?? '').replace(/\s+/g, '').replace(/,/g, '.');
+
+    // signo
+    if (this.allowNegative) {
+      // conserva solo un '-' y solo al inicio
+      s = s.replace(/-/g, '');
+      if (v.trim().startsWith('-')) s = '-' + s;
+    } else {
+      s = s.replace(/-/g, '');
     }
-    // si se permiten, conservar solo el primer punto
-    const firstDot = v.indexOf('.');
-    if (firstDot !== -1) {
-      const before = v.slice(0, firstDot + 1);
-      let after = v.slice(firstDot + 1).replace(/\./g, '');
-      if (this.numberDecimals >= 0) {
-        after = after.slice(0, this.numberDecimals); // límite de decimales
+
+    // dígitos + punto
+    s = s.replace(/[^0-9.\-]/g, '');
+
+    if (!this.maxNumDecimals) {
+      s = s.replace(/\./g, ''); // enteros
+    } else {
+      // solo un punto y recortar decimales
+      const firstDot = s.indexOf('.');
+      if (firstDot !== -1) {
+        const before = s.slice(0, firstDot + 1);
+        let after = s.slice(firstDot + 1).replace(/\./g, '');
+        after = after.slice(0, this.maxNumDecimals);
+        s = before + after;
       }
-      v = before + after;
     }
-    return v;
+
+    this._value = this.normalizeNumber(s);
+    this.displayValue = s;
+    this.onChange(this._value);
   }
 
-  private normalizeNumber(v: string): number | null {
-    const s = this.sanitizeNumber(v);
-    if (s === '' || s === '.') return null;
-    let n = Number(s);
+  private handleInputMoney(v: string) {
+    let s = v.replace(/\s+/g, '').replace(/,/g, '.');
+    s = s.replace(/[^0-9.]/g, '');
+    const firstDot = s.indexOf('.');
+    if (firstDot !== -1) {
+      const before = s.slice(0, firstDot + 1);
+      let after = s.slice(firstDot + 1).replace(/\./g, '');
+      after = after.slice(0, this.decimals);
+      s = before + after;
+    }
+    this._value = normalizeMoney(s);
+    this.displayValue = s;
+    this.onChange(this._value);
+  }
+
+  // ======= Keyguards =======
+  private keyguardNumber(event: KeyboardEvent) {
+    const key = event.key;
+    const input = event.target as HTMLInputElement;
+
+    const isDigit = key >= '0' && key <= '9';
+    if (isDigit) {
+      if (this.maxNumDecimals) {
+        const v = input.value.replace(',', '.');
+        const dot = v.indexOf('.');
+        if (dot !== -1) {
+          const selStart = input.selectionStart ?? v.length;
+          const selEnd = input.selectionEnd ?? v.length;
+          const selectionLen = selEnd - selStart;
+          const inDecimals = selStart > dot;
+          if (inDecimals && selectionLen === 0) {
+            const decCount = v.slice(dot + 1).length;
+            if (decCount >= this.maxNumDecimals) {
+              event.preventDefault();
+              return;
+            }
+          }
+        }
+      }
+      return;
+    }
+
+    // separador decimal
+    if (this.maxNumDecimals && (key === '.' || key === ',')) {
+      const v = input.value;
+      if (!/[.,]/.test(v)) return; // primer separador ok
+      event.preventDefault();
+      return;
+    }
+
+    // signo negativo
+    if (this.allowNegative && key === '-') {
+      const v = input.value;
+      const caret = input.selectionStart ?? 0;
+      const alreadyHas = v.includes('-');
+      // permitir solo si caret al inicio y no existe
+      if (!alreadyHas && caret === 0) return;
+      event.preventDefault();
+      return;
+    }
+
+    // otro: bloquear
+    event.preventDefault();
+  }
+
+  private keyguardMoney(event: KeyboardEvent) {
+    const key = event.key;
+    if (key >= '0' && key <= '9') return;
+    if (key === '.' || key === ',') {
+      const v = (event.target as HTMLInputElement).value;
+      if (!/[.,]/.test(v)) return;
+    }
+    if (this.isControlKey(event)) return;
+    if (this.allowShortcut(event)) return;
+    event.preventDefault();
+  }
+
+  private isControlKey(e: KeyboardEvent) {
+    return ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key);
+  }
+
+  private allowShortcut(e: KeyboardEvent) {
+    return (e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase());
+  }
+
+  // ======= Normalizadores / Formateadores =======
+  private normalizeNumber(s: string): number | null {
+    if (s === '' || s === '.' || s === '-' || s === '-.') return null;
+    const normalized = s.replace(',', '.');
+    const n = Number(normalized);
     if (Number.isNaN(n)) return null;
 
-    if (this.numberDecimals && this.numberDecimals >= 0) {
-      const factor = Math.pow(10, this.numberDecimals);
-      n = Math.round(n * factor) / factor; // redondea al máximo de decimales permitido
+    if (this.maxNumDecimals) {
+      const factor = Math.pow(10, this.maxNumDecimals);
+      return Math.round(n * factor) / factor;
     }
-    return n;
+    return Math.trunc(n);
   }
 
-  // MONEY
-  private sanitizeMoney(v: string): string {
-    v = v.replace(/\s+/g, '').replace(/,/g, '.');
-    v = v.replace(/[^0-9.]/g, '');
-    const firstDot = v.indexOf('.');
-    if (firstDot !== -1) {
-      const before = v.slice(0, firstDot + 1);
-      let after = v.slice(firstDot + 1).replace(/\./g, '');
-      after = after.slice(0, this.decimals);
-      v = before + after;
-    }
-    return v;
-  }
-
-  private normalizeMoney(v: string): number | null {
-    if (!v) return null;
-    const n = Number(v);
-    return Number.isNaN(n) ? null : n;
-  }
-
-  private formatForDisplay(value: any): string {
-    if (this.type === 'money') {
-      if (value === null || value === '' || value === undefined) return '';
-      const num = Number(value);
-      if (isNaN(num)) return '';
-      return `${this.prefix} ${num.toLocaleString('es-MX', {
-        minimumFractionDigits: this.decimals,
-        maximumFractionDigits: this.decimals,
-      })}`;
-    }
-    // number/text: mostrar tal cual
-    return value ?? '';
+  private formatMoney(value: any): string {
+    if (value === null || value === '' || value === undefined) return '';
+    const num = Number(value);
+    if (isNaN(num)) return '';
+    return `${this.prefix} ${num.toLocaleString('es-MX', {
+      minimumFractionDigits: this.decimals,
+      maximumFractionDigits: this.decimals,
+    })}`;
   }
 }
