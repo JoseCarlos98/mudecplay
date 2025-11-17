@@ -33,6 +33,7 @@ export interface DateRangeValue {
     MatButtonModule,
   ],
   templateUrl: './input-date.html',
+  styleUrls: ['./input-date.scss']
 })
 export class InputDate implements ControlValueAccessor {
   /** Config pública */
