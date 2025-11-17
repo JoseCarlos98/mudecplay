@@ -30,7 +30,7 @@ export class DialogService {
       ...this.sizes[size],
       autoFocus: false,
       restoreFocus: false,
-      minHeight: '40vh',
+      // minHeight: '30vh',
       disableClose: true,
       data,
       ...config,

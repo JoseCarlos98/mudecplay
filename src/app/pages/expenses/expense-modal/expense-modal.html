@@ -4,13 +4,13 @@
     </app-module-header>
 
     <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
-
         <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
             <div class="md:col-span-2">
                 <div class="c-input">
                     <p class="label">Concepto <span class="required">*</span></p>
-                    <mat-form-field  appearance="outline" class="w-100">
-                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept" cdkFocusInitial  />
+                    <mat-form-field appearance="outline" class="w-100">
+                        <input matInput placeholder="Ej. Compra de materiales" formControlName="concept"
+                            cdkFocusInitial />
                         @if (form.get('concept')?.touched || form.get('concept')?.invalid) {
                         <mat-error>Este campo es obligatorio</mat-error>
                         }
@@ -35,49 +35,28 @@
 
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-input-field 
-                        formControlName="amount" 
-                        label="Monto" 
-                        type="money"
-                        placeholder="0.00">
+                    <app-input-field formControlName="amount" label="Monto" type="money" placeholder="0.00">
                     </app-input-field>
-                        <!-- [disabled]="disabled" -->
+                    <!-- [disabled]="disabled" -->
                 </div>
             </div>
 
             <div class="md:col-span-1">
-                <app-autocomplete
-                    formControlName="supplier_id" 
-                    label="Proveedor" 
-                    [remote]="true" 
-                    catalogType="supplier"
+                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier"
                     [initialDisplay]="data?.supplier?.company_name ?? ''">
                 </app-autocomplete>
-                 
+
             </div>
 
             <div class="md:col-span-1">
                 <div class="c-input">
-                    <app-autocomplete 
-                        formControlName="project_id" 
-                        label="Proyecto" 
-                        [remote]="true"
-                        catalogType="project" 
-                        [initialDisplay]="data?.project?.name ?? ''">
+                    <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                        catalogType="project" [initialDisplay]="data?.project?.name ?? ''">
                     </app-autocomplete>
                 </div>
             </div>
         </div>
     </form>
 
-    <div class="c-modal-actions">
-        <button mat-stroked-button type="button" (click)="closeModal()" class="btn-cancel">
-            Cancelar
-        </button>
-
-        <button [ngClass]="{'not-cursor-pointer': !form.valid}" mat-flat-button type="submit" form="form"
-            class="btn-primary">
-            Guardar
-        </button>
-    </div>
+    <app-footer-modal [btnSave]="!form.valid" (closeModal)="closeModal($event)"></app-footer-modal>
 </div>

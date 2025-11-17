@@ -193,45 +193,6 @@ body {
   background: #c62828 !important;
 }
 
-.c-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 10px;
-
-  button {
-    display: flex;
-    align-items: center;
-    padding: 3px 15px;
-    font-size: 15px;
-    border-radius: 7px;
-    gap: 5px;
-    transition: all 0.25s ease;
-  }
-
-  .btn-cancel {
-    color: #4b5563 !important;
-    border-color: #9ca3af !important;
-
-    &:hover {
-      background-color: rgba(156, 163, 175, 0.1);
-    }
-  }
-
-  .btn-primary {
-    background-color: #1e86b1 !important;
-    color: white !important;
-
-    &:hover {
-      background-color: #167195 !important;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: unset;
-    }
-  }
-}
 
 .field-invalid {
   --mdc-outlined-text-field-caret-color: #f44336;
@@ -278,7 +239,8 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 15px 15px 0 15px;
+  padding: 15px 15px 15px 15px;
+  // padding: 15px 15px 0 15px;
 
   .c-content-form {
     row-gap: 25px !important;

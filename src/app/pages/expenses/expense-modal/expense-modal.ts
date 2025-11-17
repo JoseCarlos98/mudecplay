@@ -12,6 +12,7 @@ import { ExpenseService } from '../services/expense.service';
 import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfaces';
 import { Autocomplete } from '../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../shared/ui/input-field/input-field';
+import { FooterModal } from "../../../shared/ui/footer-modal/footer-modal";
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -20,8 +21,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-expense-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField
-  ],
+    Autocomplete, InputField, FooterModal],
   templateUrl: './expense-modal.html',
   styleUrl: './expense-modal.scss',
 })

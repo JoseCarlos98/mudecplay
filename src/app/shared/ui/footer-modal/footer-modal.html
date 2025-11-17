@@ -1,0 +1,9 @@
+<div class="c-modal-actions">
+    <button mat-stroked-button type="button" (click)="closeModal.emit(true)" class="btn-cancel">
+        Cancelar
+    </button>
+
+    <button mat-flat-button type="submit" form="form" class="btn-primary" [ngClass]="{'not-cursor-pointer': !btnSave}">
+        Guardar
+    </button>
+</div>
