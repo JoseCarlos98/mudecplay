@@ -30,8 +30,7 @@ export class InputField implements ControlValueAccessor {
   @Input() decimals: number = 2;
 
   // NUMBER (nuevo)
-  @Input() numberAllowDecimal: boolean = true; // permite punto/coma
-  @Input() numberDecimals: number = 2;         // máximo de decimales
+  @Input() numberDecimals: number = 0;         // máximo de decimales
 
   // Errores
   @Input() showError: boolean = false;
@@ -65,14 +64,14 @@ export class InputField implements ControlValueAccessor {
   // ===== Atributos nativos útiles =====
   get inputMode(): 'decimal' | 'numeric' | undefined {
     if (this.type === 'money') return 'decimal';
-    if (this.type === 'number') return this.numberAllowDecimal ? 'decimal' : 'numeric';
+    if (this.type === 'number') return this.numberDecimals ? 'decimal' : 'numeric';
     return undefined;
   }
   get autoCapitalize(): 'off' { return 'off'; }
   get autoComplete(): 'off' { return 'off'; }
   get pattern(): string | null {
     if (this.type === 'number') {
-      return this.numberAllowDecimal ? '[0-9]*[.,]?[0-9]*' : '\\d*';
+      return this.numberDecimals ? '[0-9]*[.,]?[0-9]*' : '\\d*';
     }
     if (this.type === 'money') return '[0-9]*[.,]?[0-9]*';
     return null;
@@ -83,7 +82,7 @@ export class InputField implements ControlValueAccessor {
 
     switch (this.type) {
       case 'money':
-        return `${this.prefix} 0.00`; 
+        return `${this.prefix} 0.00`;
       case 'number':
         return 'Ingrese un número';
       case 'text':
@@ -165,47 +164,47 @@ export class InputField implements ControlValueAccessor {
     const controlKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'];
     if (controlKeys.includes(event.key)) return;
 
- if (this.type === 'number') {
-    // Dígitos siempre permitidos, a menos que superen el máximo de decimales
-    const isDigit = event.key >= '0' && event.key <= '9';
-    const inputEl = event.target as HTMLInputElement;
+    if (this.type === 'number') {
+      // Dígitos siempre permitidos, a menos que superen el máximo de decimales
+      const isDigit = event.key >= '0' && event.key <= '9';
+      const inputEl = event.target as HTMLInputElement;
 
-    // Permitir separador decimal si aplica
-    if (this.numberAllowDecimal && (event.key === '.' || event.key === ',')) {
-      const v = inputEl.value;
-      const hasSep = /[.,]/.test(v);
-      if (!hasSep) return; // primer separador permitido
-      event.preventDefault(); // segundo separador no
-      return;
-    }
+      // Permitir separador decimal si aplica
+      if (this.numberDecimals && (event.key === '.' || event.key === ',')) {
+        const v = inputEl.value;
+        const hasSep = /[.,]/.test(v);
+        if (!hasSep) return; // primer separador permitido
+        event.preventDefault(); // segundo separador no
+        return;
+      }
 
-    if (isDigit) {
-      if (this.numberAllowDecimal) {
-        const v = inputEl.value.replace(',', '.');
-        const sep = v.indexOf('.');
-        if (sep !== -1) {
-          const selStart = inputEl.selectionStart ?? v.length;
-          const selEnd = inputEl.selectionEnd ?? v.length;
-          const selectionLen = selEnd - selStart;
+      if (isDigit) {
+        if (this.numberDecimals) {
+          const v = inputEl.value.replace(',', '.');
+          const sep = v.indexOf('.');
+          if (sep !== -1) {
+            const selStart = inputEl.selectionStart ?? v.length;
+            const selEnd = inputEl.selectionEnd ?? v.length;
+            const selectionLen = selEnd - selStart;
 
-          // ¿Caret en la parte decimal SIN selección?
-          const caretInDecimals = selStart > sep;
-          if (caretInDecimals && selectionLen === 0) {
-            const decimalsCount = v.slice(sep + 1).length;
-            if (decimalsCount >= this.numberDecimals) {
-              event.preventDefault(); // bloquea más decimales
-              return;
+            // ¿Caret en la parte decimal SIN selección?
+            const caretInDecimals = selStart > sep;
+            if (caretInDecimals && selectionLen === 0) {
+              const decimalsCount = v.slice(sep + 1).length;
+              if (decimalsCount >= this.numberDecimals) {
+                event.preventDefault(); // bloquea más decimales
+                return;
+              }
             }
           }
         }
+        return; // dígito permitido
       }
-      return; // dígito permitido
-    }
 
-    // Cualquier otra tecla: bloquear
-    event.preventDefault();
-    return;
-  }
+      // Cualquier otra tecla: bloquear
+      event.preventDefault();
+      return;
+    }
 
     if (this.type === 'money') {
       if (event.key >= '0' && event.key <= '9') return;
@@ -259,7 +258,7 @@ export class InputField implements ControlValueAccessor {
     v = (v ?? '').replace(/\s+/g, '').replace(/,/g, '.');
     // deja dígitos y puntos
     v = v.replace(/[^0-9.]/g, '');
-    if (!this.numberAllowDecimal) {
+    if (!this.numberDecimals) {
       // si no se permiten decimales, elimina todos los puntos
       return v.replace(/\./g, '');
     }
@@ -282,7 +281,7 @@ export class InputField implements ControlValueAccessor {
     let n = Number(s);
     if (Number.isNaN(n)) return null;
 
-    if (this.numberAllowDecimal && this.numberDecimals >= 0) {
+    if (this.numberDecimals && this.numberDecimals >= 0) {
       const factor = Math.pow(10, this.numberDecimals);
       n = Math.round(n * factor) / factor; // redondea al máximo de decimales permitido
     }
