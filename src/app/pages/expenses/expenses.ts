@@ -140,7 +140,6 @@ export class Expenses implements OnInit {
     });
   }
 
-
   onPageChange(event: PageEvent) {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;

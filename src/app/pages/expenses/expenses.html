@@ -4,14 +4,23 @@
 
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-      <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range" [showClear]="true">
+      <app-input-date 
+        formControlName="dateRange" 
+        label="Rango de fecha" 
+        mode="range">
       </app-input-date>
 
-      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" placeholder="Todos" [remote]="true"
+      <app-autocomplete-multiple 
+        formControlName="suppliersIds" 
+        label="Proveedores" 
+        [remote]="true"
         catalogType="supplier">
       </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" placeholder="Todos" [remote]="true"
+      <app-autocomplete-multiple 
+        formControlName="projectIds" 
+        label="Proyectos"
+        [remote]="true"
         catalogType="project">
       </app-autocomplete-multiple>
 
