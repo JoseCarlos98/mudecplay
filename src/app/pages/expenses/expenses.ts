@@ -22,6 +22,7 @@ import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocom
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { InputSelect } from '../../shared/ui/input-select/input-select';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -67,7 +68,8 @@ const STATUS_COMPLEMENTS: Catalog[] = [
     SearchMultiSelect,
     InputDate,
     InputField,
-    BtnsSection
+    BtnsSection,
+    InputSelect
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
@@ -92,8 +94,9 @@ export class Expenses implements OnInit {
     dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
     projectIds: this.fb.control<number[]>([]),
-    status_id: this.fb.control<number | '' | null>(''),
+    // status_id: this.fb.control<number | '' | null>(''),
     concept: this.fb.control<string>(''),
+    status_id: this.fb.control<string | number>(''),
   });
 
   ngOnInit(): void {

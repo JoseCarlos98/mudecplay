@@ -24,25 +24,11 @@
         catalogType="project">
       </app-autocomplete-multiple>
 
-      <div class="c-input">
-        <p>Estado de asignación</p>
-        <mat-form-field appearance="outline" class="w-100"
-          [ngClass]="{ 'padding-selection-select' : formFilters.get('status_id')?.value  }">
-          <mat-select #statusSel="matSelect" formControlName="status_id">
-            <mat-option value="">Todos</mat-option>
-            @for (data of catalogStatusExpense; track data.id) {
-            <mat-option [value]="data.id">{{ data.name }}</mat-option>
-            }
-          </mat-select>
-          @if (formFilters.get('status_id')?.value) {
-          <button type="button" matSuffix mat-icon-button [disableRipple]="true"
-            (mousedown)="$event.preventDefault(); $event.stopPropagation()"
-            (click)="$event.stopPropagation(); clearInput('statusId'); statusSel.close()" aria-label="Limpiar estado">
-            <mat-icon matSuffix class="cursor-pointer color-third">close</mat-icon>
-          </button>
-          }
-        </mat-form-field>
-      </div>
+      <app-input-select
+        formControlName="status_id"
+        label="Estado de asignación"
+        [options]="catalogStatusExpense">
+      </app-input-select>
 
       <app-input-field 
         formControlName="concept" 
