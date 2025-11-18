@@ -10,7 +10,6 @@
         <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
             <mat-select [placeholder]="placeholder" [multiple]="multiple" [disabled]="disabled" [value]="value"
                 (selectionChange)="onSelectionChange($event)" (blur)="markAsTouched()">
-                <!-- Opción "Todos" fija en modo single -->
                 @if (!multiple) {
                 <mat-option [value]="''">
                     Todos
@@ -24,7 +23,6 @@
                 }
             </mat-select>
 
-            <!-- Botón limpiar SIEMPRE cuando hay valor distinto de "Todos" -->
             @if (hasValue) {
             <button type="button" matSuffix mat-icon-button [disableRipple]="true"
                 (mousedown)="$event.preventDefault(); $event.stopPropagation()"
