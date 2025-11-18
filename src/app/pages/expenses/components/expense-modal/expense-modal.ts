@@ -1,19 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ModuleHeader, ModuleHeaderConfig } from '../../../shared/ui/module-header/module-header';
+import { ModuleHeader, ModuleHeaderConfig } from '../../../../shared/ui/module-header/module-header';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { toApiDate, toCatalogLike, toIdForm } from '../../../shared/helpers/general-helpers';
-import { ExpenseService } from '../services/expense.service';
-import { ExpenseResponseDto, PatchExpense } from '../interfaces/expense-interfaces';
-import { Autocomplete } from '../../../shared/ui/autocomplete/autocomplete';
-import { InputField } from '../../../shared/ui/input-field/input-field';
-import { InputDate } from '../../../shared/ui/input-date/input-date';
-import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
+import { toApiDate, toCatalogLike, toIdForm } from '../../../../shared/helpers/general-helpers';
+import { ExpenseService } from '../../services/expense.service';
+import { ExpenseResponseDto, PatchExpense } from '../../interfaces/expense-interfaces';
+import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { InputField } from '../../../../shared/ui/input-field/input-field';
+import { InputDate } from '../../../../shared/ui/input-date/input-date';
+import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true

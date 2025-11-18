@@ -48,7 +48,7 @@
 @if (expensesTableData?.data) {
 <div class="c-module-table">
   <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
-    (edit)="onEdit($event)" (delete)="onDelete($event)">
+    (edit)="onTableAction('edit', $event)" (delete)="onTableAction('delete', $event)">
   </app-data-table>
 
   <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"

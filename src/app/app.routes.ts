@@ -6,7 +6,7 @@ export const routes: Routes = [
     path: '',
     component: Layout,
     children: [
-      { path: 'gastos', loadComponent: () => import('./pages/expenses/expenses').then(m => m.Expenses) },
+      { path: 'gastos', loadChildren: () => import('./pages/expenses/expenses.routes').then(m => m.EXPENSES_ROUTES) },
       { path: '', redirectTo: 'gastos', pathMatch: 'full' }
     ]
   }

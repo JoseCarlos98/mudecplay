@@ -13,7 +13,7 @@ import { ExpenseService } from './services/expense.service';
 import { Catalog, ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
-import { ExpenseModal } from './expense-modal/expense-modal';
+import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
@@ -23,6 +23,7 @@ import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
+import { Router } from '@angular/router';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
@@ -79,6 +80,7 @@ export class Expenses implements OnInit {
   private readonly dialogService = inject(DialogService);
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
@@ -94,7 +96,6 @@ export class Expenses implements OnInit {
     dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
     projectIds: this.fb.control<number[]>([]),
-    // status_id: this.fb.control<number | '' | null>(''),
     concept: this.fb.control<string>(''),
     status_id: this.fb.control<string | number>(''),
   });
@@ -128,7 +129,7 @@ export class Expenses implements OnInit {
       suppliersIds: values.suppliersIds,
       projectIds: values.projectIds,
       status_id: values.status_id,
-      concept: values.concept?.trim() || '',
+      concept: values.concept?.trim() || ''
     };
 
     this.loadExpenses();
@@ -152,7 +153,7 @@ export class Expenses implements OnInit {
   onHeaderAction(action: string) {
     switch (action) {
       case 'new':
-        this.expenseModal();
+        this.router.navigateByUrl('/gastos/nuevo');
         break;
       case 'upload':
         console.log('upload');
@@ -160,8 +161,15 @@ export class Expenses implements OnInit {
     }
   }
 
-  onEdit(rowData: ExpenseResponseDto) {
-    this.expenseModal(rowData);
+  onTableAction(action: string, data?: ExpenseResponseDto) {
+    switch (action) {
+      case 'edit':
+        this.router.navigateByUrl('/gastos/editar/1');
+        break;
+      case 'delete':
+        this.onDelete(data!)
+        break;
+    }
   }
 
   onDelete(expense: ExpenseResponseDto) {
@@ -179,23 +187,6 @@ export class Expenses implements OnInit {
           error: (err) => console.error('Error al guardar gastos:', err),
         });
       });
-  }
-
-  expenseModal(expense?: ExpenseResponseDto) {
-    this.dialogService
-      .open(
-        ExpenseModal,
-        expense ? expense : null,
-        'medium'
-      )
-      .afterClosed()
-      .subscribe((result) => {
-        if (result) this.loadExpenses();
-      });
-  }
-
-  clearInput(control?: string) {
-    this.formFilters.get('status_id')?.setValue('');
   }
 
   get hasActiveFilters(): boolean {
@@ -233,4 +224,15 @@ export class Expenses implements OnInit {
     status_id: null,
     concept: '',
   });
+
+  // ______________ SIN USO ______________
+
+  expenseModal(expense?: ExpenseResponseDto) {
+    this.dialogService
+      .open(ExpenseModal, expense ? expense : null, 'medium')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.loadExpenses();
+      });
+  }
 }
