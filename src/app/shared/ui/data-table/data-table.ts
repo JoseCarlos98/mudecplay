@@ -11,7 +11,8 @@ import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ColumnsConfig } from '../../interfaces/general-interfaces';
+import { ColumnsConfig, DataTableActionEvent, DataTableActionType } from './interfaces/table-interfaces';
+
 
 @Component({
   selector: 'app-data-table',
@@ -27,20 +28,12 @@ import { ColumnsConfig } from '../../interfaces/general-interfaces';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DataTable<T> implements OnChanges {
-  /** columnas que se muestran en la tabla (incluye 'actions') */
   @Input() displayedColumns: string[] = [];
-
-  /** configuración de columnas dinámicas */
   @Input() columnsConfig: ColumnsConfig[] = [];
-
-  /** datos a renderizar */
   @Input() data: T[] = [];
 
-  /** eventos de acciones */
-  @Output() edit = new EventEmitter<T>();
-  @Output() delete = new EventEmitter<T>();
+  @Output() action = new EventEmitter<DataTableActionEvent<T>>();
 
-  /** datasource de material */
   dataSource = new MatTableDataSource<T>();
 
   getRelationValue(value: any, path?: string) {
@@ -49,18 +42,13 @@ export class DataTable<T> implements OnChanges {
     return value[path] ?? null;
   }
 
-
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data']) {
       this.dataSource.data = this.data || [];
     }
   }
 
-  onEdit(row: T) {
-    this.edit.emit(row);
-  }
-
-  onDelete(row: T) {
-    this.delete.emit(row);
+  onRowAction(type: DataTableActionType, row: T) {
+    this.action.emit({ type, row });
   }
 }

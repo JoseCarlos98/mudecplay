@@ -3,30 +3,9 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { ExtraButton, ModuleHeaderAction, ModuleHeaderConfig } from './interfaces/module-header-interface';
 // Acciones disponibles en el header
-export type ModuleHeaderAction =
-  | 'new'
-  | 'upload'
-  | 'download'
-  | 'close'
-  | 'back'
-  | 'custom';
 
-// Botón adicional configurable
-export interface ExtraButton {
-  icon: string;
-  label: string;
-  action: string;
-}
-
-// Config general del header
-export interface ModuleHeaderConfig {
-  formFull?: boolean;
-  modal?: boolean;
-  showNew?: boolean;
-  showUploadXml?: boolean;
-  showDownload?: boolean;
-}
 
 @Component({
   selector: 'app-module-header',

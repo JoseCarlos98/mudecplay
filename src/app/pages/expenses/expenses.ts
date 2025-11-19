@@ -1,5 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ModuleHeader, ModuleHeaderConfig } from "../../shared/ui/module-header/module-header";
+import { ModuleHeader } from "../../shared/ui/module-header/module-header";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -10,7 +10,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
-import { Catalog, ColumnsConfig, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './components/expense-modal/expense-modal';
@@ -24,9 +24,11 @@ import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
 import { Router } from '@angular/router';
+import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'products', label: 'Productos', type : 'showItems' },
+  { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
   { key: 'amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'supplier', label: 'Proveedor', type: 'relation', path: 'company_name', fallback: 'No asignado' },
@@ -162,13 +164,18 @@ export class Expenses implements OnInit {
     }
   }
 
-  onTableAction(action: string, data?: ExpenseResponseDto) {
-    switch (action) {
+  onTableAction(ev: DataTableActionEvent<ExpenseResponseDto>) {
+    switch (ev.type) {
       case 'edit':
-        this.router.navigateByUrl('/gastos/editar/1');
+        this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
         break;
+
       case 'delete':
-        this.onDelete(data!)
+        this.onDelete(ev.row);
+        break;
+
+      case 'showItems':
+        this.expenseModal(ev.row);
         break;
     }
   }

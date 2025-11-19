@@ -274,7 +274,7 @@ body {
 // en la tabla
 .btn-view-row {
   @extend .btn-pill-soft;
-  height: 28px; 
+  height: 28px;
 }
 
 
@@ -418,15 +418,17 @@ body {
 .form-dinamic {
   background: rgba(30, 134, 177, 0.04);
   border-radius: 10px;
-  padding: 16px 20px 12px;
+  padding: 15px 20px 15px 20px;
   border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.03);
   margin-bottom: 30px;
   display: grid;
   column-gap: 30px !important;
 
-  button:not(.btn-add) {
-    margin-top: 18px !important;
+  .form-dinamic-header {
+     display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
   }
 
   .form-dinamic-title {
@@ -441,8 +443,6 @@ body {
     background: rgba(30, 134, 177, 0.08);
     color: #1e86b1;
   }
-
-
 }
 
 

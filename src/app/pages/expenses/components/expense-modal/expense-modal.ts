@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ModuleHeader, ModuleHeaderConfig } from '../../../../shared/ui/module-header/module-header';
+import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -14,6 +14,7 @@ import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
+import { ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true

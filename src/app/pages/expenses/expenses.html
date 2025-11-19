@@ -4,41 +4,23 @@
 
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-      <app-input-date 
-        formControlName="dateRange" 
-        label="Rango de fecha" 
-        mode="range">
+      <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">
       </app-input-date>
 
-      <app-autocomplete-multiple 
-        formControlName="suppliersIds" 
-        label="Proveedores" 
-        [remote]="true"
+      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
         catalogType="supplier">
       </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple 
-        formControlName="projectIds" 
-        label="Proyectos"
-        [remote]="true"
-        catalogType="project">
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" [remote]="true" catalogType="project">
       </app-autocomplete-multiple>
 
-      <app-input-select
-        formControlName="status_id"
-        label="Estado de asignación"
-        [options]="catalogStatusExpense">
+      <app-input-select formControlName="status_id" label="Estado de asignación" [options]="catalogStatusExpense">
       </app-input-select>
 
-      <app-input-field 
-        formControlName="concept" 
-        label="Concepto" 
-        type="text">
+      <app-input-field formControlName="concept" label="Concepto" type="text">
       </app-input-field>
 
-      <app-btns-section 
-        [hasActiveFilters]="hasActiveFilters" 
-        (clearAllAndSearch)="clearAllAndSearch()" 
+      <app-btns-section [hasActiveFilters]="hasActiveFilters" (clearAllAndSearch)="clearAllAndSearch()"
         (searchWithFilters)="searchWithFilters()">
       </app-btns-section>
     </div>
@@ -47,9 +29,14 @@
 
 @if (expensesTableData?.data) {
 <div class="c-module-table">
-  <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+  <!-- <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
     (edit)="onTableAction('edit', $event)" (delete)="onTableAction('delete', $event)">
+  </app-data-table> -->
+
+  <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
+    (action)="onTableAction($event)">
   </app-data-table>
+
 
   <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
     [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>

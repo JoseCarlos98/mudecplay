@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ModuleHeader, ModuleHeaderAction, ModuleHeaderConfig } from '../../../../shared/ui/module-header/module-header';
+import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +15,7 @@ import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { ModuleHeaderAction, ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true
@@ -60,7 +60,7 @@ export class ExpenseForm {
     return this.form.get('items') as FormArray;
   }
 
-  private createItemGroup(data?: Partial<ExpenseItemForm>): FormGroup {
+  createItemGroup(data?: Partial<ExpenseItemForm>): FormGroup {
     return this.fb.group({
       concept: [data?.concept ?? '', Validators.required],
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
@@ -76,6 +76,20 @@ export class ExpenseForm {
     if (this.itemsFA?.length) return;
     this.itemsFA.removeAt(index);
   }
+
+  // onFooterAction(action: BtnsSectionAction) {
+  //   console.log(action);
+
+  //   switch (action) {
+  //     case 'cancel':
+  //       this.router.navigateByUrl('/gastos');
+  //       break;
+
+  //     case 'save':
+  //       this.saveData();
+  //       break;
+  //   }
+  // }
 
   patchEditData() {
     // if (this.data?.id) {

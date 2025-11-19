@@ -7,15 +7,6 @@ export interface PaginatedResponse<T> {
   };
 }
 
-export interface ColumnsConfig {
-  key: string;
-  label: string;
-  type?: 'text' | 'number' | 'date' | 'money' | 'relation' | 'showItems';
-  align?: 'left' | 'center' | 'right';
-  path?: string;      
-  fallback?: string; 
-}
-
 export interface Catalog {
   id: string;
   name: string;
