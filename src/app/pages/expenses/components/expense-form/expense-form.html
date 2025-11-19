@@ -1,4 +1,3 @@
-<!-- <div class="c-form-full card-content"> -->
 <div class="card-content">
     <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
         (action)="onHeaderAction($event)">
@@ -18,10 +17,8 @@
                 </app-autocomplete>
             </div>
 
-            <!-- Sección dinámica: items -->
             <div class="form-dinamic md:col-span-3" formArrayName="items">
 
-                <!-- Header del bloque dinámico -->
                 <div class="form-dinamic-header flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
                         <mat-icon class="text-slate-500">list_alt</mat-icon>
@@ -40,7 +37,6 @@
                     </button>
                 </div>
 
-                <!-- Contenido de filas -->
                 <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
                     @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
                     <div class="form-dinamic-row md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
