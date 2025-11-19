@@ -406,10 +406,11 @@ body {
   }
 
   .btn-add-row {
-    @extend .btn; 
+    @extend .btn;
     border-radius: 9999px;
     background: rgba(30, 134, 177, 0.08);
     color: var(--color-primary-strong);
+    border: 1px solid rgba(30, 134, 177, 0.18);
     padding-inline: 10px;
     height: 32px;
 
@@ -424,6 +425,7 @@ body {
 
     &:hover {
       background: rgba(30, 134, 177, 0.16);
+      box-shadow: 0 0 0 1px rgba(30, 134, 177, 0.12);
     }
   }
 }
