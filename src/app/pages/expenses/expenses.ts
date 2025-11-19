@@ -154,7 +154,7 @@ export class Expenses implements OnInit {
     switch (action) {
       case 'new':
         this.router.navigateByUrl('/gastos/nuevo');
-        // this.expenseModal()
+        this.expenseModal()
         break;
       case 'upload':
         console.log('upload');

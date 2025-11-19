@@ -6,7 +6,7 @@
 
     <form [formGroup]="form" (ngSubmit)="false ? updateData() : saveData()" id="form" class="c-form">
 
-        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1 gap-4">
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
             <div class="md:col-span-1">
                 <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
                 </app-input-date>
@@ -19,44 +19,64 @@
             </div>
 
             <!-- Sección dinámica: items -->
-            <div class="form-dinamic c-content-form md:col-span-3  grid md:grid-cols-3 sm:grid-cols-1 gap-4"
-                formArrayName="items">
+            <div class="form-dinamic md:col-span-3" formArrayName="items">
 
-                @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
-                <div class="md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4" [formGroupName]="i">
+                <!-- Header del bloque dinámico -->
+                <div class="form-dinamic-header flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <mat-icon class="text-slate-500">list_alt</mat-icon>
+                        <span class="font-semibold text-slate-700">
+                            Conceptos del gasto
+                        </span>
 
-                    <div class="md:col-span-1">
-                        <app-input-field formControlName="concept" label="Concepto" type="text">
-                        </app-input-field>
+                        <span class="form-dinamic-chip">
+                            {{ itemsFA.length }} concepto{{ itemsFA.length > 1 ? 's' : '' }}
+                        </span>
                     </div>
 
-                    <div class="md:col-span-1">
-                        <app-input-field formControlName="amount" label="Monto" type="money">
-                        </app-input-field>
-                    </div>
-
-                    <div class="md:col-span-1 flex gap-2 items-start">
-                        <div class="flex-1">
-                            <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
-                                [initialDisplay]="formData?.project?.name ?? ''" catalogType="project">
-                            </app-autocomplete>
-                        </div>
-
-                        @if (itemsFA.length) {
-                        <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
-                        }
-                    </div>
-                </div>
-                }
-
-                <div class="md:col-span-3 flex justify-end">
-                    <button type="button" class="btn-add flex items-center gap-1" (click)="addItem()">
+                    <button type="button" class="btn-add" (click)="addItem()">
                         <mat-icon>add</mat-icon>
                     </button>
+                </div>
+
+                <!-- Contenido de filas -->
+                <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+                    @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
+                    <div class="form-dinamic-row md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
+                        [formGroupName]="i">
+
+                        <div class="md:col-span-1">
+                            <app-input-field formControlName="concept" label="Concepto" type="text">
+                            </app-input-field>
+                        </div>
+
+                        <div class="md:col-span-1">
+                            <app-input-field formControlName="amount" label="Monto" type="money">
+                            </app-input-field>
+                        </div>
+
+                        <div class="md:col-span-1 flex gap-2 items-start">
+                            <div class="flex-1">
+                                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                                    [initialDisplay]="formData?.project?.name ?? ''" catalogType="project">
+                                </app-autocomplete>
+                            </div>
+
+                            @if (itemsFA.length > 1) {
+                            <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                            }
+                        </div>
+                    </div>
+                    }
                 </div>
             </div>
         </div>
     </form>
+
+     <app-btns-section 
+        [modal]="true" 
+        [btnSave]="!form.valid"
+    ></app-btns-section>
 </div>
