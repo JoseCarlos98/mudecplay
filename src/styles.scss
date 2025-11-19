@@ -241,6 +241,43 @@ body {
   transition: all 0.25s ease;
 }
 
+// base reutilizable
+.btn-pill-soft {
+  @extend .btn;
+  border-radius: 9999px;
+  background: rgba(30, 134, 177, 0.08);
+  color: var(--color-primary-strong);
+  border: 1px solid rgba(30, 134, 177, 0.18);
+  padding-inline: 10px;
+  height: 32px;
+
+  mat-icon {
+    font-size: 18px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  &:hover {
+    background: rgba(30, 134, 177, 0.16);
+    box-shadow: 0 0 0 1px rgba(30, 134, 177, 0.12);
+  }
+}
+
+// en el form dinámico
+.btn-add-row {
+  @extend .btn-pill-soft;
+}
+
+// en la tabla
+.btn-view-row {
+  @extend .btn-pill-soft;
+  height: 28px; 
+}
+
+
 /* Icono de borrar */
 .delete-btn {
   @extend .btn-icon;
@@ -405,29 +442,7 @@ body {
     color: #1e86b1;
   }
 
-  .btn-add-row {
-    @extend .btn;
-    border-radius: 9999px;
-    background: rgba(30, 134, 177, 0.08);
-    color: var(--color-primary-strong);
-    border: 1px solid rgba(30, 134, 177, 0.18);
-    padding-inline: 10px;
-    height: 32px;
 
-    mat-icon {
-      font-size: 18px;
-    }
-
-    span {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    &:hover {
-      background: rgba(30, 134, 177, 0.16);
-      box-shadow: 0 0 0 1px rgba(30, 134, 177, 0.12);
-    }
-  }
 }
 
 

@@ -26,7 +26,7 @@ import { InputSelect } from '../../shared/ui/input-select/input-select';
 import { Router } from '@angular/router';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'concept', label: 'Concepto' },
+  { key: 'products', label: 'Productos', type : 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
   { key: 'amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'supplier', label: 'Proveedor', type: 'relation', path: 'company_name', fallback: 'No asignado' },

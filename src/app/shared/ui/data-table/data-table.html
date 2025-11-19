@@ -18,10 +18,15 @@
               }
               @case ('money') {
                {{ element[col.key] | currency:'$ ':'symbol':'1.2-2' }}
-
               }
               @case ('date') {
                 {{ element[col.key] | date:"d MMM y" : 'es-MX' }}
+              }
+              @case ('showItems') {
+              <button type="button" class="btn-add-row">
+                <mat-icon>visibility</mat-icon>
+                <span>Ver</span>
+              </button>
               }
               @default {
                 {{ element[col.key] ?? col.fallback ?? '' }}

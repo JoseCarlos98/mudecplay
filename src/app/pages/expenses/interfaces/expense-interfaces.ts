@@ -39,11 +39,13 @@ export interface ExpenseResponseDtoMapper {
 }
 
 export interface CreateExpense {
-    concept: string
-    date: string,
-    amount: number,
-    supplier_id?: number | null;
-    project_id?: number | null;
+  date: string;
+  supplier_id: number | null;
+  items: {
+    concept: string;
+    amount: number;
+    project_id: number | null;
+  }[];
 }
 
 export interface PatchExpense {

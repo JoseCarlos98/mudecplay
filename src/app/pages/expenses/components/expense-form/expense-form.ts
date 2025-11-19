@@ -73,7 +73,7 @@ export class ExpenseForm {
   }
 
   removeItem(index: number) {
-    if (this.itemsFA.length <= 1) return; // evitar que se quede vacío si no quieres
+    if (this.itemsFA?.length) return;
     this.itemsFA.removeAt(index);
   }
 
@@ -101,23 +101,23 @@ export class ExpenseForm {
       return;
     }
 
-    const raw = this.form.value;
+    const raw = this.form.getRawValue();
+    console.log(raw);
 
-    const formData = {
-      ...raw,
-      supplier_id: toIdForm(raw.supplier_id),
-      project_id: toIdForm(raw.project_id),
+    const payload = {
+      date: toApiDate(raw.date),
+      supplier_id: raw.supplier_id,
+      products: (raw.items ?? []).map((item: any) => ({
+        concept: (item.concept ?? '').trim(),
+        amount: item.amount,
+        project_id: toIdForm(item.project_id),
+      })),
     };
-    console.log(formData);
 
+    console.log('payload a enviar', payload);
 
-    // this.expenseService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       console.log('save');
-
-    //     }
-    //   },
+    // this.expenseService.create(payload).subscribe({
+    //   next: (response) => { ... },
     //   error: (err) => console.error('Error al guardar gastos:', err),
     // });
   }
@@ -151,31 +151,3 @@ export class ExpenseForm {
     }
   }
 }
-
-
-// patchEditData() {
-//     if (!this.formData) return;
-
-//     // ejemplo: si el backend te da this.formData.items: { concept, amount, project }[]
-//     // si todavía no lo tienes así, luego lo adaptas
-//     const items = this.formData.items?.length
-//       ? this.formData.items
-//       : [{
-//           concept: this.formData.concept,
-//           amount: this.formData.amount,
-//           project_id: this.formData.project?.id ?? null,
-//         }];
-
-//     const arr = items.map(i =>
-//       this.createItemGroup({
-//         concept: i.concept,
-//         amount: i.amount,
-//         project_id: toCatalogLike(
-//           i.project?.id ?? null,
-//           i.project?.name ?? null
-//         ),
-//       })
-//     );
-
-//     this.form.setControl('items', this.fb.array(arr));
-//   }

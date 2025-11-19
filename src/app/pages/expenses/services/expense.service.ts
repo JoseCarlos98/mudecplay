@@ -29,9 +29,6 @@ export class ExpenseService {
       params = setScalar(params, 'concept', filters.concept?.trim());
     }
 
-    console.log('servicio', filters);
-
-
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });
   }
 
