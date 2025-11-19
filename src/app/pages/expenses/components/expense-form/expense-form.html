@@ -1,8 +1,62 @@
 <div class="c-form-full card-content">
-   <app-module-header 
-    [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" 
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+    <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
+        (action)="onHeaderAction($event)">
     </app-module-header>
 
+    <form [formGroup]="form" (ngSubmit)="false ? updateData() : saveData()" id="form" class="c-form">
+
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1 gap-4">
+            <div class="md:col-span-1">
+                <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
+                </app-input-date>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+                    [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
+                </app-autocomplete>
+            </div>
+
+            <!-- Sección dinámica: items -->
+            <div class="form-dinamic c-content-form md:col-span-3  grid md:grid-cols-3 sm:grid-cols-1 gap-4"
+                formArrayName="items">
+
+                @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
+                <div class="md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4" [formGroupName]="i">
+
+                    <div class="md:col-span-1">
+                        <app-input-field formControlName="concept" label="Concepto" type="text">
+                        </app-input-field>
+                    </div>
+
+                    <div class="md:col-span-1">
+                        <app-input-field formControlName="amount" label="Monto" type="money">
+                        </app-input-field>
+                    </div>
+
+                    <div class="md:col-span-1 flex gap-2 items-start">
+                        <div class="flex-1">
+                            <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                                [initialDisplay]="formData?.project?.name ?? ''" catalogType="project">
+                            </app-autocomplete>
+                        </div>
+
+                        @if (itemsFA.length) {
+                        <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                        }
+                    </div>
+                </div>
+                }
+
+                <div class="md:col-span-3 flex justify-end pb-5 m-0">
+                    <button type="button" class="btn-add flex items-center gap-1" (click)="addItem()">
+                        <mat-icon>add</mat-icon>
+                        <!-- Agregar concepto -->
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>

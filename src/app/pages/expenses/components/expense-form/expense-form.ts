@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ModuleHeader, ModuleHeaderAction, ModuleHeaderConfig } from '../../../../shared/ui/module-header/module-header';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,16 +15,23 @@ import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true
 };
 
+interface ExpenseItemForm {
+  concept: string;
+  amount: number | null;
+  project_id: number;
+}
+
 @Component({
   selector: 'app-expense-form',
   standalone: true,
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, InputDate, BtnsSection],
+    Autocomplete, InputField, BtnsSection, InputDate, BtnsSection, MatButtonModule],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
 })
@@ -35,17 +42,39 @@ export class ExpenseForm {
   private readonly fb = inject(FormBuilder);
   readonly headerConfig = HEADER_CONFIG;
 
+  formData!: ExpenseResponseDto;
+
 
   form: FormGroup = this.fb.group({
-    concept: ['', Validators.required],
     date: this.fb.control<string | null>(null, { validators: Validators.required }),
-    amount: ['', Validators.required],
     supplier_id: [null],
-    project_id: [null],
+    items: this.fb.array([this.createItemGroup()])
   });
+
 
   ngOnInit(): void {
     this.patchEditData()
+  }
+
+  get itemsFA(): FormArray {
+    return this.form.get('items') as FormArray;
+  }
+
+  private createItemGroup(data?: Partial<ExpenseItemForm>): FormGroup {
+    return this.fb.group({
+      concept: [data?.concept ?? '', Validators.required],
+      amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
+      project_id: [data?.project_id ?? null],
+    });
+  }
+
+  addItem() {
+    this.itemsFA.push(this.createItemGroup());
+  }
+
+  removeItem(index: number) {
+    if (this.itemsFA.length <= 1) return; // evitar que se quede vacío si no quieres
+    this.itemsFA.removeAt(index);
   }
 
   patchEditData() {
@@ -117,8 +146,36 @@ export class ExpenseForm {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
-        this.router.navigateByUrl('/gastos'); 
+        this.router.navigateByUrl('/gastos');
         break;
     }
   }
 }
+
+
+// patchEditData() {
+//     if (!this.formData) return;
+
+//     // ejemplo: si el backend te da this.formData.items: { concept, amount, project }[]
+//     // si todavía no lo tienes así, luego lo adaptas
+//     const items = this.formData.items?.length
+//       ? this.formData.items
+//       : [{
+//           concept: this.formData.concept,
+//           amount: this.formData.amount,
+//           project_id: this.formData.project?.id ?? null,
+//         }];
+
+//     const arr = items.map(i =>
+//       this.createItemGroup({
+//         concept: i.concept,
+//         amount: i.amount,
+//         project_id: toCatalogLike(
+//           i.project?.id ?? null,
+//           i.project?.name ?? null
+//         ),
+//       })
+//     );
+
+//     this.form.setControl('items', this.fb.array(arr));
+//   }

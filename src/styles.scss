@@ -170,6 +170,43 @@ body {
   }
 }
 
+.delete-btn {
+  color: #555 !important;
+  transition: all 0.25s ease;
+  width: 40px !important;
+  height: 40px !important;
+  min-height: unset !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.25s ease;
+
+  &:hover {
+    color: #ff4757 !important;
+  }
+}
+
+.btn-add {
+  background: #4CAF50 !important;
+  color: white !important;
+  border-radius: 100%;
+  width: 40px !important;
+  height: 40px !important;
+  min-height: unset !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: #43A047 !important;
+    color: #ffffff !important; 
+  }
+}
+
+
 .btn-primary {
   font-size: 15px;
   background: var(--color-primary-two) !important;
@@ -206,6 +243,12 @@ body {
 
   .mat-mdc-form-field-icon-suffix {
     color: #f44336;
+  }
+}
+
+.form-dinamic {
+  button:not(.btn-add) {
+    margin-top: 18px !important;
   }
 }
 
