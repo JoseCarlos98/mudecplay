@@ -1,4 +1,5 @@
-<div class="c-form-full card-content">
+<!-- <div class="c-form-full card-content"> -->
+<div class="card-content">
     <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
         (action)="onHeaderAction($event)">
     </app-module-header>
@@ -50,10 +51,9 @@
                 </div>
                 }
 
-                <div class="md:col-span-3 flex justify-end pb-5 m-0">
+                <div class="md:col-span-3 flex justify-end">
                     <button type="button" class="btn-add flex items-center gap-1" (click)="addItem()">
                         <mat-icon>add</mat-icon>
-                        <!-- Agregar concepto -->
                     </button>
                 </div>
             </div>
