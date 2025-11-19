@@ -388,7 +388,6 @@ body {
   display: grid;
   column-gap: 30px !important;
 
-  /* Alinear botones de borrar con los inputs */
   button:not(.btn-add) {
     margin-top: 18px !important;
   }
@@ -406,16 +405,27 @@ body {
     color: #1e86b1;
   }
 
-  .form-dinamic-row {
-    padding-top: 6px;
-    padding-bottom: 6px;
+  .btn-add-row {
+    @extend .btn; 
+    border-radius: 9999px;
+    background: rgba(30, 134, 177, 0.08);
+    color: var(--color-primary-strong);
+    padding-inline: 10px;
+    height: 32px;
 
-    &:not(:last-child) {
-      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
-      // border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
+    mat-icon {
+      font-size: 18px;
+    }
+
+    span {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    &:hover {
+      background: rgba(30, 134, 177, 0.16);
     }
   }
-
 }
 
 
