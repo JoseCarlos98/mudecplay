@@ -71,7 +71,7 @@ export class ExpenseForm {
   }
 
   removeItem(index: number) {
-    if (this.itemsFA?.length) return;
+    if (!this.itemsFA?.length) return;
     this.itemsFA.removeAt(index);
   }
 

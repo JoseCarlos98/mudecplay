@@ -43,7 +43,7 @@
 
                 <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
                     @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
-                    <div class="md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
+                    <div class="forms-controls md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
                         [formGroupName]="i">
 
                         <div class="md:col-span-1">
@@ -73,7 +73,7 @@
                                 </app-autocomplete>
                             </div>
 
-                            @if (itemsFA.length > 1) {
+                            @if (itemsFA.length) {
                             <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
                                 <mat-icon>delete</mat-icon>
                             </button>
