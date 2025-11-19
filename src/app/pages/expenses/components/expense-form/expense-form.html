@@ -43,7 +43,7 @@
 
                 <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
                     @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
-                    <div class="form-dinamic-row md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
+                    <div class="md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
                         [formGroupName]="i">
 
                         <div class="md:col-span-1">
@@ -86,5 +86,5 @@
         </div>
     </form>
 
-    <app-btns-section [form]="true" [btnSave]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
+    <app-btns-section [form]="true" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
 </div>

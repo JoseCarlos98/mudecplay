@@ -141,6 +141,13 @@ body {
   .c-content-form {
     column-gap: 30px !important;
 
+    >div {
+      &:not(:last-child) {
+        border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+        margin: 20px 0px;
+      }
+    }
+
     .c-input {
       display: flex;
       flex-direction: column;
@@ -421,12 +428,12 @@ body {
   padding: 15px 20px 15px 20px;
   border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.03);
-  margin-bottom: 30px;
+  margin: 20px 0 40px 0;
   display: grid;
   column-gap: 30px !important;
 
   .form-dinamic-header {
-     display: flex;
+    display: flex;
     justify-content: space-between;
     margin-bottom: 20px;
   }
