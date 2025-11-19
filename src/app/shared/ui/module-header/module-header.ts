@@ -3,13 +3,13 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
 // Acciones disponibles en el header
 export type ModuleHeaderAction =
   | 'new'
   | 'upload'
   | 'download'
   | 'close'
+  | 'back'
   | 'custom';
 
 // Botón adicional configurable
@@ -21,6 +21,7 @@ export interface ExtraButton {
 
 // Config general del header
 export interface ModuleHeaderConfig {
+  formFull?: boolean;
   modal?: boolean;
   showNew?: boolean;
   showUploadXml?: boolean;
@@ -57,9 +58,6 @@ export class ModuleHeader {
   }
 
   ngOnInit(): void {
-    //Called after the constructor, initializing input properties, and the first call to ngOnChanges.
-    //Add 'implements OnInit' to the class.
     console.log(this.title);
-
   }
 }

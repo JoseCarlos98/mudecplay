@@ -1,11 +1,16 @@
 <header class="c-module-header">
   <div>
-    <h2 class="color-secundary" [ngClass]="{ 'modal-text-format': config.modal }">
+    @if (config.formFull) {
+    <button class="go-back" mat-icon-button (click)="this.emit('back')">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    }
+    <h2 class="color-secundary" [ngClass]="{ 'modal-text-format': config.modal || config.formFull}">
       {{ title }}
     </h2>
   </div>
 
-  <div class="section-btns-module-header">
+  <div class="section-btns-module-header flex gap-4">
     @if (config.showUploadXml) {
     <button class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
       (click)="emit('upload')">
@@ -15,8 +20,7 @@
     }
 
     @if (config.showNew) {
-    <button  class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
-      (click)="emit('new')">
+    <button class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all" (click)="emit('new')">
       <mat-icon>add</mat-icon>
       Nuevo
     </button>

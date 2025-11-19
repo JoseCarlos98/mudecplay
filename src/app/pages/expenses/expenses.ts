@@ -97,11 +97,11 @@ export class Expenses implements OnInit {
     suppliersIds: this.fb.control<number[]>([]),
     projectIds: this.fb.control<number[]>([]),
     concept: this.fb.control<string>(''),
-    status_id: this.fb.control<string | number>(''),
+    status_id: this.fb.control<string | number>(1),
   });
 
   ngOnInit(): void {
-    this.loadExpenses();
+    this.searchWithFilters();
     this.loadCatalogs();
   }
 

@@ -1,1 +1,8 @@
-<p>expense-form works!</p>
+<div class="c-form-full card-content">
+   <app-module-header 
+    [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" 
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+    </app-module-header>
+
+</div>

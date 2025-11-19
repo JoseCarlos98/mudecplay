@@ -8,7 +8,13 @@
   >div {
     display: flex;
     align-items: center;
-    gap: 15px;
+
+    .go-back {
+        color: var(--color-third) !important;
+        display: flex;
+        justify-content: center;
+        margin-right: 10px;
+    }
 
     >div {
       background-color: rgba(30, 134, 177, 0.1);
