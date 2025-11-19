@@ -25,7 +25,8 @@
                 <div class="form-dinamic-header flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
                         <mat-icon class="text-slate-500">list_alt</mat-icon>
-                        <span class="font-semibold text-slate-700">
+
+                        <span class="form-dinamic-title">
                             Conceptos del gasto
                         </span>
 
@@ -75,8 +76,5 @@
         </div>
     </form>
 
-     <app-btns-section 
-        [modal]="true" 
-        [btnSave]="!form.valid"
-    ></app-btns-section>
+    <app-btns-section [modal]="true" [btnSave]="!form.valid"></app-btns-section>
 </div>

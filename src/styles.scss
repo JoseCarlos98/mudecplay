@@ -116,8 +116,6 @@ body {
 /* ============================
  * 5. Layouts / contenedores
  * ============================ */
-.c-form-full {
-}
 
 .card-content {
   background: #ffffff;
@@ -381,10 +379,10 @@ body {
 
 /* Margen en formularios dinámicos (botones alineados con inputs) */
 .form-dinamic {
-  background: rgba(30, 134, 177, 0.04); 
+  background: rgba(30, 134, 177, 0.04);
   border-radius: 10px;
   padding: 16px 20px 12px;
-  border: 1px solid rgba(148, 163, 184, 0.4); 
+  border: 1px solid rgba(148, 163, 184, 0.4);
   box-shadow: 0 8px 16px rgba(15, 23, 42, 0.03);
   margin-bottom: 30px;
   display: grid;
@@ -394,6 +392,30 @@ body {
   button:not(.btn-add) {
     margin-top: 18px !important;
   }
+
+  .form-dinamic-title {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .form-dinamic-chip {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(30, 134, 177, 0.08);
+    color: #1e86b1;
+  }
+
+  .form-dinamic-row {
+    padding-top: 6px;
+    padding-bottom: 6px;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+      // border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
+    }
+  }
+
 }
 
 
