@@ -1,19 +1,24 @@
 <div class="card-content">
-    <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
-        (action)="onHeaderAction($event)">
-    </app-module-header>
+    <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig" (action)="onHeaderAction($event)"></app-module-header>
 
     <form [formGroup]="form" (ngSubmit)="false ? updateData() : saveData()" id="form" class="c-form">
-
         <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
             <div class="md:col-span-1">
-                <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
+                <app-input-date 
+                    formControlName="date" 
+                    label="Fecha" 
+                    mode="single" 
+                    [showClear]="true">
                 </app-input-date>
             </div>
 
             <div class="md:col-span-1">
-                <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
-                    [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
+                <app-autocomplete 
+                    formControlName="supplier_id" 
+                    label="Proveedor" 
+                    [remote]="true"
+                    [initialDisplay]="formData?.supplier?.company_name ?? ''" 
+                    catalogType="supplier">
                 </app-autocomplete>
             </div>
 
@@ -42,19 +47,29 @@
                         [formGroupName]="i">
 
                         <div class="md:col-span-1">
-                            <app-input-field formControlName="concept" label="Concepto" type="text">
+                            <app-input-field 
+                                formControlName="concept" 
+                                label="Concepto" 
+                                type="text">
                             </app-input-field>
                         </div>
 
                         <div class="md:col-span-1">
-                            <app-input-field formControlName="amount" label="Monto" type="money">
+                            <app-input-field 
+                                formControlName="amount" 
+                                label="Monto" 
+                                type="money">
                             </app-input-field>
                         </div>
 
                         <div class="md:col-span-1 flex gap-2 items-start">
                             <div class="flex-1">
-                                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
-                                    [initialDisplay]="formData?.project?.name ?? ''" catalogType="project">
+                                <app-autocomplete 
+                                    formControlName="project_id" 
+                                    label="Proyecto" 
+                                    [remote]="true"
+                                    [initialDisplay]="formData?.project?.name ?? ''" 
+                                    catalogType="project">
                                 </app-autocomplete>
                             </div>
 
@@ -71,6 +86,5 @@
         </div>
     </form>
 
-    <app-btns-section [modal]="true" [btnSave]="!form.valid"></app-btns-section>
-    
+    <app-btns-section [form]="true" [btnSave]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
 </div>

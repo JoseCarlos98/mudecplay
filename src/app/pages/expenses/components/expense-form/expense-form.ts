@@ -12,7 +12,7 @@ import { ExpenseResponseDto, PatchExpense } from '../../interfaces/expense-inter
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputDate } from '../../../../shared/ui/input-date/input-date';
-import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
+import { BtnsSection, ModuleFooterAction } from '../../../../shared/ui/btns-section/btns-section';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { ModuleHeaderAction, ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -44,13 +44,11 @@ export class ExpenseForm {
 
   formData!: ExpenseResponseDto;
 
-
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, { validators: Validators.required }),
     supplier_id: [null],
     items: this.fb.array([this.createItemGroup()])
   });
-
 
   ngOnInit(): void {
     this.patchEditData()
@@ -60,7 +58,7 @@ export class ExpenseForm {
     return this.form.get('items') as FormArray;
   }
 
-  createItemGroup(data?: Partial<ExpenseItemForm>): FormGroup {
+  createItemGroup(data?: ExpenseItemForm): FormGroup {
     return this.fb.group({
       concept: [data?.concept ?? '', Validators.required],
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
@@ -160,6 +158,14 @@ export class ExpenseForm {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
+        this.router.navigateByUrl('/gastos');
+        break;
+    }
+  }
+
+  onFooterAction(action: ModuleFooterAction | string) {
+    switch (action) {
+      case 'cancel':
         this.router.navigateByUrl('/gastos');
         break;
     }

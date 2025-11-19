@@ -4,7 +4,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ExtraButton, ModuleHeaderAction, ModuleHeaderConfig } from './interfaces/module-header-interface';
-// Acciones disponibles en el header
 
 
 @Component({
@@ -34,9 +33,5 @@ export class ModuleHeader {
   /** Emite acción estándar */
   emit(action: ModuleHeaderAction | string): void {
     this.action.emit(action);
-  }
-
-  ngOnInit(): void {
-    console.log(this.title);
   }
 }
