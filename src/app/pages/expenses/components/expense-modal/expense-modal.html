@@ -1,19 +1,28 @@
 <div class="c-modal">
-    <app-module-header [title]="this.data?.id ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
-        (action)="closeModal()">
-    </app-module-header>
+  <app-module-header
+    [title]="'Conceptos del gasto'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
 
-    @if (data?.length) {
+  @if (items?.length) {
     <div class="c-module-table">
-        <app-data-table 
-            [data]="data" 
-            [columnsConfig]="columnsConfig"
-            [displayedColumns]="displayedColumns">
-        </app-data-table>
+      <!-- Tabla recibe SOLO la página actual -->
+      <app-data-table
+        [data]="paginatedItems"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns">
+      </app-data-table>
 
-        <!-- <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-            [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
-        </mat-paginator> -->
+      <!-- Paginador 100% local -->
+      <mat-paginator
+        [length]="items.length"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
-    }
+  }
 </div>

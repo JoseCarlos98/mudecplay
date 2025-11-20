@@ -27,7 +27,7 @@
 </div>
 
 @if (expensesTableData?.data) {
-<div class="c-module-table">
+<div class="c-module-table ">
   <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
     (action)="onTableAction($event)">
   </app-data-table>
