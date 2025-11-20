@@ -1,36 +1,28 @@
 <div class="c-modal">
-  <app-module-header
-    [title]="'Conceptos del gasto'"
-    [config]="headerConfig"
-    (action)="closeModal()">
+  <app-module-header [title]="'Conceptos del gasto'" [config]="headerConfig" (action)="closeModal()">
   </app-module-header>
 
   @if (items?.length) {
-    <div class="c-module-table">
-      <!-- Tabla con la página actual -->
-      <app-data-table
-        [data]="paginatedItems"
-        [columnsConfig]="columnsConfig"
-        [displayedColumns]="displayedColumns">
-      </app-data-table>
+  <div class="c-module-table">
+    <!-- Tabla con la página actual -->
+    <app-data-table [data]="paginatedItems" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns">
+    </app-data-table>
 
-      <!-- Total de conceptos -->
-      <div class="total-aumont color-third">
-            {{ items.length }} concepto{{ items.length > 1 ? 's' : '' }}
-        <span class="font-semibold">
+    <!-- Total de conceptos -->
+    <div class="total-aumont color-third">
+      <span>{{ items.length }} concepto{{ items.length > 1 ? 's' : '' }}</span>
+      <span>
+        Total:
+        <span class="font-semibold ml-1">
           {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
         </span>
-      </div>
-
-      <!-- Paginador local -->
-      <mat-paginator
-        [length]="items.length"
-        [pageSize]="pageSize"
-        [pageIndex]="pageIndex"
-        [pageSizeOptions]="pageSizeOptions"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+      </span>
     </div>
+
+    <!-- Paginador local -->
+    <mat-paginator [length]="items.length" [pageSize]="pageSize" [pageIndex]="pageIndex"
+      [pageSizeOptions]="pageSizeOptions" (page)="onPageChange($event)" showFirstLastButtons>
+    </mat-paginator>
+  </div>
   }
 </div>
