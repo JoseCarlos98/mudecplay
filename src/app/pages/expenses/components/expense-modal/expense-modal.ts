@@ -41,11 +41,15 @@ const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map(c => c.key);
   templateUrl: './expense-modal.html',
   styles: [`
     .c-module-table {
+      ::ng-deep .table-container {
+        height: auto!important;
+        max-height: calc(100vh - 500px)!important;
+      }
       .total-aumont {
         position: absolute;
         display: flex;
         justify-content: center;
-        bottom : 15px;
+        bottom : 11px;
         left: 18px;
 
         span {
