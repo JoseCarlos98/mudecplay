@@ -111,51 +111,36 @@ export class ExpenseForm {
       return;
     }
 
-    const raw = this.form.getRawValue();
-    console.log(raw);
-
-    const payload = {
-      date: raw.date,
-      supplier_id: toIdForm(raw.supplier_id),
-      items: (raw.items ?? []).map((item: any) => ({
-        concept: (item.concept ?? '').trim(),
-        amount: item.amount,
-        project_id: toIdForm(item.project_id),
-      })),
-    };
-
-    console.log('payload a enviar', payload);
+    const payload = this.buildPayloadFromForm();
+    console.log('payload CREATE', payload);
 
     this.expenseService.create(payload).subscribe({
       next: (response) => {
         if (response.success) {
-          console.log('update');
+          // aquí ya podrías navegar o mostrar snackbar
+          this.router.navigateByUrl('/gastos');
         }
       },
-      error: (err) => console.error('Error al editar gastos:', err),
+      error: (err) => console.error('Error al crear gasto:', err),
     });
   }
 
   updateData() {
-    const raw = this.form.value;
-    console.log(raw);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
+    const payload = this.buildPayloadFromForm();
+    console.log('payload UPDATE', payload);
 
-    // const formData: PatchExpense = {
-    //   ...raw,
-    //   date: toApiDate(raw.date),
-    //   supplier_id: toIdForm(raw.supplier_id),
-    //   project_id: toIdForm(raw.project_id),
-    // };
-
-    // this.expenseService.update(this.data.id, formData).subscribe({
+    // this.expenseService.update(this.expenseId, payload).subscribe({
     //   next: (response) => {
     //     if (response.success) {
-    //       console.log('update');
-
+    //       this.router.navigateByUrl('/gastos');
     //     }
     //   },
-    //   error: (err) => console.error('Error al editar gastos:', err),
+    //   error: (err) => console.error('Error al actualizar gasto:', err),
     // });
   }
 
@@ -181,6 +166,7 @@ export class ExpenseForm {
     this.itemsFA.removeAt(index);
   }
 
+ 
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
@@ -196,4 +182,20 @@ export class ExpenseForm {
         break;
     }
   }
+
+  // HELPERS LOCALES 
+  private buildPayloadFromForm(): entity.CreateExpense {
+    const raw = this.form.getRawValue();
+
+    return {
+      date: raw.date, // si quieres, aquí puedes usar toApiDate(raw.date)
+      supplier_id: toIdForm(raw.supplier_id),
+      items: (raw.items ?? []).map((item: any) => ({
+        concept: (item.concept ?? '').trim(),
+        amount: Number(item.amount),
+        project_id: toIdForm(item.project_id),
+      })),
+    };
+  }
+
 }

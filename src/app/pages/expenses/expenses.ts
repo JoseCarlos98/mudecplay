@@ -239,6 +239,7 @@ export class Expenses implements OnInit {
     status_id: null,
     concept: '',
   });
+  
   expenseModal(expense?: ExpenseResponseDto) {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'medium')
