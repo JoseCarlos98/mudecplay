@@ -39,6 +39,23 @@ const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map(c => c.key);
     MatPaginatorModule,
   ],
   templateUrl: './expense-modal.html',
+  styles: [`
+    .c-module-table {
+      .total-aumont {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        bottom : 15px;
+        left: 18px;
+
+        span {
+          margin-left: 5px;
+          color: black;
+        }
+      }
+    }
+  `]
+
 })
 export class ExpenseModal implements OnInit {
   readonly items = inject<ExpenseItem[]>(MAT_DIALOG_DATA);
@@ -68,6 +85,10 @@ export class ExpenseModal implements OnInit {
   onPageChange(event: PageEvent) {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
+  }
+
+  get totalAmount(): number {
+    return this.items.reduce((sum, item) => sum + item.amount, 0);
   }
 
   closeModal(saved?: boolean) {

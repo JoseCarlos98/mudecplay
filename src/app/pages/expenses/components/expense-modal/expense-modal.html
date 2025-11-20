@@ -7,14 +7,22 @@
 
   @if (items?.length) {
     <div class="c-module-table">
-      <!-- Tabla recibe SOLO la página actual -->
+      <!-- Tabla con la página actual -->
       <app-data-table
         [data]="paginatedItems"
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns">
       </app-data-table>
 
-      <!-- Paginador 100% local -->
+      <!-- Total de conceptos -->
+      <div class="total-aumont color-third">
+            {{ items.length }} concepto{{ items.length > 1 ? 's' : '' }}
+        <span class="font-semibold">
+          {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
+        </span>
+      </div>
+
+      <!-- Paginador local -->
       <mat-paginator
         [length]="items.length"
         [pageSize]="pageSize"
