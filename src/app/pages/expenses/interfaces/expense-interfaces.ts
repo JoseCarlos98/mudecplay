@@ -13,19 +13,32 @@ export interface FiltersExpenses {
 
 export interface ExpenseResponseDto {
   id: number;
-  concept: string;
-  date: string;
-  amount: number;
-  supplier: ExpenseSupplier;
-  project: ExpenseProject;
+  date: string; 
+  folio: string;
+  total_amount: number;
+  supplier: Supplier;
+  status: ExpenseStatus;
+  items: ExpenseItem[];
 }
 
-export interface ExpenseSupplier {
+export interface Supplier {
   id: number;
   company_name: string;
 }
 
-export interface ExpenseProject {
+export interface ExpenseStatus {
+  id: number;
+  name: string;
+}
+
+export interface ExpenseItem {
+  id: number;
+  concept: string;
+  amount: number;
+  project: Project | null;
+}
+
+export interface Project {
   id: number;
   name: string;
 }

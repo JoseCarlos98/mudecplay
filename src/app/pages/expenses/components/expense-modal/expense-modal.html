@@ -3,62 +3,17 @@
         (action)="closeModal()">
     </app-module-header>
 
-    <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
-        <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
-            <div class="md:col-span-2">
-                 <app-input-field 
-                    formControlName="concept" 
-                    label="Concepto" 
-                    type="text">
-                </app-input-field>
-            </div>
+    @if (data?.length) {
+    <div class="c-module-table">
+        <app-data-table 
+            [data]="data" 
+            [columnsConfig]="columnsConfig"
+            [displayedColumns]="displayedColumns">
+        </app-data-table>
 
-            <div class="md:col-span-1">
-                <app-input-date
-                    formControlName="date"
-                    label="Fecha"
-                    mode="single"
-                    [showClear]="true">
-                </app-input-date>
-            </div>
-
-            <div class="md:col-span-1">
-                <app-input-field 
-                    formControlName="amount" 
-                    label="Monto" 
-                    type="money">
-                </app-input-field>
-            </div>
-
-            <div class="md:col-span-1">
-                <app-autocomplete
-                    formControlName="supplier_id" 
-                    label="Proveedor" 
-                    [remote]="true" 
-                    catalogType="supplier"
-                    [initialDisplay]="data?.supplier?.company_name ?? ''">
-                </app-autocomplete>
-            </div>
-
-            <div class="md:col-span-1">
-                <div class="c-input">
-                    <app-autocomplete 
-                        formControlName="project_id" 
-                        label="Proyecto" 
-                        [remote]="true"
-                        catalogType="project" 
-                        [initialDisplay]="data?.project?.name ?? ''">
-                    </app-autocomplete>
-                </div>
-            </div>
-        </div>
-    </form>
-
-    <!-- <app-btns-section 
-        [modal]="true" 
-        [btnSave]="!form.valid"
-        (closeModal)="closeModal()"
-    ></app-btns-section> -->
-
-       <!-- <app-btns-section [modal]="true" [saveDisabled]="!form.valid"></app-btns-section> -->
+        <!-- <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
+            [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+        </mat-paginator> -->
+    </div>
+    }
 </div>

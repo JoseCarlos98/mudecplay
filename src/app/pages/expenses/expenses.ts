@@ -11,7 +11,6 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
 import { ExpenseService } from './services/expense.service';
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
-import { ExpenseResponseDto, FiltersExpenses } from './interfaces/expense-interfaces';
 import { CommonModule } from '@angular/common';
 import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { DialogService } from '../../shared/services/dialog.service';
@@ -26,6 +25,8 @@ import { InputSelect } from '../../shared/ui/input-select/input-select';
 import { Router } from '@angular/router';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
+import * as entity from '../expenses/interfaces/expense-interfaces';
+
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'products', label: 'Productos', type: 'showItems' },
@@ -90,9 +91,9 @@ export class Expenses implements OnInit {
 
   catalogStatusExpense: Catalog[] = [];
 
-  filters: FiltersExpenses = { page: 1, limit: 5 };
+  filters: entity.FiltersExpenses = { page: 1, limit: 5 };
 
-  expensesTableData!: PaginatedResponse<ExpenseResponseDto>;
+  expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
 
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
@@ -138,7 +139,7 @@ export class Expenses implements OnInit {
 
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
-      next: (response: PaginatedResponse<ExpenseResponseDto>) => {
+      next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
         console.log(response.data);
         this.expensesTableData = response;
       },
@@ -171,7 +172,7 @@ export class Expenses implements OnInit {
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<ExpenseResponseDto>) {
+  onTableAction(ev: DataTableActionEvent<entity.ExpenseResponseDto>) {
     switch (ev.type) {
       case 'edit':
         this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
@@ -182,15 +183,16 @@ export class Expenses implements OnInit {
         break;
 
       case 'showItems':
-        this.expenseModal(ev.row);
+        this.expenseModal(ev.row.items);
         break;
     }
   }
 
-  onDelete(expense: ExpenseResponseDto) {
+  onDelete(expense: entity.ExpenseResponseDto) {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n"${expense.concept.trim()}"?`,
+        message: `¿Quieres eliminar el gasto:\n" folio : "?`,
+        // message: `¿Quieres eliminar el gasto:\n"${expense.concept.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -229,7 +231,7 @@ export class Expenses implements OnInit {
     this.loadExpenses();
   }
 
-  private defaultFilters = (): FiltersExpenses => ({
+  private defaultFilters = (): entity.FiltersExpenses => ({
     page: 1,
     limit: this.filters.limit,
     startDate: null,
@@ -240,7 +242,7 @@ export class Expenses implements OnInit {
     concept: '',
   });
   
-  expenseModal(expense?: ExpenseResponseDto) {
+  expenseModal(expense?: entity.ExpenseItem[]) {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'medium')
       .afterClosed()
