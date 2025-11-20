@@ -1,91 +1,116 @@
 <div class="card-content">
-    <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig" (action)="onHeaderAction($event)"></app-module-header>
+  <!-- Header reutilizable con título dinámico (crear/editar) -->
+  <app-module-header
+    [title]="expenseId ? 'Editar Gasto' : 'Registrar Gasto'"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)"
+  ></app-module-header>
 
-    <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
-        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-            <div class="md:col-span-1">
-                <app-input-date 
-                    formControlName="date" 
-                    label="Fecha" 
-                    mode="single" 
-                    [showClear]="true">
-                </app-input-date>
-            </div>
+  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form"
+  >
+    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+      
+      <!-- Fecha -->
+      <div class="md:col-span-1">
+        <app-input-date
+          formControlName="date"
+          label="Fecha"
+          mode="single"
+          [showClear]="true"
+        ></app-input-date>
+      </div>
 
-            <div class="md:col-span-1">
-                <app-autocomplete 
-                    formControlName="supplier_id" 
-                    label="Proveedor" 
-                    [remote]="true"
-                    [initialDisplay]="formData?.supplier?.company_name ?? ''" 
-                    catalogType="supplier">
-                </app-autocomplete>
-            </div>
+      <!-- Proveedor -->
+      <div class="md:col-span-1">
+        <app-autocomplete
+          formControlName="supplier_id"
+          label="Proveedor"
+          [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''"
+          catalogType="supplier"
+        ></app-autocomplete>
+      </div>
 
-            <div class="form-dinamic md:col-span-3" formArrayName="items">
-                <div class="form-dinamic-header">
-                    <div class="flex items-center gap-2">
-                        <!-- <mat-icon class="text-slate-500">list_alt</mat-icon> -->
+      <!-- Bloque dinámico de items -->
+      <div class="form-dinamic md:col-span-3" formArrayName="items">
+        
+        <!-- Header de la sección -->
+        <div class="form-dinamic-header">
+          <div class="flex items-center gap-2">
+            <span class="form-dinamic-title">
+              Conceptos del gasto
+            </span>
 
-                        <span class="form-dinamic-title">
-                            Conceptos del gasto
-                        </span>
+            <span class="form-dinamic-chip">
+              {{ itemsFA.length }} concepto{{ itemsFA.length > 1 ? 's' : '' }}
+            </span>
+          </div>
 
-                        <span class="form-dinamic-chip">
-                            {{ itemsFA.length }} concepto{{ itemsFA.length > 1 ? 's' : '' }}
-                        </span>
-                    </div>
-                    <button type="button" class="btn-add-row" (click)="addItem()">
-                        <mat-icon>add</mat-icon>
-                        <span>Agregar</span>
-                    </button>
-                </div>
-
-                <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-                @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
-                    <div class="forms-controls md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
-                        [formGroupName]="i">
-
-                    <div class="md:col-span-1">
-                        <app-input-field 
-                        formControlName="concept" 
-                        label="Concepto" 
-                        type="text">
-                        </app-input-field>
-                    </div>
-
-                    <div class="md:col-span-1">
-                        <app-input-field 
-                        formControlName="amount" 
-                        label="Monto" 
-                        type="money">
-                        </app-input-field>
-                    </div>
-
-                    <div class="md:col-span-1 flex gap-2 items-start">
-                        <div class="flex-1">
-                        <app-autocomplete 
-                            formControlName="project_id" 
-                            label="Proyecto" 
-                            [remote]="true"
-                            [initialDisplay]="formData?.items?.[i]?.project?.name ?? ''"
-                            catalogType="project">
-                        </app-autocomplete>
-                        </div>
-
-                        @if (itemsFA.length) {
-                        <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
-                        }
-                    </div>
-                    </div>
-                }
-                </div>
-
-            </div>
+          <!-- Botón para agregar nueva fila -->
+          <button type="button" class="btn-add-row" (click)="addItem()">
+            <mat-icon>add</mat-icon>
+            <span>Agregar</span>
+          </button>
         </div>
-    </form>
 
-    <app-btns-section [form]="true" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
+        <!-- Lista de filas dinámicas -->
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+          @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
+            <div
+              class="forms-controls md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
+              [formGroupName]="i"
+            >
+              <!-- Concepto -->
+              <div class="md:col-span-1">
+                <app-input-field
+                  formControlName="concept"
+                  label="Concepto"
+                  type="text"
+                ></app-input-field>
+              </div>
+
+              <!-- Monto -->
+              <div class="md:col-span-1">
+                <app-input-field
+                  formControlName="amount"
+                  label="Monto"
+                  type="money"
+                ></app-input-field>
+              </div>
+
+              <!-- Proyecto + botón borrar -->
+              <div class="md:col-span-1 flex gap-2 items-start">
+                <div class="flex-1">
+                  <app-autocomplete
+                    formControlName="project_id"
+                    label="Proyecto"
+                    [remote]="true"
+                    catalogType="project"
+                  ></app-autocomplete>
+                </div>
+
+                @if (itemsFA.length > 1) {
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="delete-btn"
+                    (click)="removeItem(i)"
+                  >
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <!-- Footer reutilizable (cancel / guardar) -->
+  <app-btns-section
+    [form]="true"
+    [saveDisabled]="!form.valid"
+    (action)="onFooterAction($event)"
+  ></app-btns-section>
 </div>

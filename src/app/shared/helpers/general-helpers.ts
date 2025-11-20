@@ -1,4 +1,5 @@
 import { HttpParams } from "@angular/common/http";
+import { Catalog } from "../interfaces/general-interfaces";
 
 /**
  * Convierte un Date o un string ISO a 'YYYY-MM-DD' para el backend.
@@ -49,11 +50,11 @@ export function toDisplayDate(value: Date | string): string {
  * - Si no hay id, retorna null (no tiene sentido sin identificador).
  * - name se rellena con '' si no llega.
  */
-export function toCatalogLike(id?: number | null, name?: string | null): { id: number; name: string } | null {
+export function toCatalogAutoComplete(id?: number | null, name?: string | null ): Catalog | null {
   if (id == null) return null;
 
   return {
-    id,
+    id: id.toString(),
     name: name ?? '',
   };
 }
@@ -78,7 +79,7 @@ export function toIdForm(value: any): number | null {
  * - Ignora null/undefined/'' para no ensuciar la URL.
  * - IMPORTANTE: HttpParams es inmutable; siempre reasigna el retorno.
  */
-export function setScalar<T extends string | number | null | undefined | Date >(
+export function setScalar<T extends string | number | null | undefined | Date>(
   p: HttpParams,
   key: string,
   value: T

@@ -6,7 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { toApiDate, toCatalogLike, toIdForm } from '../../../../shared/helpers/general-helpers';
+import { toCatalogAutoComplete, toIdForm } from '../../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../../services/expense.service';
 import * as entity from '../../interfaces/expense-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
@@ -16,6 +16,7 @@ import { BtnsSection, ModuleFooterAction } from '../../../../shared/ui/btns-sect
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { ModuleHeaderAction, ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
+import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true
@@ -24,87 +25,89 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-expense-form',
   standalone: true,
-  imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, InputDate, BtnsSection, MatButtonModule],
+  imports: [
+    CommonModule,
+    MatDatepickerModule,
+    ModuleHeader,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    Autocomplete,
+    InputField,
+    BtnsSection,
+    InputDate,
+    BtnsSection,
+    MatButtonModule
+  ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
 })
-export class ExpenseForm {
+export class ExpenseForm implements OnInit {
+  // Inyección con inject() para mantener la clase más limpia
   private readonly route = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+
+  // Config del header (muestra flecha back, etc.)
   readonly headerConfig = HEADER_CONFIG;
 
+  // Formulario reactivo principal
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, { validators: Validators.required }),
-    supplier_id: [null],
+    supplier_id: this.fb.control<Catalog | null>(null),
     items: this.fb.array([this.createItemGroup()])
   });
 
+  // Si es 0 => es creación, si tiene valor => edición
   expenseId: number = 0;
 
+  // Detalle completo del gasto traído desde el backend (para inicialDisplay, etc.)
   formData!: entity.ExpenseDetail;
 
   ngOnInit(): void {
-    this.route.paramMap.subscribe(params => {
-      const idParam = params.get('id');
+    // Leemos el id de la ruta solo una vez (snapshot)
+    const idParam = this.route.snapshot.paramMap.get('id');
 
-      if (idParam) {
-        this.expenseId = +idParam;
-        this.loadExpense(this.expenseId);
-      }
-    });
+    if (idParam) {
+      this.expenseId = +idParam;
+      this.loadExpense(this.expenseId);
+    }
   }
 
-
+  // GET /expenses/:id -> carga el gasto para edición
   loadExpense(id: number): void {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
-        console.log('EDITAR', response);
         this.formData = response;
 
         this.form.patchValue({
           date: response.date,
           supplier_id: response.supplier
-            ? toCatalogLike(response.supplier.id, response.supplier.company_name)
+            ? toCatalogAutoComplete(response.supplier.id, response.supplier.company_name)
             : null,
         });
 
+        // Creamos un FormGroup por cada item que viene del backend
         const itemsFGs = response.items.map((item) =>
           this.createItemGroup({
             concept: item.concept,
             amount: item.amount,
             project_id: item.project
-              ? toCatalogLike(item.project.id, item.project.name)
+              ? toCatalogAutoComplete(item.project.id, item.project.name)
               : null,
           }),
         );
 
+        // Reemplazamos por completo el FormArray de items
         this.form.setControl('items', this.fb.array(itemsFGs));
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
 
-  patchEditData() {
-    // if (this.data?.id) {
-    //   this.form.patchValue({
-    //     concept: this.data.concept,
-    //     date: this.data.date,
-    //     amount: this.data.amount,
-    //     supplier_id: toCatalogLike(
-    //       this.data.supplier?.id ?? null,
-    //       this.data.supplier?.company_name ?? null
-    //     ),
-    //     project_id: toCatalogLike(
-    //       this.data.project?.id ?? null,
-    //       this.data.project?.name ?? null
-    //     ),
-    //   });
-    // }
-  }
-
+  // Crear un nuevo gasto
   saveData() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -112,12 +115,10 @@ export class ExpenseForm {
     }
 
     const payload = this.buildPayloadFromForm();
-    console.log('payload CREATE', payload);
 
     this.expenseService.create(payload).subscribe({
       next: (response) => {
         if (response.success) {
-          // aquí ya podrías navegar o mostrar snackbar
           this.router.navigateByUrl('/gastos');
         }
       },
@@ -125,6 +126,7 @@ export class ExpenseForm {
     });
   }
 
+  // Actualizar gasto existente
   updateData() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -132,41 +134,45 @@ export class ExpenseForm {
     }
 
     const payload = this.buildPayloadFromForm();
-    console.log('payload UPDATE', payload);
 
-    // this.expenseService.update(this.expenseId, payload).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       this.router.navigateByUrl('/gastos');
-    //     }
-    //   },
-    //   error: (err) => console.error('Error al actualizar gasto:', err),
-    // });
+    this.expenseService.update(this.expenseId, payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.router.navigateByUrl('/gastos');
+        }
+      },
+      error: (err) => console.error('Error al actualizar gasto:', err),
+    });
   }
 
+  // Getter para no castear this.form.get('items') cada vez
   get itemsFA(): FormArray {
     return this.form.get('items') as FormArray;
   }
 
+  // Crea un FormGroup para un item de gasto
   createItemGroup(data?: entity.ExpenseItemForm): FormGroup {
     return this.fb.group({
       concept: [data?.concept ?? '', Validators.required],
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
-      project_id: [data?.project_id ?? null],
+      // project_id: [data?.project_id ?? null],
+      project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
+
     });
   }
 
-
+  // Agrega una nueva fila de item
   addItem() {
     this.itemsFA.push(this.createItemGroup());
   }
 
+  // Elimina una fila de item (si hay más de una)
   removeItem(index: number) {
-    if (!this.itemsFA?.length) return;
+    if (this.itemsFA.length <= 1) return; // regla de negocio: al menos 1 item
     this.itemsFA.removeAt(index);
   }
 
- 
+  // Acción del header (por ahora solo 'back')
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
@@ -175,20 +181,22 @@ export class ExpenseForm {
     }
   }
 
+  // Acciones del footer (cancel / save)
   onFooterAction(action: ModuleFooterAction | string) {
     switch (action) {
       case 'cancel':
         this.router.navigateByUrl('/gastos');
         break;
+      // 'save' lo maneja el propio submit del formulario
     }
   }
 
-  // HELPERS LOCALES 
+  // HELPERS LOCALES: arma el payload que espera el backend
   private buildPayloadFromForm(): entity.CreateExpense {
     const raw = this.form.getRawValue();
 
     return {
-      date: raw.date, // si quieres, aquí puedes usar toApiDate(raw.date)
+      date: raw.date, // si quieres, aquí puedes pasar por toApiDate(raw.date)
       supplier_id: toIdForm(raw.supplier_id),
       items: (raw.items ?? []).map((item: any) => ({
         concept: (item.concept ?? '').trim(),
@@ -197,5 +205,4 @@ export class ExpenseForm {
       })),
     };
   }
-
 }

@@ -7,7 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { toApiDate, toCatalogLike, toIdForm } from '../../../../shared/helpers/general-helpers';
+import { toApiDate, toIdForm } from '../../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../../services/expense.service';
 import { ExpenseResponseDto, PatchExpense } from '../../interfaces/expense-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
@@ -47,21 +47,7 @@ form: FormGroup = this.fb.group({
   }
 
   patchEditData() {
-    if (this.data?.id) {
-      this.form.patchValue({
-        concept: this.data.concept,
-        date: this.data.date,
-        amount: this.data.amount,
-        supplier_id: toCatalogLike(
-          this.data.supplier?.id ?? null,
-          this.data.supplier?.company_name ?? null
-        ),
-        project_id: toCatalogLike(
-          this.data.project?.id ?? null,
-          this.data.project?.name ?? null
-        ),
-      });
-    }
+ 
   }
 
   saveData() {

@@ -1,3 +1,5 @@
+import { Catalog } from "../../../shared/interfaces/general-interfaces";
+
 export interface FiltersExpenses {
   concept?: string | '';
   startDate?: string | null | undefined;
@@ -85,5 +87,6 @@ export interface ExpenseDetail {
 export interface ExpenseItemForm {
   concept: string;
   amount: number | null;
-  project_id: number | { id: number; name: string } | null;
+  // project_id: number | { id: number; name: string } | null;
+  project_id: Catalog | null; 
 }
