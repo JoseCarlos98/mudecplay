@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { toApiDate, toCatalogLike, toIdForm } from '../../../../shared/helpers/general-helpers';
 import { ExpenseService } from '../../services/expense.service';
-import { ExpenseResponseDto, PatchExpense } from '../../interfaces/expense-interfaces';
+import * as entity from '../../interfaces/expense-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputDate } from '../../../../shared/ui/input-date/input-date';
@@ -21,12 +21,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true
 };
 
-interface ExpenseItemForm {
-  concept: string;
-  amount: number | null;
-  project_id: number;
-}
-
 @Component({
   selector: 'app-expense-form',
   standalone: true,
@@ -36,13 +30,11 @@ interface ExpenseItemForm {
   styleUrl: './expense-form.scss',
 })
 export class ExpenseForm {
-  route = inject(ActivatedRoute);
+  private readonly route = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   readonly headerConfig = HEADER_CONFIG;
-
-  formData!: ExpenseResponseDto;
 
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, { validators: Validators.required }),
@@ -50,44 +42,50 @@ export class ExpenseForm {
     items: this.fb.array([this.createItemGroup()])
   });
 
+  expenseId: number = 0;
+
+  formData!: entity.ExpenseDetail;
+
   ngOnInit(): void {
-    this.patchEditData()
-  }
+    this.route.paramMap.subscribe(params => {
+      const idParam = params.get('id');
 
-  get itemsFA(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
-
-  createItemGroup(data?: ExpenseItemForm): FormGroup {
-    return this.fb.group({
-      concept: [data?.concept ?? '', Validators.required],
-      amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
-      project_id: [data?.project_id ?? null],
+      if (idParam) {
+        this.expenseId = +idParam;
+        this.loadExpense(this.expenseId);
+      }
     });
   }
 
-  addItem() {
-    this.itemsFA.push(this.createItemGroup());
+
+  loadExpense(id: number): void {
+    this.expenseService.getById(id).subscribe({
+      next: (response: entity.ExpenseDetail) => {
+        console.log('EDITAR', response);
+        this.formData = response;
+
+        this.form.patchValue({
+          date: response.date,
+          supplier_id: response.supplier
+            ? toCatalogLike(response.supplier.id, response.supplier.company_name)
+            : null,
+        });
+
+        const itemsFGs = response.items.map((item) =>
+          this.createItemGroup({
+            concept: item.concept,
+            amount: item.amount,
+            project_id: item.project
+              ? toCatalogLike(item.project.id, item.project.name)
+              : null,
+          }),
+        );
+
+        this.form.setControl('items', this.fb.array(itemsFGs));
+      },
+      error: (err) => console.error('Error al cargar gastos:', err),
+    });
   }
-
-  removeItem(index: number) {
-    if (!this.itemsFA?.length) return;
-    this.itemsFA.removeAt(index);
-  }
-
-  // onFooterAction(action: BtnsSectionAction) {
-  //   console.log(action);
-
-  //   switch (action) {
-  //     case 'cancel':
-  //       this.router.navigateByUrl('/gastos');
-  //       break;
-
-  //     case 'save':
-  //       this.saveData();
-  //       break;
-  //   }
-  // }
 
   patchEditData() {
     // if (this.data?.id) {
@@ -128,18 +126,20 @@ export class ExpenseForm {
 
     console.log('payload a enviar', payload);
 
-    // this.expenseService.create(payload).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       console.log('update');
-    //     }
-    //   },
-    //   error: (err) => console.error('Error al editar gastos:', err),
-    // });
+    this.expenseService.create(payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          console.log('update');
+        }
+      },
+      error: (err) => console.error('Error al editar gastos:', err),
+    });
   }
 
   updateData() {
-    // const raw = this.form.value;
+    const raw = this.form.value;
+    console.log(raw);
+
 
     // const formData: PatchExpense = {
     //   ...raw,
@@ -157,6 +157,28 @@ export class ExpenseForm {
     //   },
     //   error: (err) => console.error('Error al editar gastos:', err),
     // });
+  }
+
+  get itemsFA(): FormArray {
+    return this.form.get('items') as FormArray;
+  }
+
+  createItemGroup(data?: entity.ExpenseItemForm): FormGroup {
+    return this.fb.group({
+      concept: [data?.concept ?? '', Validators.required],
+      amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
+      project_id: [data?.project_id ?? null],
+    });
+  }
+
+
+  addItem() {
+    this.itemsFA.push(this.createItemGroup());
+  }
+
+  removeItem(index: number) {
+    if (!this.itemsFA?.length) return;
+    this.itemsFA.removeAt(index);
   }
 
   onHeaderAction(action: ModuleHeaderAction | string) {

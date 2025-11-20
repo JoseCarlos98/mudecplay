@@ -24,12 +24,18 @@ export class ExpenseService {
       params = setScalar(params, 'startDate', filters.startDate);
       params = setScalar(params, 'endDate', filters.endDate);
       params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
-      params = appendArray(params, 'projectIds',  filters.projectIds   ?? []);
+      params = appendArray(params, 'projectIds', filters.projectIds ?? []);
       params = setScalar(params, 'statusId', filters.status_id);
       params = setScalar(params, 'concept', filters.concept?.trim());
     }
 
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });
+  }
+
+  getById(id: number): Observable<entity.ExpenseDetail> {
+    const url = `${this.apiUrl}/${id}`;
+
+    return this.http.get<entity.ExpenseDetail>(url);
   }
 
   create(formData: entity.CreateExpense): Observable<ApiSuccess> {

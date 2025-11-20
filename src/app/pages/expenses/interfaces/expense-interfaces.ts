@@ -1,41 +1,41 @@
 export interface FiltersExpenses {
-    concept?: string | '';
-    startDate?: string | null | undefined;
-    endDate?: string | null | undefined;
-    suppliersIds?: number[]| null;
-    projectIds?: number[] | null;
-    status_id?: number | string | null;
-    limit: number;
-    page: number;
+  concept?: string | '';
+  startDate?: string | null | undefined;
+  endDate?: string | null | undefined;
+  suppliersIds?: number[] | null;
+  projectIds?: number[] | null;
+  status_id?: number | string | null;
+  limit: number;
+  page: number;
 }
 
 export interface ExpenseResponseDto {
-    id: number;
-    concept: string;
-    date: string;
-    amount: number;
-    supplier: ExpenseSupplier;
-    project: ExpenseProject;
+  id: number;
+  concept: string;
+  date: string;
+  amount: number;
+  supplier: ExpenseSupplier;
+  project: ExpenseProject;
 }
 
 export interface ExpenseSupplier {
-    id: number;
-    company_name: string;
+  id: number;
+  company_name: string;
 }
 
 export interface ExpenseProject {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
 export interface ExpenseResponseDtoMapper {
-    id: number;
-    concept: string;
-    date: string;
-    amount: number;
-    supplier: string;
-    project: string;
-    originData: ExpenseResponseDto;
+  id: number;
+  concept: string;
+  date: string;
+  amount: number;
+  supplier: string;
+  project: string;
+  originData: ExpenseResponseDto;
 }
 
 export interface CreateExpense {
@@ -49,9 +49,41 @@ export interface CreateExpense {
 }
 
 export interface PatchExpense {
-    concept?: string
-    date?: string,
-    amount?: number,
-    supplier_id?: number | null;
-    project_id?: number | null;
-} 
+  concept?: string
+  date?: string,
+  amount?: number,
+  supplier_id?: number | null;
+  project_id?: number | null;
+}
+
+export interface ExpenseItemDetail {
+  id: number;
+  concept: string;
+  amount: number;
+  project: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface ExpenseDetail {
+  id: number;
+  date: string;
+  folio: string;
+  total_amount: number;
+  supplier: {
+    id: number;
+    company_name: string;
+  } | null;
+  status: {
+    id: number;
+    name: string;
+  };
+  items: ExpenseItemDetail[];
+}
+
+export interface ExpenseItemForm {
+  concept: string;
+  amount: number | null;
+  project_id: number | { id: number; name: string } | null;
+}

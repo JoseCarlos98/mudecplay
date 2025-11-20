@@ -30,7 +30,7 @@ import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/mod
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
-  { key: 'amount', label: 'Monto', type: 'money', align: 'right' },
+  { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'supplier', label: 'Proveedor', type: 'relation', path: 'company_name', fallback: 'No asignado' },
   { key: 'project', label: 'Proyecto', type: 'relation', path: 'name', fallback: 'No asignado' },
 ];
@@ -110,7 +110,6 @@ export class Expenses implements OnInit {
   loadCatalogs() {
     this.catalogsService.statusExpenseCatalog().subscribe({
       next: (response: Catalog[]) => {
-        console.log(response);
         this.catalogStatusExpense = [
           ...response,
           ...STATUS_COMPLEMENTS
@@ -140,6 +139,7 @@ export class Expenses implements OnInit {
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
       next: (response: PaginatedResponse<ExpenseResponseDto>) => {
+        console.log(response.data);
         this.expensesTableData = response;
       },
       error: (err) => console.error('Error al cargar gastos:', err),

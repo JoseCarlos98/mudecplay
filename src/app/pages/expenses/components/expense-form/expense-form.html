@@ -1,7 +1,7 @@
 <div class="card-content">
     <app-module-header [title]="false ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig" (action)="onHeaderAction($event)"></app-module-header>
 
-    <form [formGroup]="form" (ngSubmit)="false ? updateData() : saveData()" id="form" class="c-form">
+    <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
         <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
             <div class="md:col-span-1">
                 <app-input-date 
@@ -42,46 +42,47 @@
                 </div>
 
                 <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-                    @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
+                @for (itemCtrl of itemsFA.controls; let i = $index; track i) {
                     <div class="forms-controls md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
                         [formGroupName]="i">
 
-                        <div class="md:col-span-1">
-                            <app-input-field 
-                                formControlName="concept" 
-                                label="Concepto" 
-                                type="text">
-                            </app-input-field>
-                        </div>
-
-                        <div class="md:col-span-1">
-                            <app-input-field 
-                                formControlName="amount" 
-                                label="Monto" 
-                                type="money">
-                            </app-input-field>
-                        </div>
-
-                        <div class="md:col-span-1 flex gap-2 items-start">
-                            <div class="flex-1">
-                                <app-autocomplete 
-                                    formControlName="project_id" 
-                                    label="Proyecto" 
-                                    [remote]="true"
-                                    [initialDisplay]="formData?.project?.name ?? ''" 
-                                    catalogType="project">
-                                </app-autocomplete>
-                            </div>
-
-                            @if (itemsFA.length) {
-                            <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
-                                <mat-icon>delete</mat-icon>
-                            </button>
-                            }
-                        </div>
+                    <div class="md:col-span-1">
+                        <app-input-field 
+                        formControlName="concept" 
+                        label="Concepto" 
+                        type="text">
+                        </app-input-field>
                     </div>
-                    }
+
+                    <div class="md:col-span-1">
+                        <app-input-field 
+                        formControlName="amount" 
+                        label="Monto" 
+                        type="money">
+                        </app-input-field>
+                    </div>
+
+                    <div class="md:col-span-1 flex gap-2 items-start">
+                        <div class="flex-1">
+                        <app-autocomplete 
+                            formControlName="project_id" 
+                            label="Proyecto" 
+                            [remote]="true"
+                            [initialDisplay]="formData?.items?.[i]?.project?.name ?? ''"
+                            catalogType="project">
+                        </app-autocomplete>
+                        </div>
+
+                        @if (itemsFA.length) {
+                        <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                        }
+                    </div>
+                    </div>
+                }
                 </div>
+
             </div>
         </div>
     </form>
