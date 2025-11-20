@@ -20,8 +20,7 @@
       <app-input-field formControlName="concept" label="Concepto" type="text">
       </app-input-field>
 
-      <app-btns-section [hasActiveFilters]="hasActiveFilters" (clearAllAndSearch)="clearAllAndSearch()"
-        (searchWithFilters)="searchWithFilters()">
+      <app-btns-section [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
       </app-btns-section>
     </div>
   </form>

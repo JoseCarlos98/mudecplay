@@ -117,9 +117,9 @@ export class ExpenseForm {
     console.log(raw);
 
     const payload = {
-      date: toApiDate(raw.date),
-      supplier_id: raw.supplier_id,
-      products: (raw.items ?? []).map((item: any) => ({
+      date: raw.date,
+      supplier_id: toIdForm(raw.supplier_id),
+      items: (raw.items ?? []).map((item: any) => ({
         concept: (item.concept ?? '').trim(),
         amount: item.amount,
         project_id: toIdForm(item.project_id),
@@ -129,8 +129,12 @@ export class ExpenseForm {
     console.log('payload a enviar', payload);
 
     // this.expenseService.create(payload).subscribe({
-    //   next: (response) => { ... },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
+    //   next: (response) => {
+    //     if (response.success) {
+    //       console.log('update');
+    //     }
+    //   },
+    //   error: (err) => console.error('Error al editar gastos:', err),
     // });
   }
 

@@ -163,6 +163,14 @@ export class Expenses implements OnInit {
     }
   }
 
+  onBtnsSectionAction(action: string) {
+    switch (action) {
+      case 'search':
+        this.searchWithFilters()
+        break;
+    }
+  }
+
   onTableAction(ev: DataTableActionEvent<ExpenseResponseDto>) {
     switch (ev.type) {
       case 'edit':
@@ -231,9 +239,6 @@ export class Expenses implements OnInit {
     status_id: null,
     concept: '',
   });
-
-  // ______________ SIN USO ______________
-
   expenseModal(expense?: ExpenseResponseDto) {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'medium')
