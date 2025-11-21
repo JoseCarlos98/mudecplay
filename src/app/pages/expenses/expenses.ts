@@ -1,32 +1,46 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { ModuleHeader } from "../../shared/ui/module-header/module-header";
-import { MatFormFieldModule } from '@angular/material/form-field';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+
+// Angular Material
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { DataTable } from '../../shared/ui/data-table/data-table';
 import { MatSelectModule } from '@angular/material/select';
-import { ExpenseService } from './services/expense.service';
-import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
-import { CommonModule } from '@angular/common';
-import { ExpenseModal } from './components/expense-modal/expense-modal';
-import { DialogService } from '../../shared/services/dialog.service';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
-import { CatalogsService } from '../../shared/services/catalogs.service';
+
+// UI compartidos
+import { ModuleHeader } from '../../shared/ui/module-header/module-header';
+import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
+import { DataTable } from '../../shared/ui/data-table/data-table';
+import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
-import { Router } from '@angular/router';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
-import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
-import * as entity from '../expenses/interfaces/expense-interfaces';
+
+// Servicios
+import { ExpenseService } from './services/expense.service';
+import { DialogService } from '../../shared/services/dialog.service';
+import { CatalogsService } from '../../shared/services/catalogs.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
+
+// Interfaces
+import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import * as entity from '../expenses/interfaces/expense-interfaces';
+
+// Componentes propios
+import { ExpenseModal } from './components/expense-modal/expense-modal';
+
+// ==========================
+//  CONSTANTES DEL MÓDULO
+// ==========================
 
 const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
@@ -41,7 +55,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     type: 'relation',
     path: 'company_name',
     fallback: 'No asignado',
-    fallbackVariant: 'chip-warning'
+    fallbackVariant: 'chip-warning',
   },
 ];
 
@@ -52,42 +66,49 @@ const DISPLAYED_COLUMNS: string[] = [
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
-  showUploadXml: true
+  showUploadXml: true,
 };
 
+// Catálogo extra de estados “virtuales”
 const STATUS_COMPLEMENTS: Catalog[] = [
   { id: 'missing_supplier', name: 'Sin proveedor' },
   { id: 'missing_project', name: 'Sin proyecto' },
-]
+];
 
 @Component({
   selector: 'app-expenses',
   standalone: true,
   imports: [
     CommonModule,
-    DataTable,
-    MatPaginatorModule,
+    // UI
     ModuleHeader,
-    FormsModule,
+    DataTable,
+    BtnsSection,
+    InputDate,
+    InputField,
+    InputSelect,
+    SearchMultiSelect,
+    // Angular Material
+    MatPaginatorModule,
     MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
-    ReactiveFormsModule,
     MatIconModule,
     MatTableModule,
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    SearchMultiSelect,
-    InputDate,
-    InputField,
-    BtnsSection,
-    InputSelect
+    // Forms
+    FormsModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
 export class Expenses implements OnInit {
+  // ==========================
+  //  INYECCIONES
+  // ==========================
   private readonly expenseService = inject(ExpenseService);
   private readonly dialogService = inject(DialogService);
   private readonly catalogsService = inject(CatalogsService);
@@ -95,16 +116,22 @@ export class Expenses implements OnInit {
   private readonly router = inject(Router);
   private readonly storage = inject(LocalStorageService);
 
+  // ==========================
+  //  CONFIG UI
+  // ==========================
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
   catalogStatusExpense: Catalog[] = [];
 
+  // ==========================
+  //  ESTADO / DATA
+  // ==========================
   filters: entity.FiltersExpenses = { page: 1, limit: 5 };
-
   expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
 
+  // Form de filtros de la grilla
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
@@ -113,56 +140,63 @@ export class Expenses implements OnInit {
     status_id: this.fb.control<string | number>(1),
   });
 
+  // ==========================
+  //  CICLO DE VIDA
+  // ==========================
   ngOnInit(): void {
-    this.restoreFiltersFromStorage();
-    this.loadCatalogs();
+    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
+    this.loadCatalogs();              // carga catálogos de selects
   }
 
-  loadCatalogs() {
+  // ==========================
+  //  CARGA DE CATÁLOGOS
+  // ==========================
+  loadCatalogs(): void {
     this.catalogsService.statusExpenseCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogStatusExpense = [
           ...response,
-          ...STATUS_COMPLEMENTS
-        ]
+          ...STATUS_COMPLEMENTS,
+        ];
       },
-      error: (err) => console.error('Error al cargar gastos:', err),
+      error: (err) => console.error('Error al cargar estados de gasto:', err),
     });
   }
 
   // ==========================
-  //  LÓGICA ACTUAL DE FILTROS
+  //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters() {
+  searchWithFilters(): void {
     const values = this.formFilters.value;
 
     this.filters = {
       ...this.filters,
       page: 1,
-      startDate: values.dateRange?.startDate,
-      endDate: values.dateRange?.endDate,
+      startDate: values.dateRange?.startDate ?? null,
+      endDate: values.dateRange?.endDate ?? null,
       suppliersIds: values.suppliersIds ?? [],
       projectIds: values.projectIds ?? [],
       status_id: values.status_id ?? null,
-      concept: values.concept?.trim() || ''
+      concept: values.concept?.trim() || '',
     };
 
     this.saveFiltersToStorage();
     this.loadExpenses();
   }
 
-
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
       next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
-        console.log(response.data);
         this.expensesTableData = response;
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
 
-  onPageChange(event: PageEvent) {
+  // ==========================
+  //  PAGINACIÓN
+  // ==========================
+  onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
@@ -170,7 +204,10 @@ export class Expenses implements OnInit {
     this.loadExpenses();
   }
 
-  onHeaderAction(action: string) {
+  // ==========================
+  //  ACCIONES HEADER
+  // ==========================
+  onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
         this.router.navigateByUrl('/gastos/nuevo');
@@ -181,15 +218,21 @@ export class Expenses implements OnInit {
     }
   }
 
-  onBtnsSectionAction(action: string) {
+  // ==========================
+  //  ACCIONES FOOTER-FILTROS
+  // ==========================
+  onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
-        this.searchWithFilters()
+        this.searchWithFilters();
         break;
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<entity.ExpenseResponseDto>) {
+  // ==========================
+  //  ACCIONES TABLA
+  // ==========================
+  onTableAction(ev: DataTableActionEvent<entity.ExpenseResponseDto>): void {
     switch (ev.type) {
       case 'edit':
         this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
@@ -205,11 +248,11 @@ export class Expenses implements OnInit {
     }
   }
 
-  onDelete(expense: entity.ExpenseResponseDto) {
+  // Confirmación + delete
+  onDelete(expense: entity.ExpenseResponseDto): void {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n" folio : "?`,
-        // message: `¿Quieres eliminar el gasto:\n"${expense.concept.trim()}"?`,
+        message: `¿Quieres eliminar el gasto:\n"${expense.folio.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -218,11 +261,14 @@ export class Expenses implements OnInit {
 
         this.expenseService.remove(expense.id).subscribe({
           next: () => this.loadExpenses(),
-          error: (err) => console.error('Error al guardar gastos:', err),
+          error: (err) => console.error('Error al eliminar gasto:', err),
         });
       });
   }
 
+  // ==========================
+  //  ESTADO DE FILTROS (UI)
+  // ==========================
   get hasActiveFilters(): boolean {
     const f = this.formFilters.getRawValue();
 
@@ -236,21 +282,26 @@ export class Expenses implements OnInit {
   }
 
   clearAllAndSearch(): void {
-    this.formFilters.reset({
-      dateRange: null,
-      suppliersIds: [],
-      projectIds: [],
-      status_id: '',
-      concept: '',
-    }, { emitEvent: false });
+    // Limpia formulario de filtros
+    this.formFilters.reset(
+      {
+        dateRange: null,
+        suppliersIds: [],
+        projectIds: [],
+        status_id: '',
+        concept: '',
+      },
+      { emitEvent: false },
+    );
 
+    // Resetea filtros de backend
     this.filters = this.defaultFilters();
 
+    // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
 
     this.loadExpenses();
   }
-
 
   private defaultFilters = (): entity.FiltersExpenses => ({
     page: 1,
@@ -263,7 +314,10 @@ export class Expenses implements OnInit {
     concept: '',
   });
 
-  expenseModal(expense?: entity.ExpenseItem[]) {
+  // ==========================
+  //  MODAL DE ITEMS
+  // ==========================
+  expenseModal(expense?: entity.ExpenseItem[]): void {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'medium')
       .afterClosed()
@@ -272,17 +326,15 @@ export class Expenses implements OnInit {
       });
   }
 
-
   // ==========================
-  //  LOCAL STORAGE HANDLING
+  //  LOCAL STORAGE (FILTROS)
   // ==========================
-
   private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
     console.log('[DEBUG] restoreFiltersFromStorage()', saved);
 
     if (!saved) {
-      // primera vez: solo carga con filtros por defecto
+      // Primera vez: carga con filtros por defecto
       this.searchWithFilters();
       return;
     }
@@ -296,7 +348,7 @@ export class Expenses implements OnInit {
         status_id: saved.status_id,
         concept: saved.concept,
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
 
     // 2) Reconstruir filtros para backend
@@ -334,5 +386,4 @@ export class Expenses implements OnInit {
     console.log('[DEBUG] Guardando en localStorage:', state);
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
   }
-
 }
