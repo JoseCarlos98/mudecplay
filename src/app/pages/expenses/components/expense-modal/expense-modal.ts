@@ -39,30 +39,10 @@ const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map(c => c.key);
     MatPaginatorModule,
   ],
   templateUrl: './expense-modal.html',
-  styles: [`
-    .c-module-table {
-      ::ng-deep .table-container {
-        height: auto!important;
-        max-height: calc(100vh - 350px)!important;
-      }
-      .total-aumont {
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        bottom : 11px;
-        left: 18px;
-
-        span {
-          margin-left: 5px;
-          color: black;
-        }
-      }
-    }
-  `]
-
+  styleUrl: './expense-modal.scss',
 })
 export class ExpenseModal implements OnInit {
-  readonly items = inject<ExpenseItem[]>(MAT_DIALOG_DATA);
+  readonly items = inject<ExpenseItem[] | null>(MAT_DIALOG_DATA) ?? [];
   private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
 
   readonly headerConfig = HEADER_CONFIG;
@@ -70,9 +50,9 @@ export class ExpenseModal implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
 
   // Estado de paginación local
-  pageIndex = 0;
-  pageSize = 5;
-  readonly pageSizeOptions = [5, 10, 25, 50];
+  pageIndex: number = 0;
+  pageSize: number = 5;
+  readonly pageSizeOptions: number[] = [5, 10, 25, 50];
 
   ngOnInit(): void {
     console.log('Items recibidos en modal:', this.items);

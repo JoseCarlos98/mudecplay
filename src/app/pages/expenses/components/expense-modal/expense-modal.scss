@@ -1,0 +1,18 @@
+.c-module-table {
+      ::ng-deep .table-container {
+        height: auto!important;
+        max-height: calc(100vh - 350px)!important;
+      }
+      .total-aumont {
+        position: absolute;
+        display: flex;
+        justify-content: center;
+        bottom : 11px;
+        left: 18px;
+
+        span {
+          margin-left: 5px;
+          color: black;
+        }
+      }
+    }
