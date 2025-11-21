@@ -32,8 +32,14 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
-  { key: 'supplier', label: 'Proveedor', type: 'relation', path: 'company_name', fallback: 'No asignado' },
-  { key: 'project', label: 'Proyecto', type: 'relation', path: 'name', fallback: 'No asignado' },
+  { 
+    key: 'supplier',
+    label: 'Proveedor',
+    type: 'relation',
+    path: 'company_name',
+    fallback: 'No asignado',
+    fallbackVariant : 'chip-warning'
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -241,7 +247,7 @@ export class Expenses implements OnInit {
     status_id: null,
     concept: '',
   });
-  
+
   expenseModal(expense?: entity.ExpenseItem[]) {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'medium')

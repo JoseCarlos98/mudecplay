@@ -14,7 +14,40 @@
               [class.text-center]="col.align === 'center'">
             @switch (col.type) {
               @case ('relation') {
-                {{ getRelationValue(element[col.key], col.path) ?? col.fallback ?? '' }}
+                @let rel = getRelationValue(element[col.key], col.path);
+
+                @if (rel) {
+                  <!-- Hay valor en la relación -->
+                  @if (col.typeVariant) {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': col.typeVariant === 'chip-success',
+                        'table-chip-warning': col.typeVariant === 'chip-warning',
+                        'table-chip-neutral': col.typeVariant === 'chip-neutral'
+                      }">
+                      {{ rel }}
+                    </span>
+                  } @else {
+                    <!-- Sin variant => texto normal -->
+                    {{ rel }}
+                  }
+                } @else {
+                  <!-- No hay valor: fallback -->
+                  @if (col.fallbackVariant) {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': col.fallbackVariant === 'chip-success',
+                        'table-chip-warning': col.fallbackVariant === 'chip-warning',
+                        'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
+                      }">
+                      {{ col.fallback ?? '' }}
+                    </span>
+                  } @else {
+                    {{ col.fallback ?? '' }}
+                  }
+                }
               }
               @case ('money') {
                 {{ element[col.key] | currency:'$ ':'symbol':'1.2-2' }}
@@ -58,10 +91,7 @@
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr
-        mat-row
-        *matRowDef="let row; columns: displayedColumns"
-        class="hover:bg-gray-100 transition-all duration-200">
+      <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-gray-100 transition-all duration-200">
       </tr>
     </table>
   </div>
