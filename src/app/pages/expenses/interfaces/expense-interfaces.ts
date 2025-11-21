@@ -3,8 +3,8 @@ import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
 export interface FiltersExpenses {
   concept?: string | '';
-  startDate?: string | null | undefined;
-  endDate?: string | null | undefined;
+  startDate?: string | null;
+  endDate?: string | null;
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
   status_id?: number | string | null;

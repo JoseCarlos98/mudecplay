@@ -128,10 +128,11 @@ export class Expenses implements OnInit {
   // ==========================
   //  ESTADO / DATA
   // ==========================
+  // Filtros que van al backend
   filters: entity.FiltersExpenses = { page: 1, limit: 5 };
   expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
 
-  // Form de filtros de la grilla
+  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
@@ -164,23 +165,49 @@ export class Expenses implements OnInit {
   }
 
   // ==========================
+  //  HELPER: UI → FILTROS BACKEND
+  // ==========================
+  /**
+   * Recibe el estado de la UI (form + paginación)
+   * y devuelve el objeto de filtros que espera el backend.
+   */
+  private buildBackendFiltersFromUi(ui: entity.ExpensesUiFilters): entity.FiltersExpenses {
+    return {
+      page: ui.page,
+      limit: ui.limit,
+      startDate: ui.dateRange?.startDate ?? null,
+      endDate: ui.dateRange?.endDate ?? null,
+      suppliersIds: ui.suppliersIds ?? [],
+      projectIds: ui.projectIds ?? [],
+      status_id: ui.status_id ?? null,
+      concept: ui.concept?.trim() || '',
+    };
+  }
+
+  // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
   searchWithFilters(): void {
-    const values = this.formFilters.value;
+    const value = this.formFilters.getRawValue();
 
-    this.filters = {
-      ...this.filters,
+    // Estado completo de la UI (incluye página/limit)
+    const uiState: entity.ExpensesUiFilters = {
+      dateRange: value.dateRange ?? null,
+      suppliersIds: value.suppliersIds ?? [],
+      projectIds: value.projectIds ?? [],
+      status_id: value.status_id ?? null,
+      concept: value.concept?.trim() || '',
       page: 1,
-      startDate: values.dateRange?.startDate ?? null,
-      endDate: values.dateRange?.endDate ?? null,
-      suppliersIds: values.suppliersIds ?? [],
-      projectIds: values.projectIds ?? [],
-      status_id: values.status_id ?? null,
-      concept: values.concept?.trim() || '',
+      limit: this.filters.limit,
     };
 
-    this.saveFiltersToStorage();
+    // Mapeamos a filtros de backend usando el helper
+    this.filters = this.buildBackendFiltersFromUi(uiState);
+
+    // Guardamos el estado de UI para persistir filtros
+    this.saveFiltersToStorage(uiState);
+
+    // Disparamos la carga
     this.loadExpenses();
   }
 
@@ -200,6 +227,7 @@ export class Expenses implements OnInit {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
+    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadExpenses();
   }
@@ -270,13 +298,13 @@ export class Expenses implements OnInit {
   //  ESTADO DE FILTROS (UI)
   // ==========================
   get hasActiveFilters(): boolean {
-    const f = this.formFilters.getRawValue();
+    const form = this.formFilters.getRawValue();
 
-    const hasDates = !!(f.dateRange?.startDate || f.dateRange?.endDate);
-    const hasSuppliers = (f.suppliersIds?.length ?? 0) > 0;
-    const hasProjects = (f.projectIds?.length ?? 0) > 0;
-    const hasStatus = f.status_id !== '';
-    const hasConcept = !!(f.concept && f.concept.trim() !== '');
+    const hasDates = !!(form.dateRange?.startDate || form.dateRange?.endDate);
+    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
+    const hasProjects = (form.projectIds?.length ?? 0) > 0;
+    const hasStatus = form.status_id !== '';
+    const hasConcept = !!(form.concept && form.concept.trim() !== '');
 
     return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
   }
@@ -295,24 +323,21 @@ export class Expenses implements OnInit {
     );
 
     // Resetea filtros de backend
-    this.filters = this.defaultFilters();
+    this.filters = {
+      page: 1,
+      limit: this.filters.limit,
+      startDate: null,
+      endDate: null,
+      suppliersIds: [],
+      projectIds: [],
+      status_id: null,
+      concept: '',
+    }
 
     // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
-
     this.loadExpenses();
   }
-
-  private defaultFilters = (): entity.FiltersExpenses => ({
-    page: 1,
-    limit: this.filters.limit,
-    startDate: null,
-    endDate: null,
-    suppliersIds: [],
-    projectIds: [],
-    status_id: null,
-    concept: '',
-  });
 
   // ==========================
   //  MODAL DE ITEMS
@@ -334,12 +359,12 @@ export class Expenses implements OnInit {
     console.log('[DEBUG] restoreFiltersFromStorage()', saved);
 
     if (!saved) {
-      // Primera vez: carga con filtros por defecto
+      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // 1) Parchear formulario
+    // 1) Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         dateRange: saved.dateRange,
@@ -351,39 +376,33 @@ export class Expenses implements OnInit {
       { emitEvent: false },
     );
 
-    // 2) Reconstruir filtros para backend
-    const v = this.formFilters.getRawValue();
+    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    this.filters = this.buildBackendFiltersFromUi(saved);
 
-    this.filters = {
-      ...this.filters,
-      page: saved.page,
-      limit: saved.limit,
-      startDate: v.dateRange?.startDate ?? null,
-      endDate: v.dateRange?.endDate ?? null,
-      suppliersIds: v.suppliersIds ?? [],
-      projectIds: v.projectIds ?? [],
-      status_id: v.status_id ?? null,
-      concept: v.concept?.trim() || '',
-    };
-
-    // 3) Cargar tabla
+    // 3) Cargar tabla con esos filtros
     this.loadExpenses();
   }
 
-  private saveFiltersToStorage(): void {
-    const v = this.formFilters.getRawValue();
+  /**
+   * Guarda el estado de filtros de la UI en localStorage.
+   * - Si recibe `state`, guarda ese.
+   * - Si no, reconstruye el estado a partir del form + this.filters.
+   */
+  private saveFiltersToStorage(state?: entity.ExpensesUiFilters): void {
+    if (!state) {
+      const value = this.formFilters.getRawValue();
 
-    const state: entity.ExpensesUiFilters = {
-      dateRange: v.dateRange ?? null,
-      suppliersIds: v.suppliersIds ?? [],
-      projectIds: v.projectIds ?? [],
-      status_id: v.status_id ?? null,
-      concept: v.concept?.trim() || '',
-      page: this.filters.page,
-      limit: this.filters.limit,
-    };
+      state = {
+        dateRange: value.dateRange ?? null,
+        suppliersIds: value.suppliersIds ?? [],
+        projectIds: value.projectIds ?? [],
+        status_id: value.status_id ?? null,
+        concept: value.concept?.trim() || '',
+        page: this.filters.page,
+        limit: this.filters.limit,
+      };
+    }
 
-    console.log('[DEBUG] Guardando en localStorage:', state);
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
   }
 }
