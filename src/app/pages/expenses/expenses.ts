@@ -26,20 +26,22 @@ import { Router } from '@angular/router';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import * as entity from '../expenses/interfaces/expense-interfaces';
+import { LocalStorageService } from '../../shared/services/local-storage.service';
 
+const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'internal_folio', label: 'Folio' },
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
-  { 
+  {
     key: 'supplier',
     label: 'Proveedor',
     type: 'relation',
     path: 'company_name',
     fallback: 'No asignado',
-    fallbackVariant : 'chip-warning'
+    fallbackVariant: 'chip-warning'
   },
 ];
 
@@ -91,6 +93,7 @@ export class Expenses implements OnInit {
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly storage = inject(LocalStorageService);
 
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
@@ -111,7 +114,7 @@ export class Expenses implements OnInit {
   });
 
   ngOnInit(): void {
-    this.searchWithFilters();
+    this.restoreFiltersFromStorage();
     this.loadCatalogs();
   }
 
@@ -127,6 +130,9 @@ export class Expenses implements OnInit {
     });
   }
 
+  // ==========================
+  //  LÓGICA ACTUAL DE FILTROS
+  // ==========================
   searchWithFilters() {
     const values = this.formFilters.value;
 
@@ -135,14 +141,16 @@ export class Expenses implements OnInit {
       page: 1,
       startDate: values.dateRange?.startDate,
       endDate: values.dateRange?.endDate,
-      suppliersIds: values.suppliersIds,
-      projectIds: values.projectIds,
-      status_id: values.status_id,
+      suppliersIds: values.suppliersIds ?? [],
+      projectIds: values.projectIds ?? [],
+      status_id: values.status_id ?? null,
       concept: values.concept?.trim() || ''
     };
 
+    this.saveFiltersToStorage();
     this.loadExpenses();
   }
+
 
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
@@ -157,6 +165,8 @@ export class Expenses implements OnInit {
   onPageChange(event: PageEvent) {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
+
+    this.saveFiltersToStorage();
     this.loadExpenses();
   }
 
@@ -235,8 +245,12 @@ export class Expenses implements OnInit {
     }, { emitEvent: false });
 
     this.filters = this.defaultFilters();
+
+    this.storage.removeItem(EXPENSES_FILTERS_KEY);
+
     this.loadExpenses();
   }
+
 
   private defaultFilters = (): entity.FiltersExpenses => ({
     page: 1,
@@ -257,4 +271,68 @@ export class Expenses implements OnInit {
         if (result) this.loadExpenses();
       });
   }
+
+
+  // ==========================
+  //  LOCAL STORAGE HANDLING
+  // ==========================
+
+  private restoreFiltersFromStorage(): void {
+    const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
+    console.log('[DEBUG] restoreFiltersFromStorage()', saved);
+
+    if (!saved) {
+      // primera vez: solo carga con filtros por defecto
+      this.searchWithFilters();
+      return;
+    }
+
+    // 1) Parchear formulario
+    this.formFilters.patchValue(
+      {
+        dateRange: saved.dateRange,
+        suppliersIds: saved.suppliersIds,
+        projectIds: saved.projectIds,
+        status_id: saved.status_id,
+        concept: saved.concept,
+      },
+      { emitEvent: false }
+    );
+
+    // 2) Reconstruir filtros para backend
+    const v = this.formFilters.getRawValue();
+
+    this.filters = {
+      ...this.filters,
+      page: saved.page,
+      limit: saved.limit,
+      startDate: v.dateRange?.startDate ?? null,
+      endDate: v.dateRange?.endDate ?? null,
+      suppliersIds: v.suppliersIds ?? [],
+      projectIds: v.projectIds ?? [],
+      status_id: v.status_id ?? null,
+      concept: v.concept?.trim() || '',
+    };
+
+    // 3) Cargar tabla
+    this.loadExpenses();
+  }
+
+  private saveFiltersToStorage(): void {
+    const v = this.formFilters.getRawValue();
+
+    const state: entity.ExpensesUiFilters = {
+      dateRange: v.dateRange ?? null,
+      suppliersIds: v.suppliersIds ?? [],
+      projectIds: v.projectIds ?? [],
+      status_id: v.status_id ?? null,
+      concept: v.concept?.trim() || '',
+      page: this.filters.page,
+      limit: this.filters.limit,
+    };
+
+    console.log('[DEBUG] Guardando en localStorage:', state);
+    this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+  }
+
 }

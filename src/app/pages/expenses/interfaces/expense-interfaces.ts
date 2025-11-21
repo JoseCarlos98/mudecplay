@@ -1,4 +1,5 @@
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
+import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
 export interface FiltersExpenses {
   concept?: string | '';
@@ -100,6 +101,17 @@ export interface ExpenseDetail {
 export interface ExpenseItemForm {
   concept: string;
   amount: number | null;
-  // project_id: number | { id: number; name: string } | null;
   project_id: Catalog | null; 
 }
+
+
+export interface ExpensesUiFilters {
+  dateRange: DateRangeValue | null;
+  suppliersIds: number[];
+  projectIds: number[];
+  status_id: string | number | null;
+  concept: string;
+  page: number;
+  limit: number;
+}
+
