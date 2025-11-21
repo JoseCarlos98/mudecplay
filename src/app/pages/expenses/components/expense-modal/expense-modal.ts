@@ -22,7 +22,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Proyecto',
     type: 'relation',
     path: 'name',
-    fallback: 'Sin asignar',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning'
   },
 ];
 

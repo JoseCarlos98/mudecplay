@@ -86,6 +86,7 @@
     font-weight: 500;
     line-height: 1;
     white-space: nowrap;
+    letter-spacing: .7px;
   }
 
   .table-chip-neutral {
@@ -102,9 +103,6 @@
     background: rgba(245, 158, 11, 0.12);
     color: #d97706;
   }
-
-
-
 }
 
 @media screen and (max-width: 875px) {

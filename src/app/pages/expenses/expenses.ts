@@ -29,6 +29,7 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
+  { key: 'internal_folio', label: 'Folio' },
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
