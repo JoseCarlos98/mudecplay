@@ -43,7 +43,7 @@ const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map(c => c.key);
     .c-module-table {
       ::ng-deep .table-container {
         height: auto!important;
-        max-height: calc(100vh - 500px)!important;
+        max-height: calc(100vh - 350px)!important;
       }
       .total-aumont {
         position: absolute;
