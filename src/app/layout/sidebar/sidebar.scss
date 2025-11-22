@@ -29,14 +29,40 @@
   }
 
   .menu-info {
-    font-weight: 500;
-    color: #231f20;
-    margin: 0px 0 10px 0;
+    font-weight: 600;
+    color: #a3a7b0;
+    margin: 0 0 6px 0;
     font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+
+  /* Botón que abre/cierra catálogos */
+  .catalog-toggle {
+    background: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 4px;
+
+    .chevron {
+      font-size: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .chevron.open {
+      transform: rotate(180deg);
+    }
+  }
+
+  .catalog-items {
+    a {
+      margin-bottom: 6px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
   }
 }
 
-/* Tarjeta del menú */
 .c-card-menu:hover {
   transition: 300ms all ease;
   background: #27aae130;
@@ -77,29 +103,97 @@
   color: white;
   padding-left: 6px !important;
 }
+/* Toggle / título de la sección CATÁLOGOS */
+.c-section-toggle {
+  width: 100%;
+  margin-top: 12px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
 
-/* -------- Catálogos (sección) -------- */
+  // que no robe estilo del <a>
+  text-align: left;
 
-.menu-section {
-  padding: 0 0.75rem; // mismo feeling que los items
+  &:hover {
+    background: #f3f4f6;
+  }
 }
 
-.menu-section-label {
-  display: inline-block;
+.c-section-toggle-icon {
+  font-size: 18px;
+  color: #27aae1;
+}
+
+.c-section-toggle-label {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9ca3af; // gris suave
+  color: #9ca3af;
+  font-weight: 600;
 }
 
-/* hijos de la sección (Proveedores / Proyectos) */
-.menu-section-children {
+.c-section-chevron {
+  margin-left: auto;
+  font-size: 18px;
+  color: #9ca3af;
+  transition: transform 0.2s ease;
+}
+
+.c-section-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* Contenedor de los hijos con animación de despliegue */
+.c-section-children {
   margin-top: 4px;
+  padding-left: 8px;
+  overflow: hidden;
+
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
-.c-card-menu-child {
-  margin-bottom: 6px; // un poco menos que los principales
-  padding-left: 22px; // leve indent visual
-  font-size: 13px;
+.c-section-children.open {
+  max-height: 200px; // suficiente para 2–4 items
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ítems internos de Catálogos (ligeramente más pequeños) */
+.c-section-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px 4px 10px;
+  margin: 2px 0;
+  border-radius: 8px;
+  font-size: 13px;         // un poco más chico que "Gastos"
+  color: #231f20;
+  text-decoration: none;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+
+  mat-icon {
+    font-size: 18px;
+    color: #27aae1;
+  }
+}
+
+/* Línea vertical fina a la izquierda de cada hijo */
+.c-section-child-bar {
+  width: 2px;
+  height: 18px;
+  background: #27aae1;
+  border-radius: 999px;
 }
