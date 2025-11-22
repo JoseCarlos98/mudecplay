@@ -52,8 +52,8 @@ export class Autocomplete implements ControlValueAccessor {
   private readonly catalogsService = inject(CatalogsService);
 
   // ====== Inputs de configuración ======
-  @Input() label = 'Seleccionar';
-  @Input() placeholder = 'Buscar...';
+  @Input() label:string = 'Seleccionar';
+  @Input() placeholder:string = 'Buscar';
   @Input() remote: boolean = false;
   @Input() catalogType: 'supplier' | 'project' = 'supplier';
   @Input() data: Catalog[] = [];
