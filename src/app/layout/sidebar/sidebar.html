@@ -9,6 +9,9 @@
 
   <nav class="flex-1 mt-4">
     @for (item of menuItems; track item.name) {
+
+    @if (!item.children?.length) {
+    <!-- Item normal (Gastos) -->
     <a [routerLink]="item.route" routerLinkActive="menu-selected"
       class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800 rounded-md cursor-pointer">
       <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
@@ -16,15 +19,46 @@
         {{ item.name }}
       </span>
     </a>
+    } @else {
+    <!-- Sección (Catálogos) -->
+    <div class="menu-section mt-3">
+      <!-- Label tipo <span>, solo texto -->
+
+
+      <div class="menu-section-children mt-1">
+
+        <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <span
+                class="menu-section-label opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                {{ item.name }}
+              </span>
+            </mat-panel-title>
+
+          </mat-expansion-panel-header>
+          @for (child of item.children; track child.name) {
+          <a [routerLink]="child.route" routerLinkActive="menu-selected"
+            class="transition-colors duration-100 c-card-menu c-card-menu-child flex items-center gap-4 px-4 py-2 hover:bg-gray-800 rounded-md cursor-pointer">
+            <mat-icon class="color-primary">{{ child.icon }}</mat-icon>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              {{ child.name }}
+            </span>
+          </a>
+          }
+
+        </mat-expansion-panel>
+      </div>
+    </div>
+    }
+
     }
   </nav>
 
-<div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
+  <div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
     <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
-     <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Salir
-      </span> 
+    <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+      Salir
+    </span>
   </div>
 </aside>
-
- 

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -12,15 +12,35 @@ import { MenuItems } from './models/siderbar-models';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [CommonModule, MatTooltipModule, MatButtonModule, RouterModule, MatToolbarModule, MatIconModule, MatListModule, MatExpansionModule, MatSidenavModule],
+  imports: [
+    CommonModule,
+    MatTooltipModule,
+    MatButtonModule,
+    RouterModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatListModule,
+    MatExpansionModule,
+    MatSidenavModule,
+  ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
+
+  readonly panelOpenState = signal(false);
+
   menuItems: MenuItems[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos' },
-    // { name: 'Usuarios', icon: 'people', route: '/usuarios' },
-    // { name: 'Configuración', icon: 'settings', route: '/configuracion' }
-  ];
 
+    // Grupo de Catálogos (no tiene route, solo children)
+    {
+      name: 'Catálogos',
+      icon: '', // no lo usamos, pero mantenemos la interfaz
+      children: [
+        { name: 'Proveedores', icon: 'store', route: '/catalogos/proveedores' },
+        { name: 'Proyectos', icon: 'work', route: '/catalogos/proyectos' },
+      ],
+    },
+  ];
 }
