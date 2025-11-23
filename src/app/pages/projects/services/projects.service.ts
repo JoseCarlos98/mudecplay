@@ -10,7 +10,7 @@ import { appendArray, setScalar } from '../../../shared/helpers/general-helpers'
   providedIn: 'root'
 })
 export class ProjectService {
-  private apiUrl = `${environment.apiUrl}/suppliers`;
+  private apiUrl = `${environment.apiUrl}/projects`;
 
   constructor(private readonly http: HttpClient) { }
 
@@ -18,19 +18,16 @@ export class ProjectService {
     const url = `${this.apiUrl}`;
     let params = new HttpParams();
 
-    // if (filters) {
-    //   params = setScalar(params, 'page', filters.page);
-    //   params = setScalar(params, 'limit', filters.limit);
-    //   params = setScalar(params, 'startDate', filters.startDate);
-    //   params = setScalar(params, 'endDate', filters.endDate);
-    //   params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
-    //   params = appendArray(params, 'projectIds', filters.projectIds ?? []);
-    //   params = setScalar(params, 'statusId', filters.status_id);
-    //   params = setScalar(params, 'concept', filters.concept?.trim());
-    // }
+    if (filters) {
+      params = setScalar(params, 'page', filters.page);
+      params = setScalar(params, 'limit', filters.limit);
+      params = appendArray(params, 'clientsIds', filters.clientsIds ?? []);
+      params = setScalar(params, 'name', filters.name?.trim());
+      params = setScalar(params, 'phone', filters.phone?.trim());
+      params = setScalar(params, 'email', filters.email?.trim());
+    }
 
-    return this.http.get<PaginatedResponse<entity.ProjectResponseDto>>(url);
-    // return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });
+    return this.http.get<PaginatedResponse<entity.ProjectResponseDto>>(url, { params });
   }
 
   getById(id: number): Observable<entity.ProjectDetail> {

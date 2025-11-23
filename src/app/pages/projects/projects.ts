@@ -33,9 +33,7 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 // Interfaces
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../projects/interfaces/project-interfaces';
-import { ProjectService } from './services/projectsupplier.service';
-
-// Componentes propios
+import { ProjectService } from './services/projects.service';
 
 
 // ==========================
@@ -45,16 +43,18 @@ import { ProjectService } from './services/projectsupplier.service';
 const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'company_name', label: 'Razon sócial' },
-  { key: 'phone', label: 'Telefono' },
+  { key: 'name', label: 'Proyecto' },
+  { key: 'contact_name', label: 'Contacto' },
+  { key: 'location', label: 'Ubicación' },
+  { key: 'phone', label: 'Teléfono' },
   { key: 'email', label: 'Correo' },
+  { key: 'days_credit', label: 'Días de crédito' },
   {
-    key: 'area',
-    label: 'Area',
-    type: 'relation',
-    path: 'name',
+    key: 'will_invoice',
+    label: 'Facturación',
   },
 ];
+
 
 const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map((c) => c.key),
@@ -125,9 +125,10 @@ export class Projects {
 
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
-    suppliersIds: this.fb.control<number[]>([]),
+    clientsIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
-    area_id: this.fb.control<string | number>(1),
+    name: this.fb.control<string>(''),
+    phone: this.fb.control<string>(''),
   });
 
 
@@ -163,9 +164,10 @@ export class Projects {
     return {
       page: ui.page,
       limit: ui.limit,
-      suppliersIds: ui.suppliersIds ?? [],
-      area_id: ui.area_id ?? null,
+      clientsIds: ui.clientsIds ?? [],
       email: ui.email?.trim() || '',
+      name: ui.name?.trim() || '',
+      phone: ui.phone?.trim() || '',
     };
   }
 
@@ -177,9 +179,10 @@ export class Projects {
 
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ProjectUiFilters = {
-      suppliersIds: value.suppliersIds ?? [],
-      area_id: value.area_id ?? null,
+      clientsIds: value.clientsIds ?? [],
       email: value.email?.trim() || '',
+      name: value.name?.trim() || '',
+      phone: value.phone?.trim() || '',
       page: 1,
       limit: this.filters.limit,
     };
@@ -281,20 +284,22 @@ export class Projects {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-    const hasArea = form.area_id !== '';
+    const hasClients = (form.clientsIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
+    const hasPhone = !!(form.phone && form.phone.trim() !== '');
+    const hasName = !!(form.name && form.name.trim() !== '');
 
-    return hasSuppliers || hasArea || hasEmail;
+    return hasClients || hasEmail || hasPhone || hasName;
   }
 
   clearAllAndSearch(): void {
     // Limpia formulario de filtros
     this.formFilters.reset(
       {
-        suppliersIds: [],
-        area_id: '',
+        clientsIds: [],
         email: '',
+        phone: '',
+        name: '',
       },
       { emitEvent: false },
     );
@@ -303,9 +308,10 @@ export class Projects {
     this.filters = {
       page: 1,
       limit: this.filters.limit,
-      suppliersIds: [],
-      area_id: null,
+      clientsIds: [],
       email: '',
+      phone: '',
+      name: '',
     }
 
     // Limpia storage para este módulo
@@ -341,9 +347,10 @@ export class Projects {
     // 1) Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
-        suppliersIds: saved.suppliersIds,
-        area_id: saved.area_id,
+        clientsIds: saved.clientsIds,
+        name: saved.name,
         email: saved.email,
+        phone: saved.phone,
       },
       { emitEvent: false },
     );
@@ -365,9 +372,10 @@ export class Projects {
       const value = this.formFilters.getRawValue();
 
       state = {
-        suppliersIds: value.suppliersIds ?? [],
-        area_id: value.area_id ?? null,
+        clientsIds: value.clientsIds ?? [],
         email: value.email?.trim() || '',
+        phone: value.phone?.trim() || '',
+        name: value.name?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
       };
