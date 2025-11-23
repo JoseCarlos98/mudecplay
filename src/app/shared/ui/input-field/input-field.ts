@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { normalizeMoney, normalizeTextOnBlur } from '../../helpers/general-helpers';
 
-type InputKind = 'text' | 'number' | 'money' | 'phone';
+type InputKind = 'text' | 'number' | 'money' | 'phone' | 'email';
 
 @Component({
   selector: 'app-input-field',
@@ -42,15 +42,15 @@ export class InputField implements ControlValueAccessor {
   @Input() showError: boolean = false;
 
   /** Estado interno */
-  private _value: string | number | null = null; // money/number/text o string completo phone (+52xxxxx)
+  private _value: string | number | null = null; // money/number/text/email o string completo phone (+52xxxxx)
   private _phoneDigits: string = '';             // SOLO dígitos del teléfono sin prefijo
   private isFocused: boolean = false;
   disabled: boolean = false;
   displayValue: string = '';
 
   /** CVA */
-  private onChange: (value: any) => void = () => { };
-  private onTouched: () => void = () => { };
+  private onChange: (value: any) => void = () => {};
+  private onTouched: () => void = () => {};
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) this.ngControl.valueAccessor = this;
@@ -83,6 +83,7 @@ export class InputField implements ControlValueAccessor {
       // solo dígitos; el límite real lo controla maxlength
       return '\\d*';
     }
+    // email: lo validamos con lógica propia, no con pattern html
     return null;
   }
 
@@ -95,7 +96,8 @@ export class InputField implements ControlValueAccessor {
         const zeros = '0'.repeat(this.maxNumDecimals);
         return `0.${zeros}`;
       }
-      case 'phone': return 'Ingrese telefono';
+      case 'phone': return '000 000 0000';
+      case 'email': return 'correo@ejemplo.com';
       default: return 'Ingrese texto';
     }
   }
@@ -119,11 +121,11 @@ export class InputField implements ControlValueAccessor {
 
       this._phoneDigits = phoneDigits;
       this._value = raw;
-      this.displayValue = this.formatPhone(phoneDigits);   // 👈 AHORA FORMATEADO
+      this.displayValue = this.formatPhone(phoneDigits);
       return;
     }
 
-    // resto igual que lo tenías…
+    // resto de tipos
     this._value = value;
 
     if (this.type === 'money') {
@@ -131,9 +133,15 @@ export class InputField implements ControlValueAccessor {
       return;
     }
 
+    if (this.type === 'email') {
+      const norm = (value != null ? String(value) : '').trim().toLowerCase();
+      this.displayValue = norm;
+      this._value = norm;
+      return;
+    }
+
     this.displayValue = value !== null && value !== undefined ? String(value) : '';
   }
-
 
   registerOnChange(fn: any) { this.onChange = fn; }
   registerOnTouched(fn: any) { this.onTouched = fn; }
@@ -150,6 +158,8 @@ export class InputField implements ControlValueAccessor {
       this.handleInputNumber(raw);
     } else if (this.type === 'phone') {
       this.handleInputPhone(raw);
+    } else if (this.type === 'email') {
+      this.handleInputEmail(raw);
     } else {
       this.handleInputText(raw);
     }
@@ -164,13 +174,12 @@ export class InputField implements ControlValueAccessor {
     }
 
     if (this.type === 'phone') {
-      this.displayValue = this.formatPhone(this._phoneDigits); // 👈 también formateado en foco
+      this.displayValue = this.formatPhone(this._phoneDigits);
       return;
     }
 
     this.displayValue = this._value !== null ? String(this._value) : '';
   }
-
 
   onBlur() {
     this.isFocused = false;
@@ -190,13 +199,26 @@ export class InputField implements ControlValueAccessor {
     }
 
     if (this.type === 'phone') {
-      this.displayValue = this.formatPhone(this._phoneDigits);  // 👈 se queda bonito al salir
+      this.displayValue = this.formatPhone(this._phoneDigits);
       return;
     }
 
-    // text...
-  }
+    if (this.type === 'email') {
+      const norm = (String(this._value ?? '')).trim().toLowerCase();
+      this._value = norm;
+      this.onChange(norm);
+      this.displayValue = norm;
+      this.applyEmailError(norm);
+      return;
+    }
 
+    if (this.type === 'text') {
+      const norm = normalizeTextOnBlur(String(this._value ?? ''));
+      this._value = norm;
+      this.onChange(norm);
+      this.displayValue = norm;
+    }
+  }
 
   onKeyDown(event: KeyboardEvent) {
     if (this.allowShortcut(event)) return;
@@ -214,6 +236,7 @@ export class InputField implements ControlValueAccessor {
       this.keyguardPhone(event);
       return;
     }
+    // email/text: dejamos pasar (necesitan letras, @, etc.)
   }
 
   clear() {
@@ -229,6 +252,15 @@ export class InputField implements ControlValueAccessor {
       this._value = '';
       this.onChange('');
       this.displayValue = '';
+      this.applyPhoneError('');
+      return;
+    }
+
+    if (this.type === 'email') {
+      this._value = '';
+      this.onChange('');
+      this.displayValue = '';
+      this.applyEmailError('');
       return;
     }
 
@@ -253,6 +285,7 @@ export class InputField implements ControlValueAccessor {
     if (errors['min']) return 'El valor es muy pequeño';
     if (errors['max']) return 'El valor es muy grande';
     if (errors['phoneLength']) return `Debe contener ${this.phoneLength} dígitos`;
+    if (errors['email']) return 'Correo electrónico inválido';
     return this.errorMessage;
   }
 
@@ -316,13 +349,11 @@ export class InputField implements ControlValueAccessor {
   }
 
   private handleInputPhone(v: string) {
-    // solo dígitos, máximo phoneLength
     const digits = (v ?? '').replace(/\D/g, '').slice(0, this.phoneLength);
 
     this._phoneDigits = digits;
-    this.displayValue = this.formatPhone(digits);   // 👈 mostramos con espacios
+    this.displayValue = this.formatPhone(digits);
 
-    // Valor real que se emite al form
     const full = digits ? `${this.phonePrefix}${digits}` : '';
     this._value = full;
     this.onChange(full);
@@ -330,6 +361,13 @@ export class InputField implements ControlValueAccessor {
     this.applyPhoneError(digits);
   }
 
+  private handleInputEmail(v: string) {
+    const clean = (v ?? '').trim().toLowerCase();
+    this._value = clean;
+    this.displayValue = clean;
+    this.onChange(clean);
+    this.applyEmailError(clean);
+  }
 
   // ======= Keyguards =======
   private keyguardNumber(event: KeyboardEvent) {
@@ -429,7 +467,7 @@ export class InputField implements ControlValueAccessor {
     })}`;
   }
 
-  // ======= Helpers phone =======
+  // ======= Helpers phone/email =======
   private applyPhoneError(cleanDigits: string): void {
     const control = this.ngControl?.control;
     if (!control) return;
@@ -447,19 +485,37 @@ export class InputField implements ControlValueAccessor {
 
     if (!clean) return '';
 
-    // <= 3 dígitos: solo lo que lleve
     if (clean.length <= 3) {
       return clean;
     }
 
-    // 4 a 6 dígitos: 668 3 / 668 39 / 668 397
     if (clean.length <= 6) {
       return `${clean.slice(0, 3)} ${clean.slice(3)}`;
     }
 
-    // 7 a 10 dígitos: 668 397 6547 (3-3-4)
     return `${clean.slice(0, 3)} ${clean.slice(3, 6)} ${clean.slice(6)}`;
   }
 
+  private applyEmailError(value: string): void {
+    const control = this.ngControl?.control;
+    if (!control) return;
 
+    const current = { ...(control.errors || {}) };
+
+    const trimmed = value.trim();
+    if (trimmed && !this.isValidEmail(trimmed)) {
+      current['email'] = true;
+    } else {
+      delete current['email'];
+    }
+
+    control.setErrors(Object.keys(current).length ? current : null);
+  }
+
+  private isValidEmail(value: string): boolean {
+    const email = value.trim();
+    if (!email) return true; // vacío: que lo maneje 'required'
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
 }

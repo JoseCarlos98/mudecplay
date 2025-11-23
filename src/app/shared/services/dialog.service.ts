@@ -8,8 +8,8 @@ export class DialogService {
 
   /** Tamaños predefinidos */
   private readonly sizes = {
-    small: { width: '350px', maxWidth: '95vw' },
-    medium: { width: '700px', maxWidth: '90vw' },
+    small: { width: '650px', maxWidth: '95vw' },
+    medium: { width: '850px', maxWidth: '90vw' },
     large: { width: '80vw', maxWidth: '1200px' },
   };
 

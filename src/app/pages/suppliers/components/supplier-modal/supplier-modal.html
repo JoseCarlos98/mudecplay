@@ -29,12 +29,12 @@
 
             <div class="md:col-span-1">
              <app-input-field
-  formControlName="phone"
-  label="Teléfono"
-  type="phone"
-  [phonePrefix]="'+52'"
-  [phoneLength]="10">
-</app-input-field>
+                formControlName="phone"
+                label="Teléfono"
+                type="phone"
+                [phonePrefix]="'+52'"
+                [phoneLength]="10">
+            </app-input-field>
 
             </div>
 
@@ -42,7 +42,7 @@
                 <app-input-field 
                     formControlName="email" 
                     label="Correo" 
-                    type="text">  //agregar metodo email 
+                    type="email"> 
                 </app-input-field>
             </div>
 
@@ -58,7 +58,7 @@
                 <app-input-field 
                     formControlName="days_credit" 
                     label="Días de credito" 
-                    type="text">
+                    type="number">
                 </app-input-field>
             </div>
           

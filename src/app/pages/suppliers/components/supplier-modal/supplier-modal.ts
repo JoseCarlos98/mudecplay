@@ -44,9 +44,7 @@ export class SupplierModal implements OnInit {
     company_name: this.fb.control<string | null>(null),
     area_id: this.fb.control<number | null>(null, { validators: Validators.required }),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
-    email: this.fb.control<string | null>(null, {
-      validators: [Validators.required, Validators.email]
-    }),
+    email: this.fb.control<string | null>(null, { validators: Validators.required }),
     address: this.fb.control<string | null>(null),
     days_credit: this.fb.control<number | null>(null, {
       validators: [Validators.min(0)]
