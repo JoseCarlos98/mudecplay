@@ -25,7 +25,7 @@
         [attr.autocomplete]="autoComplete"
         [attr.autocapitalize]="autoCapitalize"
         [attr.pattern]="pattern"
-        [attr.maxlength]="type === 'phone' ? 10 : null"
+        [attr.maxlength]="type === 'phone' ? null : 255" 
       />
 
       @if (displayValue) {
