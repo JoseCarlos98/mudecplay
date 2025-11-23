@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { normalizeMoney, normalizeTextOnBlur } from '../../helpers/general-helpers';
 
-type InputKind = 'text' | 'number' | 'money';
+type InputKind = 'text' | 'number' | 'money' | 'phone';
 
 @Component({
   selector: 'app-input-field',
@@ -31,6 +31,10 @@ export class InputField implements ControlValueAccessor {
   @Input() prefix: string = '$';
   @Input() decimals: number = 2;
   @Input() numberDecimals?: number;
+
+  // PHONE
+  @Input() phonePrefix: string = '+52';
+  @Input() phoneLength: number = 10;
 
   /** Opcionales útiles */
   @Input() allowNegative: boolean = false;
@@ -60,6 +64,7 @@ export class InputField implements ControlValueAccessor {
   get inputMode(): 'decimal' | 'numeric' | undefined {
     if (this.type === 'money') return 'decimal';
     if (this.type === 'number') return this.maxNumDecimals ? 'decimal' : 'numeric';
+    if (this.type === 'phone') return 'numeric';
     return undefined;
   }
 
@@ -73,6 +78,10 @@ export class InputField implements ControlValueAccessor {
       const core = this.maxNumDecimals ? '[0-9]*[.,]?[0-9]*' : '\\d*';
       return this.allowNegative ? `^-?${core}$` : `^${core}$`;
     }
+    if (this.type === 'phone') {
+      // hasta phoneLength dígitos
+      return `\\d{0,${this.phoneLength}}`;
+    }
     return null;
   }
 
@@ -85,6 +94,7 @@ export class InputField implements ControlValueAccessor {
         const zeros = '0'.repeat(this.maxNumDecimals);
         return `0.${zeros}`;
       }
+      case 'phone': return '0000000000';
       default: return 'Ingrese texto';
     }
   }
@@ -116,6 +126,8 @@ export class InputField implements ControlValueAccessor {
       this.handleInputMoney(raw);
     } else if (this.type === 'number') {
       this.handleInputNumber(raw);
+    } else if (this.type === 'phone') {
+      this.handleInputPhone(raw);
     } else {
       this.handleInputText(raw);
     }
@@ -123,11 +135,10 @@ export class InputField implements ControlValueAccessor {
 
   onFocus() {
     this.isFocused = true;
+
     if (this.type === 'money') {
-      // money: mostrar el valor crudo (sin formato)
       this.displayValue = this._value !== null ? String(this._value) : '';
     } else {
-      // number/text
       this.displayValue = this._value !== null ? String(this._value) : '';
     }
   }
@@ -142,11 +153,16 @@ export class InputField implements ControlValueAccessor {
     }
 
     if (this.type === 'number') {
-      // Normaliza definitivamente y muestra limpio
       const normalized = this.normalizeNumber(String(this._value ?? ''));
       this._value = normalized;
       this.onChange(normalized);
       this.displayValue = normalized === null ? '' : String(normalized);
+      return;
+    }
+
+    if (this.type === 'phone') {
+      // aquí podrías hacer algún formateo futuro (XXX-XXX-XXXX), por ahora lo dejamos tal cual
+      this.displayValue = this._value ? String(this._value) : '';
       return;
     }
 
@@ -168,6 +184,10 @@ export class InputField implements ControlValueAccessor {
     }
     if (this.type === 'money') {
       this.keyguardMoney(event);
+      return;
+    }
+    if (this.type === 'phone') {
+      this.keyguardPhone(event);
       return;
     }
   }
@@ -251,6 +271,8 @@ export class InputField implements ControlValueAccessor {
     this.onChange(this._value);
   }
 
+
+
   private handleInputMoney(v: string) {
     let s = v.replace(/\s+/g, '').replace(/,/g, '.');
     s = s.replace(/[^0-9.]/g, '');
@@ -265,6 +287,16 @@ export class InputField implements ControlValueAccessor {
     this.displayValue = s;
     this.onChange(this._value);
   }
+
+  private handleInputPhone(v: string) {
+    // solo dígitos, máximo phoneLength
+    const digits = (v ?? '').replace(/\D/g, '').slice(0, this.phoneLength);
+
+    this._value = digits;
+    this.displayValue = digits;
+    this.onChange(digits);
+  }
+
 
   // ======= Keyguards =======
   private keyguardNumber(event: KeyboardEvent) {
@@ -334,6 +366,13 @@ export class InputField implements ControlValueAccessor {
 
   private allowShortcut(e: KeyboardEvent) {
     return (e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase());
+  }
+
+  private keyguardPhone(event: KeyboardEvent) {
+    const key = event.key;
+    const isDigit = key >= '0' && key <= '9';
+    if (isDigit) return;
+    event.preventDefault();
   }
 
   // ======= Normalizadores / Formateadores =======

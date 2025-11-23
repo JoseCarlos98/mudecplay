@@ -34,6 +34,7 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../suppliers/interfaces/supplier-interfaces';
 import { SupplierService } from './services/supplier.service';
+import { SupplierModal } from './components/supplier-modal/supplier-modal';
 
 // Componentes propios
 
@@ -196,11 +197,11 @@ export class Suppliers {
     this.saveFiltersToStorage(uiState);
 
     // Disparamos la carga
-    this.loadExpenses();
+    this.loadSupplier();
   }
 
 
-  loadExpenses(): void {
+  loadSupplier(): void {
     this.supplierService.getSuppliers(this.filters).subscribe({
       next: (response: PaginatedResponse<entity.SupplierResponseDto>) => {
         this.expensesTableData = response;
@@ -218,7 +219,7 @@ export class Suppliers {
 
     // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
-    this.loadExpenses();
+    this.loadSupplier();
   }
 
   // ==========================
@@ -227,7 +228,7 @@ export class Suppliers {
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
-        this.router.navigateByUrl('/gastos/nuevo');
+        this.supplierModal();
         break;
       case 'upload':
         console.log('upload');
@@ -274,7 +275,7 @@ export class Suppliers {
         if (!confirmed) return;
 
         // this.expenseService.remove(expense.id).subscribe({
-        //   next: () => this.loadExpenses(),
+        //   next: () => this.loadSupplier(),
         //   error: (err) => console.error('Error al eliminar gasto:', err),
         // });
       });
@@ -317,19 +318,19 @@ export class Suppliers {
 
     // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
-    this.loadExpenses();
+    this.loadSupplier();
   }
 
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  expenseModal(expense?: any): void {
-    // this.dialogService
-    //   .open(ExpenseModal, expense ? expense : null, 'medium')
-    //   .afterClosed()
-    //   .subscribe((result) => {
-    //     if (result) this.loadExpenses();
-    //   });
+  supplierModal(supplier?: any): void {
+    this.dialogService
+      .open(SupplierModal, supplier ? supplier : null, 'medium')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.loadSupplier();
+      });
   }
 
   // ==========================
@@ -360,7 +361,7 @@ export class Suppliers {
     this.filters = this.buildBackendFiltersFromUi(saved);
 
     // 3) Cargar tabla con esos filtros
-    this.loadExpenses();
+    this.loadSupplier();
   }
 
   /**

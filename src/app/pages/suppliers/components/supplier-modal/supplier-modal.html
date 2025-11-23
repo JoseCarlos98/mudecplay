@@ -1,0 +1,80 @@
+<div class="c-modal">
+    <app-module-header [title]="this.data?.id ? 'Editar Proveedor' : 'Registrar Proveedor'" [config]="headerConfig"
+        (action)="closeModal()">
+    </app-module-header>
+
+    <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="name" 
+                    label="Nombre comercial" 
+                    type="text">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="company_name" 
+                    label="Razon Sócial" 
+                    type="text">
+                </app-input-field>
+            </div>
+
+            <app-input-select 
+                formControlName="area_id" 
+                label="Área" 
+                [options]="catalogArea">
+            </app-input-select>
+
+            <div class="md:col-span-1">
+             <app-input-field
+  formControlName="phone"
+  label="Teléfono"
+  type="phone"
+  [phonePrefix]="'+52'"
+  [phoneLength]="10">
+</app-input-field>
+
+            </div>
+
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="email" 
+                    label="Correo" 
+                    type="text">  //agregar metodo email 
+                </app-input-field>
+            </div>
+
+             <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="address" 
+                    label="Domicilio" 
+                    type="text">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="days_credit" 
+                    label="Días de credito" 
+                    type="text">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="contact_name" 
+                    label="Nombre de contacto" 
+                    type="text">
+                </app-input-field>
+            </div>
+
+            <div class="md:col-span-1 mt-6 flex justify-center">
+                <mat-slide-toggle color="primary" class="input-toggle" formControlName="will_invoice"> <p>¿Factura?</p> </mat-slide-toggle>
+            </div>
+
+        </div>
+    </form>
+    <app-btns-section [form]="true" [saveDisabled]="!form.valid"></app-btns-section>
+</div>

@@ -1,6 +1,6 @@
 .c-input-field {
     position: relative;
-    height: 65px!important;
+    height: 65px !important;
     margin-bottom: 15px;
 
     button {
@@ -8,4 +8,12 @@
             margin-right: 13px;
         }
     }
+
+    .phone-prefix {
+        color: var(--color-third); // mismo azul del proyecto
+        font-weight: 500;
+        font-size: 13px;
+        margin-left: 8px;
+    }
+
 }

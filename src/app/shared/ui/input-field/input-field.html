@@ -6,6 +6,11 @@
     </p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
+    <!-- prefijo solo si es phone -->
+      @if (type === 'phone') {
+        <span matPrefix class="phone-prefix">{{ phonePrefix }}</span>
+      }
+ 
       <input
         matInput
         type="text"
@@ -20,6 +25,7 @@
         [attr.autocomplete]="autoComplete"
         [attr.autocapitalize]="autoCapitalize"
         [attr.pattern]="pattern"
+        [attr.maxlength]="type === 'phone' ? 10 : null"
       />
 
       @if (displayValue) {
