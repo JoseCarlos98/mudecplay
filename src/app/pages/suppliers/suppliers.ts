@@ -125,9 +125,10 @@ export class Suppliers {
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     suppliersIds: this.fb.control<number[]>([]),
+    areas: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
-    area_id: this.fb.control<string | number>(1),
+    // area_id: this.fb.control<string | number>([]),
   });
 
 
@@ -164,8 +165,9 @@ export class Suppliers {
       page: ui.page,
       limit: ui.limit,
       suppliersIds: ui.suppliersIds ?? [],
-      area_id: ui.area_id ?? null,
+      areas: ui.areas ?? null,
       email: ui.email?.trim() || '', 
+      phone: ui.phone?.trim() || '', 
     };
   }
 
@@ -178,22 +180,23 @@ export class Suppliers {
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.SupplierUiFilters = {
       suppliersIds: value.suppliersIds ?? [],
-      area_id: value.area_id ?? null,
+      areas: value.areas ?? [],
       email: value.email?.trim() || '',
+      phone: value.phone?.trim() || '',
       page: 1,
       limit: this.filters.limit,
     };
 
     console.log(uiState);
     
-  //   // Mapeamos a filtros de backend usando el helper
-  //   this.filters = this.buildBackendFiltersFromUi(uiState);
+    // Mapeamos a filtros de backend usando el helper
+    this.filters = this.buildBackendFiltersFromUi(uiState);
 
-  //   // Guardamos el estado de UI para persistir filtros
-  //   this.saveFiltersToStorage(uiState);
+    // Guardamos el estado de UI para persistir filtros
+    this.saveFiltersToStorage(uiState);
 
-  //   // Disparamos la carga
-  //   this.loadExpenses();
+    // Disparamos la carga
+    this.loadExpenses();
   }
 
 
@@ -284,10 +287,10 @@ export class Suppliers {
     const form = this.formFilters.getRawValue();
 
     const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-    const hasArea = form.area_id !== '';
+    const hasAreas = (form.suppliersIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
 
-    return hasSuppliers || hasArea || hasEmail;
+    return hasSuppliers || hasAreas || hasEmail;
   }
 
   clearAllAndSearch(): void {
@@ -295,8 +298,9 @@ export class Suppliers {
     this.formFilters.reset(
       {
         suppliersIds: [],
-        area_id: '',
+        areas: [],
         email: '',
+        phone: '',
       },
       { emitEvent: false },
     );
@@ -306,8 +310,9 @@ export class Suppliers {
       page: 1,
       limit: this.filters.limit,
       suppliersIds: [],
-      area_id: null,
+      areas: [],
       email: '',
+      phone: '',
     }
 
     // Limpia storage para este módulo
@@ -344,8 +349,9 @@ export class Suppliers {
     this.formFilters.patchValue(
       {
         suppliersIds: saved.suppliersIds,
-        area_id: saved.area_id,
+        areas: saved.areas,
         email: saved.email,
+        phone: saved.phone,
       },
       { emitEvent: false },
     );
@@ -368,8 +374,9 @@ export class Suppliers {
 
       state = {
         suppliersIds: value.suppliersIds ?? [],
-        area_id: value.area_id ?? null,
+        areas: value.areas ?? [],
         email: value.email?.trim() || '',
+        phone: value.phone?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
       };

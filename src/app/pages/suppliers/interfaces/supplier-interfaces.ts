@@ -2,9 +2,10 @@ import { Catalog } from "../../../shared/interfaces/general-interfaces";
 import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
 export interface FiltersSupplier {
+  phone?: string | '';
   email?: string | '';
   suppliersIds?: number[] | null;
-  area_id?: number | string | null;
+  areas?: number[] | null;
   limit: number;
   page: number;
 }
@@ -68,8 +69,9 @@ export interface SupplierDetail {
 
 export interface SupplierUiFilters {
   suppliersIds: number[];
-  area_id: string | number | null;
+  areas: number[];
   email: string;
+  phone: string;
   page: number;
   limit: number;
 }

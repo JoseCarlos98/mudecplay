@@ -18,19 +18,22 @@ export class SupplierService {
     const url = `${this.apiUrl}`;
     let params = new HttpParams();
 
-    // if (filters) {
-    //   params = setScalar(params, 'page', filters.page);
-    //   params = setScalar(params, 'limit', filters.limit);
-    //   params = setScalar(params, 'startDate', filters.startDate);
-    //   params = setScalar(params, 'endDate', filters.endDate);
-    //   params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
-    //   params = appendArray(params, 'projectIds', filters.projectIds ?? []);
-    //   params = setScalar(params, 'statusId', filters.status_id);
-    //   params = setScalar(params, 'concept', filters.concept?.trim());
-    // }
+    console.log(filters);
+    
+    if (filters) {
+      params = setScalar(params, 'page', filters.page);
+      params = setScalar(params, 'limit', filters.limit);
+      params = appendArray(params, 'suppliersIds', filters.suppliersIds ?? []);
+      params = appendArray(params, 'areas', filters.areas ?? []);
+      params = setScalar(params, 'email', filters.email?.trim());
+      params = setScalar(params, 'phone', filters.phone?.trim());
+    }
 
-    return this.http.get<PaginatedResponse<entity.SupplierResponseDto>>(url);
-    // return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });
+    // return this.http.get<PaginatedResponse<entity.SupplierResponseDto>>(url);
+
+    console.log(params);
+    
+    return this.http.get<PaginatedResponse<any>>(url, { params });
   }
 
   getById(id: number): Observable<entity.SupplierDetail> {
