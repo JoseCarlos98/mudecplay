@@ -32,9 +32,9 @@ export class InputField implements ControlValueAccessor {
   @Input() decimals: number = 2;
   @Input() numberDecimals?: number;
 
-  // PHONE
-  @Input() phonePrefix: string = '+52';
-  @Input() phoneLength: number = 10;
+  /** PHONE */
+  @Input() phonePrefix: string = '+52';   // se usará para emitir: +52 + digits
+  @Input() phoneLength: number = 10;      // dígitos sin contar el prefijo
 
   /** Opcionales útiles */
   @Input() allowNegative: boolean = false;
@@ -42,7 +42,8 @@ export class InputField implements ControlValueAccessor {
   @Input() showError: boolean = false;
 
   /** Estado interno */
-  private _value: string | number | null = null;
+  private _value: string | number | null = null; // money/number/text o string completo phone (+52xxxxx)
+  private _phoneDigits: string = '';             // SOLO dígitos del teléfono sin prefijo
   private isFocused: boolean = false;
   disabled: boolean = false;
   displayValue: string = '';
@@ -79,8 +80,8 @@ export class InputField implements ControlValueAccessor {
       return this.allowNegative ? `^-?${core}$` : `^${core}$`;
     }
     if (this.type === 'phone') {
-      // hasta phoneLength dígitos
-      return `\\d{0,${this.phoneLength}}`;
+      // solo dígitos; el límite real lo controla maxlength
+      return '\\d*';
     }
     return null;
   }
@@ -101,15 +102,35 @@ export class InputField implements ControlValueAccessor {
 
   // ======= CVA =======
   writeValue(value: any) {
+    // Se llama cuando el form setea un valor (por ejemplo al editar)
+    if (this.type === 'phone') {
+      const raw = value != null ? String(value) : '';
+      const digits = raw.replace(/\D/g, ''); // extrae todos los números
+
+      // digits puede venir con +52 adelante: "+52 668..." => "52668..."
+      const countryDigits = this.phonePrefix.replace(/\D/g, ''); // "52"
+      let phoneDigits = digits;
+
+      // Si comienza con el prefijo y sobran dígitos, recortamos
+      if (countryDigits && digits.startsWith(countryDigits) && digits.length > this.phoneLength) {
+        phoneDigits = digits.slice(countryDigits.length);
+      }
+
+      phoneDigits = phoneDigits.slice(-this.phoneLength);
+
+      this._phoneDigits = phoneDigits;
+      this._value = raw; 
+      this.displayValue = phoneDigits;
+      return;
+    }
+
     this._value = value;
 
     if (this.type === 'money') {
-      // money: muestra crudo en foco, formateado fuera de foco
       this.displayValue = this.isFocused ? (value ?? '') : this.formatMoney(value);
       return;
     }
 
-    // number/text: mostrar “tal cual” lo que hay
     this.displayValue = value !== null && value !== undefined ? String(value) : '';
   }
 
@@ -117,7 +138,7 @@ export class InputField implements ControlValueAccessor {
   registerOnTouched(fn: any) { this.onTouched = fn; }
   setDisabledState(isDisabled: boolean) { this.disabled = isDisabled; }
 
-  // ======= Eventos (routing por tipo para legibilidad) =======
+  // ======= Eventos =======
   onInput(event: Event) {
     const input = event.target as HTMLInputElement;
     const raw = input.value ?? '';
@@ -135,12 +156,15 @@ export class InputField implements ControlValueAccessor {
 
   onFocus() {
     this.isFocused = true;
-
     if (this.type === 'money') {
       this.displayValue = this._value !== null ? String(this._value) : '';
-    } else {
-      this.displayValue = this._value !== null ? String(this._value) : '';
+      return;
     }
+    if (this.type === 'phone') {
+      this.displayValue = this._phoneDigits;
+      return;
+    }
+    this.displayValue = this._value !== null ? String(this._value) : '';
   }
 
   onBlur() {
@@ -161,8 +185,8 @@ export class InputField implements ControlValueAccessor {
     }
 
     if (this.type === 'phone') {
-      // aquí podrías hacer algún formateo futuro (XXX-XXX-XXXX), por ahora lo dejamos tal cual
-      this.displayValue = this._value ? String(this._value) : '';
+      // Solo reafirma los dígitos limpios
+      this.displayValue = this._phoneDigits;
       return;
     }
 
@@ -193,13 +217,21 @@ export class InputField implements ControlValueAccessor {
   }
 
   clear() {
-    // Limpia según tipo y propaga
     if (this.type === 'money' || this.type === 'number') {
       this._value = null;
       this.onChange(null);
       this.displayValue = '';
       return;
     }
+
+    if (this.type === 'phone') {
+      this._phoneDigits = '';
+      this._value = '';
+      this.onChange('');
+      this.displayValue = '';
+      return;
+    }
+
     this._value = '';
     this.onChange('');
     this.displayValue = '';
@@ -220,6 +252,7 @@ export class InputField implements ControlValueAccessor {
     if (errors['blank']) return 'No se permiten solo espacios';
     if (errors['min']) return 'El valor es muy pequeño';
     if (errors['max']) return 'El valor es muy grande';
+    if (errors['phoneLength']) return `Debe contener ${this.phoneLength} dígitos`;
     return this.errorMessage;
   }
 
@@ -241,22 +274,18 @@ export class InputField implements ControlValueAccessor {
   private handleInputNumber(v: string) {
     let s = (v ?? '').replace(/\s+/g, '').replace(/,/g, '.');
 
-    // signo
     if (this.allowNegative) {
-      // conserva solo un '-' y solo al inicio
       s = s.replace(/-/g, '');
       if (v.trim().startsWith('-')) s = '-' + s;
     } else {
       s = s.replace(/-/g, '');
     }
 
-    // dígitos + punto
     s = s.replace(/[^0-9.\-]/g, '');
 
     if (!this.maxNumDecimals) {
-      s = s.replace(/\./g, ''); // enteros
+      s = s.replace(/\./g, '');
     } else {
-      // solo un punto y recortar decimales
       const firstDot = s.indexOf('.');
       if (firstDot !== -1) {
         const before = s.slice(0, firstDot + 1);
@@ -270,8 +299,6 @@ export class InputField implements ControlValueAccessor {
     this.displayValue = s;
     this.onChange(this._value);
   }
-
-
 
   private handleInputMoney(v: string) {
     let s = v.replace(/\s+/g, '').replace(/,/g, '.');
@@ -289,14 +316,19 @@ export class InputField implements ControlValueAccessor {
   }
 
   private handleInputPhone(v: string) {
-    // solo dígitos, máximo phoneLength
-    const digits = (v ?? '').replace(/\D/g, '').slice(0, this.phoneLength);
+    // Solo dígitos, máximo phoneLength
+    let digits = (v ?? '').replace(/\D/g, '').slice(0, this.phoneLength);
 
-    this._value = digits;
+    this._phoneDigits = digits;
     this.displayValue = digits;
-    this.onChange(digits);
-  }
 
+    // Valor que se emite al form: +52 + 10 dígitos
+    const full = digits ? `${this.phonePrefix}${digits}` : '';
+    this._value = full;
+    this.onChange(full);
+
+    this.applyPhoneError(digits);
+  }
 
   // ======= Keyguards =======
   private keyguardNumber(event: KeyboardEvent) {
@@ -325,26 +357,22 @@ export class InputField implements ControlValueAccessor {
       return;
     }
 
-    // separador decimal
     if (this.maxNumDecimals && (key === '.' || key === ',')) {
       const v = input.value;
-      if (!/[.,]/.test(v)) return; // primer separador ok
+      if (!/[.,]/.test(v)) return;
       event.preventDefault();
       return;
     }
 
-    // signo negativo
     if (this.allowNegative && key === '-') {
       const v = input.value;
       const caret = input.selectionStart ?? 0;
       const alreadyHas = v.includes('-');
-      // permitir solo si caret al inicio y no existe
       if (!alreadyHas && caret === 0) return;
       event.preventDefault();
       return;
     }
 
-    // otro: bloquear
     event.preventDefault();
   }
 
@@ -360,19 +388,20 @@ export class InputField implements ControlValueAccessor {
     event.preventDefault();
   }
 
+  private keyguardPhone(event: KeyboardEvent) {
+    const key = event.key;
+    const isDigit = key >= '0' && key <= '9';
+    if (isDigit) return;
+    if (this.isControlKey(event) || this.allowShortcut(event)) return;
+    event.preventDefault();
+  }
+
   private isControlKey(e: KeyboardEvent) {
     return ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key);
   }
 
   private allowShortcut(e: KeyboardEvent) {
     return (e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase());
-  }
-
-  private keyguardPhone(event: KeyboardEvent) {
-    const key = event.key;
-    const isDigit = key >= '0' && key <= '9';
-    if (isDigit) return;
-    event.preventDefault();
   }
 
   // ======= Normalizadores / Formateadores =======
@@ -397,5 +426,18 @@ export class InputField implements ControlValueAccessor {
       minimumFractionDigits: this.decimals,
       maximumFractionDigits: this.decimals,
     })}`;
+  }
+
+  // ======= Helpers phone =======
+  private applyPhoneError(cleanDigits: string): void {
+    const control = this.ngControl?.control;
+    if (!control) return;
+
+    const current = { ...(control.errors || {}) };
+
+    if (cleanDigits && cleanDigits.length !== this.phoneLength) current['phoneLength'] = true;
+     else delete current['phoneLength'];
+
+    control.setErrors(Object.keys(current).length ? current : null);
   }
 }
