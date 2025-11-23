@@ -107,16 +107,17 @@ export class InputField implements ControlValueAccessor {
     // PHONE
     if (this.type === 'phone') {
       const raw = value != null ? String(value) : '';
-      const digits = raw.replace(/\D/g, ''); // "+52 668..." => "52668..."
+      const digits = raw.replace(/\D/g, ''); 
 
       const countryDigits = this.phonePrefix.replace(/\D/g, ''); // "52"
       let phoneDigits = digits;
 
-      if (countryDigits && digits.startsWith(countryDigits) && digits.length > this.phoneLength) {
+      // 👇 SIEMPRE que empiece con el prefijo, lo quitamos
+      if (countryDigits && digits.startsWith(countryDigits)) {
         phoneDigits = digits.slice(countryDigits.length);
       }
 
-      // seguridad: últimos N dígitos
+      // Seguridad: quedarnos solo con N dígitos (e.g. 10)
       phoneDigits = phoneDigits.slice(-this.phoneLength);
 
       this._phoneDigits = phoneDigits;
