@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
@@ -27,21 +27,20 @@ import { MenuItems } from './models/siderbar-models';
   styleUrl: './sidebar.scss',
 })
 export class Sidebar {
-  // Menú principal
+
+  readonly panelOpenState = signal(false);
+
   menuItems: MenuItems[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos' },
+
+    // Grupo de Catálogos (no tiene route, solo children)
+    {
+      name: 'Catálogos',
+      icon: '', // no lo usamos, pero mantenemos la interfaz
+      children: [
+        { name: 'Proveedores', icon: 'store', route: '/catalogos/proveedores' },
+        { name: 'Proyectos', icon: 'work', route: '/catalogos/proyectos' },
+      ],
+    },
   ];
-
-  // Menú de catálogos
-  catalogItems: MenuItems[] = [
-    { name: 'Proveedores', icon: '', route: '/proveedores' },
-    { name: 'Proyectos', icon: '', route: '/proyectos' },
-  ];
-
-  // Estado de despliegue de catálogos
-  catalogsOpen = false;
-
-  toggleCatalogs(): void {
-    this.catalogsOpen = !this.catalogsOpen;
-  }
 }

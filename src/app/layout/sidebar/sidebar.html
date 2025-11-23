@@ -1,5 +1,4 @@
 <aside class="c-sidebar h-screen flex flex-col w-16 hover:w-60 transition-all duration-300 shadow-lg relative group">
-  <!-- HEADER LOGO -->
   <div class="c-sidebar-header border-bottom-gray flex items-center gap-3 p-4">
     <mat-icon class="color-secundary">business</mat-icon>
     <span
@@ -9,42 +8,56 @@
   </div>
 
   <nav class="flex-1 mt-4">
-    <!-- ITEM PRINCIPAL -->
-    <a [routerLink]="'/gastos'" routerLinkActive="menu-selected" class="c-card-menu flex items-center gap-4 px-4 py-3">
-      <mat-icon class="color-primary">attach_money</mat-icon>
-      <span>Gastos</span>
-    </a>
+    @for (item of menuItems; track item.name) {
 
-    <!-- SECCIÓN CATÁLOGOS -->
-    <button type="button" class="c-section-toggle " (click)="catalogsOpen = !catalogsOpen">
-      <mat-icon class="c-section-toggle-icon">category</mat-icon>
-
-      <span class="c-section-toggle-label opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        CATÁLOGOS
+    @if (!item.children?.length) {
+    <!-- Item normal (Gastos) -->
+    <a [routerLink]="item.route" routerLinkActive="menu-selected"
+      class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800 rounded-md cursor-pointer">
+      <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
+      <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+        {{ item.name }}
       </span>
+    </a>
+    } @else {
+    <!-- Sección (Catálogos) -->
+    <div class="menu-section mt-3">
+      <!-- Label tipo <span>, solo texto -->
 
-      <mat-icon class="c-section-chevron opacity-0 group-hover:opacity-100 transition-opacity duration-50" [class.open]="catalogsOpen">
-        expand_more
-      </mat-icon>
-    </button>
+      <div class="menu-section-children">
+        <mat-expansion-panel (opened)="panelOpenState.set(true)" (closed)="panelOpenState.set(false)">
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <span
+                class="menu-section-label opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                {{ item.name }}
+              </span>
+            </mat-panel-title>
 
-    <!-- HIJOS CATÁLOGOS -->
-    <div class="c-section-children " [class.open]="catalogsOpen">
-      <a [routerLink]="'/proveedores'" routerLinkActive="menu-selected" class="c-section-child opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span class="c-section-child-bar"></span>
-        <span>Proveedores</span>
-      </a>
+          </mat-expansion-panel-header>
 
-      <a [routerLink]="'/proyectos'" routerLinkActive="menu-selected" class="c-section-child opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span class="c-section-child-bar"></span>
-        <span>Proyectos</span>
-      </a>
+          @for (child of item.children; track child.name) {
+          <a [routerLink]="child.route" routerLinkActive="menu-selected"
+            class="transition-colors duration-100 c-card-menu c-card-menu-child flex items-center gap-4 px-4 py-2 hover:bg-gray-800 rounded-md cursor-pointer">
+            <mat-icon
+              class="color-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{{
+              child.icon }}</mat-icon>
+            <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+              {{ child.name }}
+            </span>
+          </a>
+          }
+
+        </mat-expansion-panel>
+      </div>
     </div>
+    }
+    }
   </nav>
 
   <div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
     <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
-    <span class="color-secundary whitespace-nowrap">
+    <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
       Salir
     </span>
   </div>
