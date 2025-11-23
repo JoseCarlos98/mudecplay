@@ -27,6 +27,13 @@ export class InputField implements ControlValueAccessor {
   @Input() placeholder: string = '';
   @Input() type: InputKind = 'text';
 
+  /** MODO FILTRO
+   * Si es true:
+   *  - NO muestra errores (hasError = false)
+   *  - NO aplica errores de phone/email en el control
+   */
+  @Input() isFilter: boolean = false;
+
   /** MONEY */
   @Input() prefix: string = '$';
   @Input() decimals: number = 2;
@@ -107,17 +114,15 @@ export class InputField implements ControlValueAccessor {
     // PHONE
     if (this.type === 'phone') {
       const raw = value != null ? String(value) : '';
-      const digits = raw.replace(/\D/g, ''); 
+      const digits = raw.replace(/\D/g, ''); // "+52 668..." => "52668..."
 
       const countryDigits = this.phonePrefix.replace(/\D/g, ''); // "52"
       let phoneDigits = digits;
 
-      // 👇 SIEMPRE que empiece con el prefijo, lo quitamos
       if (countryDigits && digits.startsWith(countryDigits)) {
         phoneDigits = digits.slice(countryDigits.length);
       }
 
-      // Seguridad: quedarnos solo con N dígitos (e.g. 10)
       phoneDigits = phoneDigits.slice(-this.phoneLength);
 
       this._phoneDigits = phoneDigits;
@@ -272,6 +277,8 @@ export class InputField implements ControlValueAccessor {
 
   // ======= Errores / UI =======
   get hasError(): boolean {
+    if (this.isFilter) return false;
+
     if (!this.ngControl) return this.showError;
     const c = this.ngControl.control;
     return !!c && c.invalid && (c.touched || c.dirty);
@@ -291,6 +298,8 @@ export class InputField implements ControlValueAccessor {
   }
 
   get showRequiredMark(): boolean {
+    if (this.isFilter) return false;
+
     const control = this.ngControl?.control;
     if (!control || !control.validator) return false;
     const res = control.validator({} as any);
@@ -460,7 +469,6 @@ export class InputField implements ControlValueAccessor {
     event.preventDefault();
   }
 
-
   private isControlKey(e: KeyboardEvent) {
     return ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key);
   }
@@ -494,32 +502,32 @@ export class InputField implements ControlValueAccessor {
   }
 
   // ======= Helpers phone/email =======
-  // ======= Helpers phone/email =======
   private applyPhoneError(cleanDigits: string) {
     const control = this.ngControl?.control;
     if (!control) return;
 
-    // Detectar si el control tiene validador "required"
-    const validatorResult = control.validator ? control.validator({} as any) : null;
-    const hasRequired = !!validatorResult?.['required'];
-
     const current = { ...(control.errors || {}) };
 
-    if (hasRequired) {
-      // Solo si es requerido aplicamos la validación de longitud
-      if (cleanDigits && cleanDigits.length !== this.phoneLength) {
-        current['phoneLength'] = true;
-      } else {
+    // En filtros, limpiamos nuestro error y salimos
+    if (this.isFilter) {
+      if ('phoneLength' in current) {
         delete current['phoneLength'];
+        control.setErrors(Object.keys(current).length ? current : null);
       }
+      return;
+    }
+
+    // Si está vacío, no aplicamos phoneLength (que lo maneje required si existe)
+    if (!cleanDigits) {
+      delete current['phoneLength'];
+    } else if (cleanDigits.length !== this.phoneLength) {
+      current['phoneLength'] = true;
     } else {
-      // Si NO es requerido, nunca dejamos phoneLength como error
       delete current['phoneLength'];
     }
 
     control.setErrors(Object.keys(current).length ? current : null);
   }
-
 
   private formatPhone(digits: string): string {
     const clean = (digits || '').replace(/\D/g, '').slice(0, this.phoneLength);
@@ -542,6 +550,15 @@ export class InputField implements ControlValueAccessor {
     if (!control) return;
 
     const current = { ...(control.errors || {}) };
+
+    // En filtros nunca ponemos error de email
+    if (this.isFilter) {
+      if ('email' in current) {
+        delete current['email'];
+        control.setErrors(Object.keys(current).length ? current : null);
+      }
+      return;
+    }
 
     const trimmed = value.trim();
     if (trimmed && !this.isValidEmail(trimmed)) {
