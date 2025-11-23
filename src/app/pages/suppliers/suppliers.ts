@@ -51,9 +51,10 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'contact_name', label: 'Nombre Contacto' },
   { key: 'phone', label: 'Telefono' },
   { key: 'email', label: 'Correo' },
+  { key: 'address', label: 'Dirección' },
   { key: 'days_credit', label: 'Dias Credito' },
   { key: 'will_invoice', label: 'Factura' },
-  { key: 'area', label: 'Area', type: 'relation', path: 'name'},
+  { key: 'area', label: 'Area', type: 'relation', path: 'name' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -167,8 +168,8 @@ export class Suppliers {
       limit: ui.limit,
       suppliersIds: ui.suppliersIds ?? [],
       areasIds: ui.areasIds ?? null,
-      email: ui.email?.trim() || '', 
-      phone: ui.phone?.trim() || '', 
+      email: ui.email?.trim() || '',
+      phone: ui.phone?.trim() || '',
     };
   }
 
@@ -189,7 +190,7 @@ export class Suppliers {
     };
 
     console.log(uiState);
-    
+
     // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
 
@@ -253,7 +254,7 @@ export class Suppliers {
   onTableAction(ev: DataTableActionEvent<entity.SupplierResponseDto>): void {
     switch (ev.type) {
       case 'edit':
-        this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
+        this.supplierModal(ev.row)
         break;
 
       case 'delete':
@@ -262,22 +263,20 @@ export class Suppliers {
     }
   }
 
-  // Confirmación + delete
-  onDelete(expense: entity.SupplierResponseDto): void {
+  onDelete(supplier: entity.SupplierResponseDto): void {
     this.dialogService
       .confirm({
-        // message: `¿Quieres eliminar el gasto:\n"${expense.folio.trim()}"?`,
-        message: `¿Quieres eliminar el gasto:\n""?`,
+        message: `¿Quieres eliminar el gasto:\n"${supplier.company_name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
-        // this.expenseService.remove(expense.id).subscribe({
-        //   next: () => this.loadSupplier(),
-        //   error: (err) => console.error('Error al eliminar gasto:', err),
-        // });
+        this.supplierService.remove(supplier.id).subscribe({
+          next: () => this.loadSupplier(),
+          error: (err) => console.error('Error al eliminar gasto:', err),
+        });
       });
   }
 

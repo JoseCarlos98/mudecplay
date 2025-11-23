@@ -18,6 +18,7 @@ import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
+import { toIdForm } from '../../../../shared/helpers/general-helpers';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -31,7 +32,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './supplier-modal.scss',
 })
 export class SupplierModal implements OnInit {
-  private readonly expenseService = inject(SupplierService);
+  private readonly supplierService = inject(SupplierService);
   readonly data = inject<any>(MAT_DIALOG_DATA);
   // readonly data = inject<SupplierResponseDto>(MAT_DIALOG_DATA);
   private readonly catalogsService = inject(CatalogsService);
@@ -53,13 +54,13 @@ export class SupplierModal implements OnInit {
     will_invoice: this.fb.control<boolean>(false),
   });
 
-
-
   catalogArea: Catalog[] = [];
 
   ngOnInit(): void {
     console.log(this.data);
     this.loadCatalogs()
+
+    if (this.data?.id) this.form.patchValue({ ...this.data, area_id: this.data.area.id });
   }
 
   // ==========================
@@ -74,24 +75,6 @@ export class SupplierModal implements OnInit {
     });
   }
 
-  patchEditData() {
-    if (this.data?.id) {
-      this.form.patchValue({
-        // concept: this.data.concept,
-        // date: this.data.date,
-        // amount: this.data.amount,
-        // supplier_id: toCatalogLike(
-        //   this.data.supplier?.id ?? null,
-        //   this.data.supplier?.company_name ?? null
-        // ),
-        // project_id: toCatalogLike(
-        //   this.data.project?.id ?? null,
-        //   this.data.project?.name ?? null
-        // ),
-      });
-    }
-  }
-
   saveData() {
     console.log(this.form.value);
 
@@ -100,38 +83,27 @@ export class SupplierModal implements OnInit {
       return;
     }
 
-    const raw = this.form.value;
+    const formData = this.form.value;
 
-    const formData = {
-      ...raw,
-      // supplier_id: toIdForm(raw.supplier_id),
-      // project_id: toIdForm(raw.project_id),
-    };
+    console.log(formData);
 
-    // this.expenseService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.supplierService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {
-    const raw = this.form.value;
+    const formData = this.form.value;
 
-    // const formData: PatchExpense = {
-    //   ...raw,
-    //   date: toApiDate(raw.date),
-    //   supplier_id: toIdForm(raw.supplier_id),
-    //   project_id: toIdForm(raw.project_id),
-    // };
-
-    // this.expenseService.update(this.data.id, formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al editar gastos:', err),
-    // });
+    this.supplierService.update(this.data.id, formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al editar gastos:', err),
+    });
   }
 
   closeModal(saved?: boolean) {

@@ -10,12 +10,24 @@ export interface FiltersSupplier {
   page: number;
 }
 
+
+
 export interface SupplierResponseDto {
   id: number;
   company_name: string;
-  email: string;
+  name: string;
+  contact_name: string;
   phone: string;
-  area: Area;
+  days_credit: number;
+  will_invoice: boolean;
+  email: string;
+  address: string | null; 
+  area: Area;             
+}
+
+export interface Area {
+  id: number;
+  name: string;
 }
 
 export interface Area {
@@ -25,13 +37,15 @@ export interface Area {
 
 
 export interface CreateSupplier {
-  date: string;
-  supplier_id: number | null;
-  items: {
-    concept: string;
-    amount: number;
-    project_id: number | null;
-  }[];
+  name: string;
+  company_name?: string;
+  area_id: number;
+  phone: string;
+  email: string;
+  address?: string;
+  days_credit?: number;
+  contact_name?: string;
+  will_invoice: boolean;
 }
 
 export interface PatchSupplier {

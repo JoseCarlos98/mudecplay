@@ -29,11 +29,7 @@ export class SupplierService {
       params = setScalar(params, 'phone', filters.phone?.trim());
     }
 
-    // return this.http.get<PaginatedResponse<entity.SupplierResponseDto>>(url);
-
-    console.log(params);
-    
-    return this.http.get<PaginatedResponse<any>>(url, { params });
+    return this.http.get<PaginatedResponse<entity.SupplierResponseDto>>(url, { params });
   }
 
   getById(id: number): Observable<entity.SupplierDetail> {
