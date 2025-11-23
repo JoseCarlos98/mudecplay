@@ -5,7 +5,7 @@ export interface FiltersSupplier {
   phone?: string | '';
   email?: string | '';
   suppliersIds?: number[] | null;
-  areas?: number[] | null;
+  areasIds?: number[] | null;
   limit: number;
   page: number;
 }
@@ -69,7 +69,7 @@ export interface SupplierDetail {
 
 export interface SupplierUiFilters {
   suppliersIds: number[];
-  areas: number[];
+  areasIds: number[];
   email: string;
   phone: string;
   page: number;

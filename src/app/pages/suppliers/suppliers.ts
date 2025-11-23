@@ -125,7 +125,7 @@ export class Suppliers {
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     suppliersIds: this.fb.control<number[]>([]),
-    areas: this.fb.control<number[]>([]),
+    areasIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
     // area_id: this.fb.control<string | number>([]),
@@ -165,7 +165,7 @@ export class Suppliers {
       page: ui.page,
       limit: ui.limit,
       suppliersIds: ui.suppliersIds ?? [],
-      areas: ui.areas ?? null,
+      areasIds: ui.areasIds ?? null,
       email: ui.email?.trim() || '', 
       phone: ui.phone?.trim() || '', 
     };
@@ -180,7 +180,7 @@ export class Suppliers {
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.SupplierUiFilters = {
       suppliersIds: value.suppliersIds ?? [],
-      areas: value.areas ?? [],
+      areasIds: value.areasIds ?? [],
       email: value.email?.trim() || '',
       phone: value.phone?.trim() || '',
       page: 1,
@@ -298,7 +298,7 @@ export class Suppliers {
     this.formFilters.reset(
       {
         suppliersIds: [],
-        areas: [],
+        areasIds: [],
         email: '',
         phone: '',
       },
@@ -310,7 +310,7 @@ export class Suppliers {
       page: 1,
       limit: this.filters.limit,
       suppliersIds: [],
-      areas: [],
+      areasIds: [],
       email: '',
       phone: '',
     }
@@ -349,7 +349,7 @@ export class Suppliers {
     this.formFilters.patchValue(
       {
         suppliersIds: saved.suppliersIds,
-        areas: saved.areas,
+        areasIds: saved.areasIds,
         email: saved.email,
         phone: saved.phone,
       },
@@ -374,7 +374,7 @@ export class Suppliers {
 
       state = {
         suppliersIds: value.suppliersIds ?? [],
-        areas: value.areas ?? [],
+        areasIds: value.areasIds ?? [],
         email: value.email?.trim() || '',
         phone: value.phone?.trim() || '',
         page: this.filters.page,

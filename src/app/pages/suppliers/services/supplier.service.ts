@@ -24,7 +24,7 @@ export class SupplierService {
       params = setScalar(params, 'page', filters.page);
       params = setScalar(params, 'limit', filters.limit);
       params = appendArray(params, 'suppliersIds', filters.suppliersIds ?? []);
-      params = appendArray(params, 'areas', filters.areas ?? []);
+      params = appendArray(params, 'areasIds', filters.areasIds ?? []);
       params = setScalar(params, 'email', filters.email?.trim());
       params = setScalar(params, 'phone', filters.phone?.trim());
     }
