@@ -76,5 +76,6 @@
 
         </div>
     </form>
-    <app-btns-section [form]="true" [saveDisabled]="!form.valid"></app-btns-section>
+
+    <app-btns-section [form]="true" (action)="onBtnsSectionAction($event)" [saveDisabled]="!form.valid"></app-btns-section>
 </div>

@@ -76,16 +76,12 @@ export class SupplierModal implements OnInit {
   }
 
   saveData() {
-    console.log(this.form.value);
-
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     const formData = this.form.value;
-
-    console.log(formData);
 
     this.supplierService.create(formData).subscribe({
       next: (response) => {
@@ -104,6 +100,17 @@ export class SupplierModal implements OnInit {
       },
       error: (err) => console.error('Error al editar gastos:', err),
     });
+  }
+
+  // ==========================
+  //  ACCIONES FOOTER-FILTROS
+  // ==========================
+  onBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'cancel':
+        this.closeModal();
+        break;
+    }
   }
 
   closeModal(saved?: boolean) {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -188,8 +188,6 @@ export class Suppliers {
       limit: this.filters.limit,
     };
 
-    console.log(uiState);
-
     // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
 
@@ -231,7 +229,6 @@ export class Suppliers {
         this.supplierModal();
         break;
       case 'upload':
-        console.log('upload');
         break;
     }
   }
@@ -243,6 +240,9 @@ export class Suppliers {
     switch (action) {
       case 'search':
         this.searchWithFilters();
+        break;
+      case 'clean':
+        this.clearAllAndSearch();
         break;
     }
   }
@@ -286,10 +286,11 @@ export class Suppliers {
     const form = this.formFilters.getRawValue();
 
     const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-    const hasAreas = (form.suppliersIds?.length ?? 0) > 0;
+    const hasAreas = (form.areasIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
+    const hasPhone = !!(form.phone !== '');
 
-    return hasSuppliers || hasAreas || hasEmail;
+    return hasSuppliers || hasAreas || hasEmail || hasPhone;
   }
 
   clearAllAndSearch(): void {
@@ -336,7 +337,6 @@ export class Suppliers {
   // ==========================
   private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.SupplierUiFilters>(EXPENSES_FILTERS_KEY);
-    console.log('[DEBUG] restoreFiltersFromStorage()', saved);
 
     if (!saved) {
       // Primera vez: busca con los valores por defecto del form

@@ -241,7 +241,6 @@ export class Expenses implements OnInit {
         this.router.navigateByUrl('/gastos/nuevo');
         break;
       case 'upload':
-        console.log('upload');
         break;
     }
   }
@@ -253,6 +252,9 @@ export class Expenses implements OnInit {
     switch (action) {
       case 'search':
         this.searchWithFilters();
+        break;
+      case 'clean':
+        this.clearAllAndSearch();
         break;
     }
   }
@@ -356,7 +358,6 @@ export class Expenses implements OnInit {
   // ==========================
   private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
-    console.log('[DEBUG] restoreFiltersFromStorage()', saved);
 
     if (!saved) {
       // Primera vez: busca con los valores por defecto del form
