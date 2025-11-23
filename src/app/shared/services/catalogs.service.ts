@@ -30,4 +30,8 @@ export class CatalogsService {
   statusExpenseCatalog(): Observable<Catalog[]> {
     return this.http.get<Catalog[]>(`${this.apiUrl}/status-expense`);
   }
+ 
+  areaSuppliersCatalog(): Observable<Catalog[]> {
+    return this.http.get<Catalog[]>(`${this.apiUrl}/areas`);
+  }
 }
