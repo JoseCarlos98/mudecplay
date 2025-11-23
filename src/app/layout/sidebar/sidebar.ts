@@ -36,10 +36,10 @@ export class Sidebar {
     // Grupo de Catálogos (no tiene route, solo children)
     {
       name: 'Catálogos',
-      icon: '', // no lo usamos, pero mantenemos la interfaz
+      icon: '',
       children: [
-        { name: 'Proveedores', icon: 'store', route: '/catalogos/proveedores' },
-        { name: 'Proyectos', icon: 'work', route: '/catalogos/proyectos' },
+        { name: 'Proveedores', icon: 'store', route: 'proveedores' },
+        { name: 'Proyectos', icon: 'work', route: 'proyectos' },
       ],
     },
   ];
