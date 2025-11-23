@@ -49,8 +49,8 @@ export class InputField implements ControlValueAccessor {
   displayValue: string = '';
 
   /** CVA */
-  private onChange: (value: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (value: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) this.ngControl.valueAccessor = this;
@@ -429,11 +429,36 @@ export class InputField implements ControlValueAccessor {
 
   private keyguardPhone(event: KeyboardEvent) {
     const key = event.key;
-    const isDigit = key >= '0' && key <= '9';
-    if (isDigit) return;
+    const input = event.target as HTMLInputElement;
+
+    // Permitir teclas de control (borrar, mover cursor, etc.) y atajos
     if (this.isControlKey(event) || this.allowShortcut(event)) return;
+
+    const isDigit = key >= '0' && key <= '9';
+    if (isDigit) {
+      const raw = input.value ?? '';
+      const digits = raw.replace(/\D/g, ''); // solo dígitos actuales
+
+      const selStart = input.selectionStart ?? raw.length;
+      const selEnd = input.selectionEnd ?? raw.length;
+      const selectionLen = selEnd - selStart;
+
+      const currentLen = digits.length;
+
+      // Si NO hay selección y ya tengo phoneLength dígitos → bloqueo
+      if (selectionLen === 0 && currentLen >= this.phoneLength) {
+        event.preventDefault();
+        return;
+      }
+
+      // Si hay selección, dejamos pasar (va a reemplazar)
+      return;
+    }
+
+    // Cualquier otra tecla (letras, símbolos) se bloquea
     event.preventDefault();
   }
+
 
   private isControlKey(e: KeyboardEvent) {
     return ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab', 'Home', 'End'].includes(e.key);
