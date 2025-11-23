@@ -46,14 +46,13 @@ const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razon sócial' },
+  { key: 'name', label: 'Nombre Comercial' },
+  { key: 'contact_name', label: 'Nombre Contacto' },
   { key: 'phone', label: 'Telefono' },
   { key: 'email', label: 'Correo' },
-  {
-    key: 'area',
-    label: 'Area',
-    type: 'relation',
-    path: 'name',
-  },
+  { key: 'days_credit', label: 'Dias Credito' },
+  { key: 'will_invoice', label: 'Factura' },
+  { key: 'area', label: 'Area', type: 'relation', path: 'name'},
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -184,14 +183,16 @@ export class Suppliers {
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
-    this.filters = this.buildBackendFiltersFromUi(uiState);
+    console.log(uiState);
+    
+  //   // Mapeamos a filtros de backend usando el helper
+  //   this.filters = this.buildBackendFiltersFromUi(uiState);
 
-    // Guardamos el estado de UI para persistir filtros
-    this.saveFiltersToStorage(uiState);
+  //   // Guardamos el estado de UI para persistir filtros
+  //   this.saveFiltersToStorage(uiState);
 
-    // Disparamos la carga
-    this.loadExpenses();
+  //   // Disparamos la carga
+  //   this.loadExpenses();
   }
 
 
