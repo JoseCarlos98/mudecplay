@@ -126,6 +126,7 @@ export class Suppliers {
   formFilters = this.fb.group({
     suppliersIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
+    phone: this.fb.control<string>(''),
     area_id: this.fb.control<string | number>(1),
   });
 
