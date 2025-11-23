@@ -40,7 +40,7 @@ import { ProjectService } from './services/projects.service';
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
-const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
+const EXPENSES_FILTERS_KEY = 'mp_projects_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Proyecto' },
@@ -241,6 +241,9 @@ export class Projects {
       case 'search':
         this.searchWithFilters();
         break;
+      case 'clean':
+        this.clearAllAndSearch();
+        break;
     }
   }
 
@@ -336,7 +339,6 @@ export class Projects {
   // ==========================
   private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.ProjectUiFilters>(EXPENSES_FILTERS_KEY);
-    console.log('[DEBUG] restoreFiltersFromStorage()', saved);
 
     if (!saved) {
       // Primera vez: busca con los valores por defecto del form
