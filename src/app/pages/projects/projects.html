@@ -1,1 +1,33 @@
-<p>projects works!</p>
+<div class="card-content shadow-md">
+    <app-module-header title="Proyectos" [config]="headerConfig" (action)="onHeaderAction($event)">
+    </app-module-header>
+
+    <form [formGroup]="formFilters">
+        <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+            <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+                catalogType="supplier">
+            </app-autocomplete-multiple>
+
+            <app-input-select [multiple]="true" formControlName="area_id" label="Área" [options]="catalogAreaSuppliers">
+            </app-input-select>
+
+            <app-input-field formControlName="email" label="Correo" type="text">
+            </app-input-field>
+
+            <app-btns-section [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+            </app-btns-section>
+        </div>
+    </form>
+</div>
+
+@if (expensesTableData?.data) {
+<div class="c-module-table ">
+    <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns" (action)="onTableAction($event)">
+    </app-data-table>
+
+    <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+    </mat-paginator>
+</div>
+}
