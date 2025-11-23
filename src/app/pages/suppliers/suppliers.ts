@@ -46,15 +46,15 @@ import { SupplierModal } from './components/supplier-modal/supplier-modal';
 const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'company_name', label: 'Razon sócial' },
+  { key: 'company_name', label: 'Razón Social' },
   { key: 'name', label: 'Nombre Comercial' },
-  { key: 'contact_name', label: 'Nombre Contacto' },
-  { key: 'phone', label: 'Telefono' },
-  { key: 'email', label: 'Correo' },
+  { key: 'contact_name', label: 'Contacto' },
+  { key: 'phone', label: 'Teléfono' },
+  { key: 'email', label: 'Correo Electrónico' },
   { key: 'address', label: 'Dirección' },
-  { key: 'days_credit', label: 'Dias Credito' },
-  { key: 'will_invoice', label: 'Factura' },
-  { key: 'area', label: 'Area', type: 'relation', path: 'name' },
+  { key: 'days_credit', label: 'Crédito (días) ' },
+  { key: 'will_invoice', label: '¿Factura? ' },
+  { key: 'area', label: 'Área', type: 'relation', path: 'name' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
