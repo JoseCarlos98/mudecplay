@@ -493,17 +493,32 @@ export class InputField implements ControlValueAccessor {
   }
 
   // ======= Helpers phone/email =======
-  private applyPhoneError(cleanDigits: string): void {
+  // ======= Helpers phone/email =======
+  private applyPhoneError(cleanDigits: string) {
     const control = this.ngControl?.control;
     if (!control) return;
 
+    // Detectar si el control tiene validador "required"
+    const validatorResult = control.validator ? control.validator({} as any) : null;
+    const hasRequired = !!validatorResult?.['required'];
+
     const current = { ...(control.errors || {}) };
 
-    if (cleanDigits && cleanDigits.length !== this.phoneLength) current['phoneLength'] = true;
-    else delete current['phoneLength'];
+    if (hasRequired) {
+      // Solo si es requerido aplicamos la validación de longitud
+      if (cleanDigits && cleanDigits.length !== this.phoneLength) {
+        current['phoneLength'] = true;
+      } else {
+        delete current['phoneLength'];
+      }
+    } else {
+      // Si NO es requerido, nunca dejamos phoneLength como error
+      delete current['phoneLength'];
+    }
 
     control.setErrors(Object.keys(current).length ? current : null);
   }
+
 
   private formatPhone(digits: string): string {
     const clean = (digits || '').replace(/\D/g, '').slice(0, this.phoneLength);
@@ -521,7 +536,7 @@ export class InputField implements ControlValueAccessor {
     return `${clean.slice(0, 3)} ${clean.slice(3, 6)} ${clean.slice(6)}`;
   }
 
-  private applyEmailError(value: string): void {
+  private applyEmailError(value: string) {
     const control = this.ngControl?.control;
     if (!control) return;
 

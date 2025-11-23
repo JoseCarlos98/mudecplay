@@ -33,7 +33,7 @@ export interface SelectCatalogOption {
 export class InputSelect implements ControlValueAccessor {
   /** Config pública */
   @Input() label: string = '';
-  @Input() placeholder: string = 'Todos';
+  @Input() placeholder: string = 'Seleccionar';
   @Input() multiple: boolean = false;
 
   // <-- aquí mandas directamente tus catálogos { id, name }

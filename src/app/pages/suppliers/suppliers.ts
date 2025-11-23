@@ -130,7 +130,6 @@ export class Suppliers {
     areasIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
-    // area_id: this.fb.control<string | number>([]),
   });
 
 
