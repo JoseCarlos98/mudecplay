@@ -52,8 +52,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'phone', label: 'Teléfono' },
   { key: 'email', label: 'Correo Electrónico' },
   { key: 'address', label: 'Dirección' },
-  { key: 'days_credit', label: 'Crédito (días) ' },
-  { key: 'will_invoice', label: '¿Factura? ' },
+  { key: 'days_credit', label: 'Crédito (días)' },
+  { key: 'will_invoice', label: '¿Factura?' },
   { key: 'area', label: 'Área', type: 'relation', path: 'name' },
 ];
 

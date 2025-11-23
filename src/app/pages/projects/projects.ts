@@ -48,10 +48,10 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'location', label: 'Ubicación' },
   { key: 'phone', label: 'Teléfono' },
   { key: 'email', label: 'Correo' },
-  { key: 'days_credit', label: 'Días de crédito' },
+  { key: 'days_credit', label: 'Crédito (días)' },
   {
     key: 'will_invoice',
-    label: 'Facturación',
+    label: '¿Factura?',
   },
 ];
 

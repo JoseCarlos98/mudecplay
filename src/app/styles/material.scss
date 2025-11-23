@@ -56,6 +56,10 @@
     min-height: unset !important;
 }
 
+.mdc-switch__track::after {
+    background: var(--color-primary-strong)!important;
+}
+
 .mat-mdc-form-field {
     width: 200px !important;
     height: 30px !important;
