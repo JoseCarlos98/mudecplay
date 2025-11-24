@@ -33,8 +33,4 @@ export interface ColumnsConfig {
   typeVariant?: 'chip-success' | 'chip-warning' | 'chip-neutral';
   fallbackVariant?: 'chip-success' | 'chip-warning' | 'chip-neutral';
   fallback?: string;
-
-  // Para booleanConfirm (opcional)
-  trueLabel?: string;   // ej: 'Sí'
-  falseLabel?: string;  // ej: 'No'
 }

@@ -59,8 +59,6 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: '¿Factura?',
     type: 'booleanConfirm',
     align: 'center',
-    trueLabel: 'Sí',
-    falseLabel: 'No',
   },
 ];
 
