@@ -1,41 +1,51 @@
 <div class="c-modal">
-    <app-module-header [title]="this.data?.id ? 'Editar Proveedor' : 'Registrar Proveedor'" [config]="headerConfig"
+    <app-module-header [title]="this.data?.id ? 'Editar Proyecto' : 'Registrar Proyecto'" [config]="headerConfig"
         (action)="closeModal()">
     </app-module-header>
 
     <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
         <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+            
+              <div class="md:col-span-1">
+                <app-autocomplete
+                    formControlName="responsible_id"
+                    label="Responsable"
+                    [remote]="true"
+                    catalogType="supplier"
+                ></app-autocomplete>
+                    <!-- [initialDisplay]="formData?.supplier?.company_name ?? ''" -->
+            </div>
             <div class="md:col-span-1">
-                 <app-input-field 
-                    formControlName="name" 
-                    label="Nombre comercial" 
-                    type="text">
-                </app-input-field>
+                <app-autocomplete
+                    formControlName="client_id"
+                    label="Cliente"
+                    [remote]="true"
+                    catalogType="supplier"
+                ></app-autocomplete>
+                    <!-- [initialDisplay]="formData?.supplier?.company_name ?? ''" -->
             </div>
           
             <div class="md:col-span-1">
                  <app-input-field 
-                    formControlName="company_name" 
-                    label="Razon Sócial" 
+                    formControlName="name" 
+                    label="Nombre del proyecto" 
                     type="text">
                 </app-input-field>
             </div>
 
-            <app-input-select 
-                formControlName="area_id" 
-                label="Área" 
-                [options]="catalogArea">
-            </app-input-select>
-
             <div class="md:col-span-1">
-                <app-input-field
-                    formControlName="phone"
-                    label="Teléfono"
-                    type="phone"
-                    [phonePrefix]="'+52'"
-                    [phoneLength]="10">
+                 <app-input-field
+                    formControlName="location"
+                    label="Ubicación"
+                    type="text">
                 </app-input-field>
             </div>
+
+            <app-input-field
+                formControlName="phone"
+                label="Teléfono"
+                type="phone">
+            </app-input-field>
 
             <div class="md:col-span-1">
                 <app-input-field 
@@ -45,14 +55,6 @@
                 </app-input-field>
             </div>
 
-             <div class="md:col-span-1">
-                <app-input-field 
-                    formControlName="address" 
-                    label="Domicilio fiscal" 
-                    type="text">
-                </app-input-field>
-            </div>
-          
             <div class="md:col-span-1">
                 <app-input-field 
                     formControlName="days_credit" 

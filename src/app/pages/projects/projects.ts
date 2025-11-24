@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -20,7 +20,7 @@ import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/mod
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
-import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
+import { InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
@@ -34,6 +34,7 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../projects/interfaces/project-interfaces';
 import { ProjectService } from './services/projects.service';
+import { ProjectModal } from './components/project-modal/project-modal';
 
 
 // ==========================
@@ -225,7 +226,7 @@ export class Projects {
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
-        this.router.navigateByUrl('/gastos/nuevo');
+        this.projectModal();
         break;
       case 'upload':
         console.log('upload');
@@ -253,9 +254,8 @@ export class Projects {
   onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>): void {
     switch (ev.type) {
       case 'edit':
-        this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
+        this.projectModal(ev.row)
         break;
-
       case 'delete':
         this.onDelete(ev.row);
         break;
@@ -325,13 +325,13 @@ export class Projects {
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  expenseModal(expense?: any): void {
-    // this.dialogService
-    //   .open(ExpenseModal, expense ? expense : null, 'medium')
-    //   .afterClosed()
-    //   .subscribe((result) => {
-    //     if (result) this.loadExpenses();
-    //   });
+  projectModal(expense?: any): void {
+    this.dialogService
+      .open(ProjectModal, expense ? expense : null, 'medium')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.loadExpenses();
+      });
   }
 
   // ==========================

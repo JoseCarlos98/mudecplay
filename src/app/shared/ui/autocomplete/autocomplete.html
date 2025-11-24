@@ -1,6 +1,9 @@
 <div class="c-autocomplete">
   <div class="c-input">
-    <p class="label">{{ label }}</p>
+      <p class="label">
+      {{ label }}
+      @if (showRequiredMark) { <span class="required">*</span> }
+    </p>
 
     <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
       @if (displayValue?.length) {

@@ -1,6 +1,5 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 // Angular Material
@@ -105,7 +104,6 @@ export class Suppliers {
   private readonly dialogService = inject(DialogService);
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
-  private readonly router = inject(Router);
   private readonly storage = inject(LocalStorageService);
 
   // ==========================
@@ -255,7 +253,6 @@ export class Suppliers {
       case 'edit':
         this.supplierModal(ev.row)
         break;
-
       case 'delete':
         this.onDelete(ev.row);
         break;

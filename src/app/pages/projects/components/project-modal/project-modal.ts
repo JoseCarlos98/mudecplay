@@ -1,7 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
-import { SupplierService } from '../../services/supplier.service';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { SupplierResponseDto } from '../../interfaces/supplier-interfaces';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
 import { CommonModule } from '@angular/common';
@@ -13,65 +11,56 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
-import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
-import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
+import { ProjectService } from '../../services/projects.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
 };
 
 @Component({
-  selector: 'app-supplier-modal',
+  selector: 'app-project-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, InputDate, BtnsSection, InputSelect, MatSlideToggle],
-  templateUrl: './supplier-modal.html',
-  styleUrl: './supplier-modal.scss',
+    Autocomplete, InputField, BtnsSection, BtnsSection, MatSlideToggle],
+  templateUrl: './project-modal.html',
+  styleUrl: './project-modal.scss',
 })
-export class SupplierModal implements OnInit {
-  // readonly data = inject<SupplierResponseDto>(MAT_DIALOG_DATA);
-  private readonly supplierService = inject(SupplierService);
+export class ProjectModal implements OnInit {
+  private readonly supplierService = inject(ProjectService);
   readonly data = inject<any>(MAT_DIALOG_DATA);
   private readonly catalogsService = inject(CatalogsService);
-  private readonly dialogRef = inject(MatDialogRef<SupplierModal>);
+  private readonly dialogRef = inject(MatDialogRef<ProjectModal>);
   private readonly fb = inject(FormBuilder);
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
-    name: this.fb.control<string | null>(null, { validators: Validators.required }),
-    company_name: this.fb.control<string | null>(null),
-    area_id: this.fb.control<number | null>(null, { validators: Validators.required }),
+    responsible_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
+    client_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
+    name: this.fb.control<string | null>(null),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
     email: this.fb.control<string | null>(null, { validators: Validators.required }),
-    address: this.fb.control<string | null>(null),
-    days_credit: this.fb.control<number | null>(null, {
-      validators: [Validators.min(0)]
-    }),
+    location: this.fb.control<string | null>(null),
+    days_credit: this.fb.control<number | null>(null, { validators: [Validators.min(0)] }),
     contact_name: this.fb.control<string | null>(null),
     will_invoice: this.fb.control<boolean>(false),
   });
 
-  catalogArea: Catalog[] = [];
+//   {
+//     "responsible_id": "2",
+//     "client_id": "2",
+//     "name": "nombre",
+//     "location": "ubicación",
+//     "phone": "+527897897897",
+//     "email": "test@hotmail.com",
+//     "days_credit": 11,
+//     "contact_name": "test contacto",
+//     "will_invoice": true
+// }
 
   ngOnInit(): void {
-    console.log(this.data);
-    this.loadCatalogs()
-
-    if (this.data?.id) this.form.patchValue({ ...this.data, area_id: this.data.area.id });
-  }
-
-  // ==========================
-  //  CARGA DE CATÁLOGOS
-  // ==========================
-  loadCatalogs(): void {
-    this.catalogsService.areaSuppliersCatalog().subscribe({
-      next: (response: Catalog[]) => {
-        this.catalogArea = response;
-      },
-      error: (err) => console.error('Error al cargar estados de gasto:', err),
-    });
+    if (this.data?.id) this.form.patchValue({ ...this.data });
   }
 
   saveData() {
@@ -82,12 +71,15 @@ export class SupplierModal implements OnInit {
 
     const formData = this.form.value;
 
-    this.supplierService.create(formData).subscribe({
-      next: (response) => {
-        if (response.success) this.closeModal(true);
-      },
-      error: (err) => console.error('Error al guardar gastos:', err),
-    });
+    console.log(formData);
+    
+
+    // this.supplierService.create(formData).subscribe({
+    //   next: (response) => {
+    //     if (response.success) this.closeModal(true);
+    //   },
+    //   error: (err) => console.error('Error al guardar gastos:', err),
+    // });
   }
 
   updateData() {

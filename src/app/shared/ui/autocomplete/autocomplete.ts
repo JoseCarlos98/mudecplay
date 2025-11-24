@@ -122,6 +122,13 @@ export class Autocomplete implements ControlValueAccessor {
     );
   }
 
+   get showRequiredMark(): boolean {
+    const control = this.ngControl?.control;
+    if (!control || !control.validator) return false;
+    const res = control.validator({} as any);
+    return !!res?.['required'];
+  }
+
   // ======== CVA ========
   writeValue(value: any) {
     this.innerValue = value;
