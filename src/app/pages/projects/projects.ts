@@ -47,12 +47,20 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Proyecto' },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
-  { key: 'phone', label: 'Teléfono' },
+  {
+    key: 'phone',
+    label: 'Teléfono',
+    type: 'phone',
+  },
   { key: 'email', label: 'Correo' },
   { key: 'days_credit', label: 'Crédito (días)' },
-  {
+   {
     key: 'will_invoice',
     label: '¿Factura?',
+    type: 'booleanConfirm',
+    align: 'center',
+    trueLabel: 'Sí',
+    falseLabel: 'No',
   },
 ];
 

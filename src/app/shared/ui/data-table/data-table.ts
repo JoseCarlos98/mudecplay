@@ -51,4 +51,31 @@ export class DataTable<T> implements OnChanges {
   onRowAction(type: DataTableActionType, row: T) {
     this.action.emit({ type, row });
   }
+
+  formatPhoneCell(value: any): string {
+    if (value == null) return '';
+    const raw = String(value).trim();
+    if (!raw) return '';
+
+    let country = '';
+    let rest = raw;
+
+    if (raw.startsWith('+52')) {
+      country = '+52';
+      rest = raw.slice(3); // quitamos "+52"
+    } else if (raw.startsWith('+')) {
+      // fallback genérico: deja el prefijo tal cual los primeros 3 chars
+      country = raw.slice(0, 3);
+      rest = raw.slice(country.length);
+    }
+
+    const digits = rest.replace(/\D/g, '');
+    if (!digits) return country || raw;
+
+    // Mismo estilo que usas en los inputs: 3-3-4
+    if (digits.length <= 3) return `${country} ${digits}`.trim();
+
+    if (digits.length <= 6) return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
+    return `${country} ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`.trim();
+  }
 }

@@ -12,7 +12,9 @@ export type ColumnType =
     | 'money'
     | 'date'
     | 'showItems'
-    | 'chip';
+    | 'chip'
+    | 'phone'           
+    | 'booleanConfirm'; 
 
 export type ColumnVariant =
     | 'chip-success'
@@ -20,12 +22,19 @@ export type ColumnVariant =
     | 'chip-neutral';
 
 export interface ColumnsConfig {
-    key: string;
-    label: string;
-    type?: ColumnType;
-    typeVariant?: ColumnVariant;
-    path?: string;
-    fallback?: string;
-    fallbackVariant?: ColumnVariant;
-    align?: 'left' | 'center' | 'right';
+  key: string;
+  label: string;
+  align?: 'left' | 'center' | 'right';
+
+  type?: ColumnType;
+
+  // Para 'relation'
+  path?: string;
+  typeVariant?: 'chip-success' | 'chip-warning' | 'chip-neutral';
+  fallbackVariant?: 'chip-success' | 'chip-warning' | 'chip-neutral';
+  fallback?: string;
+
+  // Para booleanConfirm (opcional)
+  trueLabel?: string;   // ej: 'Sí'
+  falseLabel?: string;  // ej: 'No'
 }

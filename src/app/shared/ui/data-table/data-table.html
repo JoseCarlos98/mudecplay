@@ -61,6 +61,25 @@
                   <span>Ver</span>
                 </button>
               }
+                @case ('phone') {
+                <span class="phone-cell">
+                  {{ formatPhoneCell(element[col.key]) }}
+                </span>
+              }
+               @case ('booleanConfirm') {
+                @let v = element[col.key];
+
+                <span
+                  class="boolean-confirm"
+                  [ngClass]="v ? 'boolean-confirm-yes' : 'boolean-confirm-no'">
+                  <mat-icon>
+                    {{ v ? 'check_circle' : 'cancel' }}
+                  </mat-icon>
+                  <span>
+                    {{ v ? (col.trueLabel || 'Sí') : (col.falseLabel || 'No') }}
+                  </span>
+                </span>
+              }
               @default {
                 {{ element[col.key] ?? col.fallback ?? '' }}
               }
