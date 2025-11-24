@@ -136,7 +136,7 @@ export class Projects {
   // ==========================
   //  CICLO DE VIDA
   // ==========================
-  ngOnInit(): void {
+  ngOnInit() {
     this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
     this.loadCatalogs();              // carga catálogos de selects
   }
@@ -144,7 +144,7 @@ export class Projects {
   // ==========================
   //  CARGA DE CATÁLOGOS
   // ==========================
-  loadCatalogs(): void {
+  loadCatalogs() {
     this.catalogsService.areaSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
@@ -175,7 +175,7 @@ export class Projects {
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters(): void {
+  searchWithFilters() {
     const value = this.formFilters.getRawValue();
 
     // Estado completo de la UI (incluye página/limit)
@@ -195,11 +195,11 @@ export class Projects {
     this.saveFiltersToStorage(uiState);
 
     // Disparamos la carga
-    this.loadExpenses();
+    this.loadProject();
   }
 
 
-  loadExpenses(): void {
+  loadProject() {
     this.projectService.getProjects(this.filters).subscribe({
       next: (response: PaginatedResponse<entity.ProjectResponseDto>) => {
         this.expensesTableData = response;
@@ -211,19 +211,19 @@ export class Projects {
   // ==========================
   //  PAGINACIÓN
   // ==========================
-  onPageChange(event: PageEvent): void {
+  onPageChange(event: PageEvent) {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
     // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
-    this.loadExpenses();
+    this.loadProject();
   }
 
   // ==========================
   //  ACCIONES HEADER
   // ==========================
-  onHeaderAction(action: string): void {
+  onHeaderAction(action: string) {
     switch (action) {
       case 'new':
         this.projectModal();
@@ -237,7 +237,7 @@ export class Projects {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string): void {
+  onBtnsSectionAction(action: string) {
     switch (action) {
       case 'search':
         this.searchWithFilters();
@@ -251,7 +251,7 @@ export class Projects {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>): void {
+  onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>) {
     switch (ev.type) {
       case 'edit':
         this.projectModal(ev.row)
@@ -263,21 +263,22 @@ export class Projects {
   }
 
   // Confirmación + delete
-  onDelete(expense: entity.ProjectResponseDto): void {
+  onDelete(project: entity.ProjectResponseDto) {
+    console.log(project);
+    
     this.dialogService
       .confirm({
-        // message: `¿Quieres eliminar el gasto:\n"${expense.folio.trim()}"?`,
-        message: `¿Quieres eliminar el gasto:\n""?`,
+        message: `¿Quieres eliminar el gasto:\n"${project.name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
-        // this.expenseService.remove(expense.id).subscribe({
-        //   next: () => this.loadExpenses(),
-        //   error: (err) => console.error('Error al eliminar gasto:', err),
-        // });
+        this.projectService.remove(project.id).subscribe({
+          next: () => this.loadProject(),
+          error: (err) => console.error('Error al eliminar gasto:', err),
+        });
       });
   }
 
@@ -295,7 +296,7 @@ export class Projects {
     return hasClients || hasEmail || hasPhone || hasName;
   }
 
-  clearAllAndSearch(): void {
+  clearAllAndSearch() {
     // Limpia formulario de filtros
     this.formFilters.reset(
       {
@@ -319,25 +320,25 @@ export class Projects {
 
     // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
-    this.loadExpenses();
+    this.loadProject();
   }
 
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  projectModal(expense?: any): void {
+  projectModal(expense?: any) {
     this.dialogService
       .open(ProjectModal, expense ? expense : null, 'medium')
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadExpenses();
+        if (result) this.loadProject();
       });
   }
 
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage(): void {
+  private restoreFiltersFromStorage() {
     const saved = this.storage.getItem<entity.ProjectUiFilters>(EXPENSES_FILTERS_KEY);
 
     if (!saved) {
@@ -361,7 +362,7 @@ export class Projects {
     this.filters = this.buildBackendFiltersFromUi(saved);
 
     // 3) Cargar tabla con esos filtros
-    this.loadExpenses();
+    this.loadProject();
   }
 
   /**
@@ -369,7 +370,7 @@ export class Projects {
    * - Si recibe `state`, guarda ese.
    * - Si no, reconstruye el estado a partir del form + this.filters.
    */
-  private saveFiltersToStorage(state?: entity.ProjectUiFilters): void {
+  private saveFiltersToStorage(state?: entity.ProjectUiFilters) {
     if (!state) {
       const value = this.formFilters.getRawValue();
 

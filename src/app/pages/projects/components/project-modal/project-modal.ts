@@ -49,7 +49,7 @@ export class ProjectModal implements OnInit {
     will_invoice: this.fb.control<boolean>(false),
   });
 
-  ngOnInit(): void {
+  ngOnInit() {
     if (this.data?.id) this.form.patchValue({ ...this.data });
   }
 
@@ -85,7 +85,7 @@ export class ProjectModal implements OnInit {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string): void {
+  onBtnsSectionAction(action: string) {
     switch (action) {
       case 'cancel':
         this.closeModal();

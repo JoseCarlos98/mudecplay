@@ -55,7 +55,7 @@ export class SupplierModal implements OnInit {
 
   catalogArea: Catalog[] = [];
 
-  ngOnInit(): void {
+  ngOnInit() {
     console.log(this.data);
     this.loadCatalogs()
 
@@ -65,7 +65,7 @@ export class SupplierModal implements OnInit {
   // ==========================
   //  CARGA DE CATÁLOGOS
   // ==========================
-  loadCatalogs(): void {
+  loadCatalogs() {
     this.catalogsService.areaSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogArea = response;
@@ -104,7 +104,7 @@ export class SupplierModal implements OnInit {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string): void {
+  onBtnsSectionAction(action: string) {
     switch (action) {
       case 'cancel':
         this.closeModal();

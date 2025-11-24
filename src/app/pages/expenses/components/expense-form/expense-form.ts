@@ -66,7 +66,7 @@ export class ExpenseForm implements OnInit {
   // Detalle completo del gasto traído desde el backend (para inicialDisplay, etc.)
   formData!: entity.ExpenseDetail;
 
-  ngOnInit(): void {
+  ngOnInit() {
     // Leemos el id de la ruta solo una vez (snapshot)
     const idParam = this.route.snapshot.paramMap.get('id');
 
@@ -77,7 +77,7 @@ export class ExpenseForm implements OnInit {
   }
 
   // GET /expenses/:id -> carga el gasto para edición
-  loadExpense(id: number): void {
+  loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
         this.formData = response;

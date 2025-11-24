@@ -1,6 +1,3 @@
-import { Catalog } from "../../../shared/interfaces/general-interfaces";
-import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
-
 export interface FiltersProject {
   name?: string | '';
   email?: string | '';
@@ -12,56 +9,47 @@ export interface FiltersProject {
 
 export interface ProjectResponseDto {
   id: number;
-  company_name: string;
-  email: string;
-  phone: string;
-  area: Area;
-}
-
-export interface Area {
-  id: number;
   name: string;
+  contact_name: string;
+  location: string;
+  phone: string;
+  email: string;
+  days_credit: number;
+  will_invoice: boolean;
 }
-
 
 export interface CreateProject {
-  date: string;
-  supplier_id: number | null;
-  items: {
-    concept: string;
-    amount: number;
-    project_id: number | null;
-  }[];
+  id?: number;
+  responsible_id?: number;
+  client_id?: number;
+  name: string;
+  location: string;
+  phone: string;
+  email: string;
+  days_credit: number;
+  contact_name: string;
+  will_invoice: boolean;
+
 }
 
 export interface PatchProject {
-  concept?: string
-  date?: string,
-  amount?: number,
-  supplier_id?: number | null;
-  project_id?: number | null;
-}
-
-export interface ProjectDetail {
-  id: number;
-  date: string;
-  folio: string;
-  total_amount: number;
-  supplier: {
-    id: number;
-    company_name: string;
-  } | null;
-  status: {
-    id: number;
-    name: string;
-  };
+  id?: number;
+  responsible_id?: number;
+  client_id?: number;
+  name: string;
+  location?: string;
+  phone: string;
+  email: string;
+  days_credit?: number;
+  contact_name?: string;
+  will_invoice: boolean;
 }
 
 export interface ProjectUiFilters {
   clientsIds: number[];
   email: string;
-  name: string;
   phone: string;
+  name: string;
   page: number;
   limit: number;
 }

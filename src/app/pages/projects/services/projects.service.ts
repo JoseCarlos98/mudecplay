@@ -30,11 +30,11 @@ export class ProjectService {
     return this.http.get<PaginatedResponse<entity.ProjectResponseDto>>(url, { params });
   }
 
-  getById(id: number): Observable<entity.ProjectDetail> {
-    const url = `${this.apiUrl}/${id}`;
+  // getById(id: number): Observable<entity.ProjectDetail> {
+  //   const url = `${this.apiUrl}/${id}`;
 
-    return this.http.get<entity.ProjectDetail>(url);
-  }
+  //   return this.http.get<entity.ProjectDetail>(url);
+  // }
 
   create(formData: entity.CreateProject): Observable<ApiSuccess> {
     const url = `${this.apiUrl}`;
