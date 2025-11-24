@@ -32,14 +32,14 @@ export class Sidebar {
 
   menuItems: MenuItems[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos' },
-
-    // Grupo de Catálogos (no tiene route, solo children)
     {
       name: 'Catálogos',
       icon: '',
       children: [
         { name: 'Proveedores', icon: 'store', route: 'proveedores' },
         { name: 'Proyectos', icon: 'work', route: 'proyectos' },
+        { name: 'Clientes', icon: 'groups', route: 'clientes' },
+        { name: 'Responsables', icon: 'person', route: 'responsables' }
       ],
     },
   ];
