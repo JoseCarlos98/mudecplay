@@ -36,8 +36,10 @@ export class ProjectModal implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
-    responsible_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
-    client_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
+    responsible_id: this.fb.control<Catalog | null>(null),
+    client_id: this.fb.control<Catalog | null>(null),
+    // responsible_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
+    // client_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
     name: this.fb.control<string | null>(null),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
     email: this.fb.control<string | null>(null, { validators: Validators.required }),
@@ -46,18 +48,6 @@ export class ProjectModal implements OnInit {
     contact_name: this.fb.control<string | null>(null),
     will_invoice: this.fb.control<boolean>(false),
   });
-
-//   {
-//     "responsible_id": "2",
-//     "client_id": "2",
-//     "name": "nombre",
-//     "location": "ubicación",
-//     "phone": "+527897897897",
-//     "email": "test@hotmail.com",
-//     "days_credit": 11,
-//     "contact_name": "test contacto",
-//     "will_invoice": true
-// }
 
   ngOnInit(): void {
     if (this.data?.id) this.form.patchValue({ ...this.data });
@@ -73,13 +63,12 @@ export class ProjectModal implements OnInit {
 
     console.log(formData);
     
-
-    // this.supplierService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.supplierService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {
