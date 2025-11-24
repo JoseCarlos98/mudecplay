@@ -66,20 +66,21 @@
                   {{ formatPhoneCell(element[col.key]) }}
                 </span>
               }
-               @case ('booleanConfirm') {
-                @let v = element[col.key];
-
+              @case ('booleanConfirm') {
                 <span
-                  class="boolean-confirm"
-                  [ngClass]="v ? 'boolean-confirm-yes' : 'boolean-confirm-no'">
-                  <mat-icon>
-                    {{ v ? 'check_circle' : 'cancel' }}
+                  class="confirm-pill"
+                  [ngClass]="element[col.key] ? 'confirm-pill-yes' : 'confirm-pill-no'">
+
+                  <mat-icon class="confirm-pill-icon">
+                    {{ element[col.key] ? 'check_circle' : 'cancel' }}
                   </mat-icon>
-                  <span>
-                    {{ v ? (col.trueLabel || 'Sí') : (col.falseLabel || 'No') }}
+
+                  <span class="confirm-pill-label">
+                    {{ element[col.key] ? 'Sí' : 'No' }}
                   </span>
                 </span>
               }
+
               @default {
                 {{ element[col.key] ?? col.fallback ?? '' }}
               }
