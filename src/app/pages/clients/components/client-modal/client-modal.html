@@ -1,1 +1,82 @@
-<p>client-modal works!</p>
+<div class="c-modal">
+    <app-module-header [title]="this.data?.id ? 'Editar Cliente' : 'Registrar Cliente'" [config]="headerConfig"
+        (action)="closeModal()">
+    </app-module-header>
+
+    <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="company_name" 
+                    label="Razon Sócial" 
+                    type="text">
+                </app-input-field>
+            </div>
+            
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="name" 
+                    label="Nombre" 
+                    type="text">
+                </app-input-field>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-input-field
+                    formControlName="phone"
+                    label="Teléfono"
+                    type="phone">
+                </app-input-field>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="email" 
+                    label="Correo" 
+                    type="email"> 
+                </app-input-field>
+            </div>
+
+             <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="address" 
+                    label="Domicilio fiscal" 
+                    type="text">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="days_credit" 
+                    label="Días de credito" 
+                    type="number">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                <app-input-field 
+                    formControlName="contact_name" 
+                    label="Nombre de contacto" 
+                    type="text">
+                </app-input-field>
+            </div>
+
+              <div class="md:col-span-1">
+                    <app-autocomplete
+                    formControlName="responsible_id"
+                    label="Responsable"
+                    [remote]="true"
+                    catalogType="supplier"
+                    ></app-autocomplete>
+                    <!-- [initialDisplay]="formData?.supplier?.company_name ?? ''" -->
+                </div>
+
+            <div class="md:col-span-1 mt-6 flex justify-center">
+                <mat-slide-toggle color="primary" class="input-toggle" formControlName="will_invoice"> <p>¿Factura?</p> </mat-slide-toggle>
+            </div>
+
+        </div>
+    </form>
+
+    <app-btns-section [form]="true" (action)="onBtnsSectionAction($event)" [saveDisabled]="!form.valid"></app-btns-section>
+</div>

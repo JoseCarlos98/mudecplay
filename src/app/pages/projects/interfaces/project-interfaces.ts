@@ -29,7 +29,6 @@ export interface CreateProject {
   days_credit: number;
   contact_name: string;
   will_invoice: boolean;
-
 }
 
 export interface PatchProject {

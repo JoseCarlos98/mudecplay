@@ -13,7 +13,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
-import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
@@ -26,14 +25,13 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-supplier-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, InputDate, BtnsSection, InputSelect, MatSlideToggle],
+    Autocomplete, InputField, BtnsSection, BtnsSection, InputSelect, MatSlideToggle],
   templateUrl: './supplier-modal.html',
   styleUrl: './supplier-modal.scss',
 })
 export class SupplierModal implements OnInit {
-  // readonly data = inject<SupplierResponseDto>(MAT_DIALOG_DATA);
+  readonly data = inject<SupplierResponseDto>(MAT_DIALOG_DATA);
   private readonly supplierService = inject(SupplierService);
-  readonly data = inject<any>(MAT_DIALOG_DATA);
   private readonly catalogsService = inject(CatalogsService);
   private readonly dialogRef = inject(MatDialogRef<SupplierModal>);
   private readonly fb = inject(FormBuilder);
