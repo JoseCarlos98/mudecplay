@@ -54,14 +54,13 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
   { key: 'email', label: 'Correo' },
   { key: 'days_credit', label: 'Crédito (días)' },
-   {
+  {
     key: 'will_invoice',
     label: '¿Factura?',
     type: 'booleanConfirm',
     align: 'center',
   },
 ];
-
 
 const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map((c) => c.key),
@@ -271,7 +270,7 @@ export class Projects {
   // Confirmación + delete
   onDelete(project: entity.ProjectResponseDto) {
     console.log(project);
-    
+
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el gasto:\n"${project.name?.trim()}"?`,

@@ -1,8 +1,9 @@
+import { Catalog } from "../../../shared/interfaces/general-interfaces";
 
-export interface FiltersSupplier {
+export interface FiltersClients {
   phone?: string | '';
   email?: string | '';
-  company_name?: string | '';
+  suppliersIds?: number[] | null;
   areasIds?: number[] | null;
   limit: number;
   page: number;
@@ -10,7 +11,7 @@ export interface FiltersSupplier {
 
 
 
-export interface SupplierResponseDto {
+export interface ClientsResponseDto {
   id: number;
   company_name: string;
   name: string;
@@ -34,7 +35,7 @@ export interface Area {
 }
 
 
-export interface CreateSupplier {
+export interface CreateClients {
   name: string;
   company_name?: string;
   area_id: number;
@@ -46,7 +47,7 @@ export interface CreateSupplier {
   will_invoice: boolean;
 }
 
-export interface PatchSupplier {
+export interface PatchClients {
   concept?: string
   date?: string,
   amount?: number,
@@ -54,36 +55,11 @@ export interface PatchSupplier {
   project_id?: number | null;
 }
 
-export interface SupplierItemDetail {
-  id: number;
-  concept: string;
-  amount: number;
-  project: {
-    id: number;
-    name: string;
-  } | null;
-}
-
-export interface SupplierDetail {
-  id: number;
-  date: string;
-  folio: string;
-  total_amount: number;
-  supplier: {
-    id: number;
-    company_name: string;
-  } | null;
-  status: {
-    id: number;
-    name: string;
-  };
-}
-
-export interface SupplierUiFilters {
+export interface ClientsUiFilters {
+  clientsIds: number[];
   areasIds: number[];
   email: string;
   phone: string;
-  company_name: string;
   page: number;
   limit: number;
 }

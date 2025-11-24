@@ -35,25 +35,31 @@ import * as entity from '../suppliers/interfaces/supplier-interfaces';
 import { SupplierService } from './services/supplier.service';
 import { SupplierModal } from './components/supplier-modal/supplier-modal';
 
-// Componentes propios
-
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
-const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
+const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razón Social' },
   { key: 'name', label: 'Nombre Comercial' },
   { key: 'contact_name', label: 'Contacto' },
-  { key: 'phone', label: 'Teléfono' },
+  {
+    key: 'phone',
+    label: 'Teléfono',
+    type: 'phone',
+  },
   { key: 'email', label: 'Correo Electrónico' },
   { key: 'address', label: 'Dirección' },
   { key: 'days_credit', label: 'Crédito (días)' },
-  { key: 'will_invoice', label: '¿Factura?' },
-  { key: 'area', label: 'Área', type: 'relation', path: 'name' },
+  {
+    key: 'will_invoice',
+    label: '¿Factura?',
+    type: 'booleanConfirm',
+    align: 'center',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -124,10 +130,10 @@ export class Suppliers {
 
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
-    suppliersIds: this.fb.control<number[]>([]),
     areasIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
+    company_name: this.fb.control<string>(''),
   });
 
 
@@ -163,9 +169,9 @@ export class Suppliers {
     return {
       page: ui.page,
       limit: ui.limit,
-      suppliersIds: ui.suppliersIds ?? [],
       areasIds: ui.areasIds ?? null,
       email: ui.email?.trim() || '',
+      company_name: ui.company_name?.trim() || '',
       phone: ui.phone?.trim() || '',
     };
   }
@@ -178,10 +184,10 @@ export class Suppliers {
 
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.SupplierUiFilters = {
-      suppliersIds: value.suppliersIds ?? [],
       areasIds: value.areasIds ?? [],
       email: value.email?.trim() || '',
       phone: value.phone?.trim() || '',
+      company_name: value.company_name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
     };
@@ -282,22 +288,22 @@ export class Suppliers {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
     const hasAreas = (form.areasIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
     const hasPhone = !!(form.phone !== '');
+    const hasCompany_name = !!(form.company_name !== '');
 
-    return hasSuppliers || hasAreas || hasEmail || hasPhone;
+    return hasCompany_name || hasAreas || hasEmail || hasPhone;
   }
 
   clearAllAndSearch() {
     // Limpia formulario de filtros
     this.formFilters.reset(
       {
-        suppliersIds: [],
         areasIds: [],
         email: '',
         phone: '',
+        company_name: '',
       },
       { emitEvent: false },
     );
@@ -306,10 +312,10 @@ export class Suppliers {
     this.filters = {
       page: 1,
       limit: this.filters.limit,
-      suppliersIds: [],
       areasIds: [],
       email: '',
       phone: '',
+      company_name: '',
     }
 
     // Limpia storage para este módulo
@@ -344,10 +350,10 @@ export class Suppliers {
     // 1) Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
-        suppliersIds: saved.suppliersIds,
         areasIds: saved.areasIds,
         email: saved.email,
         phone: saved.phone,
+        company_name: saved.company_name,
       },
       { emitEvent: false },
     );
@@ -369,10 +375,10 @@ export class Suppliers {
       const value = this.formFilters.getRawValue();
 
       state = {
-        suppliersIds: value.suppliersIds ?? [],
         areasIds: value.areasIds ?? [],
         email: value.email?.trim() || '',
         phone: value.phone?.trim() || '',
+        company_name: value.company_name?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
       };

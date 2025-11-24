@@ -4,9 +4,8 @@
 
     <form [formGroup]="formFilters">
         <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-            <app-autocomplete-multiple formControlName="suppliersIds" label="Razon Sócial" [remote]="true"
-                catalogType="supplier">
-            </app-autocomplete-multiple>
+            <app-input-field formControlName="company_name" label="Razón social" type="text" [isFilter]="true">
+            </app-input-field>
 
             <app-input-select [multiple]="true" formControlName="areasIds" label="Área" [options]="catalogAreaSuppliers">
             </app-input-select>
