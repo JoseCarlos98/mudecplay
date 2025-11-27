@@ -40,15 +40,13 @@ export class ClientModal {
 
   form: FormGroup = this.fb.group({
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
-    company_name: this.fb.control<string | null>(null, { validators: Validators.required }),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
     email: this.fb.control<string | null>(null, { validators: Validators.required }),
+    will_invoice: this.fb.control<boolean>(false, { validators: Validators.required }),
+    company_name: this.fb.control<string | null>(null),
     address: this.fb.control<string | null>(null),
-    days_credit: this.fb.control<number | null>(null, {
-      validators: [Validators.min(0)]
-    }),
+    days_credit: this.fb.control<number | null>(null),
     contact_name: this.fb.control<string | null>(null),
-    will_invoice: this.fb.control<boolean>(false),
     responsible_id: this.fb.control<Catalog | null>(null)
   });
 
