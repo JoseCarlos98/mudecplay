@@ -45,6 +45,7 @@ const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razón Social' },
   { key: 'name', label: 'Nombre Comercial' },
+  { key: 'area', label: 'Área', type: 'relation', path: 'name' },
   { key: 'contact_name', label: 'Contacto' },
   {
     key: 'phone',
@@ -60,6 +61,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     type: 'booleanConfirm',
     align: 'center',
   },
+
 ];
 
 const DISPLAYED_COLUMNS: string[] = [

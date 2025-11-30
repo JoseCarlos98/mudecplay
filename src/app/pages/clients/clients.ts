@@ -40,10 +40,10 @@ import { ClientsService } from './services/clients.service';
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
-const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
+const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'contact_name', label: 'Responsable' },
+  { key: 'contact_name', label: 'Nombre' },
   { key: 'company_name', label: 'Cliente' },
   { key: 'name', label: 'Nombre del proyecto' },
   {
@@ -54,7 +54,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'email', label: 'Correo Electrónico' },
   { key: 'address', label: 'Ubicación' },
   { key: 'days_credit', label: 'Crédito (días)' },
- {
+  {
     key: 'will_invoice',
     label: '¿Factura?',
     type: 'booleanConfirm',
@@ -73,7 +73,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 @Component({
   selector: 'app-clients',
-  standalone: true,
   imports: [
     CommonModule,
     // UI
@@ -170,8 +169,8 @@ export class Clients {
     return {
       page: ui.page,
       limit: ui.limit,
-      suppliersIds: ui.clientsIds ?? [],
-      areasIds: ui.areasIds ?? null,
+      responsibleIds: ui.responsibleIds ?? [],
+      name: ui.name ?? null,
       email: ui.email?.trim() || '',
       phone: ui.phone?.trim() || '',
     };
@@ -185,10 +184,10 @@ export class Clients {
 
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ClientsUiFilters = {
-      clientsIds: value.clientsIds ?? [],
-      areasIds: value.areasIds ?? [],
+      responsibleIds: value.responsibleIds ?? [],
       email: value.email?.trim() || '',
       phone: value.phone?.trim() || '',
+      name: value.name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
     };
@@ -313,9 +312,9 @@ export class Clients {
     this.filters = {
       page: 1,
       limit: this.filters.limit,
-      suppliersIds: [],
-      areasIds: [],
+      responsibleIds: [],
       email: '',
+      name: '',
       phone: '',
     }
 
@@ -351,8 +350,7 @@ export class Clients {
     // 1) Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
-        clientsIds: saved.clientsIds,
-        areasIds: saved.areasIds,
+        responsibleIds: saved.responsibleIds,
         email: saved.email,
         phone: saved.phone,
       },
@@ -376,9 +374,9 @@ export class Clients {
       const value = this.formFilters.getRawValue();
 
       state = {
-        clientsIds: value.clientsIds ?? [],
-        areasIds: value.areasIds ?? [],
+        responsibleIds: value.responsibleIds ?? [],
         email: value.email?.trim() || '',
+        name: value.name?.trim() || '',
         phone: value.phone?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,

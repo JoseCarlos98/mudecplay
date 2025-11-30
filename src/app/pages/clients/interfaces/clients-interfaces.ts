@@ -1,10 +1,10 @@
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
 
 export interface FiltersClients {
+  name?: string | '';
   phone?: string | '';
   email?: string | '';
-  suppliersIds?: number[] | null;
-  areasIds?: number[] | null;
+  responsibleIds?: number[] | null;
   limit: number;
   page: number;
 }
@@ -56,9 +56,9 @@ export interface PatchClients {
 }
 
 export interface ClientsUiFilters {
-  clientsIds: number[];
-  areasIds: number[];
+  responsibleIds: number[];
   email: string;
+  name: string;
   phone: string;
   page: number;
   limit: number;
