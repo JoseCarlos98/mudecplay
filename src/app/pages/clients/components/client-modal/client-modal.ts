@@ -31,7 +31,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './client-modal.scss',
 })
 export class ClientModal {
- readonly data = inject<ClientsResponseDto>(MAT_DIALOG_DATA);
+  readonly data = inject<ClientsResponseDto>(MAT_DIALOG_DATA);
   private readonly clientsService = inject(ClientsService);
   private readonly catalogsService = inject(CatalogsService);
   private readonly dialogRef = inject(MatDialogRef<ClientModal>);
@@ -56,7 +56,10 @@ export class ClientModal {
     console.log(this.data);
     this.loadCatalogs()
 
-    if (this.data?.id) this.form.patchValue({ ...this.data });
+    if (this.data?.id) this.form.patchValue({
+      ...this.data,
+      will_invoice: this.data.will_invoice ? true : false,
+    });
   }
 
   // ==========================
@@ -78,8 +81,6 @@ export class ClientModal {
     }
 
     const formData = this.form.value;
-    console.log(formData);
-    
 
     this.clientsService.create(formData).subscribe({
       next: (response) => {
@@ -90,6 +91,11 @@ export class ClientModal {
   }
 
   updateData() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const formData = this.form.value;
 
     this.clientsService.update(this.data.id, formData).subscribe({

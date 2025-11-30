@@ -87,6 +87,11 @@ export class SupplierModal implements OnInit {
   }
 
   updateData() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const formData = this.form.value;
 
     this.supplierService.update(this.data.id, formData).subscribe({

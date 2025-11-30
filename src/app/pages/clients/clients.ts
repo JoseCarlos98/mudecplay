@@ -299,8 +299,9 @@ export class Clients {
     const hasAreas = (form.areasIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
     const hasPhone = !!(form.phone !== '');
+    const hasName = !!(form.name !== '');
 
-    return hasSuppliers || hasAreas || hasEmail || hasPhone;
+    return hasSuppliers || hasAreas || hasEmail || hasPhone || hasName;
   }
 
   clearAllAndSearch() {
