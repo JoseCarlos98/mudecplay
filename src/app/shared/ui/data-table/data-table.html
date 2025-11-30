@@ -17,7 +17,7 @@
                 @let rel = getRelationValue(element[col.key], col.path);
 
                 @if (rel) {
-                  <!-- Hay valor en la relación -->
+                  <!-- Igual que antes -->
                   @if (col.typeVariant) {
                     <span
                       class="table-chip"
@@ -29,11 +29,10 @@
                       {{ rel }}
                     </span>
                   } @else {
-                    <!-- Sin variant => texto normal -->
                     {{ rel }}
                   }
                 } @else {
-                  <!-- No hay valor: fallback -->
+                  <!-- No hay valor: usar col.fallback o emptyLabel -->
                   @if (col.fallbackVariant) {
                     <span
                       class="table-chip"
@@ -42,13 +41,16 @@
                         'table-chip-warning': col.fallbackVariant === 'chip-warning',
                         'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
                       }">
-                      {{ col.fallback ?? '' }}
+                      {{ getEmptyLabel(col.fallback) }}
                     </span>
                   } @else {
-                    {{ col.fallback ?? '' }}
+                    <span class="empty-cell">
+                      {{ getEmptyLabel(col.fallback) }}
+                    </span>
                   }
                 }
               }
+
               @case ('money') {
                 {{ element[col.key] | currency:'$ ':'symbol':'1.2-2' }}
               }
@@ -62,8 +64,14 @@
                 </button>
               }
                 @case ('phone') {
-                <span class="phone-cell">
-                  {{ formatPhoneCell(element[col.key]) }}
+                <span
+                  class="phone-cell"
+                  [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : formatPhoneCell(element[col.key])
+                  }}
                 </span>
               }
               @case ('booleanConfirm') {
@@ -82,7 +90,13 @@
               }
 
               @default {
-                {{ element[col.key] ?? col.fallback ?? '' }}
+                <span [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{    
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : (element[col.key])
+                  }}
+                </span>
               }
             }
           </td>

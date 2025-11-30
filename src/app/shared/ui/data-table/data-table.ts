@@ -34,6 +34,8 @@ export class DataTable<T> implements OnChanges {
 
   @Output() action = new EventEmitter<DataTableActionEvent<T>>();
 
+  @Input() emptyLabel = 'Sin dato';
+
   dataSource = new MatTableDataSource<T>();
 
   getRelationValue(value: any, path?: string) {
@@ -77,5 +79,16 @@ export class DataTable<T> implements OnChanges {
 
     if (digits.length <= 6) return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
     return `${country} ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`.trim();
+  }
+
+  // ====== NUEVO: helpers globales ======
+  isEmptyValue(value: any): boolean {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    return false;
+  }
+
+  getEmptyLabel(fallback?: string | null): string {
+    return (fallback && fallback.trim().length > 0) ? fallback : this.emptyLabel;
   }
 }
