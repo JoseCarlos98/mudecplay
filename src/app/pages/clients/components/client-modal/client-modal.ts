@@ -81,12 +81,12 @@ export class ClientModal {
     console.log(formData);
     
 
-    // this.clientsService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.clientsService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {
