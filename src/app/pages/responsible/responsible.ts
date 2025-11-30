@@ -44,23 +44,7 @@ import { ResponsibleService } from './services/responsible.service';
 const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'contact_name', label: 'Responsable' },
-  { key: 'company_name', label: 'Cliente' },
   { key: 'name', label: 'Nombre del proyecto' },
-  {
-    key: 'phone',
-    label: 'Teléfono',
-    type: 'phone',
-  },
-  { key: 'email', label: 'Correo Electrónico' },
-  { key: 'address', label: 'Ubicación' },
-  { key: 'days_credit', label: 'Crédito (días)' },
-  {
-    key: 'will_invoice',
-    label: '¿Factura?',
-    type: 'booleanConfirm',
-    align: 'center',
-  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [

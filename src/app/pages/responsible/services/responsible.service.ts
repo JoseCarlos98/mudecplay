@@ -10,7 +10,7 @@ import { appendArray, setScalar } from '../../../shared/helpers/general-helpers'
   providedIn: 'root'
 })
 export class ResponsibleService {
-  private apiUrl = `${environment.apiUrl}/projects`;
+  private apiUrl = `${environment.apiUrl}/responsibles`;
 
   constructor(private readonly http: HttpClient) { }
 
