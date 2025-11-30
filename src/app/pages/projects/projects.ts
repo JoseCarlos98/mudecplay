@@ -45,6 +45,13 @@ const EXPENSES_FILTERS_KEY = 'mp_projects_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Proyecto' },
+  {
+    key: 'client',
+    label: 'Cliente',
+    type: 'relation',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
   {

@@ -36,7 +36,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
   @Input() placeholder = 'Todos';              // Texto cuando no hay selección
   @Input() searchPlaceholder = 'Buscar';      // Placeholder del input de búsqueda interno
   @Input() remote = false;                     // true: busca en backend; false: filtra local
-  @Input() catalogType: 'supplier' | 'project' = 'supplier'; // Qué catálogo consultar cuando es remoto
+  @Input() catalogType: 'supplier' | 'project' | 'client' = 'supplier'; // Qué catálogo consultar cuando es remoto
   @Input() data: Catalog[] = [];               // Fuente local (modo local)
   @Input() errorMessage = 'Este campo es obligatorio'; // Mensaje por defecto si hay error
 
@@ -202,6 +202,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
     switch (this.catalogType) {
       case 'supplier': return this.catalogsService.supplierCatalog(search);
       case 'project': return this.catalogsService.projectsCatalog(search);
+      case 'client': return this.catalogsService.clientsCatalog(search);
       default: return of([] as Catalog[]);
     }
   }

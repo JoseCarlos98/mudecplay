@@ -38,7 +38,7 @@ export class DataTable<T> implements OnChanges {
 
   getRelationValue(value: any, path?: string) {
     if (!value) return null;
-    if (!path) return value;
+    if (!path) return value['name'] ?? null;
     return value[path] ?? null;
   }
 
