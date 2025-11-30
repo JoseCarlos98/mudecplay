@@ -50,7 +50,7 @@ export class ProjectModal implements OnInit {
   });
 
   ngOnInit() {
-    if (this.data?.id) this.form.patchValue({ ...this.data });
+    if (this.data?.id) this.form.patchValue(this.data);
   }
 
   saveData() {
@@ -61,8 +61,6 @@ export class ProjectModal implements OnInit {
 
     const formData = this.form.value;
 
-    console.log(formData);
-    
     this.supplierService.create(formData).subscribe({
       next: (response) => {
         if (response.success) this.closeModal(true);
@@ -72,6 +70,11 @@ export class ProjectModal implements OnInit {
   }
 
   updateData() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
     const formData = this.form.value;
 
     this.supplierService.update(this.data.id, formData).subscribe({

@@ -56,10 +56,7 @@ export class ClientModal {
     console.log(this.data);
     this.loadCatalogs()
 
-    if (this.data?.id) this.form.patchValue({
-      ...this.data,
-      will_invoice: this.data.will_invoice ? true : false,
-    });
+    if (this.data?.id) this.form.patchValue(this.data);
   }
 
   // ==========================
