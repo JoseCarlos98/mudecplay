@@ -43,9 +43,16 @@ import { ClientsService } from './services/clients.service';
 const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'contact_name', label: 'Nombre' },
+  { key: 'name', label: 'Nombre' },
   { key: 'company_name', label: 'Cliente' },
-  { key: 'name', label: 'Nombre del proyecto' },
+  {
+    key: 'responsible',
+    label: 'Responsable',
+    type: 'relation',
+    path: 'name',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
   {
     key: 'phone',
     label: 'Teléfono',
