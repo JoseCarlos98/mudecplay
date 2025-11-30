@@ -44,7 +44,8 @@ import { ResponsibleService } from './services/responsible.service';
 const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre del proyecto' },
+  { key: 'name', label: 'Nombre' },
+  { key: 'last_name', label: 'Apellido' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -63,10 +64,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     ModuleHeader,
     DataTable,
     BtnsSection,
-    InputDate,
     InputField,
-    InputSelect,
-    SearchMultiSelect,
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,

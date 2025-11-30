@@ -41,6 +41,7 @@ export class ResponsibleModal implements OnInit {
     responsible_id: this.fb.control<Catalog | null>(null),
     client_id: this.fb.control<Catalog | null>(null),
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
+    last_name: this.fb.control<string | null>(null),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
     email: this.fb.control<string | null>(null, { validators: Validators.required }),
     will_invoice: this.fb.control<boolean>(false, { validators: Validators.required }),
