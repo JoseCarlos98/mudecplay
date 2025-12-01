@@ -280,7 +280,7 @@ export class Projects {
 
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n"${project.name?.trim()}"?`,
+        message: `¿Quieres eliminar el proyecto:\n"${project.name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -359,7 +359,7 @@ export class Projects {
       return;
     }
 
-    // 1) Parchear formulario con lo guardado
+    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         clientsIds: saved.clientsIds,
@@ -370,10 +370,10 @@ export class Projects {
       { emitEvent: false },
     );
 
-    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
 
-    // 3) Cargar tabla con esos filtros
+    // Cargar tabla con esos filtros
     this.loadProject();
   }
 

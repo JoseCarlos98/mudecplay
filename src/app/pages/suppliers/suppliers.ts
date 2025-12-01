@@ -52,7 +52,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Teléfono',
     type: 'phone',
   },
-  { key: 'email', label: 'Correo Electrónico' },
+  { key: 'email', label: 'Correo' },
   { key: 'address', label: 'Dirección' },
   { key: 'days_credit', label: 'Crédito (días)' },
   {
@@ -270,7 +270,7 @@ export class Suppliers {
   onDelete(supplier: entity.SupplierResponseDto) {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n"${supplier.company_name.trim()}"?`,
+        message: `¿Quieres eliminar el proveedor:\n"${supplier.company_name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -349,7 +349,7 @@ export class Suppliers {
       return;
     }
 
-    // 1) Parchear formulario con lo guardado
+    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         areasIds: saved.areasIds,
@@ -360,10 +360,10 @@ export class Suppliers {
       { emitEvent: false },
     );
 
-    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
 
-    // 3) Cargar tabla con esos filtros
+    // Cargar tabla con esos filtros
     this.loadSupplier();
   }
 

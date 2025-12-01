@@ -36,18 +36,9 @@ export class ResponsibleModal implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
-    // responsible_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
-    // client_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
-    responsible_id: this.fb.control<Catalog | null>(null),
-    client_id: this.fb.control<Catalog | null>(null),
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
     last_name: this.fb.control<string | null>(null),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
-    email: this.fb.control<string | null>(null, { validators: Validators.required }),
-    will_invoice: this.fb.control<boolean>(false, { validators: Validators.required }),
-    location: this.fb.control<string | null>(null),
-    days_credit: this.fb.control<number | null>(null),
-    contact_name: this.fb.control<string | null>(null),
   });
 
   ngOnInit() {

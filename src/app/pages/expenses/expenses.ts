@@ -365,7 +365,7 @@ export class Expenses implements OnInit {
       return;
     }
 
-    // 1) Parchear formulario con lo guardado
+    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         dateRange: saved.dateRange,
@@ -377,10 +377,10 @@ export class Expenses implements OnInit {
       { emitEvent: false },
     );
 
-    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
 
-    // 3) Cargar tabla con esos filtros
+    // Cargar tabla con esos filtros
     this.loadExpenses();
   }
 

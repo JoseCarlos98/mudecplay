@@ -18,11 +18,8 @@ import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
-import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
-import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
-import { InputSelect } from '../../shared/ui/input-select/input-select';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -32,7 +29,6 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 // Interfaces
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../responsible/interfaces/responsible-interfaces';
-import { SupplierService } from '../suppliers/services/supplier.service';
 import { ResponsibleModal } from './components/responsible-modal/responsible-modal';
 import { ResponsibleService } from './services/responsible.service';
 
@@ -46,6 +42,7 @@ const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Nombre' },
   { key: 'last_name', label: 'Apellido' },
+  { key: 'phone', label: 'Telefono', type : 'phone' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -110,10 +107,6 @@ export class Responsible {
 
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
-    responsibleIds: this.fb.control<number[]>([]),
-    clientsIds: this.fb.control<number[]>([]),
-    areasIds: this.fb.control<number[]>([]),
-    email: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
     name: this.fb.control<string>(''),
   });
@@ -147,16 +140,14 @@ export class Responsible {
    * Recibe el estado de la UI (form + paginación)
    * y devuelve el objeto de filtros que espera el backend.
    */
-  // private buildBackendFiltersFromUi(ui: entity.ResponsibleUiFilters): entity.FiltersResponsible {
-  //   return {
-  //     page: ui.page,
-  //     limit: ui.limit,
-  //     suppliersIds: ui.clientsIds ?? [],
-  //     areasIds: ui.areasIds ?? null,
-  //     email: ui.email?.trim() || '',
-  //     phone: ui.phone?.trim() || '',
-  //   };
-  // }
+  private buildBackendFiltersFromUi(ui: entity.ResponsibleUiFilters): entity.FiltersResponsible {
+    return {
+      page: ui.page,
+      limit: ui.limit,
+      name: ui.name?.trim() || '',
+      phone: ui.phone?.trim() || '',
+    };
+  }
 
   // ==========================
   //  FILTROS + BÚSQUEDA
@@ -165,20 +156,18 @@ export class Responsible {
     const value = this.formFilters.getRawValue();
 
     // Estado completo de la UI (incluye página/limit)
-    // const uiState: entity.ResponsibleUiFilters = {
-    //   clientsIds: value.clientsIds ?? [],
-    //   areasIds: value.areasIds ?? [],
-    //   email: value.email?.trim() || '',
-    //   phone: value.phone?.trim() || '',
-    //   page: 1,
-    //   limit: this.filters.limit,
-    // };
+    const uiState: entity.ResponsibleUiFilters = {
+      name: value.name?.trim() || '',
+      phone: value.phone?.trim() || '',
+      page: 1,
+      limit: this.filters.limit,
+    };
 
     // Mapeamos a filtros de backend usando el helper
-    // this.filters = this.buildBackendFiltersFromUi(uiState);
+    this.filters = this.buildBackendFiltersFromUi(uiState);
 
     // Guardamos el estado de UI para persistir filtros
-    // this.saveFiltersToStorage(uiState);
+    this.saveFiltersToStorage(uiState);
 
     // Disparamos la carga
     this.loadClients();
@@ -250,7 +239,7 @@ export class Responsible {
   onDelete(supplier: entity.ResponsibleResponseDto) {
     this.dialogService
       .confirm({
-        // message: `¿Quieres eliminar el gasto:\n"${supplier.company_name.trim()}"?`,
+        message: `¿Quieres eliminar el responsable:\n"${supplier.name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -270,35 +259,29 @@ export class Responsible {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasSuppliers = (form.clientsIds?.length ?? 0) > 0;
-    const hasAreas = (form.areasIds?.length ?? 0) > 0;
-    const hasEmail = !!(form.email && form.email.trim() !== '');
+    const hasEmail = !!(form.name?.trim() !== '');
     const hasPhone = !!(form.phone !== '');
 
-    return hasSuppliers || hasAreas || hasEmail || hasPhone;
+    return hasEmail || hasPhone;
   }
 
   clearAllAndSearch() {
     // Limpia formulario de filtros
     this.formFilters.reset(
       {
-        clientsIds: [],
-        areasIds: [],
-        email: '',
+        name: '',
         phone: '',
       },
       { emitEvent: false },
     );
 
     // Resetea filtros de backend
-    // this.filters = {
-    //   page: 1,
-    //   limit: this.filters.limit,
-    //   // suppliersIds: [],
-    //   areasIds: [],
-    //   email: '',
-    //   phone: '',
-    // }
+    this.filters = {
+      page: 1,
+      limit: this.filters.limit,
+      name: '',
+      phone: '',
+    }
 
     // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
@@ -329,21 +312,19 @@ export class Responsible {
       return;
     }
 
-    // 1) Parchear formulario con lo guardado
-    // this.formFilters.patchValue(
-    //   {
-    //     clientsIds: saved.clientsIds,
-    //     areasIds: saved.areasIds,
-    //     email: saved.email,
-    //     phone: saved.phone,
-    //   },
-    //   { emitEvent: false },
-    // );
+    // Parchear formulario con lo guardado
+    this.formFilters.patchValue(
+      {
+        name: saved.name,
+        phone: saved.phone,
+      },
+      { emitEvent: false },
+    );
 
-    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    // Reconstruir filtros de backend desde el estado de UI guardado
     // this.filters = this.buildBackendFiltersFromUi(saved);
 
-    // 3) Cargar tabla con esos filtros
+    // Cargar tabla con esos filtros
     this.loadClients();
   }
 
@@ -356,14 +337,12 @@ export class Responsible {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
-      // state = {
-      //   clientsIds: value.clientsIds ?? [],
-      //   areasIds: value.areasIds ?? [],
-      //   email: value.email?.trim() || '',
-      //   phone: value.phone?.trim() || '',
-      //   page: this.filters.page,
-      //   limit: this.filters.limit,
-      // };
+      state = {
+        name: value.name?.trim() || '',
+        phone: value.phone?.trim() || '',
+        page: this.filters.page,
+        limit: this.filters.limit,
+      };
     }
 
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);

@@ -4,7 +4,7 @@ import * as entity from '../interfaces/responsible-interfaces';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
-import { appendArray, setScalar } from '../../../shared/helpers/general-helpers';
+import { setScalar } from '../../../shared/helpers/general-helpers';
 
 @Injectable({
   providedIn: 'root'
@@ -21,10 +21,8 @@ export class ResponsibleService {
     if (filters) {
       params = setScalar(params, 'page', filters.page);
       params = setScalar(params, 'limit', filters.limit);
-      params = appendArray(params, 'clientsIds', filters.clientsIds ?? []);
       params = setScalar(params, 'name', filters.name?.trim());
       params = setScalar(params, 'phone', filters.phone?.trim());
-      params = setScalar(params, 'email', filters.email?.trim());
     }
 
     return this.http.get<PaginatedResponse<entity.ResponsibleResponseDto>>(url, { params });

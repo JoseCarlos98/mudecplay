@@ -1,8 +1,6 @@
 export interface FiltersResponsible {
   name?: string | '';
-  email?: string | '';
   phone?: string | '';
-  clientsIds?: number[] | null;
   limit: number;
   page: number;
 }
@@ -47,8 +45,6 @@ export interface PatchResponsible {
 }
 
 export interface ResponsibleUiFilters {
-  clientsIds: number[];
-  email: string;
   phone: string;
   name: string;
   page: number;

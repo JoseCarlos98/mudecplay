@@ -293,7 +293,7 @@ export class InputField implements ControlValueAccessor {
     if (errors['min']) return 'El valor es muy pequeño';
     if (errors['max']) return 'El valor es muy grande';
     if (errors['phoneLength']) return `Debe contener ${this.phoneLength} dígitos`;
-    if (errors['email']) return 'Correo electrónico inválido';
+    if (errors['email']) return 'Correo inválido';
     return this.errorMessage;
   }
 

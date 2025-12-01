@@ -44,7 +44,7 @@ const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Nombre' },
-  { key: 'company_name', label: 'Cliente' },
+  { key: 'company_name', label: 'Razón Social' },
   {
     key: 'responsible',
     label: 'Responsable',
@@ -58,7 +58,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Teléfono',
     type: 'phone',
   },
-  { key: 'email', label: 'Correo Electrónico' },
+  { key: 'email', label: 'Correo' },
   { key: 'address', label: 'Ubicación' },
   { key: 'days_credit', label: 'Crédito (días)' },
   {
@@ -275,7 +275,7 @@ export class Clients {
   onDelete(supplier: entity.ClientsResponseDto) {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n"${supplier.company_name.trim()}"?`,
+        message: `¿Quieres eliminar el cliente:\n"${supplier.company_name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -355,7 +355,7 @@ export class Clients {
       return;
     }
 
-    // 1) Parchear formulario con lo guardado
+    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         responsibleIds: saved.responsibleIds,
@@ -365,10 +365,10 @@ export class Clients {
       { emitEvent: false },
     );
 
-    // 2) Reconstruir filtros de backend desde el estado de UI guardado
+    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
 
-    // 3) Cargar tabla con esos filtros
+    // Cargar tabla con esos filtros
     this.loadClients();
   }
 
