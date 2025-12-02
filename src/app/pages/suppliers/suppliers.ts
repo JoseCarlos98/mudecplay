@@ -40,28 +40,18 @@ import { SupplierModal } from './components/supplier-modal/supplier-modal';
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
-const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
+const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razón Social' },
   { key: 'name', label: 'Nombre Comercial' },
   { key: 'area', label: 'Área', type: 'relation', path: 'name' },
   { key: 'contact_name', label: 'Contacto' },
-  {
-    key: 'phone',
-    label: 'Teléfono',
-    type: 'phone',
-  },
+  { key: 'phone', label: 'Teléfono', type: 'phone' },
   { key: 'email', label: 'Correo' },
   { key: 'address', label: 'Dirección' },
   { key: 'days_credit', label: 'Crédito (días)' },
-  {
-    key: 'will_invoice',
-    label: '¿Factura?',
-    type: 'booleanConfirm',
-    align: 'center',
-  },
-
+  { key: 'will_invoice', label: '¿Factura?', type: 'booleanConfirm', align: 'center' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -348,7 +338,7 @@ export class Suppliers {
       this.searchWithFilters();
       return;
     }
-
+    
     // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {

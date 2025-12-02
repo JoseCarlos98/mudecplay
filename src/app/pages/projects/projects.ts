@@ -54,11 +54,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
-  {
-    key: 'phone',
-    label: 'Teléfono',
-    type: 'phone',
-  },
+  { key: 'phone', label: 'Teléfono', type: 'phone' },
   { key: 'email', label: 'Correo' },
   { key: 'days_credit', label: 'Crédito (días)' },
   {

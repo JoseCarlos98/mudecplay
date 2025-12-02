@@ -46,9 +46,7 @@ const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'internal_folio', label: 'Folio' },
-  { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'date', label: 'Fecha', type: 'date' },
-  { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
   {
     key: 'supplier',
     label: 'Proveedor',
@@ -57,6 +55,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
+  { key: 'products', label: 'Productos', type: 'showItems' },
+  { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [

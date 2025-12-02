@@ -19,7 +19,7 @@ import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/mod
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
-import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
+import { InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
@@ -32,7 +32,6 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 // Interfaces
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../clients/interfaces/clients-interfaces';
-import { SupplierService } from '../suppliers/services/supplier.service';
 import { ClientModal } from './components/client-modal/client-modal';
 import { ClientsService } from './services/clients.service';
 
@@ -53,11 +52,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
-  {
-    key: 'phone',
-    label: 'Teléfono',
-    type: 'phone',
-  },
+  { key: 'phone', label: 'Teléfono', type: 'phone' },
   { key: 'email', label: 'Correo' },
   { key: 'address', label: 'Ubicación' },
   { key: 'days_credit', label: 'Crédito (días)' },

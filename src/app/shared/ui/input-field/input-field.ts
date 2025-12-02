@@ -220,6 +220,8 @@ export class InputField implements ControlValueAccessor {
 
     if (this.type === 'text') {
       const norm = normalizeTextOnBlur(String(this._value ?? ''));
+      console.log(norm);
+      
       this._value = norm;
       this.onChange(norm);
       this.displayValue = norm;
