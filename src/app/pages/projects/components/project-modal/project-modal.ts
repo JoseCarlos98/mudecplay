@@ -36,8 +36,6 @@ export class ProjectModal implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
-    // responsible_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
-    // client_id: this.fb.control<Catalog | null>(null, { validators: Validators.required }),
     responsible_id: this.fb.control<Catalog | null>(null),
     client_id: this.fb.control<Catalog | null>(null),
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
@@ -50,7 +48,11 @@ export class ProjectModal implements OnInit {
   });
 
   ngOnInit() {
-    if (this.data?.id) this.form.patchValue(this.data);
+    if (this.data?.id) this.form.patchValue({
+      ...this.data,
+      responsible_id: this.data.responsible,
+      client_id: this.data.client,
+    });
   }
 
   saveData() {

@@ -3,6 +3,7 @@ export interface FiltersProject {
   email?: string | '';
   phone?: string | '';
   clientsIds?: number[] | null;
+  responsibleIds?: number[] | null;
   limit: number;
   page: number;
 }
@@ -46,6 +47,7 @@ export interface PatchProject {
 
 export interface ProjectUiFilters {
   clientsIds: number[];
+  responsibleIds: number[];
   email: string;
   phone: string;
   name: string;

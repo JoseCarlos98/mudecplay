@@ -55,7 +55,10 @@ export class SupplierModal implements OnInit {
     console.log(this.data);
     this.loadCatalogs()
 
-    if (this.data?.id) this.form.patchValue({ ...this.data, area_id: this.data.area.id });
+    if (this.data?.id) this.form.patchValue({
+      ...this.data, 
+      area_id: this.data.area.id
+     });
   }
 
   // ==========================

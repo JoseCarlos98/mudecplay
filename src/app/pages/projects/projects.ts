@@ -52,6 +52,13 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
+  {
+    key: 'responsible',
+    label: 'Responsable',
+    type: 'relation',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
   { key: 'phone', label: 'Teléfono', type: 'phone' },
@@ -135,6 +142,7 @@ export class Projects {
   // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     clientsIds: this.fb.control<number[]>([]),
+    responsibleIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
     name: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
@@ -174,6 +182,7 @@ export class Projects {
       page: ui.page,
       limit: ui.limit,
       clientsIds: ui.clientsIds ?? [],
+      responsibleIds: ui.responsibleIds ?? [],
       email: ui.email?.trim() || '',
       name: ui.name?.trim() || '',
       phone: ui.phone?.trim() || '',
@@ -189,6 +198,7 @@ export class Projects {
     // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ProjectUiFilters = {
       clientsIds: value.clientsIds ?? [],
+      responsibleIds: value.responsibleIds ?? [],
       email: value.email?.trim() || '',
       name: value.name?.trim() || '',
       phone: value.phone?.trim() || '',
@@ -384,6 +394,7 @@ export class Projects {
 
       state = {
         clientsIds: value.clientsIds ?? [],
+        responsibleIds: value.responsibleIds ?? [],
         email: value.email?.trim() || '',
         phone: value.phone?.trim() || '',
         name: value.name?.trim() || '',

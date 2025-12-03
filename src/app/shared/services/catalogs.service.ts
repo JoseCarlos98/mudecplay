@@ -26,6 +26,15 @@ export class CatalogsService {
 
     return this.http.get<Catalog[]>(url, { params })
   }
+  
+  responsibleCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/responsibles/catalog`;
+    let params = new HttpParams();
+
+    if (searchTerm) params = params.set('search', searchTerm)
+
+    return this.http.get<Catalog[]>(url, { params })
+  }
 
   clientsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/clients/catalog`;
@@ -44,7 +53,4 @@ export class CatalogsService {
     return this.http.get<Catalog[]>(`${this.apiUrl}/areas/catalog`);
   }
 
-  responsibleCatalog(): Observable<Catalog[]> {
-    return this.http.get<Catalog[]>(`${this.apiUrl}/responsibles/catalog`);
-  }
 }

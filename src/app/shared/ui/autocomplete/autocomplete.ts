@@ -55,7 +55,7 @@ export class Autocomplete implements ControlValueAccessor {
   @Input() label:string = 'Seleccionar';
   @Input() placeholder:string = 'Buscar';
   @Input() remote: boolean = false;
-  @Input() catalogType: 'supplier' | 'project' = 'supplier';
+  @Input() catalogType: 'supplier' | 'project' | 'responsible' | 'client' = 'supplier';
   @Input() data: Catalog[] = [];
 
   // cuando en editar ya tienes el nombre, lo muestras
@@ -226,6 +226,10 @@ export class Autocomplete implements ControlValueAccessor {
         return this.catalogsService.supplierCatalog(search);
       case 'project':
         return this.catalogsService.projectsCatalog(search);
+      case 'responsible':
+        return this.catalogsService.responsibleCatalog(search);
+      case 'client':
+        return this.catalogsService.clientsCatalog(search);
       default:
         return of([]);
     }
