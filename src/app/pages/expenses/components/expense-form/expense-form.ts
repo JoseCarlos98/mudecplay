@@ -89,23 +89,24 @@ export class ExpenseForm implements OnInit {
             : null,
         });
 
-        // Creamos un FormGroup por cada item que viene del backend
         const itemsFGs = response.items.map((item) =>
           this.createItemGroup({
             concept: item.concept,
             amount: item.amount,
+            payment_amount: item.payment_amount ?? null,
+            payment_date: item.payment_date ?? null,
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
               : null,
           }),
         );
 
-        // Reemplazamos por completo el FormArray de items
         this.form.setControl('items', this.fb.array(itemsFGs));
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
+
 
   // Crear un nuevo gasto
   saveData() {
@@ -115,15 +116,17 @@ export class ExpenseForm implements OnInit {
     }
 
     const payload = this.buildPayloadFromForm();
+    console.log(payload);
+    
 
-    this.expenseService.create(payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/gastos');
-        }
-      },
-      error: (err) => console.error('Error al crear gasto:', err),
-    });
+    // this.expenseService.create(payload).subscribe({
+    //   next: (response) => {
+    //     if (response.success) {
+    //       this.router.navigateByUrl('/gastos');
+    //     }
+    //   },
+    //   error: (err) => console.error('Error al crear gasto:', err),
+    // });
   }
 
   // Actualizar gasto existente
@@ -155,9 +158,9 @@ export class ExpenseForm implements OnInit {
     return this.fb.group({
       concept: [data?.concept ?? '', Validators.required],
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
-      // project_id: [data?.project_id ?? null],
+      payment_amount: [data?.payment_amount ?? null, [Validators.min(0)]],
+      payment_date: [data?.payment_date ?? null],
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
-
     });
   }
 
@@ -196,13 +199,22 @@ export class ExpenseForm implements OnInit {
     const raw = this.form.getRawValue();
 
     return {
-      date: raw.date, // si quieres, aquí puedes pasar por toApiDate(raw.date)
+      date: raw.date,
       supplier_id: toIdForm(raw.supplier_id),
       items: (raw.items ?? []).map((item: any) => ({
         concept: (item.concept ?? '').trim(),
         amount: Number(item.amount),
+
+        payment_amount:
+          item.payment_amount !== null && item.payment_amount !== ''
+            ? Number(item.payment_amount)
+            : null,
+
+        payment_date: item.payment_date || null,
+
         project_id: toIdForm(item.project_id),
       })),
     };
   }
+
 }

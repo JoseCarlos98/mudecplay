@@ -14,7 +14,7 @@ export interface FiltersExpenses {
 
 export interface ExpenseResponseDto {
   id: number;
-  date: string; 
+  date: string;
   folio: string;
   total_amount: number;
   supplier: Supplier;
@@ -76,6 +76,8 @@ export interface ExpenseItemDetail {
   id: number;
   concept: string;
   amount: number;
+  payment_amount: number | null;
+  payment_date: string | null;
   project: {
     id: number;
     name: string;
@@ -100,8 +102,10 @@ export interface ExpenseDetail {
 
 export interface ExpenseItemForm {
   concept: string;
-  amount: number | null;
-  project_id: Catalog | null; 
+  amount: number;
+  payment_amount: number | null;
+  payment_date: string | null;
+  project_id: Catalog | null;
 }
 
 

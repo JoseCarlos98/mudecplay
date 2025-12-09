@@ -1,39 +1,25 @@
 <div class="card-content">
   <!-- Header reutilizable con título dinámico (crear/editar) -->
-  <app-module-header
-    [title]="expenseId ? 'Editar Gasto' : 'Registrar Gasto'"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)"
-  ></app-module-header>
+  <app-module-header [title]="expenseId ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
+    (action)="onHeaderAction($event)"></app-module-header>
 
-  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form"
-  >
+  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-      
+
       <!-- Fecha -->
       <div class="md:col-span-1">
-        <app-input-date
-          formControlName="date"
-          label="Fecha"
-          mode="single"
-          [showClear]="true"
-        ></app-input-date>
+        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true"></app-input-date>
       </div>
 
       <!-- Proveedor -->
       <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="supplier_id"
-          label="Proveedor"
-          [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''"
-          catalogType="supplier"
-        ></app-autocomplete>
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier"></app-autocomplete>
       </div>
 
       <!-- Bloque dinámico de items -->
       <div class="form-dinamic md:col-span-3" formArrayName="items">
-        
+
         <!-- Header de la sección -->
         <div class="form-dinamic-header">
           <div class="flex items-center gap-2">
@@ -56,61 +42,59 @@
         <!-- Lista de filas dinámicas -->
         <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
-            <div
-              class="forms-controls md:col-span-3 grid md:grid-cols-3 sm:grid-cols-1 gap-4"
-              [formGroupName]="i"
-            >
-              <!-- Concepto -->
-              <div class="md:col-span-1">
-                <app-input-field
-                  formControlName="concept"
-                  label="Concepto"
-                  type="text"
-                ></app-input-field>
-              </div>
-
-              <!-- Monto -->
-              <div class="md:col-span-1">
-                <app-input-field
-                  formControlName="amount"
-                  label="Monto"
-                  type="money"
-                ></app-input-field>
-              </div>
-
-              <!-- Proyecto + botón borrar -->
-              <div class="md:col-span-1 flex gap-2 items-start">
-                <div class="flex-1">
-                  <app-autocomplete
-                    formControlName="project_id"
-                    label="Proyecto"
-                    [remote]="true"
-                    catalogType="project"
-                  ></app-autocomplete>
-                </div>
-
-                @if (itemsFA.length > 1) {
-                  <button
-                    type="button"
-                    mat-icon-button
-                    class="delete-btn"
-                    (click)="removeItem(i)"
-                  >
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                }
-              </div>
+          <div class="forms-controls md:col-span-4 grid md:grid-cols-5 sm:grid-cols-1 gap-4" [formGroupName]="i">
+            <!-- Concepto -->
+            <div class="md:col-span-1">
+              <app-input-field formControlName="concept" label="Concepto" type="text"></app-input-field>
             </div>
+
+            <!-- Monto total -->
+            <div class="md:col-span-1">
+              <app-input-field formControlName="amount" label="Monto" type="money"></app-input-field>
+            </div>
+
+            <!-- Abono / Pago -->
+            <div class="md:col-span-1">
+              <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money"></app-input-field>
+
+              <!-- Restante (solo lectura, opcional) -->
+              <small class="text-xs text-gray-500" *ngIf="itemCtrl.get('amount')?.value">
+                Restante:
+                {{
+                (itemCtrl.get('amount')?.value || 0) -
+                (itemCtrl.get('payment_amount')?.value || 0)
+                | currency:'MXN':'symbol-narrow':'1.2-2'
+                }}
+              </small>
+            </div>
+
+            <!-- Fecha de pago -->
+            <div class="md:col-span-1">
+              <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single"
+                [showClear]="true"></app-input-date>
+            </div>
+
+            <!-- Proyecto + borrar -->
+            <div class="md:col-span-1 flex gap-2 items-start">
+              <div class="flex-1">
+                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                  catalogType="project"></app-autocomplete>
+              </div>
+
+              @if (itemsFA.length > 1) {
+              <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              }
+            </div>
+          </div>
           }
         </div>
+
       </div>
     </div>
   </form>
 
   <!-- Footer reutilizable (cancel / guardar) -->
-  <app-btns-section
-    [form]="true"
-    [saveDisabled]="!form.valid"
-    (action)="onFooterAction($event)"
-  ></app-btns-section>
+  <app-btns-section [form]="true" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
 </div>
