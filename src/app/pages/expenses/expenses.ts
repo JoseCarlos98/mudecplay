@@ -57,6 +57,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
+  { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -74,6 +75,12 @@ const STATUS_COMPLEMENTS: Catalog[] = [
   { id: 'missing_supplier', name: 'Sin proveedor' },
   { id: 'missing_project', name: 'Sin proyecto' },
 ];
+
+const PAYMENTSTATUSOPTIONS: Catalog[] = [
+  { id: 'paid', name: 'Pagado' },
+  { id: 'unpaid', name: 'Con saldo' },
+];
+
 
 @Component({
   selector: 'app-expenses',
@@ -122,6 +129,7 @@ export class Expenses implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
+  readonly paymentStatusOptions = PAYMENTSTATUSOPTIONS;
 
   catalogStatusExpense: Catalog[] = [];
 
@@ -139,6 +147,7 @@ export class Expenses implements OnInit {
     projectIds: this.fb.control<number[]>([]),
     concept: this.fb.control<string>(''),
     status_id: this.fb.control<string | number>(1),
+    paymentStatus: this.fb.control<'paid' | 'unpaid' | null>(null),
   });
 
   // ==========================
@@ -180,6 +189,7 @@ export class Expenses implements OnInit {
       suppliersIds: ui.suppliersIds ?? [],
       projectIds: ui.projectIds ?? [],
       status_id: ui.status_id ?? null,
+      paymentStatus: ui.paymentStatus ?? null,
       concept: ui.concept?.trim() || '',
     };
   }
@@ -196,6 +206,7 @@ export class Expenses implements OnInit {
       suppliersIds: value.suppliersIds ?? [],
       projectIds: value.projectIds ?? [],
       status_id: value.status_id ?? null,
+      paymentStatus: value.paymentStatus ?? null,
       concept: value.concept?.trim() || '',
       page: 1,
       limit: this.filters.limit,
@@ -319,6 +330,7 @@ export class Expenses implements OnInit {
         suppliersIds: [],
         projectIds: [],
         status_id: '',
+        paymentStatus: null,
         concept: '',
       },
       { emitEvent: false },
@@ -330,6 +342,7 @@ export class Expenses implements OnInit {
       limit: this.filters.limit,
       startDate: null,
       endDate: null,
+      paymentStatus: null,
       suppliersIds: [],
       projectIds: [],
       status_id: null,
@@ -398,6 +411,7 @@ export class Expenses implements OnInit {
         suppliersIds: value.suppliersIds ?? [],
         projectIds: value.projectIds ?? [],
         status_id: value.status_id ?? null,
+        paymentStatus: value.paymentStatus ?? null,
         concept: value.concept?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,

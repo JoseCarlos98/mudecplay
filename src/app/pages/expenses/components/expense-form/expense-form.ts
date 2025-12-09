@@ -119,14 +119,14 @@ export class ExpenseForm implements OnInit {
     console.log(payload);
     
 
-    // this.expenseService.create(payload).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       this.router.navigateByUrl('/gastos');
-    //     }
-    //   },
-    //   error: (err) => console.error('Error al crear gasto:', err),
-    // });
+    this.expenseService.create(payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.router.navigateByUrl('/gastos');
+        }
+      },
+      error: (err) => console.error('Error al crear gasto:', err),
+    });
   }
 
   // Actualizar gasto existente

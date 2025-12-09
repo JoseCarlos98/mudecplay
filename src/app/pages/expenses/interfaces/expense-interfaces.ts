@@ -7,6 +7,7 @@ export interface FiltersExpenses {
   endDate?: string | null;
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
+  paymentStatus?: 'paid' | 'unpaid' | null;
   status_id?: number | string | null;
   limit: number;
   page: number;
@@ -16,6 +17,7 @@ export interface ExpenseResponseDto {
   id: number;
   date: string;
   folio: string;
+  remaining_amount: number;
   total_amount: number;
   supplier: Supplier;
   status: ExpenseStatus;
@@ -36,6 +38,8 @@ export interface ExpenseItem {
   id: number;
   concept: string;
   amount: number;
+  payment_amount: number;
+  payment_date: string | null;
   project: Project | null;
 }
 
@@ -114,6 +118,7 @@ export interface ExpensesUiFilters {
   suppliersIds: number[];
   projectIds: number[];
   status_id: string | number | null;
+  paymentStatus: 'paid' | 'unpaid' | null; 
   concept: string;
   page: number;
   limit: number;

@@ -27,6 +27,7 @@ export class ExpenseService {
       params = appendArray(params, 'projectIds', filters.projectIds ?? []);
       params = setScalar(params, 'statusId', filters.status_id);
       params = setScalar(params, 'concept', filters.concept?.trim());
+      params = setScalar(params, 'paymentStatus', filters.paymentStatus?.trim());
     }
 
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, { params });

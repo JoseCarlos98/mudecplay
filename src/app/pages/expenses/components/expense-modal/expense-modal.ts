@@ -13,19 +13,23 @@ import { ExpenseItem } from '../../interfaces/expense-interfaces';
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
 };
-
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
-  { key: 'amount', label: 'Monto', type: 'money', align: 'right' },
+
   {
     key: 'project',
     label: 'Proyecto',
     type: 'relation',
     path: 'name',
     fallback: 'No asignado',
-    fallbackVariant: 'chip-warning'
+    fallbackVariant: 'chip-warning',
   },
+  { key: 'amount', label: 'Monto total', type: 'money', align: 'right' },
+  { key: 'payment_amount', label: 'Pagado', type: 'money', align: 'right' },
+  { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
+  { key: 'payment_date', label: 'Fecha de pago', type: 'date' },
 ];
+
 
 const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map(c => c.key);
 

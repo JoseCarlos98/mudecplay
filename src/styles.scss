@@ -132,6 +132,11 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+.card-content-form {
+  @extend .card-content;
+    padding: 15px 15px 15px 15px;
+}
+
 .c-module-table {
   position: relative;
 }
