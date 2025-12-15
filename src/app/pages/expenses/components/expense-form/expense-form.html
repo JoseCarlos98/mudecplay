@@ -40,11 +40,9 @@
         </div>
 
         <!-- Lista de filas dinámicas -->
-        <!-- Lista de filas dinámicas -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
           <div class="forms-controls" [formGroupName]="i">
-            <!-- Fila 1: 3 inputs -->
             <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
               <!-- Concepto -->
               <div>
@@ -100,12 +98,9 @@
           </div>
           }
         </div>
-
-
       </div>
     </div>
   </form>
 
-  <!-- Footer reutilizable (cancel / guardar) -->
   <app-btns-section [form]="true" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
 </div>

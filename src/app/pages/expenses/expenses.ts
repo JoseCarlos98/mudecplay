@@ -359,7 +359,7 @@ export class Expenses implements OnInit {
   // ==========================
   expenseModal(expense?: entity.ExpenseItem[]): void {
     this.dialogService
-      .open(ExpenseModal, expense ? expense : null, 'small')
+      .open(ExpenseModal, expense ? expense : null, 'medium')
       .afterClosed()
       .subscribe((result) => {
         if (result) this.loadExpenses();
