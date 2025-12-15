@@ -67,19 +67,25 @@
             <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
               <!-- Abono / Pago -->
               <div>
-                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money">
+                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money"
+                  [ngClass]="{ 'field-invalid': itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value }">
                 </app-input-field>
               </div>
 
               <!-- Fecha de pago -->
+              @if (itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value ==
+              itemCtrl.get('payment_amount')?.value) {
               <div>
                 <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
                 </app-input-date>
               </div>
+              }
 
               <!-- Restante + botón borrar -->
               <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                <small class="text-xs text-gray-500" *ngIf="itemCtrl.get('amount')?.value">
+                @if (itemCtrl.get('amount')?.value) {
+                <small class="text-xs text-gray-500"
+                  [ngClass]="{ 'error-restant': itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value }">
                   Restante:
                   {{
                   (itemCtrl.get('amount')?.value || 0) -
@@ -87,6 +93,8 @@
                   | currency:'MXN':'symbol-narrow':'1.2-2'
                   }}
                 </small>
+                }
+
 
                 @if (itemsFA.length > 1) {
                 <button type="button" mat-icon-button class="delete-btn self-end md:self-auto">
