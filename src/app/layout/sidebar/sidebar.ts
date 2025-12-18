@@ -39,8 +39,8 @@ export class Sidebar {
         { name: 'Proveedores', icon: 'store', route: 'proveedores' },
         { name: 'Proyectos', icon: 'work', route: 'proyectos' },
         { name: 'Clientes', icon: 'groups', route: 'clientes' },
-        { name: 'Responsables', icon: 'person', route: 'responsables' }
-      ],
+        { name: 'Responsables', icon: 'person', route: 'responsables' },
+        { name: 'Productos', icon: 'inventory', route: 'productos' }],
     },
   ];
 }

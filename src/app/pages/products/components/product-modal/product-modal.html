@@ -1,0 +1,49 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="data?.id ? 'Editar producto' : 'Registrar producto'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form"
+  >
+    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1 gap-4">
+      <!-- Nombre (obligatorio) -->
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="name"
+          label="Nombre del producto"
+          type="text">
+        </app-input-field>
+      </div>
+
+      <!-- Clave prod/serv CFDI (opcional) -->
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="clave_prod_serv"
+          label="Clave prod/serv (CFDI)"
+          type="text">
+        </app-input-field>
+      </div>
+
+      <!-- No. identificación interno (opcional) -->
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="no_identificacion"
+          label="No. identificación"
+          type="text">
+        </app-input-field>
+      </div>
+    </div>
+  </form>
+
+  <app-btns-section
+    [form]="true"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="form.invalid">
+  </app-btns-section>
+</div>

@@ -11,6 +11,7 @@ export const routes: Routes = [
       { path: 'proyectos', loadComponent: () => import('./pages/projects/projects').then(m => m.Projects) },
       { path: 'clientes', loadComponent: () => import('./pages/clients/clients').then(m => m.Clients) },
       { path: 'responsables', loadComponent: () => import('./pages/responsible/responsible').then(m => m.Responsible) },
+      { path: 'productos', loadComponent: () => import('./pages/products/products').then(m => m.Products) },
       { path: '', redirectTo: 'gastos', pathMatch: 'full' }
     ]
   }

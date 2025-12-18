@@ -22,8 +22,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 @Component({
   selector: 'app-responsible-modal',
-  imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, BtnsSection, MatSlideToggle],
+  imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule, InputField, BtnsSection, BtnsSection],
   templateUrl: './responsible-modal.html',
   styleUrl: './responsible-modal.scss',
 })
