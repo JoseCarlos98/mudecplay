@@ -76,10 +76,11 @@ export class ExpenseForm implements OnInit {
     }
   }
 
-  // GET /expenses/:id -> carga el gasto para edición
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
+        console.log(response);
+
         this.formData = response;
 
         this.form.patchValue({
@@ -107,7 +108,6 @@ export class ExpenseForm implements OnInit {
     });
   }
 
-
   // Crear un nuevo gasto
   saveData() {
     if (this.form.invalid) {
@@ -117,16 +117,15 @@ export class ExpenseForm implements OnInit {
 
     const payload = this.buildPayloadFromForm();
     console.log(payload);
-    
 
-    this.expenseService.create(payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/gastos');
-        }
-      },
-      error: (err) => console.error('Error al crear gasto:', err),
-    });
+    // this.expenseService.create(payload).subscribe({
+    //   next: (response) => {
+    //     if (response.success) {
+    //       this.router.navigateByUrl('/gastos');
+    //     }
+    //   },
+    //   error: (err) => console.error('Error al crear gasto:', err),
+    // });
   }
 
   // Actualizar gasto existente
@@ -169,13 +168,13 @@ export class ExpenseForm implements OnInit {
     this.itemsFA.push(this.createItemGroup());
   }
 
-  // Elimina una fila de item (si hay más de una)
+  // Elimina una fila de item
   removeItem(index: number) {
-    if (this.itemsFA.length <= 1) return; // regla de negocio: al menos 1 item
+    if (this.itemsFA.length <= 1) return;
     this.itemsFA.removeAt(index);
   }
 
-  // Acción del header (por ahora solo 'back')
+  // Acción del header
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
@@ -184,13 +183,12 @@ export class ExpenseForm implements OnInit {
     }
   }
 
-  // Acciones del footer (cancel / save)
+  // Acciones del footer
   onFooterAction(action: ModuleFooterAction | string) {
     switch (action) {
       case 'cancel':
         this.router.navigateByUrl('/gastos');
         break;
-      // 'save' lo maneja el propio submit del formulario
     }
   }
 

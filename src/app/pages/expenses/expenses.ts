@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -122,6 +122,8 @@ export class Expenses implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly storage = inject(LocalStorageService);
+
+  @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
 
   // ==========================
   //  CONFIG UI
@@ -252,6 +254,7 @@ export class Expenses implements OnInit {
         this.router.navigateByUrl('/gastos/nuevo');
         break;
       case 'upload':
+        this.xmlInput.nativeElement.click();
         break;
     }
   }
@@ -419,5 +422,23 @@ export class Expenses implements OnInit {
     }
 
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+  }
+
+  onXmlSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const files = Array.from(input.files);
+
+    this.expenseService.uploadXml(files).subscribe({
+      next: (resp) => {
+        console.log('XML PREVIEW RESPONSE 👉', resp);
+      },
+      error: (err) => {
+        console.error('Error al subir XMLs', err);
+      },
+    });
+
+    input.value = '';
   }
 }

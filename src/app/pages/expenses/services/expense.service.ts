@@ -56,4 +56,14 @@ export class ExpenseService {
 
     return this.http.delete<ApiSuccess>(url)
   }
+
+  uploadXml(files: File[]): Observable<entity.XmlPreviewResponseDto> {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('files', f));
+
+    return this.http.post<entity.XmlPreviewResponseDto>(
+      `${this.apiUrl}/xml/preview`,
+      formData,
+    );
+  }
 }

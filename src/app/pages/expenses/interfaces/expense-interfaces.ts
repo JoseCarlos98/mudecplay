@@ -124,3 +124,25 @@ export interface ExpensesUiFilters {
   limit: number;
 }
 
+export interface XmlConceptPreview {
+  description: string;
+  baseAmount: number;
+  iva: number;
+  amount: number;
+}
+
+export interface XmlExpensePreview {
+  fileName: string;
+  uuid: string;
+  date: string;
+  subtotal: number;
+  total: number;
+  emitterRfc: string;
+  emitterName: string;
+  concepts: XmlConceptPreview[];
+}
+
+export interface XmlPreviewResponseDto {
+  previews: XmlExpensePreview[];
+  errors: { fileName: string; reason: string }[];
+}

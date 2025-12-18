@@ -1,4 +1,12 @@
 <div class="card-content shadow-md">
+    <input
+    #xmlInput
+    type="file"
+    accept=".xml"
+    multiple
+    hidden
+    (change)="onXmlSelected($event)"
+  />
   <app-module-header title="Gastos" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
