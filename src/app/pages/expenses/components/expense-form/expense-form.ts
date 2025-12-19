@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import {
   FormArray,
   FormBuilder,
@@ -12,12 +11,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import {
-  toCatalogAutoComplete,
-  toIdForm,
-} from '../../../../shared/helpers/general-helpers';
-import { ExpenseService } from '../../services/expense.service';
-import * as entity from '../../interfaces/expense-interfaces';
+  ModuleHeaderAction,
+  ModuleHeaderConfig,
+} from '../../../../shared/ui/module-header/interfaces/module-header-interface';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputDate } from '../../../../shared/ui/input-date/input-date';
@@ -25,12 +26,13 @@ import {
   BtnsSection,
   ModuleFooterAction,
 } from '../../../../shared/ui/btns-section/btns-section';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
+
+import { ExpenseService } from '../../services/expense.service';
+import * as entity from '../../interfaces/expense-interfaces';
 import {
-  ModuleHeaderAction,
-  ModuleHeaderConfig,
-} from '../../../../shared/ui/module-header/interfaces/module-header-interface';
+  toCatalogAutoComplete,
+  toIdForm,
+} from '../../../../shared/helpers/general-helpers';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
@@ -70,11 +72,11 @@ export class ExpenseForm implements OnInit {
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
 
-  // 👉 bandera para saber si viene de XML
-  isXmlImport = false;
+  // bandera para saber si viene de XML
+  isXmlImport:boolean = false;
 
-  // 👉 uuid del CFDI para enviarlo en el create
-  private cfdiUuid: string | null = null;
+  // uuid del CFDI cuando viene de XML
+  cfdiUuidFromXml: string | null = null;
 
   // Formulario reactivo principal
   form: FormGroup = this.fb.group({
@@ -91,45 +93,20 @@ export class ExpenseForm implements OnInit {
   // Detalle completo del gasto cuando es edición
   formData!: entity.ExpenseDetail;
 
-  cfdiUuidFromXml: string | null = null;
-
-
   ngOnInit() {
     const idParam = this.route.snapshot.paramMap.get('id');
 
     if (idParam) {
-      // 🔹 Modo edición
+      // Modo edición
       this.expenseId = +idParam;
       this.loadExpense(this.expenseId);
-    } else {
-      // 🔹 Modo creación
-      // Revisamos si hay un draft de XML para precargar el form
-      const draft = this.expenseService.consumeXmlDraftToImport();
-      if (draft) {
-        this.cfdiUuidFromXml = draft.uuid;
+      return;
+    }
 
-        // Rellenar form con los datos del XML
-        this.form.patchValue({
-          date: draft.date,
-          supplier_id: draft.supplier
-            ? toCatalogAutoComplete(draft.supplier.id, draft.supplier.name)
-            : null,
-        });
-
-        const itemsFGs = draft.items.map((item) =>
-          this.createItemGroup({
-            product_id: item.product
-              ? toCatalogAutoComplete(item.product.id, item.product.name)
-              : null,
-            amount: item.amount,
-            payment_amount: item.payment_amount ?? null,
-            payment_date: item.payment_date ?? null,
-            project_id: null, // el proyecto se asignará manualmente
-          }),
-        );
-
-        this.form.setControl('items', this.fb.array(itemsFGs));
-      }
+    // Modo creación: revisar si venimos de un XML
+    const draft = this.expenseService.consumeXmlDraftToImport();
+    if (draft) {
+      this.patchFormFromXmlDraft(draft);
     }
   }
 
@@ -175,20 +152,22 @@ export class ExpenseForm implements OnInit {
   //  CARGAR DESDE XML (CREACIÓN)
   // ==========================
   private patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
-    // Guardamos el uuid para mandarlo en el payload
-    this.cfdiUuid = draft.uuid;
+    this.isXmlImport = true;
+    this.cfdiUuidFromXml = draft.uuid;
 
     this.form.patchValue({
       date: draft.date,
-      supplier_id: toCatalogAutoComplete(draft.supplier.id, draft.supplier.name),
+      supplier_id: draft.supplier
+        ? toCatalogAutoComplete(draft.supplier.id, draft.supplier.name)
+        : null,
     });
 
     const itemsFGs = draft.items.map((item) =>
       this.createItemGroup({
         amount: item.amount,
-        payment_amount: item.payment_amount,
-        payment_date: item.payment_date,
-        project_id: null, // el usuario los asignará después
+        payment_amount: item.payment_amount ?? null,
+        payment_date: item.payment_date ?? null,
+        project_id: null,
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
           : null,
@@ -304,11 +283,11 @@ export class ExpenseForm implements OnInit {
     const raw = this.form.getRawValue();
 
     return {
-      date: raw.date,
+      date: raw.date!,
       supplier_id: toIdForm(raw.supplier_id),
-      cfdi_uuid: this.cfdiUuidFromXml ?? null,
+      cfdi_uuid: this.cfdiUuidFromXml,
 
-      items: (raw.items ?? []).map((item: any) => ({
+      items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
         amount: Number(item.amount),
 
         payment_amount:
@@ -319,6 +298,7 @@ export class ExpenseForm implements OnInit {
         payment_date: item.payment_date || null,
 
         project_id: toIdForm(item.project_id),
+        product_id: toIdForm(item.product_id)
       })),
     };
   }

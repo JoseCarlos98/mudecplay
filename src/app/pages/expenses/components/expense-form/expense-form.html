@@ -1,21 +1,11 @@
 <div class="card-content-form">
-  <!-- Header reutilizable con título dinámico (crear/editar) -->
-  <app-module-header
-    [title]="
-      expenseId
-        ? 'Editar Gasto'
-        : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')
-    "
+  <app-module-header 
+    [title]=" expenseId ? 'Editar Gasto' : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')"
     [config]="headerConfig"
     (action)="onHeaderAction($event)"
-  ></app-module-header>
+    ></app-module-header>
 
-  <form
-    [formGroup]="form"
-    (ngSubmit)="expenseId ? updateData() : saveData()"
-    id="form"
-    class="c-form"
-  >
+  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
       <!-- Fecha -->
       <div class="md:col-span-1">
@@ -96,9 +86,7 @@
             </div>
 
             <!-- Fila 2: 2 inputs + restante + botón eliminar -->
-            <div
-              class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start"
-            >
+            <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
               <!-- Abono / Pago -->
               <div>
                 <app-input-field
@@ -133,9 +121,7 @@
               }
 
               <!-- Restante + botón borrar -->
-              <div
-                class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2"
-              >
+              <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                 @if (itemCtrl.get('amount')?.value) {
                 <small
                   class="text-xs text-gray-500"
@@ -160,8 +146,7 @@
                   type="button"
                   mat-icon-button
                   class="delete-btn self-end md:self-auto"
-                  (click)="removeItem(i)"
-                >
+                  (click)="removeItem(i)">
                   <mat-icon>delete</mat-icon>
                 </button>
                 }
