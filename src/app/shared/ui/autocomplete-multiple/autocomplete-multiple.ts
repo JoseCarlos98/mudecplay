@@ -200,7 +200,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
    */
   private fetchRemote(search: string) {
     switch (this.catalogType) {
-      case 'supplier': return this.catalogsService.supplierCatalog(search);
+      case 'supplier': return this.catalogsService.suppliersCatalog(search);
       case 'project': return this.catalogsService.projectsCatalog(search);
       case 'client': return this.catalogsService.clientsCatalog(search);
       case 'responsible': return this.catalogsService.responsibleCatalog(search);

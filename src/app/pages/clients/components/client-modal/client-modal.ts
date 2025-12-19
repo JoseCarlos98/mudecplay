@@ -11,9 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
-import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
-import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { ClientsService } from '../../services/clients.service';
@@ -26,7 +24,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-client-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, BtnsSection, InputSelect, MatSlideToggle],
+    Autocomplete, InputField, BtnsSection, BtnsSection, MatSlideToggle],
   templateUrl: './client-modal.html',
   styleUrl: './client-modal.scss',
 })
@@ -63,7 +61,7 @@ export class ClientModal {
   //  CARGA DE CATÁLOGOS
   // ==========================
   loadCatalogs() {
-    this.catalogsService.areaSuppliersCatalog().subscribe({
+    this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogArea = response;
       },

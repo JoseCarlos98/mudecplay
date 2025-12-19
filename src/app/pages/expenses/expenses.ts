@@ -192,7 +192,6 @@ export class Expenses implements OnInit {
       projectIds: ui.projectIds ?? [],
       status_id: ui.status_id ?? null,
       paymentStatus: ui.paymentStatus ?? null,
-      concept: ui.concept?.trim() || '',
     };
   }
 
@@ -209,7 +208,6 @@ export class Expenses implements OnInit {
       projectIds: value.projectIds ?? [],
       status_id: value.status_id ?? null,
       paymentStatus: value.paymentStatus ?? null,
-      concept: value.concept?.trim() || '',
       page: 1,
       limit: this.filters.limit,
     };
@@ -296,7 +294,7 @@ export class Expenses implements OnInit {
   onDelete(expense: entity.ExpenseResponseDto): void {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el gasto:\n"${expense.folio.trim()}"?`,
+        message: `¿Quieres eliminar el gasto:\n"${expense.internal_folio.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
       })
@@ -349,7 +347,6 @@ export class Expenses implements OnInit {
       suppliersIds: [],
       projectIds: [],
       status_id: null,
-      concept: '',
     }
 
     // Limpia storage para este módulo
@@ -388,7 +385,6 @@ export class Expenses implements OnInit {
         suppliersIds: saved.suppliersIds,
         projectIds: saved.projectIds,
         status_id: saved.status_id,
-        concept: saved.concept,
       },
       { emitEvent: false },
     );
@@ -415,7 +411,6 @@ export class Expenses implements OnInit {
         projectIds: value.projectIds ?? [],
         status_id: value.status_id ?? null,
         paymentStatus: value.paymentStatus ?? null,
-        concept: value.concept?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
       };
@@ -433,12 +428,32 @@ export class Expenses implements OnInit {
     this.expenseService.uploadXml(files).subscribe({
       next: (resp) => {
         console.log('XML PREVIEW RESPONSE 👉', resp);
+
+        // 1) si no hay drafts, sólo avisamos (luego puedes mejorar el UX)
+        if (!resp.drafts || resp.drafts.length === 0) {
+          // aquí podrías usar un dialogService para informar errores/duplicados
+          console.warn('No hay drafts válidos en el XML');
+          input.value = '';
+          return;
+        }
+
+        // 2) Por ahora tomamos el primer draft (luego puedes mostrar modal para elegir)
+        const draft = resp.drafts[0];
+
+        // 3) Guardamos el draft en el servicio para que lo lea el formulario
+        this.expenseService.setXmlDraftToImport(draft);
+
+        // 4) Navegamos al formulario de nuevo gasto
+        this.router.navigateByUrl('/gastos/nuevo');
+
+        // limpiar input para permitir volver a subir mismos archivos si se quiere
+        input.value = '';
       },
       error: (err) => {
         console.error('Error al subir XMLs', err);
+        input.value = '';
       },
     });
-
-    input.value = '';
   }
+
 }

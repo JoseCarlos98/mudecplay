@@ -11,7 +11,8 @@ import { appendArray, setScalar } from '../../../shared/helpers/general-helpers'
 })
 export class ExpenseService {
   private apiUrl = `${environment.apiUrl}/expenses`;
-
+  private xmlDraftToImport: entity.XmlExpenseDraftDto | null = null;
+  
   constructor(private readonly http: HttpClient) { }
 
   getExpenses(filters?: entity.FiltersExpenses) {
@@ -26,7 +27,6 @@ export class ExpenseService {
       params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
       params = appendArray(params, 'projectIds', filters.projectIds ?? []);
       params = setScalar(params, 'statusId', filters.status_id);
-      params = setScalar(params, 'concept', filters.concept?.trim());
       params = setScalar(params, 'paymentStatus', filters.paymentStatus?.trim());
     }
 
@@ -45,7 +45,7 @@ export class ExpenseService {
     return this.http.post<ApiSuccess>(url, formData)
   }
 
-  update(id: number, formData: entity.PatchExpense): Observable<ApiSuccess> {
+  update(id: number, formData: entity.UpdateExpense): Observable<ApiSuccess> {
     const url = `${this.apiUrl}/${id}`;
 
     return this.http.patch<ApiSuccess>(url, formData)
@@ -55,6 +55,16 @@ export class ExpenseService {
     const url = `${this.apiUrl}/${id}`;
 
     return this.http.delete<ApiSuccess>(url)
+  }
+
+  setXmlDraftToImport(draft: entity.XmlExpenseDraftDto) {
+    this.xmlDraftToImport = draft;
+  }
+
+  consumeXmlDraftToImport(): entity.XmlExpenseDraftDto | null {
+    const tmp = this.xmlDraftToImport;
+    this.xmlDraftToImport = null;
+    return tmp;
   }
 
   uploadXml(files: File[]): Observable<entity.XmlPreviewResponseDto> {

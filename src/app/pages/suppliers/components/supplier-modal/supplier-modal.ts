@@ -65,7 +65,7 @@ export class SupplierModal implements OnInit {
   //  CARGA DE CATÁLOGOS
   // ==========================
   loadCatalogs() {
-    this.catalogsService.areaSuppliersCatalog().subscribe({
+    this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogArea = response;
       },

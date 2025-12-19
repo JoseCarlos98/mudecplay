@@ -9,8 +9,17 @@ export class CatalogsService {
   private apiUrl = `${environment.apiUrl}`;
   private readonly http = inject(HttpClient);
 
-  supplierCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+  suppliersCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/suppliers/catalog`;
+    let params = new HttpParams();
+
+    if (searchTerm) params = params.set('search', searchTerm)
+
+    return this.http.get<Catalog[]>(url, { params })
+  }
+
+  productsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/products/catalog`;
     let params = new HttpParams();
 
     if (searchTerm) params = params.set('search', searchTerm)
@@ -49,7 +58,7 @@ export class CatalogsService {
     return this.http.get<Catalog[]>(`${this.apiUrl}/status-expense/catalog`);
   }
 
-  areaSuppliersCatalog(): Observable<Catalog[]> {
+  areasSuppliersCatalog(): Observable<Catalog[]> {
     return this.http.get<Catalog[]>(`${this.apiUrl}/areas/catalog`);
   }
 

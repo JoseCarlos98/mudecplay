@@ -55,7 +55,9 @@ export class Autocomplete implements ControlValueAccessor {
   @Input() label:string = 'Seleccionar';
   @Input() placeholder:string = 'Buscar';
   @Input() remote: boolean = false;
-  @Input() catalogType: 'supplier' | 'project' | 'responsible' | 'client' = 'supplier';
+  @Input() catalogType: 
+  'supplier' | 'project' | 'responsible' | 
+  'client' | 'product' = 'supplier';
   @Input() data: Catalog[] = [];
 
   // cuando en editar ya tienes el nombre, lo muestras
@@ -222,8 +224,10 @@ export class Autocomplete implements ControlValueAccessor {
 
   private fetchRemote(search: string): Observable<Catalog[]> {
     switch (this.catalogType) {
+      case 'product':
+        return this.catalogsService.productsCatalog(search);
       case 'supplier':
-        return this.catalogsService.supplierCatalog(search);
+        return this.catalogsService.suppliersCatalog(search);
       case 'project':
         return this.catalogsService.projectsCatalog(search);
       case 'responsible':

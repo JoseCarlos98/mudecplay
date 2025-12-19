@@ -1,28 +1,24 @@
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
 import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
+/* =====================================================
+ *  FILTROS (LISTADO DE GASTOS)
+ * ===================================================== */
+
 export interface FiltersExpenses {
-  concept?: string | '';
   startDate?: string | null;
   endDate?: string | null;
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
-  paymentStatus?: 'paid' | 'unpaid' | null;
-  status_id?: number | string | null;
+  paymentStatus?: "paid" | "unpaid" | null;
+  status_id?: number | string | null; // se sigue llamando status_id para el backend
   limit: number;
   page: number;
 }
 
-export interface ExpenseResponseDto {
-  id: number;
-  date: string;
-  folio: string;
-  remaining_amount: number;
-  total_amount: number;
-  supplier: Supplier;
-  status: ExpenseStatus;
-  items: ExpenseItem[];
-}
+/* =====================================================
+ *  RESPUESTA LISTADO DE GASTOS (GET /expenses)
+ * ===================================================== */
 
 export interface Supplier {
   id: number;
@@ -34,23 +30,43 @@ export interface ExpenseStatus {
   name: string;
 }
 
-export interface ExpenseItem {
-  id: number;
-  concept: string;
-  amount: number;
-  payment_amount: number;
-  payment_date: string | null;
-  project: Project | null;
-}
-
 export interface Project {
   id: number;
   name: string;
 }
 
+export interface ProductMini {
+  id: number;
+  name: string;
+}
+
+export interface ExpenseItem {
+  id: number;
+  amount: number;
+  payment_amount: number | null;
+  payment_date: string | null;
+  remaining_amount: number;
+  project: Project | null;
+  product: ProductMini | null;
+}
+
+export interface ExpenseResponseDto {
+  id: number;
+  date: string;
+  internal_folio: string;         // ← ahora coincide con el backend
+  remaining_amount: number;
+  total_amount: number;
+  supplier: Supplier | null;
+  status: ExpenseStatus;
+  items: ExpenseItem[];
+}
+
+/**
+ * Mapper opcional para vistas que necesiten aplanar datos.
+ * (Si no lo usas, puedes borrarlo).
+ */
 export interface ExpenseResponseDtoMapper {
   id: number;
-  concept: string;
   date: string;
   amount: number;
   supplier: string;
@@ -58,31 +74,45 @@ export interface ExpenseResponseDtoMapper {
   originData: ExpenseResponseDto;
 }
 
+/* =====================================================
+ *  CREATE / UPDATE GASTO
+ *  (coincide con CreateExpenseDto / UpdateExpenseDto)
+ * ===================================================== */
+
+export interface CreateExpenseItem {
+  amount: number;
+  project_id?: number | null;
+  product_id?: number | null;
+  payment_amount?: number | null;
+  payment_date?: string | null;
+}
+
 export interface CreateExpense {
   date: string;
   supplier_id: number | null;
-  items: {
-    concept: string;
-    amount: number;
-    project_id: number | null;
-  }[];
+  cfdi_uuid?: string | null; // se usa cuando viene de XML
+  items: CreateExpenseItem[];
 }
 
-export interface PatchExpense {
-  concept?: string
-  date?: string,
-  amount?: number,
-  supplier_id?: number | null;
-  project_id?: number | null;
-}
+// Update en backend es PartialType(CreateExpenseDto)
+// pero en tu frontend estás mandando el objeto completo, así que:
+export type UpdateExpense = CreateExpense;
+
+/* =====================================================
+ *  DETALLE DE GASTO (GET /expenses/:id)
+ * ===================================================== */
 
 export interface ExpenseItemDetail {
   id: number;
-  concept: string;
   amount: number;
   payment_amount: number | null;
   payment_date: string | null;
+  remaining_amount: number;
   project: {
+    id: number;
+    name: string;
+  } | null;
+  product: {
     id: number;
     name: string;
   } | null;
@@ -91,8 +121,9 @@ export interface ExpenseItemDetail {
 export interface ExpenseDetail {
   id: number;
   date: string;
-  folio: string;
+  internal_folio: string;
   total_amount: number;
+  remaining_amount: number;
   supplier: {
     id: number;
     company_name: string;
@@ -104,45 +135,80 @@ export interface ExpenseDetail {
   items: ExpenseItemDetail[];
 }
 
+/* =====================================================
+ *  ITEM PARA EL FORMULARIO (FormArray en ExpenseForm)
+ * ===================================================== */
+
 export interface ExpenseItemForm {
-  concept: string;
-  amount: number;
+  amount: number | null;
   payment_amount: number | null;
   payment_date: string | null;
   project_id: Catalog | null;
+  product_id: Catalog | null;
 }
 
+/* =====================================================
+ *  FILTROS DE UI (estado del formulario de filtros)
+ * ===================================================== */
 
 export interface ExpensesUiFilters {
   dateRange: DateRangeValue | null;
   suppliersIds: number[];
   projectIds: number[];
   status_id: string | number | null;
-  paymentStatus: 'paid' | 'unpaid' | null; 
-  concept: string;
+  paymentStatus: "paid" | "unpaid" | null;
+  // concept lo quitamos porque ya no existe en backend ni en entidad
   page: number;
   limit: number;
 }
 
-export interface XmlConceptPreview {
-  description: string;
-  baseAmount: number;
-  iva: number;
+/* =====================================================
+ *  XML PREVIEW (nuevo diseño: drafts / duplicates / errors)
+ * ===================================================== */
+
+export interface XmlExpenseItemDraftDto {
+  concept: string; // descripción original del CFDI (para mostrar al usuario)
   amount: number;
+  payment_amount: number | null;
+  payment_date: string | null;
+  project_id: number | null;
+  product: {
+    id: number;
+    name: string;
+  } | null;
 }
 
-export interface XmlExpensePreview {
-  fileName: string;
+export interface XmlExpenseDraftDto {
   uuid: string;
-  date: string;
+  sourceFileName: string;
+  date: string;   // 'YYYY-MM-DD'
   subtotal: number;
   total: number;
+  supplier: {
+    id: number;
+    name: string;
+  };
   emitterRfc: string;
   emitterName: string;
-  concepts: XmlConceptPreview[];
+  items: XmlExpenseItemDraftDto[];
 }
 
+export interface XmlDuplicateDto {
+  uuid: string;
+  sourceFileName: string;
+  existingExpenseId: number;
+}
+
+export interface XmlErrorDto {
+  sourceFileName: string;
+  reason: string;
+}
+
+/**
+ * Respuesta de POST /expenses/xml/preview
+ */
 export interface XmlPreviewResponseDto {
-  previews: XmlExpensePreview[];
-  errors: { fileName: string; reason: string }[];
+  drafts: XmlExpenseDraftDto[];
+  duplicates: XmlDuplicateDto[];
+  errors: XmlErrorDto[];
 }

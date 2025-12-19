@@ -1,34 +1,54 @@
 <div class="card-content-form">
   <!-- Header reutilizable con título dinámico (crear/editar) -->
-  <app-module-header [title]="expenseId ? 'Editar Gasto' : 'Registrar Gasto'" [config]="headerConfig"
-    (action)="onHeaderAction($event)"></app-module-header>
+  <app-module-header
+    [title]="
+      expenseId
+        ? 'Editar Gasto'
+        : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')
+    "
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)"
+  ></app-module-header>
 
-  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="expenseId ? updateData() : saveData()"
+    id="form"
+    class="c-form"
+  >
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-
       <!-- Fecha -->
       <div class="md:col-span-1">
-        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true"></app-input-date>
+        <app-input-date
+          formControlName="date"
+          label="Fecha"
+          mode="single"
+          [showClear]="true"
+        ></app-input-date>
       </div>
 
       <!-- Proveedor -->
       <div class="md:col-span-1">
-        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier"></app-autocomplete>
+        <app-autocomplete
+          formControlName="supplier_id"
+          label="Proveedor"
+          [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''"
+          catalogType="supplier"
+        ></app-autocomplete>
       </div>
 
       <!-- Bloque dinámico de items -->
       <div class="form-dinamic md:col-span-3" formArrayName="items">
-
         <!-- Header de la sección -->
         <div class="form-dinamic-header">
           <div class="flex items-center gap-2">
             <span class="form-dinamic-title">
-              Conceptos del gasto
+              Productos del gasto
             </span>
 
             <span class="form-dinamic-chip">
-              {{ itemsFA.length }} concepto{{ itemsFA.length > 1 ? 's' : '' }}
+              {{ itemsFA.length }} producto{{ itemsFA.length > 1 ? 's' : '' }}
             </span>
           </div>
 
@@ -44,61 +64,105 @@
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
           <div class="forms-controls" [formGroupName]="i">
             <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-              <!-- Concepto -->
+              <!-- Producto -->
               <div>
-                <app-input-field formControlName="concept" label="Concepto" type="text">
-                </app-input-field>
+                <app-autocomplete
+                  formControlName="product_id"
+                  label="Producto"
+                  [remote]="true"
+                  catalogType="product"
+                ></app-autocomplete>
               </div>
 
               <!-- Monto total -->
               <div>
-                <app-input-field formControlName="amount" label="Monto" type="money">
+                <app-input-field
+                  formControlName="amount"
+                  label="Monto"
+                  type="money"
+                >
                 </app-input-field>
               </div>
 
               <!-- Proyecto -->
               <div>
-                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
-                </app-autocomplete>
+                <app-autocomplete
+                  formControlName="project_id"
+                  label="Proyecto"
+                  [remote]="true"
+                  catalogType="project"
+                ></app-autocomplete>
               </div>
             </div>
 
             <!-- Fila 2: 2 inputs + restante + botón eliminar -->
-            <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
+            <div
+              class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start"
+            >
               <!-- Abono / Pago -->
               <div>
-                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money"
-                  [ngClass]="{ 'field-invalid': itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value }">
+                <app-input-field
+                  formControlName="payment_amount"
+                  label="Abono / Pago"
+                  type="money"
+                  [ngClass]="{
+                    'field-invalid':
+                      itemCtrl.get('amount')?.value &&
+                      itemCtrl.get('amount')?.value <
+                        itemCtrl.get('payment_amount')?.value
+                  }"
+                >
                 </app-input-field>
               </div>
 
               <!-- Fecha de pago -->
-              @if (itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value ==
-              itemCtrl.get('payment_amount')?.value) {
+              @if (
+                itemCtrl.get('amount')?.value &&
+                itemCtrl.get('amount')?.value ==
+                  itemCtrl.get('payment_amount')?.value
+              ) {
               <div>
-                <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
+                <app-input-date
+                  formControlName="payment_date"
+                  label="Fecha de pago"
+                  mode="single"
+                  [showClear]="true"
+                >
                 </app-input-date>
               </div>
               }
 
               <!-- Restante + botón borrar -->
-              <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+              <div
+                class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2"
+              >
                 @if (itemCtrl.get('amount')?.value) {
-                <small class="text-xs text-gray-500"
-                  [ngClass]="{ 'error-restant': itemCtrl.get('amount')?.value && itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value }">
+                <small
+                  class="text-xs text-gray-500"
+                  [ngClass]="{
+                    'error-restant':
+                      itemCtrl.get('amount')?.value &&
+                      itemCtrl.get('amount')?.value <
+                        itemCtrl.get('payment_amount')?.value
+                  }"
+                >
                   Restante:
                   {{
-                  (itemCtrl.get('amount')?.value || 0) -
-                  (itemCtrl.get('payment_amount')?.value || 0)
-                  | currency:'MXN':'symbol-narrow':'1.2-2'
+                    (itemCtrl.get('amount')?.value || 0) -
+                      (itemCtrl.get('payment_amount')?.value || 0)
+                      | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
                   }}
                 </small>
                 }
 
-
                 @if (itemsFA.length > 1) {
-                <button type="button" mat-icon-button class="delete-btn self-end md:self-auto">
-                  <mat-icon (click)="removeItem(i)">delete</mat-icon>
+                <button
+                  type="button"
+                  mat-icon-button
+                  class="delete-btn self-end md:self-auto"
+                  (click)="removeItem(i)"
+                >
+                  <mat-icon>delete</mat-icon>
                 </button>
                 }
               </div>
@@ -110,5 +174,9 @@
     </div>
   </form>
 
-  <app-btns-section [form]="true" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
+  <app-btns-section
+    [form]="true"
+    [saveDisabled]="!form.valid"
+    (action)="onFooterAction($event)"
+  ></app-btns-section>
 </div>

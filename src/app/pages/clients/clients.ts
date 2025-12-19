@@ -151,7 +151,7 @@ export class Clients {
   //  CARGA DE CATÁLOGOS
   // ==========================
   loadCatalogs() {
-    this.catalogsService.areaSuppliersCatalog().subscribe({
+    this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
       },
