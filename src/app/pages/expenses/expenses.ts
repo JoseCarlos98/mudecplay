@@ -37,6 +37,7 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 
 // Componentes propios
 import { ExpenseModal } from './components/expense-modal/expense-modal';
+import { finalize } from 'rxjs';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -425,35 +426,103 @@ export class Expenses implements OnInit {
 
     const files = Array.from(input.files);
 
-    this.expenseService.uploadXml(files).subscribe({
-      next: (resp) => {
-        console.log('XML PREVIEW RESPONSE 👉', resp);
+    this.expenseService.uploadXml(files)
+      .pipe(finalize(() => (input.value = '')))
+      .subscribe({
+        next: (resp) => {
+          const drafts = resp.drafts ?? [];
+          const duplicates = resp.duplicates ?? [];
+          const errors = resp.errors ?? [];
 
-        // 1) si no hay drafts, sólo avisamos (luego puedes mejorar el UX)
-        if (!resp.drafts || resp.drafts.length === 0) {
-          // aquí podrías usar un dialogService para informar errores/duplicados
-          console.warn('No hay drafts válidos en el XML');
-          input.value = '';
-          return;
-        }
+          // 1) Si hay errores, muéstralos y corta
+          if (errors.length > 0) {
+            const msg = errors.map((e: any) => `• ${e.sourceFileName ?? ''} ${e.message ?? e}`).join('\n');
+            this.dialogService.confirm({
+              title: 'Errores al leer XML',
+              message: msg || 'Ocurrió un error al procesar los XML.',
+              confirmText: 'OK',
+              cancelText: '',
+            }).subscribe();
+            return;
+          }
 
-        // 2) Por ahora tomamos el primer draft (luego puedes mostrar modal para elegir)
-        const draft = resp.drafts[0];
+          // helper para lista de duplicados
+          const dupLines = duplicates
+            .map((d: any) => `• ${d.sourceFileName} → Gasto #${d.existingExpenseId}\n`)
+            .join('\n');
 
-        // 3) Guardamos el draft en el servicio para que lo lea el formulario
-        this.expenseService.setXmlDraftToImport(draft);
+          // 2) Caso: NO hay drafts pero SÍ duplicados
+          if (drafts.length === 0 && duplicates.length > 0) {
+            // si es 1 duplicado, ofrécele abrirlo
+            if (duplicates.length === 1) {
+              const d = duplicates[0];
+              this.dialogService.confirm({
+                title: 'XML duplicado',
+                message: `Este CFDI ya fue registrado:\n\n${dupLines}\n\n¿Quieres abrir el gasto existente?`,
+                confirmText: 'Abrir gasto',
+                cancelText: 'Cerrar',
+              }).subscribe((confirmed) => {
+                console.log(confirmed);
+                console.log(d);
+                
+                if (!confirmed) return;
+                this.router.navigateByUrl(`/gastos/editar/${d.existingExpenseId}`)
+              });
+            } else {
+              this.dialogService.confirm({
+                title: 'XML duplicados',
+                message: `Estos CFDI ya estaban registrados:\n\n${dupLines}`,
+                confirmText: 'OK',
+                cancelText: '',
+              }).subscribe();
+            }
+            return;
+          }
 
-        // 4) Navegamos al formulario de nuevo gasto
-        this.router.navigateByUrl('/gastos/nuevo');
+          // 3) Caso: hay drafts y también duplicados (confirmar si continuar)
+          const goImport = () => {
+            const draft = drafts[0]; // por ahora primero
+            this.expenseService.setXmlDraftToImport(draft);
+            this.router.navigateByUrl('/gastos/nuevo');
+          };
 
-        // limpiar input para permitir volver a subir mismos archivos si se quiere
-        input.value = '';
-      },
-      error: (err) => {
-        console.error('Error al subir XMLs', err);
-        input.value = '';
-      },
-    });
+          if (drafts.length > 0 && duplicates.length > 0) {
+            this.dialogService.confirm({
+              title: 'Importación parcial',
+              message: `Se importarán: ${drafts.length} XML\nSe ignorarán (duplicados): ${duplicates.length}\n\nDuplicados:\n${dupLines}`,
+              confirmText: 'Continuar',
+              cancelText: 'Cancelar',
+            }).subscribe((confirmed) => {
+              if (!confirmed) return;
+              goImport();
+            });
+            return;
+          }
+
+          // 4) Caso: solo drafts (flujo actual)
+          if (drafts.length > 0) {
+            goImport();
+            return;
+          }
+
+          // 5) Nada que importar ni duplicados (caso raro)
+          this.dialogService.confirm({
+            title: 'Sin resultados',
+            message: 'No hay drafts válidos, duplicados ni errores.',
+            confirmText: 'OK',
+            cancelText: '',
+          }).subscribe();
+        },
+        error: (err) => {
+          console.error('Error al subir XMLs', err);
+          this.dialogService.confirm({
+            title: 'Error',
+            message: 'Ocurrió un error al subir los XML.',
+            confirmText: 'OK',
+            cancelText: '',
+          }).subscribe();
+        },
+      });
   }
 
 }
