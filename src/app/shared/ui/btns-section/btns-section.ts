@@ -19,7 +19,8 @@ export type ModuleFooterAction =
   | 'cancel'
   | 'save'
   | 'search'
-  | 'clean';
+  | 'clean'
+  | 'continue'
 
 @Component({
   selector: 'app-btns-section',
@@ -36,7 +37,7 @@ export class BtnsSection {
    * - true: se comporta como footer de formulario (Cancelar / Guardar)
    * - false: se comporta como footer de filtros (Buscar / Limpiar)
    */
-  @Input() form: boolean = false;
+  @Input() type: ModuleFooterAction = 'save';
 
   /**
    * Controla el estado del botón Guardar:

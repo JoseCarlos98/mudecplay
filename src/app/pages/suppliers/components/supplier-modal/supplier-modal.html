@@ -1,6 +1,6 @@
 <div class="c-modal">
   <app-module-header
-    [title]="this.data?.id ? 'Editar Proveedor' : 'Registrar Proveedor'"
+    [title]="data.id ? 'Editar Proveedor' : 'Registrar Proveedor'"
     [config]="headerConfig"
     (action)="closeModal()">
   </app-module-header>
@@ -89,7 +89,7 @@
   </form>
 
   <app-btns-section
-    [form]="true"
+    type="save"
     (action)="onBtnsSectionAction($event)"
     [saveDisabled]="!form.valid">
   </app-btns-section>

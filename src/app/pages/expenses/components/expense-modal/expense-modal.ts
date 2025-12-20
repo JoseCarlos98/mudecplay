@@ -13,6 +13,7 @@ import { ExpenseItem } from '../../interfaces/expense-interfaces';
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
 };
+
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'concept', label: 'Concepto' },
 

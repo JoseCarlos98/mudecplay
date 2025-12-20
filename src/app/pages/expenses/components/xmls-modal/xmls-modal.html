@@ -1,0 +1,100 @@
+<div class="c-modal c-modal--xml">
+  <app-module-header
+    [title]="'Resumen de XML cargados'"
+    [config]="headerConfig"
+    (action)="closeModal()"
+  >
+  </app-module-header>
+
+  <div class="xml-body">
+    <!-- Nuevos CFDI -->
+    <section class="xml-section">
+      <h3 class="xml-section__title">Nuevos CFDI para importar</h3>
+      <p class="xml-section__subtitle">
+        Estos XML se pondrán en cola para crear un gasto por cada uno.
+        Primero llenarás el formulario del primero y, al guardar, se cargará el
+        siguiente automáticamente.
+      </p>
+
+      @if (tableDrafts.length === 0) {
+        <p class="xml-empty">
+          No hay nuevos CFDI para importar en esta carga.
+        </p>
+      } @else {
+        <div class="c-module-table">
+          <app-data-table
+            [data]="paginatedDrafts"
+            [columnsConfig]="columnsConfig"
+            [displayedColumns]="displayedColumns"
+          >
+          </app-data-table>
+
+          <mat-paginator
+            [length]="tableDrafts.length"
+            [pageSize]="pageSize"
+            [pageIndex]="pageIndex"
+            [pageSizeOptions]="pageSizeOptions"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+          >
+          </mat-paginator>
+        </div>
+      }
+    </section>
+
+    <!-- Duplicados -->
+    @if (duplicates.length > 0) {
+      <section class="xml-section xml-section--duplicates">
+        <div class="xml-dup-header">
+          <mat-icon>warning</mat-icon>
+          <div>
+            <h3>XML duplicados (ya registrados)</h3>
+            <p>
+              Estos CFDI ya están ligados a un gasto. Puedes abrirlos en modo
+              edición para revisarlos.
+            </p>
+          </div>
+        </div>
+
+        <div class="xml-dup-list">
+          @for (dup of duplicates; track dup.uuid) {
+            <div class="xml-dup-item">
+              <div class="xml-dup-item__text">
+                <div class="xml-dup-item__file">
+                  {{ dup.sourceFileName }}
+                </div>
+                <div class="xml-dup-item__meta">
+                  UUID: {{ dup.uuid }} · Gasto #{{ dup.existingExpenseId }}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-primary-outline"
+                (click)="onOpenDuplicate(dup.existingExpenseId)"
+              >
+                Ver gasto
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <p class="xml-footnote">
+      Se enviarán al formulario los XML nuevos. Los duplicados no se pierden:
+      siempre podrás volver a subirlos o consultar el gasto original.
+    </p>
+  </div>
+
+  <app-btns-section
+    type="continue"
+    [saveDisabled]="tableDrafts.length === 0"
+    (action)="onBtnsSectionAction($event)"
+    
+  >
+    <!-- Usando los slots de tu BtnsSection si los tienes;
+         si no, puedes dejar los botones manuales abajo -->
+  </app-btns-section>
+
+</div>

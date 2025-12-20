@@ -38,6 +38,7 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 // Componentes propios
 import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { finalize } from 'rxjs';
+import { XmlsModal } from './components/xmls-modal/xmls-modal';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -420,109 +421,73 @@ export class Expenses implements OnInit {
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
   }
 
+
   onXmlSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
 
     const files = Array.from(input.files);
 
-    this.expenseService.uploadXml(files)
+    this.expenseService
+      .uploadXml(files)
       .pipe(finalize(() => (input.value = '')))
       .subscribe({
-        next: (resp) => {
+        next: (resp: entity.XmlPreviewResponseDto) => {
           const drafts = resp.drafts ?? [];
           const duplicates = resp.duplicates ?? [];
           const errors = resp.errors ?? [];
 
-          // 1) Si hay errores, muéstralos y corta
-          if (errors.length > 0) {
-            const msg = errors.map((e: any) => `• ${e.sourceFileName ?? ''} ${e.message ?? e}`).join('\n');
-            this.dialogService.confirm({
-              title: 'Errores al leer XML',
-              message: msg || 'Ocurrió un error al procesar los XML.',
-              confirmText: 'OK',
-              cancelText: '',
-            }).subscribe();
-            return;
-          }
+          // 1) Sólo errores (no hay nada que importar ni duplicados)
+          if (drafts.length === 0 && duplicates.length === 0 && errors.length > 0) {
+            const msg = errors
+              .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
+              .join('\n');
 
-          // helper para lista de duplicados
-          const dupLines = duplicates
-            .map((d: any) => `• ${d.sourceFileName} → Gasto #${d.existingExpenseId}\n`)
-            .join('\n');
-
-          // 2) Caso: NO hay drafts pero SÍ duplicados
-          if (drafts.length === 0 && duplicates.length > 0) {
-            // si es 1 duplicado, ofrécele abrirlo
-            if (duplicates.length === 1) {
-              const d = duplicates[0];
-              this.dialogService.confirm({
-                title: 'XML duplicado',
-                message: `Este CFDI ya fue registrado:\n\n${dupLines}\n\n¿Quieres abrir el gasto existente?`,
-                confirmText: 'Abrir gasto',
-                cancelText: 'Cerrar',
-              }).subscribe((confirmed) => {
-                console.log(confirmed);
-                console.log(d);
-                
-                if (!confirmed) return;
-                this.router.navigateByUrl(`/gastos/editar/${d.existingExpenseId}`)
-              });
-            } else {
-              this.dialogService.confirm({
-                title: 'XML duplicados',
-                message: `Estos CFDI ya estaban registrados:\n\n${dupLines}`,
+            this.dialogService
+              .confirm({
+                title: 'Errores al leer XML',
+                message: msg || 'Ocurrió un error al procesar los XML.',
                 confirmText: 'OK',
                 cancelText: '',
-              }).subscribe();
-            }
+              })
+              .subscribe();
+
             return;
           }
 
-          // 3) Caso: hay drafts y también duplicados (confirmar si continuar)
-          const goImport = () => {
-            const draft = drafts[0]; // por ahora primero
-            this.expenseService.setXmlDraftToImport(draft);
+          // 2) Fast-path: 1 draft, sin duplicados ni errores → ir directo al formulario
+          if (drafts.length === 1 && duplicates.length === 0 && errors.length === 0) {
+            this.expenseService.setXmlDraftToImport(drafts[0]);
             this.router.navigateByUrl('/gastos/nuevo');
-          };
+            return;
+          }
 
-          if (drafts.length > 0 && duplicates.length > 0) {
-            this.dialogService.confirm({
-              title: 'Importación parcial',
-              message: `Se importarán: ${drafts.length} XML\nSe ignorarán (duplicados): ${duplicates.length}\n\nDuplicados:\n${dupLines}`,
-              confirmText: 'Continuar',
-              cancelText: 'Cancelar',
-            }).subscribe((confirmed) => {
-              if (!confirmed) return;
-              goImport();
+          // 3) Cualquier otro caso (varios drafts, duplicados y/o errores) → modal resumen
+          this.dialogService
+            .open(XmlsModal, { drafts, duplicates, errors }, 'large')
+            .afterClosed()
+            .subscribe((selected?: entity.XmlExpenseDraftDto | null) => {
+              // Si el usuario canceló/cerró el modal, no hacemos nada
+              if (!selected) return;
+
+              // Si eligió un draft, lo mandamos al formulario
+              this.expenseService.setXmlDraftToImport(selected);
+              this.router.navigateByUrl('/gastos/nuevo');
             });
-            return;
-          }
-
-          // 4) Caso: solo drafts (flujo actual)
-          if (drafts.length > 0) {
-            goImport();
-            return;
-          }
-
-          // 5) Nada que importar ni duplicados (caso raro)
-          this.dialogService.confirm({
-            title: 'Sin resultados',
-            message: 'No hay drafts válidos, duplicados ni errores.',
-            confirmText: 'OK',
-            cancelText: '',
-          }).subscribe();
         },
         error: (err) => {
           console.error('Error al subir XMLs', err);
-          this.dialogService.confirm({
-            title: 'Error',
-            message: 'Ocurrió un error al subir los XML.',
-            confirmText: 'OK',
-            cancelText: '',
-          }).subscribe();
+          this.dialogService
+            .confirm({
+              title: 'Error',
+              message: 'Ocurrió un error al subir los XML.',
+              confirmText: 'OK',
+              cancelText: '',
+            })
+            .subscribe();
         },
       });
   }
+
 
 }
