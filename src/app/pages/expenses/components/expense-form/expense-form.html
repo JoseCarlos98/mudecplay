@@ -1,31 +1,48 @@
 <div class="card-content-form">
-  <app-module-header 
+  <app-module-header
     [title]=" expenseId ? 'Editar Gasto' : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)"
-    ></app-module-header>
+    [config]="headerConfig" (action)="onHeaderAction($event)"></app-module-header>
+
+  <!-- Contador de cola XML -->
+  @if (isXmlImport && xmlQueueTotal > 0) {
+  <div class="xml-counter">
+    <span class="xml-counter__chip">
+      CFDI {{ currentXmlIndex }} de {{ xmlQueueTotal }}
+    </span>
+
+    @if (xmlQueuePending > 0) {
+    <span class="xml-counter__pending">
+      Quedan {{ xmlQueuePending }} por registrar
+    </span>
+    } @else {
+    <span class="xml-counter__pending">
+      Último CFDI de la cola
+    </span>
+    }
+  </div>
+  }
+
+  <!-- Mensaje de ayuda cuando viene de XML -->
+  @if (isXmlImport) {
+  <p class="xml-lock-hint">
+    Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
+    <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
+    no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
+    asignar <strong>proyectos</strong>.
+  </p>
+  }
 
   <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
       <!-- Fecha -->
       <div class="md:col-span-1">
-        <app-input-date
-          formControlName="date"
-          label="Fecha"
-          mode="single"
-          [showClear]="true"
-        ></app-input-date>
+        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true"></app-input-date>
       </div>
 
       <!-- Proveedor -->
       <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="supplier_id"
-          label="Proveedor"
-          [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''"
-          catalogType="supplier"
-        ></app-autocomplete>
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier"></app-autocomplete>
       </div>
 
       <!-- Bloque dinámico de items -->
@@ -56,32 +73,20 @@
             <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
               <!-- Producto -->
               <div>
-                <app-autocomplete
-                  formControlName="product_id"
-                  label="Producto"
-                  [remote]="true"
-                  catalogType="product"
-                ></app-autocomplete>
+                <app-autocomplete formControlName="product_id" label="Producto" [remote]="true"
+                  catalogType="product"></app-autocomplete>
               </div>
 
               <!-- Monto total -->
               <div>
-                <app-input-field
-                  formControlName="amount"
-                  label="Monto"
-                  type="money"
-                >
+                <app-input-field formControlName="amount" label="Monto" type="money">
                 </app-input-field>
               </div>
 
               <!-- Proyecto -->
               <div>
-                <app-autocomplete
-                  formControlName="project_id"
-                  label="Proyecto"
-                  [remote]="true"
-                  catalogType="project"
-                ></app-autocomplete>
+                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true"
+                  catalogType="project"></app-autocomplete>
               </div>
             </div>
 
@@ -89,33 +94,23 @@
             <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
               <!-- Abono / Pago -->
               <div>
-                <app-input-field
-                  formControlName="payment_amount"
-                  label="Abono / Pago"
-                  type="money"
-                  [ngClass]="{
+                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
                     'field-invalid':
                       itemCtrl.get('amount')?.value &&
                       itemCtrl.get('amount')?.value <
                         itemCtrl.get('payment_amount')?.value
-                  }"
-                >
+                  }">
                 </app-input-field>
               </div>
 
               <!-- Fecha de pago -->
               @if (
-                itemCtrl.get('amount')?.value &&
-                itemCtrl.get('amount')?.value ==
-                  itemCtrl.get('payment_amount')?.value
+              itemCtrl.get('amount')?.value &&
+              itemCtrl.get('amount')?.value ==
+              itemCtrl.get('payment_amount')?.value
               ) {
               <div>
-                <app-input-date
-                  formControlName="payment_date"
-                  label="Fecha de pago"
-                  mode="single"
-                  [showClear]="true"
-                >
+                <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
                 </app-input-date>
               </div>
               }
@@ -123,30 +118,23 @@
               <!-- Restante + botón borrar -->
               <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                 @if (itemCtrl.get('amount')?.value) {
-                <small
-                  class="text-xs text-gray-500"
-                  [ngClass]="{
+                <small class="text-mb text-gray-500" [ngClass]="{
                     'error-restant':
                       itemCtrl.get('amount')?.value &&
                       itemCtrl.get('amount')?.value <
                         itemCtrl.get('payment_amount')?.value
-                  }"
-                >
+                  }">
                   Restante:
                   {{
-                    (itemCtrl.get('amount')?.value || 0) -
-                      (itemCtrl.get('payment_amount')?.value || 0)
-                      | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
+                  (itemCtrl.get('amount')?.value || 0) -
+                  (itemCtrl.get('payment_amount')?.value || 0)
+                  | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
                   }}
                 </small>
                 }
 
                 @if (itemsFA.length > 1) {
-                <button
-                  type="button"
-                  mat-icon-button
-                  class="delete-btn self-end md:self-auto"
-                  (click)="removeItem(i)">
+                <button type="button" mat-icon-button class="delete-btn self-end md:self-auto" (click)="removeItem(i)">
                   <mat-icon>delete</mat-icon>
                 </button>
                 }
@@ -159,9 +147,5 @@
     </div>
   </form>
 
-  <app-btns-section
-    form="save"
-    [saveDisabled]="!form.valid"
-    (action)="onFooterAction($event)"
-  ></app-btns-section>
+  <app-btns-section form="save" [saveDisabled]="!form.valid" (action)="onFooterAction($event)"></app-btns-section>
 </div>

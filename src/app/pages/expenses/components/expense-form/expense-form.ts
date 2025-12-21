@@ -72,11 +72,15 @@ export class ExpenseForm implements OnInit {
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
 
-  // bandera para saber si viene de XML
-  isXmlImport:boolean = false;
+  // bandera para saber si viene de XML (o si el gasto está ligado a un CFDI)
+  isXmlImport: boolean = false;
 
   // uuid del CFDI cuando viene de XML
   cfdiUuidFromXml: string | null = null;
+
+  // contador visual de la cola de XML
+  xmlQueueTotal: number = 0;     // total de CFDI en la cola
+  xmlQueuePending: number = 0;   // pendientes después del actual
 
   // Formulario reactivo principal
   form: FormGroup = this.fb.group({
@@ -93,80 +97,57 @@ export class ExpenseForm implements OnInit {
   // Detalle completo del gasto cuando es edición
   formData!: entity.ExpenseDetail;
 
-  // ngOnInit() {
-  //   const idParam = this.route.snapshot.paramMap.get('id');
+  // índice actual calculado (para mostrar "CFDI 1 de N")
+  get currentXmlIndex(): number {
+    if (!this.xmlQueueTotal) return 1;
+    return this.xmlQueueTotal - this.xmlQueuePending;
+  }
 
-  //   if (idParam) {
-  //     // Modo edición
-  //     this.expenseId = +idParam;
-  //     this.loadExpense(this.expenseId);
-  //     return;
-  //   }
+  // ==========================
+  //  INIT
+  // ==========================
+  ngOnInit() {
+    const idParam = this.route.snapshot.paramMap.get('id');
 
-  //   // Modo creación: revisar si venimos de un XML
-  //   const draft = this.expenseService.consumeXmlDraftToImport();
-  //   if (draft) {
-  //     this.patchFormFromXmlDraft(draft);
-  //   }
-  // }
+    if (idParam) {
+      // 🔹 Modo edición
+      this.expenseId = +idParam;
+      this.loadExpense(this.expenseId);
+    } else {
+      // 🔹 Modo creación → revisar si hay cola de XML
+      const draft = this.expenseService.consumeNextXmlDraft();
+
+      if (draft) {
+        this.patchFormFromXmlDraft(draft);
+
+        // actualizar los contadores de la cola
+        const status = this.expenseService.getXmlQueueStatus();
+        this.xmlQueueTotal = status.total;
+        this.xmlQueuePending = status.pending;
+      }
+    }
+  }
 
   // ==========================
   //  CARGAR GASTO (EDICIÓN)
   // ==========================
-  
-  ngOnInit() {
-  const idParam = this.route.snapshot.paramMap.get('id');
-
-  if (idParam) {
-    // 🔹 Modo edición
-    this.expenseId = +idParam;
-    this.loadExpense(this.expenseId);
-  } else {
-    // 🔹 Modo creación
-    const draft = this.expenseService.consumeNextXmlDraft();
-
-    if (draft) {
-      this.isXmlImport = true;
-      this.cfdiUuidFromXml = draft.uuid;
-
-      this.form.patchValue({
-        date: draft.date,
-        supplier_id: draft.supplier
-          ? toCatalogAutoComplete(draft.supplier.id, draft.supplier.name)
-          : null,
-      });
-
-      const itemsFGs = draft.items.map((item) =>
-        this.createItemGroup({
-          product_id: item.product
-            ? toCatalogAutoComplete(item.product.id, item.product.name)
-            : null,
-          amount: item.amount,
-          payment_amount: item.payment_amount ?? null,
-          payment_date: item.payment_date ?? null,
-          project_id: null,
-        }),
-      );
-
-      this.form.setControl('items', this.fb.array(itemsFGs));
-    }
-  }
-}
-
-  
-  
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
         this.formData = response;
 
+        // Si el backend manda cfdi_uuid, lo usamos como bandera
+        const anyResp: any = response as any;
+        this.isXmlImport = !!anyResp.cfdi_uuid;
+        this.cfdiUuidFromXml = anyResp.cfdi_uuid ?? null;
+
         this.form.patchValue({
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-              response.supplier.id,
-              response.supplier.company_name,
-            )
+                response.supplier.id,
+                response.supplier.company_name,
+              )
             : null,
         });
 
@@ -185,6 +166,9 @@ export class ExpenseForm implements OnInit {
         );
 
         this.form.setControl('items', this.fb.array(itemsFGs));
+
+        // si viene de XML, bloqueamos los campos "duros"
+        this.applyXmlLocking();
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
@@ -209,7 +193,7 @@ export class ExpenseForm implements OnInit {
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
         payment_date: item.payment_date ?? null,
-        project_id: null,
+        project_id: null, // se asigna en el formulario
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
           : null,
@@ -217,6 +201,28 @@ export class ExpenseForm implements OnInit {
     );
 
     this.form.setControl('items', this.fb.array(itemsFGs));
+
+    // bloquear campos que vienen del CFDI
+    this.applyXmlLocking();
+  }
+
+  /**
+   * Bloquea los campos que vienen "duros" del CFDI:
+   * - Fecha
+   * - Proveedor
+   * - Producto y Monto de cada item
+   * El usuario solo puede editar proyecto y abonos.
+   */
+  private applyXmlLocking(): void {
+    if (!this.isXmlImport) return;
+
+    this.form.get('date')?.disable();
+    this.form.get('supplier_id')?.disable();
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      ctrl.get('product_id')?.disable();
+      ctrl.get('amount')?.disable();
+    });
   }
 
   // ==========================
@@ -233,9 +239,16 @@ export class ExpenseForm implements OnInit {
 
     this.expenseService.create(payload).subscribe({
       next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/gastos');
+        if (!response.success) return;
+
+        // Si viene de XML y hay más CFDI en cola → ir al siguiente
+        if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
+          this.router.navigateByUrl('/gastos/nuevo');
+          return;
         }
+
+        // Si no hay cola o es gasto manual → regresar al listado
+        this.router.navigateByUrl('/gastos');
       },
       error: (err) => console.error('Error al crear gasto:', err),
     });
@@ -288,11 +301,15 @@ export class ExpenseForm implements OnInit {
   }
 
   addItem() {
+    // Si el gasto viene de XML, no permitimos agregar más ítems
+    if (this.isXmlImport) return;
     this.itemsFA.push(this.createItemGroup());
   }
 
   removeItem(index: number) {
     if (this.itemsFA.length <= 1) return;
+    // Igual, si viene de XML, podrías bloquear esto; por ahora sí permito borrar manual
+    if (this.isXmlImport) return;
     this.itemsFA.removeAt(index);
   }
 
@@ -302,6 +319,10 @@ export class ExpenseForm implements OnInit {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
+        // si estaba en flujo de XML, limpiamos cola
+        if (this.isXmlImport) {
+          this.expenseService.clearXmlQueue();
+        }
         this.router.navigateByUrl('/gastos');
         break;
     }
@@ -313,6 +334,9 @@ export class ExpenseForm implements OnInit {
   onFooterAction(action: ModuleFooterAction | string) {
     switch (action) {
       case 'cancel':
+        if (this.isXmlImport) {
+          this.expenseService.clearXmlQueue();
+        }
         this.router.navigateByUrl('/gastos');
         break;
     }
@@ -327,7 +351,7 @@ export class ExpenseForm implements OnInit {
     return {
       date: raw.date!,
       supplier_id: toIdForm(raw.supplier_id),
-      cfdi_uuid: this.cfdiUuidFromXml,
+      cfdi_uuid: this.cfdiUuidFromXml ?? null,
 
       items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
         amount: Number(item.amount),
@@ -340,7 +364,7 @@ export class ExpenseForm implements OnInit {
         payment_date: item.payment_date || null,
 
         project_id: toIdForm(item.project_id),
-        product_id: toIdForm(item.product_id)
+        product_id: toIdForm(item.product_id),
       })),
     };
   }

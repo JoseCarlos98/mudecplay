@@ -212,3 +212,8 @@ export interface XmlPreviewResponseDto {
   duplicates: XmlDuplicateDto[];
   errors: XmlErrorDto[];
 }
+
+export interface XmlQueueState {
+  total: number;
+  currentIndex: number; 
+}
