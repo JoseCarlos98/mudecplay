@@ -1,4 +1,3 @@
-// src/app/modules/expenses/components/xmls-modal/xmls-modal.ts
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';

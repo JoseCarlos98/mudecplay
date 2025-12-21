@@ -12,6 +12,15 @@ import { appendArray, setScalar } from '../../../shared/helpers/general-helpers'
 export class ExpenseService {
   private apiUrl = `${environment.apiUrl}/expenses`;
 
+  // draft viejo (por si aún lo usas en otra parte)
+  private xmlDraftToImport: entity.XmlExpenseDraftDto | null = null;
+
+  // ==========================
+  //  COLA DE XML (nuevo flujo)
+  // ==========================
+  private xmlDraftQueue: entity.XmlExpenseDraftDto[] = [];
+  private xmlDraftQueueIndex = 0;
+
   constructor(private readonly http: HttpClient) {}
 
   // ==========================
@@ -57,6 +66,20 @@ export class ExpenseService {
   }
 
   // ==========================
+  // MANEJO DE XML DRAFT ÚNICO (legacy)
+  // ==========================
+
+  setXmlDraftToImport(draft: entity.XmlExpenseDraftDto) {
+    this.xmlDraftToImport = draft;
+  }
+
+  consumeXmlDraftToImport(): entity.XmlExpenseDraftDto | null {
+    const tmp = this.xmlDraftToImport;
+    this.xmlDraftToImport = null;
+    return tmp;
+  }
+
+  // ==========================
   // SUBIDA DE XML
   // ==========================
 
@@ -74,61 +97,48 @@ export class ExpenseService {
   // COLA DE DRAFTS DESDE XML
   // ==========================
 
-  private xmlDraftQueue: entity.XmlExpenseDraftDto[] = [];
-  private xmlQueueTotal = 0;
-  private xmlQueueIndex = 0; // cuántos se han consumido
-
   /**
-   * Recibe todos los drafts válidos y prepara la cola.
+   * Se llama desde el listado cuando el modal devuelve los drafts a importar.
    */
   setXmlQueueToImport(drafts: entity.XmlExpenseDraftDto[]): void {
     this.xmlDraftQueue = drafts ?? [];
-    this.xmlQueueTotal = this.xmlDraftQueue.length;
-    this.xmlQueueIndex = 0;
+    this.xmlDraftQueueIndex = 0;
   }
 
   /**
    * Devuelve el siguiente draft de la cola y avanza el índice.
-   * Si ya no hay más, devuelve null.
+   * Si ya no hay más, regresa null.
    */
   consumeNextXmlDraft(): entity.XmlExpenseDraftDto | null {
     if (!this.xmlDraftQueue.length) return null;
-    if (this.xmlQueueIndex >= this.xmlQueueTotal) return null;
+    if (this.xmlDraftQueueIndex >= this.xmlDraftQueue.length) return null;
 
-    const draft = this.xmlDraftQueue[this.xmlQueueIndex];
-    this.xmlQueueIndex++;
-
-    // Cuando ya se consumieron todos, limpiamos la cola
-    if (this.xmlQueueIndex >= this.xmlQueueTotal) {
-      this.xmlDraftQueue = [];
-    }
-
+    const draft = this.xmlDraftQueue[this.xmlDraftQueueIndex];
+    this.xmlDraftQueueIndex++;
     return draft;
   }
 
   /**
-   * Para saber si, después de guardar, hay más XML en cola.
+   * Saber si, después de guardar el actual, aún hay más CFDI en cola.
    */
   hasMoreXmlDrafts(): boolean {
-    return this.xmlQueueIndex < this.xmlQueueTotal;
+    return this.xmlDraftQueueIndex < this.xmlDraftQueue.length;
   }
 
   /**
-   * Info para el contador visual en el formulario.
+   * Para el texto "CFDI X de N · Quedan Y por registrar".
    */
-  getXmlQueueStatus(): { total: number; processed: number; pending: number } {
-    const total = this.xmlQueueTotal;
-    const processed = Math.min(this.xmlQueueIndex, total);
-    const pending = Math.max(total - processed, 0);
-    return { total, processed, pending };
+  getXmlQueueStatus(): { total: number; pending: number } {
+    const total = this.xmlDraftQueue.length;
+    const pending = Math.max(total - this.xmlDraftQueueIndex, 0);
+    return { total, pending };
   }
 
   /**
-   * Limpia la cola (por ejemplo al cancelar el flujo de importación).
+   * Se usa cuando el usuario cancela/back en medio del flujo XML.
    */
   clearXmlQueue(): void {
     this.xmlDraftQueue = [];
-    this.xmlQueueTotal = 0;
-    this.xmlQueueIndex = 0;
+    this.xmlDraftQueueIndex = 0;
   }
 }
