@@ -432,47 +432,58 @@ export class Expenses implements OnInit {
       .uploadXml(files)
       .pipe(finalize(() => (input.value = '')))
       .subscribe({
-        next: (resp: entity.XmlPreviewResponseDto) => {
+        next: (resp) => {
           const drafts = resp.drafts ?? [];
           const duplicates = resp.duplicates ?? [];
           const errors = resp.errors ?? [];
 
-          // 1) Sólo errores (no hay nada que importar ni duplicados)
-          if (drafts.length === 0 && duplicates.length === 0 && errors.length > 0) {
+          // 1) errores "duros"
+          if (errors.length > 0 && drafts.length === 0 && duplicates.length === 0) {
             const msg = errors
               .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
               .join('\n');
 
+            this.dialogService.confirm({
+              title: 'Errores al leer XML',
+              message: msg || 'Ocurrió un error al procesar los XML.',
+              confirmText: 'OK',
+              cancelText: '',
+            }).subscribe();
+            return;
+          }
+
+          // 2) No hay nada que mostrar
+          if (!drafts.length && !duplicates.length) {
             this.dialogService
               .confirm({
-                title: 'Errores al leer XML',
-                message: msg || 'Ocurrió un error al procesar los XML.',
+                title: 'Sin resultados',
+                message: 'No se encontraron CFDI válidos en los XML cargados.',
                 confirmText: 'OK',
                 cancelText: '',
               })
               .subscribe();
-
             return;
           }
 
-          // 2) Fast-path: 1 draft, sin duplicados ni errores → ir directo al formulario
-          if (drafts.length === 1 && duplicates.length === 0 && errors.length === 0) {
-            this.expenseService.setXmlDraftToImport(drafts[0]);
-            this.router.navigateByUrl('/gastos/nuevo');
-            return;
-          }
-
-          // 3) Cualquier otro caso (varios drafts, duplicados y/o errores) → modal resumen
+          // 3) Abrimos el modal "pro" con tabla de nuevos + duplicados
           this.dialogService
-            .open(XmlsModal, { drafts, duplicates, errors }, 'large')
+            .open(
+              XmlsModal,
+              {
+                drafts,
+                duplicates,
+              },
+              'large', // o 'medium', como prefieras
+            )
             .afterClosed()
-            .subscribe((selected?: entity.XmlExpenseDraftDto | null) => {
-              // Si el usuario canceló/cerró el modal, no hacemos nada
-              if (!selected) return;
+            .subscribe((result) => {
+              if (!result) return;
 
-              // Si eligió un draft, lo mandamos al formulario
-              this.expenseService.setXmlDraftToImport(selected);
-              this.router.navigateByUrl('/gastos/nuevo');
+              // b) Importar drafts → mandar cola al formulario
+              if (result.action === 'import' && result.drafts?.length) {
+                this.expenseService.setXmlQueueToImport(result.drafts);
+                this.router.navigateByUrl('/gastos/nuevo');
+              }
             });
         },
         error: (err) => {
@@ -488,6 +499,5 @@ export class Expenses implements OnInit {
         },
       });
   }
-
 
 }

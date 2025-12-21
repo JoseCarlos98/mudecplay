@@ -93,26 +93,68 @@ export class ExpenseForm implements OnInit {
   // Detalle completo del gasto cuando es edición
   formData!: entity.ExpenseDetail;
 
-  ngOnInit() {
-    const idParam = this.route.snapshot.paramMap.get('id');
+  // ngOnInit() {
+  //   const idParam = this.route.snapshot.paramMap.get('id');
 
-    if (idParam) {
-      // Modo edición
-      this.expenseId = +idParam;
-      this.loadExpense(this.expenseId);
-      return;
-    }
+  //   if (idParam) {
+  //     // Modo edición
+  //     this.expenseId = +idParam;
+  //     this.loadExpense(this.expenseId);
+  //     return;
+  //   }
 
-    // Modo creación: revisar si venimos de un XML
-    const draft = this.expenseService.consumeXmlDraftToImport();
-    if (draft) {
-      this.patchFormFromXmlDraft(draft);
-    }
-  }
+  //   // Modo creación: revisar si venimos de un XML
+  //   const draft = this.expenseService.consumeXmlDraftToImport();
+  //   if (draft) {
+  //     this.patchFormFromXmlDraft(draft);
+  //   }
+  // }
 
   // ==========================
   //  CARGAR GASTO (EDICIÓN)
   // ==========================
+  
+  ngOnInit() {
+  const idParam = this.route.snapshot.paramMap.get('id');
+
+  if (idParam) {
+    // 🔹 Modo edición
+    this.expenseId = +idParam;
+    this.loadExpense(this.expenseId);
+  } else {
+    // 🔹 Modo creación
+    const draft = this.expenseService.consumeNextXmlDraft();
+
+    if (draft) {
+      this.isXmlImport = true;
+      this.cfdiUuidFromXml = draft.uuid;
+
+      this.form.patchValue({
+        date: draft.date,
+        supplier_id: draft.supplier
+          ? toCatalogAutoComplete(draft.supplier.id, draft.supplier.name)
+          : null,
+      });
+
+      const itemsFGs = draft.items.map((item) =>
+        this.createItemGroup({
+          product_id: item.product
+            ? toCatalogAutoComplete(item.product.id, item.product.name)
+            : null,
+          amount: item.amount,
+          payment_amount: item.payment_amount ?? null,
+          payment_date: item.payment_date ?? null,
+          project_id: null,
+        }),
+      );
+
+      this.form.setControl('items', this.fb.array(itemsFGs));
+    }
+  }
+}
+
+  
+  
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
