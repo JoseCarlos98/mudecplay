@@ -4,103 +4,93 @@
 
       <!-- Columnas dinámicas -->
       @for (col of columnsConfig; track col.key) {
-        <ng-container [matColumnDef]="col.key">
-          <th mat-header-cell *matHeaderCellDef class="text-left">
-            {{ col.label }}
-          </th>
+      <ng-container [matColumnDef]="col.key">
+        <th mat-header-cell *matHeaderCellDef class="text-left">
+          {{ col.label }}
+        </th>
 
-          <td mat-cell *matCellDef="let element"
-              [class.text-right]="col.align === 'right'"
-              [class.text-center]="col.align === 'center'">
-            @switch (col.type) {
-              @case ('relation') {
-                @let rel = getRelationValue(element[col.key], col.path);
+        <td mat-cell *matCellDef="let element" [class.text-right]="col.align === 'right'"
+          [class.text-center]="col.align === 'center'">
+          @switch (col.type) {
+          @case ('relation') {
+          @let rel = getRelationValue(element[col.key], col.path);
 
-                @if (rel) {
-                  <!-- Igual que antes -->
-                  @if (col.typeVariant) {
-                    <span
-                      class="table-chip"
-                      [ngClass]="{
+          @if (rel) {
+          <!-- Igual que antes -->
+          @if (col.typeVariant) {
+          <span class="table-chip" [ngClass]="{
                         'table-chip-success': col.typeVariant === 'chip-success',
                         'table-chip-warning': col.typeVariant === 'chip-warning',
                         'table-chip-neutral': col.typeVariant === 'chip-neutral'
                       }">
-                      {{ rel }}
-                    </span>
-                  } @else {
-                    {{ rel }}
-                  }
-                } @else {
-                  <!-- No hay valor: usar col.fallback o emptyLabel -->
-                  @if (col.fallbackVariant) {
-                    <span
-                      class="table-chip"
-                      [ngClass]="{
+            {{ rel }}
+          </span>
+          } @else {
+          {{ rel }}
+          }
+          } @else {
+          <!-- No hay valor: usar col.fallback o emptyLabel -->
+          @if (col.fallbackVariant) {
+          <span class="table-chip" [ngClass]="{
                         'table-chip-success': col.fallbackVariant === 'chip-success',
                         'table-chip-warning': col.fallbackVariant === 'chip-warning',
                         'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
                       }">
-                      {{ getEmptyLabel(col.fallback) }}
-                    </span>
-                  } @else {
-                    <span class="empty-cell">
-                      {{ getEmptyLabel(col.fallback) }}
-                    </span>
-                  }
-                }
-              }
+            {{ getEmptyLabel(col.fallback) }}
+          </span>
+          } @else {
+          <span class="empty-cell">
+            {{ getEmptyLabel(col.fallback) }}
+          </span>
+          }
+          }
+          }
+          @case ('money') {
+          {{ element[col.key] | currency:'$ ':'symbol':'1.2-2' }}
+          }
+          @case ('date') {
+          {{ element[col.key] | date:"d MMM y" : 'es-MX' }}
+          }
+          @case ('showItems') {
+          <button type="button" class="btn-view-row" (click)="onRowAction('showItems', element)">
+            <mat-icon>visibility</mat-icon>
+            <span>Ver</span>
+          </button>
+          }
+          @case ('phone') {
+          <span class="phone-cell" [class.empty-cell]="isEmptyValue(element[col.key])">
+            {{
+            isEmptyValue(element[col.key])
+            ? getEmptyLabel(col.fallback)
+            : formatPhoneCell(element[col.key])
+            }}
+          </span>
+          }
+          @case ('booleanConfirm') {
+          <span class="confirm-pill" [ngClass]="element[col.key] ? 'confirm-pill-yes' : 'confirm-pill-no'">
 
-              @case ('money') {
-                {{ element[col.key] | currency:'$ ':'symbol':'1.2-2' }}
-              }
-              @case ('date') {
-                {{ element[col.key] | date:"d MMM y" : 'es-MX' }}
-              }
-              @case ('showItems') {
-                <button type="button" class="btn-view-row" (click)="onRowAction('showItems', element)">
-                  <mat-icon>visibility</mat-icon>
-                  <span>Ver</span>
-                </button>
-              }
-                @case ('phone') {
-                <span
-                  class="phone-cell"
-                  [class.empty-cell]="isEmptyValue(element[col.key])">
-                  {{
-                    isEmptyValue(element[col.key])
-                      ? getEmptyLabel(col.fallback)
-                      : formatPhoneCell(element[col.key])
-                  }}
-                </span>
-              }
-              @case ('booleanConfirm') {
-                <span
-                  class="confirm-pill"
-                  [ngClass]="element[col.key] ? 'confirm-pill-yes' : 'confirm-pill-no'">
+            <mat-icon class="confirm-pill-icon">
+              {{ element[col.key] ? 'check_circle' : 'cancel' }}
+            </mat-icon>
 
-                  <mat-icon class="confirm-pill-icon">
-                    {{ element[col.key] ? 'check_circle' : 'cancel' }}
-                  </mat-icon>
+            <span class="confirm-pill-label">
+              {{ element[col.key] ? 'Sí' : 'No' }}
+            </span>
+          </span>
+          }
 
-                  <span class="confirm-pill-label">
-                    {{ element[col.key] ? 'Sí' : 'No' }}
-                  </span>
-                </span>
-              }
-
-              @default {
-                <span [class.empty-cell]="isEmptyValue(element[col.key])">
-                  {{    
-                    isEmptyValue(element[col.key])
-                      ? getEmptyLabel(col.fallback)
-                      : (element[col.key])
-                  }}
-                </span>
-              }
-            }
-          </td>
-        </ng-container>
+          @default {
+          <span [class.empty-cell]="isEmptyValue(element[col.key])">
+            {{
+            isEmptyValue(element[col.key])
+            ? getEmptyLabel(col.fallback)
+            : (element[col.key])
+            }}
+          </span>
+          }
+          }
+        </td>
+      </ng-container>
       }
 
       <!-- Columna de acciones -->
@@ -108,18 +98,23 @@
         <th mat-header-cell *matHeaderCellDef class="text-center">Acciones</th>
         <td mat-cell *matCellDef="let element" class="c-actions-cells">
           <div>
-            <button
-              mat-icon-button
-              class="edit-btn"
+            <!-- EDIT -->
+            <span [matTooltip]="editTooltip(element) || ''" [matTooltipDisabled]="!(editTooltip(element))">
+
+            <button mat-icon-button class="edit-btn" [disabled]="!canEdit(element)"
+              
               (click)="onRowAction('edit', element)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button
-              mat-icon-button
-              class="delete-btn"
-              (click)="onRowAction('delete', element)">
-              <mat-icon>delete</mat-icon>
-            </button>
+            </span>
+
+            <!-- DELETE -->
+            <span [matTooltip]="deleteTooltip(element) || ''" [matTooltipDisabled]="!(deleteTooltip(element))">
+              <button mat-icon-button class="delete-btn" [disabled]="!canDelete(element)"
+                (click)="onRowAction('delete', element)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </span>
           </div>
         </td>
       </ng-container>

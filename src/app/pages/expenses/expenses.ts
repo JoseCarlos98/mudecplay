@@ -125,6 +125,18 @@ export class Expenses implements OnInit {
   private readonly router = inject(Router);
   private readonly storage = inject(LocalStorageService);
 
+  canDeleteRow = (row: entity.ExpenseResponseDto) => {
+    // No permitir borrar si viene de CFDI
+    return !row.cfdi_uuid;
+  };
+
+  deleteTooltip = (row: entity.ExpenseResponseDto) => {
+    if (row.cfdi_uuid) {
+      return 'No puedes eliminar gastos creados desde un CFDI.';
+    }
+    return null;
+  };
+
   @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
 
   // ==========================

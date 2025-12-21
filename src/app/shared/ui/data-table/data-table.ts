@@ -1,3 +1,4 @@
+// data-table.ts
 import {
   Component,
   Input,
@@ -11,8 +12,12 @@ import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { ColumnsConfig, DataTableActionEvent, DataTableActionType } from './interfaces/table-interfaces';
-
+import { MatTooltipModule } from '@angular/material/tooltip';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableActionType,
+} from './interfaces/table-interfaces';
 
 @Component({
   selector: 'app-data-table',
@@ -22,27 +27,28 @@ import { ColumnsConfig, DataTableActionEvent, DataTableActionType } from './inte
     MatTableModule,
     MatIconModule,
     MatButtonModule,
+    MatTooltipModule,
   ],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTable<T> implements OnChanges {
   @Input() displayedColumns: string[] = [];
   @Input() columnsConfig: ColumnsConfig[] = [];
   @Input() data: T[] = [];
 
-  @Output() action = new EventEmitter<DataTableActionEvent<T>>();
-
   @Input() emptyLabel = 'Sin dato';
 
-  dataSource = new MatTableDataSource<T>();
+  /** Reglas de acciones (por defecto: todo permitido, sin tooltip) */
+  @Input() canEdit: (row: T) => boolean = () => true;
+  @Input() canDelete: (row: T) => boolean = () => true;
+  @Input() editTooltip: (row: T) => string | null = () => null;
+  @Input() deleteTooltip: (row: T) => string | null = () => null;
 
-  getRelationValue(value: any, path?: string) {
-    if (!value) return null;
-    if (!path) return value['name'] ?? null;
-    return value[path] ?? null;
-  }
+  @Output() action = new EventEmitter<DataTableActionEvent<T>>();
+
+  dataSource = new MatTableDataSource<T>();
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data']) {
@@ -52,6 +58,22 @@ export class DataTable<T> implements OnChanges {
 
   onRowAction(type: DataTableActionType, row: T) {
     this.action.emit({ type, row });
+  }
+
+  getRelationValue(value: any, path?: string) {
+    if (!value) return null;
+    if (!path) return value['name'] ?? null;
+    return value[path] ?? null;
+  }
+
+  isEmptyValue(value: any): boolean {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    return false;
+  }
+
+  getEmptyLabel(fallback?: string | null): string {
+    return fallback && fallback.trim().length > 0 ? fallback : this.emptyLabel;
   }
 
   formatPhoneCell(value: any): string {
@@ -64,9 +86,8 @@ export class DataTable<T> implements OnChanges {
 
     if (raw.startsWith('+52')) {
       country = '+52';
-      rest = raw.slice(3); // quitamos "+52"
+      rest = raw.slice(3);
     } else if (raw.startsWith('+')) {
-      // fallback genérico: deja el prefijo tal cual los primeros 3 chars
       country = raw.slice(0, 3);
       rest = raw.slice(country.length);
     }
@@ -74,21 +95,9 @@ export class DataTable<T> implements OnChanges {
     const digits = rest.replace(/\D/g, '');
     if (!digits) return country || raw;
 
-    // Mismo estilo que usas en los inputs: 3-3-4
     if (digits.length <= 3) return `${country} ${digits}`.trim();
-
-    if (digits.length <= 6) return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
+    if (digits.length <= 6)
+      return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
     return `${country} ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`.trim();
-  }
-
-  // ====== NUEVO: helpers globales ======
-  isEmptyValue(value: any): boolean {
-    if (value === null || value === undefined) return true;
-    if (typeof value === 'string' && value.trim() === '') return true;
-    return false;
-  }
-
-  getEmptyLabel(fallback?: string | null): string {
-    return (fallback && fallback.trim().length > 0) ? fallback : this.emptyLabel;
   }
 }

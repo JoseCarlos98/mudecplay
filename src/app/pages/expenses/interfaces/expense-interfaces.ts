@@ -58,6 +58,7 @@ export interface ExpenseResponseDto {
   total_amount: number;
   supplier: Supplier | null;
   status: ExpenseStatus;
+  cfdi_uuid?: string | null
   items: ExpenseItem[];
 }
 

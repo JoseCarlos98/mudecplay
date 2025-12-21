@@ -394,8 +394,8 @@ body {
 }
 
 .field-invalid {
-  --mdc-outlined-text-field-caret-color: var(--color-error);
-  --mdc-outlined-text-field-focus-outline-color: var(--color-error);
+  --mdc-outlined-text-field-caret-color: var(--color-error)!important;
+  --mdc-outlined-text-field-focus-outline-color: var(--color-error)!important;
 
   .mdc-notched-outline__leading,
   .mdc-notched-outline__notch,
@@ -404,7 +404,7 @@ body {
   }
 
   .mat-mdc-form-field-icon-suffix {
-    color: var(--color-error);
+    color: var(--color-error)!important;
   }
 }
 
@@ -505,6 +505,10 @@ body {
   .mat-pseudo-checkbox {
     margin-right: 8px !important;
   }
+}
+
+.required {
+  color: var(--color-error)!important;
 }
 
 
