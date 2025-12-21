@@ -314,7 +314,7 @@ export class ExpenseForm implements OnInit {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
-        if (this.isXmlImport) {
+        if (this.cfdiUuidFromXml  && this.router.url.includes('nuevo')) {
           this.confirmExitFromXmlFlow();
         } else {
           this.navigateToList();
@@ -329,7 +329,7 @@ export class ExpenseForm implements OnInit {
   onFooterAction(action: ModuleFooterAction | string) {
     switch (action) {
       case 'cancel':
-        if (this.isXmlImport && this.router.url.includes('nuevo')) {
+        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
           this.confirmExitFromXmlFlow();
         } else {
           this.navigateToList();
