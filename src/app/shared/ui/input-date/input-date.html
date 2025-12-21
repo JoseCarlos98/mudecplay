@@ -24,7 +24,7 @@
           (blur)="markAsTouched()"
         />
 
-        @if (showClear && hasSingleValue) {
+        @if (showClear && hasSingleValue && !disabled) {
           <button
             type="button"
             matSuffix
@@ -83,7 +83,7 @@
           />
         </mat-date-range-input>
 
-        @if (showClear && hasRangeValue) {
+        @if (showClear && hasRangeValue && !disabled) {
           <button
             type="button"
             matSuffix
