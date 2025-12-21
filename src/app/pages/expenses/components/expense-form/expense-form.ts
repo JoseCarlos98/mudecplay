@@ -65,11 +65,12 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  INYECCIONES
   // ==========================
-  private readonly route = inject(ActivatedRoute);
+  private readonly activatedroute = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
+
 
 
   // Config del header
@@ -107,7 +108,7 @@ export class ExpenseForm implements OnInit {
   }
 
   ngOnInit() {
-    const idParam = this.route.snapshot.paramMap.get('id');
+    const idParam = this.activatedroute.snapshot.paramMap.get('id');
 
     if (idParam) {
       // Modo edición
@@ -128,6 +129,8 @@ export class ExpenseForm implements OnInit {
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
+        console.log(response);
+
         this.formData = response;
 
         // Si el backend manda cfdi_uuid, lo usamos como bandera
@@ -328,7 +331,7 @@ export class ExpenseForm implements OnInit {
   onFooterAction(action: ModuleFooterAction | string) {
     switch (action) {
       case 'cancel':
-        if (this.isXmlImport) {
+        if (this.isXmlImport && this.router.url.includes('nuevo')) {
           this.confirmExitFromXmlFlow();
         } else {
           this.navigateToList();

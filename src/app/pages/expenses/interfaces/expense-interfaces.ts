@@ -124,6 +124,7 @@ export interface ExpenseDetail {
   internal_folio: string;
   total_amount: number;
   remaining_amount: number;
+  cfdi_uuid?: string | null;
   supplier: {
     id: number;
     company_name: string;
