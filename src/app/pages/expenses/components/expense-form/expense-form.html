@@ -3,33 +3,40 @@
     [title]=" expenseId ? 'Editar Gasto' : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')"
     [config]="headerConfig" (action)="onHeaderAction($event)"></app-module-header>
 
-  <!-- Contador de cola XML -->
-  @if (isXmlImport && xmlQueueTotal > 0) {
-  <div class="xml-counter">
-    <span class="xml-counter__chip">
-      CFDI {{ currentXmlIndex }} de {{ xmlQueueTotal }}
-    </span>
-
-    @if (xmlQueuePending > 0) {
-    <span class="xml-counter__pending">
-      Quedan {{ xmlQueuePending }} por registrar
-    </span>
-    } @else {
-    <span class="xml-counter__pending">
-      Último CFDI de la cola
-    </span>
-    }
-  </div>
-  }
-
-  <!-- Mensaje de ayuda cuando viene de XML -->
+  
   @if (isXmlImport) {
-  <p class="xml-lock-hint">
-    Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
-    <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
-    no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
-    asignar <strong>proyectos</strong>.
-  </p>
+    <div class="xml-status">
+      <div class="xml-status__top-row">
+        <span class="xml-status__tag">
+          <mat-icon class="xml-status__tag-icon">feed</mat-icon>
+          Desde XML
+        </span>
+
+        <div class="xml-status__counter">
+          <span class="xml-status__counter-main">
+            CFDI
+            {{
+              xmlQueueTotal > 0
+                ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+                : 'actual'
+            }}
+          </span>
+
+          @if (xmlQueuePending > 0) {
+            <span class="xml-status__counter-pending">
+              · Quedan {{ xmlQueuePending }} por registrar
+            </span>
+          }
+        </div>
+      </div>
+
+      <p class="xml-status__help">
+        Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
+        <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
+        no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
+        asignar <strong>proyectos</strong>.
+      </p>
+    </div>
   }
 
   <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">

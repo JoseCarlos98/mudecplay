@@ -8,3 +8,83 @@
         color: var(--color-error);
     }
 }
+
+/* =======================
+   BLOQUE ESTADO XML
+   ======================= */
+
+.xml-status {
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #1f2933;
+  font-size: 0.875rem;
+}
+
+.xml-status__top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.xml-status__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: #1164a3;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.xml-status__tag-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.xml-status__counter {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #111827;
+}
+
+.xml-status__counter-main {
+  font-weight: 600;
+}
+
+.xml-status__counter-pending {
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.xml-status__help {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #4b5563;
+}
+
+/* =======================
+   CHIP DE PRODUCTOS
+   ======================= */
+
+.form-dinamic-chip--xml-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.form-dinamic-chip__icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
