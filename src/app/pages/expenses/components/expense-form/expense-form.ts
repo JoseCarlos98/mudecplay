@@ -34,6 +34,7 @@ import {
   toIdForm,
 } from '../../../../shared/helpers/general-helpers';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
+import { DialogService } from '../../../../shared/services/dialog.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -68,6 +69,8 @@ export class ExpenseForm implements OnInit {
   private readonly expenseService = inject(ExpenseService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly dialogService = inject(DialogService);
+
 
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
@@ -168,7 +171,7 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  CARGAR DESDE XML (CREACIÓN)
   // ==========================
-  private patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
+  patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
     this.isXmlImport = true;
     this.cfdiUuidFromXml = draft.uuid;
 
@@ -204,7 +207,7 @@ export class ExpenseForm implements OnInit {
    * - Producto y Monto de cada item
    * El usuario solo puede editar proyecto y abonos.
    */
-  private applyXmlLocking(): void {
+  applyXmlLocking(): void {
     if (!this.isXmlImport) return;
 
     this.form.get('date')?.disable();
@@ -244,7 +247,6 @@ export class ExpenseForm implements OnInit {
       error: (err) => console.error('Error al crear gasto:', err),
     });
   }
-
 
   // ==========================
   //  UPDATE
@@ -311,11 +313,11 @@ export class ExpenseForm implements OnInit {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
-        // si estaba en flujo de XML, limpiamos cola
         if (this.isXmlImport) {
-          this.expenseService.clearXmlQueue();
+          this.confirmExitFromXmlFlow();
+        } else {
+          this.navigateToList();
         }
-        this.router.navigateByUrl('/gastos');
         break;
     }
   }
@@ -327,9 +329,10 @@ export class ExpenseForm implements OnInit {
     switch (action) {
       case 'cancel':
         if (this.isXmlImport) {
-          this.expenseService.clearXmlQueue();
+          this.confirmExitFromXmlFlow();
+        } else {
+          this.navigateToList();
         }
-        this.router.navigateByUrl('/gastos');
         break;
     }
   }
@@ -337,7 +340,7 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  PAYLOAD BACKEND
   // ==========================
-  private buildPayloadFromForm(): entity.CreateExpense {
+  buildPayloadFromForm(): entity.CreateExpense {
     const raw = this.form.getRawValue();
 
     return {
@@ -362,7 +365,7 @@ export class ExpenseForm implements OnInit {
   }
 
   /** Carga el siguiente draft de la cola en el formulario */
-  private loadNextXmlFromQueueOrExit() {
+  loadNextXmlFromQueueOrExit() {
     const nextDraft = this.expenseService.consumeNextXmlDraft();
 
     // Si ya no hay más drafts, terminamos flujo XML
@@ -385,5 +388,36 @@ export class ExpenseForm implements OnInit {
     const status = this.expenseService.getXmlQueueStatus();
     this.xmlQueueTotal = status.total;
     this.xmlQueuePending = status.pending;
+  }
+
+  confirmExitFromXmlFlow() {
+    const pendingText =
+      this.xmlQueuePending > 0
+        ? `Tienes ${this.xmlQueuePending} CFDI pendiente(s) por registrar.\n\n`
+        : '';
+
+    this.dialogService
+      .confirm({
+        size: 'small',
+        title: 'Salir del registro desde XML',
+        message:
+          `${pendingText}` +
+          'Si sales ahora, este CFDI y los pendientes no se registrarán como gastos. ' +
+          'Podrás volver a subir los XML cuando quieras.\n\n' +
+          '¿Quieres salir de todos modos?',
+        confirmText: 'Salir sin guardar',
+        cancelText: 'Seguir capturando',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        // limpiamos cola y volvemos al listado
+        this.expenseService.clearXmlQueue();
+        this.navigateToList();
+      });
+  }
+
+  navigateToList() {
+    this.router.navigateByUrl('/gastos');
   }
 }

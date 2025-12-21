@@ -2,36 +2,36 @@ import { Injectable, inject } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ConfirmModal } from '../ui/confirm-modal/confirm-modal';
 
+/** Mapa de tamaños global (fuera de la clase para usarlo en tipos) */
+export const DIALOG_SIZES = {
+  mini:   { width: '350px', maxWidth: '95vw' },
+  small:  { width: '650px', maxWidth: '95vw' },
+  medium: { width: '850px', maxWidth: '90vw' },
+  large:  { width: '80vw',  maxWidth: '1200px' },
+} as const;
+
+export type DialogSize = keyof typeof DIALOG_SIZES; // 'mini' | 'small' | 'medium' | 'large'
+
 @Injectable({ providedIn: 'root' })
 export class DialogService {
   private readonly dialog = inject(MatDialog);
 
-  /** Tamaños predefinidos */
-  private readonly sizes = {
-    mini: { width: '350px', maxWidth: '95vw' },
-    small: { width: '650px', maxWidth: '95vw' },
-    medium: { width: '850px', maxWidth: '90vw' },
-    large: { width: '80vw', maxWidth: '1200px' },
-  };
-
   /**
    * Abre un componente modal genérico
-   * @param component Componente a abrir
-   * @param data Datos a inyectar
-   * @param size Tamaño predefinido: small | medium | large
-   * @param config Config adicional de MatDialog
+   * @param size mini | small | medium | large (por defecto 'medium')
    */
   open(
     component: any,
     data?: any,
-    size: keyof typeof this.sizes = 'medium',
+    size: DialogSize = 'medium',
     config?: Partial<MatDialogConfig>
   ) {
+    const sizeKey: DialogSize = size ?? 'medium';
+
     const finalConfig: MatDialogConfig = {
-      ...this.sizes[size],
+      ...DIALOG_SIZES[sizeKey],
       autoFocus: false,
       restoreFocus: false,
-      // minHeight: '30vh',
       disableClose: true,
       data,
       ...config,
@@ -41,18 +41,21 @@ export class DialogService {
   }
 
   /**
-   * Abre un modal de confirmación y devuelve un observable<boolean>
+   * Modal de confirmación reutilizable
+   * Puedes pasar size: 'mini' | 'small' | 'medium' | 'large'
    */
   confirm(options: {
     title?: string;
     message?: string;
     confirmText?: string;
     cancelText?: string;
+    size?: DialogSize;
   }) {
-    const dialogRef = this.dialog.open(ConfirmModal, {
-      ...this.sizes.mini,
-      disableClose: true,
+    const sizeKey: DialogSize = options.size ?? 'small';
 
+    const dialogRef = this.dialog.open(ConfirmModal, {
+      ...DIALOG_SIZES[sizeKey],
+      disableClose: true,
       data: {
         title: options.title ?? '',
         message: options.message ?? '¿Estás seguro?',
@@ -62,5 +65,18 @@ export class DialogService {
     });
 
     return dialogRef.afterClosed();
+  }
+
+  /**
+   * Alias rápido si quieres forzar siempre mini en ciertos casos.
+   * Se puede usar o no, según te guste.
+   */
+  confirmMini(options: {
+    title?: string;
+    message?: string;
+    confirmText?: string;
+    cancelText?: string;
+  }) {
+    return this.confirm({ ...options, size: 'mini' });
   }
 }
