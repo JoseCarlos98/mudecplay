@@ -103,30 +103,21 @@ export class ExpenseForm implements OnInit {
     return this.xmlQueueTotal - this.xmlQueuePending;
   }
 
-  // ==========================
-  //  INIT
-  // ==========================
   ngOnInit() {
     const idParam = this.route.snapshot.paramMap.get('id');
 
     if (idParam) {
-      // 🔹 Modo edición
+      // Modo edición
       this.expenseId = +idParam;
       this.loadExpense(this.expenseId);
     } else {
-      // 🔹 Modo creación → revisar si hay cola de XML
-      const draft = this.expenseService.consumeNextXmlDraft();
-
-      if (draft) {
-        this.patchFormFromXmlDraft(draft);
-
-        // actualizar los contadores de la cola
-        const status = this.expenseService.getXmlQueueStatus();
-        this.xmlQueueTotal = status.total;
-        this.xmlQueuePending = status.pending;
+      // Modo creación y revisar si hay cola de XML
+      if (this.expenseService.hasMoreXmlDrafts()) {
+        this.loadNextXmlFromQueueOrExit(); // carga el primer CFDI de la cola
       }
     }
   }
+
 
   // ==========================
   //  CARGAR GASTO (EDICIÓN)
@@ -145,9 +136,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-                response.supplier.id,
-                response.supplier.company_name,
-              )
+              response.supplier.id,
+              response.supplier.company_name,
+            )
             : null,
         });
 
@@ -235,24 +226,25 @@ export class ExpenseForm implements OnInit {
     }
 
     const payload = this.buildPayloadFromForm();
-    console.log('PAYLOAD CREATE 👉', payload);
 
     this.expenseService.create(payload).subscribe({
       next: (response) => {
         if (!response.success) return;
 
-        // Si viene de XML y hay más CFDI en cola → ir al siguiente
+        // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
         if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
-          this.router.navigateByUrl('/gastos/nuevo');
+          this.loadNextXmlFromQueueOrExit();
           return;
         }
 
-        // Si no hay cola o es gasto manual → regresar al listado
+        // Fin de cola o gasto manual → volver al listado
+        this.expenseService.clearXmlQueue(); // por si era el último
         this.router.navigateByUrl('/gastos');
       },
       error: (err) => console.error('Error al crear gasto:', err),
     });
   }
+
 
   // ==========================
   //  UPDATE
@@ -367,5 +359,31 @@ export class ExpenseForm implements OnInit {
         product_id: toIdForm(item.product_id),
       })),
     };
+  }
+
+  /** Carga el siguiente draft de la cola en el formulario */
+  private loadNextXmlFromQueueOrExit() {
+    const nextDraft = this.expenseService.consumeNextXmlDraft();
+
+    // Si ya no hay más drafts, terminamos flujo XML
+    if (!nextDraft) {
+      this.expenseService.clearXmlQueue();
+      this.isXmlImport = false;
+      this.cfdiUuidFromXml = null;
+      this.router.navigateByUrl('/gastos');
+      return;
+    }
+
+    // Reset duro del form antes de parchear el nuevo CFDI
+    this.form.reset();
+    this.form.setControl('items', this.fb.array([this.createItemGroup()]));
+
+    // Rellenamos con el nuevo draft
+    this.patchFormFromXmlDraft(nextDraft);
+
+    // Recalculamos contadores de la cola
+    const status = this.expenseService.getXmlQueueStatus();
+    this.xmlQueueTotal = status.total;
+    this.xmlQueuePending = status.pending;
   }
 }
