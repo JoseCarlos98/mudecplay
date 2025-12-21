@@ -28,8 +28,8 @@
         [attr.maxlength]="type === 'phone' ? null : 255"
       />
 
-      @if (displayValue) {
-        <button
+      @if (displayValue && !disabled) {
+        <button 
           type="button"
           matSuffix
           mat-icon-button

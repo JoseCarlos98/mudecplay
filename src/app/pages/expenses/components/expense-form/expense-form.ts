@@ -67,12 +67,10 @@ export class ExpenseForm implements OnInit {
   // ==========================
   private readonly activatedroute = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
-  private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
-
-
-
+  readonly router = inject(Router);
+  
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
 
