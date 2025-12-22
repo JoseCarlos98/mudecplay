@@ -15,8 +15,12 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 };
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'concept', label: 'Concepto' },
-
+  {
+    key: 'product',
+    label: 'Producto',
+    type: 'relation',
+    path: 'name',
+  },
   {
     key: 'project',
     label: 'Proyecto',
