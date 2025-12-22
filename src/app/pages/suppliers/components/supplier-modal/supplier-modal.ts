@@ -38,6 +38,12 @@ export class SupplierModal implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
 
   form: FormGroup = this.fb.group({
+    rfc: this.fb.control<string | null>(null, {
+      validators: [
+        Validators.required,
+        Validators.pattern(/^([A-ZÑ&]{3})(\d{6})([A-Z\d]{3})$|^([A-ZÑ&]{4})(\d{6})([A-Z\d]{3})$/i)
+      ],
+    }),
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
     area_id: this.fb.control<number | null>(null, { validators: Validators.required }),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
@@ -56,9 +62,9 @@ export class SupplierModal implements OnInit {
     this.loadCatalogs()
 
     if (this.data?.id) this.form.patchValue({
-      ...this.data, 
+      ...this.data,
       area_id: this.data.area.id
-     });
+    });
   }
 
   // ==========================
@@ -81,12 +87,15 @@ export class SupplierModal implements OnInit {
 
     const formData = this.form.value;
 
-    this.supplierService.create(formData).subscribe({
-      next: (response) => {
-        if (response.success) this.closeModal(true);
-      },
-      error: (err) => console.error('Error al guardar gastos:', err),
-    });
+    console.log(formData);
+
+
+    // this.supplierService.create(formData).subscribe({
+    //   next: (response) => {
+    //     if (response.success) this.closeModal(true);
+    //   },
+    //   error: (err) => console.error('Error al guardar gastos:', err),
+    // });
   }
 
   updateData() {

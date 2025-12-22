@@ -55,7 +55,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     InputField,
     BtnsSection,
     InputDate,
-    BtnsSection,
     MatButtonModule,
   ],
   templateUrl: './expense-form.html',
@@ -70,7 +69,7 @@ export class ExpenseForm implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
   readonly router = inject(Router);
-  
+
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
 
@@ -120,6 +119,13 @@ export class ExpenseForm implements OnInit {
     }
   }
 
+  // ==========================
+  //  HELPER FECHA HOY
+  // ==========================
+  /** Devuelve fecha actual en formato 'YYYY-MM-DD' */
+  private getTodayIsoDate(): string {
+    return new Date().toISOString().slice(0, 10);
+  }
 
   // ==========================
   //  CARGAR GASTO (EDICIÓN)
@@ -140,9 +146,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-              response.supplier.id,
-              response.supplier.company_name,
-            )
+                response.supplier.id,
+                response.supplier.company_name,
+              )
             : null,
         });
 
@@ -188,7 +194,7 @@ export class ExpenseForm implements OnInit {
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
         payment_date: item.payment_date ?? null,
-        project_id: null, // se asigna en el formulario
+        project_id: null,
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
           : null,
@@ -281,13 +287,17 @@ export class ExpenseForm implements OnInit {
   //  ITEMS FORM
   // ==========================
   createItemGroup(data?: entity.ExpenseItemForm): FormGroup {
+    // Si viene fecha del backend/edición, la respetamos.
+    // Si no, ponemos la fecha actual para evitar que el usuario tenga que seleccionarla.
+    const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
+
     return this.fb.group({
       amount: [
         data?.amount ?? null,
         [Validators.required, Validators.min(0.01)],
       ],
-      payment_amount: [data?.payment_amount ?? null, [Validators.min(0)]],
-      payment_date: [data?.payment_date ?? null],
+      payment_amount: [data?.payment_amount ?? null],
+      payment_date: [defaultPaymentDate],
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
@@ -314,7 +324,7 @@ export class ExpenseForm implements OnInit {
   onHeaderAction(action: ModuleHeaderAction | string) {
     switch (action) {
       case 'back':
-        if (this.cfdiUuidFromXml  && this.router.url.includes('nuevo')) {
+        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
           this.confirmExitFromXmlFlow();
         } else {
           this.navigateToList();
@@ -349,19 +359,24 @@ export class ExpenseForm implements OnInit {
       supplier_id: toIdForm(raw.supplier_id),
       cfdi_uuid: this.cfdiUuidFromXml ?? null,
 
-      items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
-        amount: Number(item.amount),
+      items: (raw.items ?? []).map(
+        (item: any): entity.CreateExpenseItem => ({
+          amount: Number(item.amount),
 
-        payment_amount:
-          item.payment_amount !== null && item.payment_amount !== ''
-            ? Number(item.payment_amount)
-            : null,
+          payment_amount:
+            item.payment_amount !== null && item.payment_amount !== ''
+              ? Number(item.payment_amount)
+              : null,
 
-        payment_date: item.payment_date || null,
+          // Solo mandamos fecha cuando amount == payment_amount;
+          // el control ya trae por defecto la fecha actual.
+          payment_date:
+            item.amount == item.payment_amount ? item.payment_date : null,
 
-        project_id: toIdForm(item.project_id),
-        product_id: toIdForm(item.product_id),
-      })),
+          project_id: toIdForm(item.project_id),
+          product_id: toIdForm(item.product_id),
+        }),
+      ),
     };
   }
 

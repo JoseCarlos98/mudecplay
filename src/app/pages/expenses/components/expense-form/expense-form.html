@@ -141,7 +141,7 @@
                 </small>
                 }
 
-                @if (itemsFA.length > 1) {
+                @if (itemsFA.length > 1 && !this.cfdiUuidFromXml) {
                 <button type="button" mat-icon-button class="delete-btn self-end md:self-auto" (click)="removeItem(i)">
                   <mat-icon>delete</mat-icon>
                 </button>

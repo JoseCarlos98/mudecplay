@@ -6,7 +6,7 @@ import { ConfirmModal } from '../ui/confirm-modal/confirm-modal';
 export const DIALOG_SIZES = {
   mini:   { width: '350px', maxWidth: '95vw' },
   small:  { width: '650px', maxWidth: '95vw' },
-  medium: { width: '850px', maxWidth: '90vw' },
+  medium: { width: '870px', maxWidth: '90vw' },
   large:  { width: '80vw',  maxWidth: '1200px' },
 } as const;
 
