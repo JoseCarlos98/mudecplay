@@ -36,7 +36,7 @@ export class ExpenseService {
       params = setScalar(params, 'limit', filters.limit);
       params = setScalar(params, 'startDate', filters.startDate);
       params = setScalar(params, 'endDate', filters.endDate);
-      params = appendArray(params, 'providerIds', filters.suppliersIds ?? []);
+      params = appendArray(params, 'suppliersIds', filters.suppliersIds ?? []);
       params = appendArray(params, 'projectIds', filters.projectIds ?? []);
       params = setScalar(params, 'statusId', filters.status_id);
       params = setScalar(params, 'paymentStatus', filters.paymentStatus?.trim());
