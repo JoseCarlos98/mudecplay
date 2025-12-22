@@ -78,6 +78,38 @@
             </span>
           </span>
           }
+          @case ('chip') {
+            @if (!isEmptyValue(element[col.key])) {
+              <span
+                class="table-chip"
+                [ngClass]="{
+                  'table-chip-success': col.typeVariant === 'chip-success',
+                  'table-chip-warning': col.typeVariant === 'chip-warning',
+                  'table-chip-neutral': !col.typeVariant || col.typeVariant === 'chip-neutral'
+                }"
+              >
+                {{ element[col.key] }}
+              </span>
+            } @else {
+              @if (col.fallbackVariant) {
+                <span
+                  class="table-chip"
+                  [ngClass]="{
+                    'table-chip-success': col.fallbackVariant === 'chip-success',
+                    'table-chip-warning': col.fallbackVariant === 'chip-warning',
+                    'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
+                  }"
+                >
+                  {{ getEmptyLabel(col.fallback) }}
+                </span>
+              } @else {
+                <span class="empty-cell">
+                  {{ getEmptyLabel(col.fallback) }}
+                </span>
+              }
+            }
+          }
+
 
           @default {
           <span [class.empty-cell]="isEmptyValue(element[col.key])">

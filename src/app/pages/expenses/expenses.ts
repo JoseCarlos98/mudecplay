@@ -47,6 +47,8 @@ import { XmlsModal } from './components/xmls-modal/xmls-modal';
 const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
+  { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant : 'chip-neutral' },
+  
   { key: 'internal_folio', label: 'Folio' },
   { key: 'date', label: 'Fecha', type: 'date' },
   {
@@ -308,6 +310,7 @@ export class Expenses implements OnInit {
   onDelete(expense: entity.ExpenseResponseDto): void {
     this.dialogService
       .confirm({
+        size : 'mini',
         message: `¿Quieres eliminar el gasto:\n"${expense.internal_folio.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',

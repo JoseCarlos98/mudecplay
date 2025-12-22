@@ -1,4 +1,3 @@
-// data-table.ts
 import {
   Component,
   Input,
