@@ -15,12 +15,24 @@
       <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">
       </app-input-date>
 
-      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
-        catalogType="supplier">
-      </app-autocomplete-multiple>
+        <app-autocomplete-multiple
+          formControlName="suppliersIds"
+          label="Proveedores"
+          [remote]="true"
+          catalogType="supplier"
+          valueMode="objects">
+        </app-autocomplete-multiple>
 
-      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" [remote]="true" catalogType="project">
-      </app-autocomplete-multiple>
+        <app-autocomplete-multiple
+          formControlName="projectIds"
+          label="Proyectos"
+          [remote]="true"
+          catalogType="project"
+          valueMode="objects">
+        </app-autocomplete-multiple>
+
+      <!-- <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" [remote]="true" catalogType="project">
+      </app-autocomplete-multiple> -->
 
       <app-input-select formControlName="status_id" label="Estado de asignación" [options]="catalogStatusExpense">
       </app-input-select>
