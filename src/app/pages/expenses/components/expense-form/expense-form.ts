@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
@@ -56,6 +57,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     BtnsSection,
     InputDate,
     MatButtonModule,
+    MatCheckboxModule,
   ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
@@ -91,6 +93,9 @@ export class ExpenseForm implements OnInit {
     supplier_id: this.fb.control<Catalog | null>(null),
     items: this.fb.array([this.createItemGroup()]),
   });
+
+  // Control para el proyecto masivo
+  bulkProjectCtrl = this.fb.control<Catalog | null>(null);
 
   // Si es 0 => creación; si tiene valor => edición
   expenseId: number = 0;
@@ -277,10 +282,25 @@ export class ExpenseForm implements OnInit {
   }
 
   // ==========================
-  //  GETTER FORM ARRAY
+  //  GETTERS FORM ARRAY
   // ==========================
   get itemsFA(): FormArray {
     return this.form.get('items') as FormArray;
+  }
+
+  /** Algún item seleccionado (para habilitar botón aplicar) */
+  get hasAnySelected(): boolean {
+    return this.itemsFA.controls.some(
+      (ctrl) => !!ctrl.get('selected')?.value,
+    );
+  }
+
+  /** Todos seleccionados (para estado del checkbox "Seleccionar todos") */
+  get allSelected(): boolean {
+    if (!this.itemsFA.length) return false;
+    return this.itemsFA.controls.every(
+      (ctrl) => !!ctrl.get('selected')?.value,
+    );
   }
 
   // ==========================
@@ -302,6 +322,8 @@ export class ExpenseForm implements OnInit {
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
       }),
+      // campo solo de UI para selección masiva
+      selected: this.fb.control<boolean>(false),
     });
   }
 
@@ -316,6 +338,30 @@ export class ExpenseForm implements OnInit {
     // Igual, si viene de XML, podrías bloquear esto; por ahora sí permito borrar manual
     if (this.isXmlImport) return;
     this.itemsFA.removeAt(index);
+  }
+
+  // ==========================
+  //  SELECCIÓN MASIVA
+  // ==========================
+  /** Marca / desmarca todos los ítems */
+  onToggleSelectAll(checked: boolean): void {
+    this.itemsFA.controls.forEach((ctrl) => {
+      ctrl.get('selected')?.setValue(checked);
+    });
+  }
+
+  /** Aplica el proyecto elegido a todos los ítems seleccionados */
+  applyBulkProject(): void {
+    const project = this.bulkProjectCtrl.value;
+    if (!project) return;
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      if (ctrl.get('selected')?.value) {
+        ctrl.get('project_id')?.setValue(project);
+        ctrl.markAsDirty();
+        ctrl.markAsTouched();
+      }
+    });
   }
 
   // ==========================
