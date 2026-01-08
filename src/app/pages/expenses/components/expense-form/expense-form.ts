@@ -271,14 +271,17 @@ export class ExpenseForm implements OnInit {
 
     const payload = this.buildPayloadFromForm();
 
-    this.expenseService.update(this.expenseId, payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/gastos');
-        }
-      },
-      error: (err) => console.error('Error al actualizar gasto:', err),
-    });
+    console.log('VERIFICAR OBNNEJTOS ANTES DE GUARDAR ', payload);
+    
+
+    // this.expenseService.update(this.expenseId, payload).subscribe({
+    //   next: (response) => {
+    //     if (response.success) {
+    //       this.router.navigateByUrl('/gastos');
+    //     }
+    //   },
+    //   error: (err) => console.error('Error al actualizar gasto:', err),
+    // });
   }
 
   // ==========================
