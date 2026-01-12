@@ -6,7 +6,7 @@ import { getSpanishPaginatorIntl } from './shared/customs/custom-paginator-intl'
 import { MatPaginatorIntl } from '@angular/material/paginator';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { MAT_DATE_FORMATS, MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
-import { AuthInterceptor } from './core/interceptor/token.interceptor';
+import { AuthInterceptor } from './auth/services/token.interceptor';
 
 export const MY_DATE_FORMATS = {
   parse: {

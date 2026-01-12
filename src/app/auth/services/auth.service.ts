@@ -68,13 +68,15 @@ export class AuthService {
     return localStorage.getItem(this.TOKEN_KEY);
   }
 
-  // helpers roles
   hasRole(role: string): boolean {
-    return (this.currentUser()?.roles ?? []).includes(role);
+    const roles = this.currentUser()?.roles ?? [];
+    return roles.includes('ADMIN_GENERAL') || roles.includes(role);
   }
 
-  hasAnyRole(roles: string[]): boolean {
-    const userRoles = this.currentUser()?.roles ?? [];
-    return roles.some((r) => userRoles.includes(r));
+  hasAnyRole(required: string[]): boolean {
+    const roles = this.currentUser()?.roles ?? [];
+    if (roles.includes('ADMIN_GENERAL')) return true;
+    return required.some((r) => roles.includes(r));
   }
+
 }

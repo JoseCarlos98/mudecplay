@@ -10,6 +10,8 @@
   <app-module-header title="Gastos" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
+<!-- <button *hasRole="['REPORTES_EMISOR']">Emitir reporte</button> -->
+
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
       <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">

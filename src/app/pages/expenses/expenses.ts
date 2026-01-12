@@ -39,6 +39,7 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { finalize } from 'rxjs';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
+import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -112,6 +113,7 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
     // Forms
     FormsModule,
     ReactiveFormsModule,
+    HasRoleDirective
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
