@@ -73,6 +73,8 @@ const DISPLAYED_COLUMNS: string[] = [
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
   showUploadXml: true,
+  newRoles: ['GASTOS_EDITOR'],
+  uploadXmlRoles: ['GASTOS_EDITOR'],
 };
 
 // Catálogo extra de estados “virtuales”

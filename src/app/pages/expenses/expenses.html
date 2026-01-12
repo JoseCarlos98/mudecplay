@@ -50,15 +50,25 @@
 
 @if (expensesTableData?.data) {
 <div class="c-module-table ">
-    <app-data-table
+    <!-- <app-data-table
       [data]="expensesTableData.data"
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
       [canDelete]="canDeleteRow"
       [deleteTooltip]="deleteTooltip"
       (action)="onTableAction($event)">
+    </app-data-table> -->
+    <app-data-table
+      [data]="expensesTableData.data"
+      [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns"
+      [canDelete]="canDeleteRow"
+      [deleteTooltip]="deleteTooltip"
+      [actionPermissions]="{
+        editRoles: ['GASTOS_EDITOR']
+      }"
+      (action)="onTableAction($event)">
     </app-data-table>
-
 
   <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
     [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>

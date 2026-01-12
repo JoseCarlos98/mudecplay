@@ -6,17 +6,23 @@ import {
   OnChanges,
   SimpleChanges,
   ChangeDetectionStrategy,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import {
   ColumnsConfig,
   DataTableActionEvent,
   DataTableActionType,
 } from './interfaces/table-interfaces';
+
+import type { TableActionPermissions } from './interfaces/table-interfaces';
+import { PermissionsService } from '../../../auth/services/permissions.service';
+import { RoleCode } from '../../../auth/interfaces/auth.interface';
 
 @Component({
   selector: 'app-data-table',
@@ -33,17 +39,27 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataTable<T> implements OnChanges {
+  private readonly permissionsService = inject(PermissionsService);
+
   @Input() displayedColumns: string[] = [];
   @Input() columnsConfig: ColumnsConfig[] = [];
   @Input() data: T[] = [];
 
   @Input() emptyLabel = 'Sin dato';
 
+  private readonly DEFAULT_DELETE_ROLES: RoleCode[] = ['ADMIN_GENERAL'];
+
   /** Reglas de acciones (por defecto: todo permitido, sin tooltip) */
   @Input() canEdit: (row: T) => boolean = () => true;
   @Input() canDelete: (row: T) => boolean = () => true;
   @Input() editTooltip: (row: T) => string | null = () => null;
   @Input() deleteTooltip: (row: T) => string | null = () => null;
+
+  /**
+   * Roles requeridos para mostrar botones (si no se pasa, se muestran por defecto)
+   * Admin bypass lo maneja PermissionsService.
+   */
+  @Input() actionPermissions: TableActionPermissions = {};
 
   @Output() action = new EventEmitter<DataTableActionEvent<T>>();
 
@@ -59,6 +75,22 @@ export class DataTable<T> implements OnChanges {
     this.action.emit({ type, row });
   }
 
+  get editRolesEffective(): RoleCode[] | undefined {
+    return this.actionPermissions?.editRoles;
+  }
+
+  get deleteRolesEffective(): RoleCode[] | undefined {
+    // si no mandas nada, por defecto solo admin puede ver delete
+    return this.actionPermissions?.deleteRoles ?? this.DEFAULT_DELETE_ROLES;
+  }
+
+  /** helper genérico */
+  canShow(roles?: RoleCode[]): boolean {
+    if (!roles?.length) return true;
+    return this.permissionsService.hasAnyRole(roles);
+  }
+
+  // --- lo demás igual ---
   getRelationValue(value: any, path?: string) {
     if (!value) return null;
     if (!path) return value['name'] ?? null;

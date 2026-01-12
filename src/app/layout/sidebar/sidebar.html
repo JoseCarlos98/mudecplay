@@ -55,10 +55,15 @@
     }
   </nav>
 
-  <div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
-    <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
-    <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-      Salir
-    </span>
-  </div>
+  <button type="button" class="transition-colors duration-100 c-card-menu border-top-gray p-10 w-full text-left"
+    (click)="logout()" matTooltip="Salir" matTooltipPosition="right">
+    <div class="flex items-center gap-3">
+      <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
+
+      <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+        Salir
+      </span>
+    </div>
+  </button>
+
 </aside>
