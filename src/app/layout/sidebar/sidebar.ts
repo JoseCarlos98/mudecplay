@@ -53,27 +53,22 @@ export class Sidebar {
   // Menú filtrado por roles (ADMIN_GENERAL ve todo)
   readonly menuItems = computed<MenuItems[]>(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
-    console.log(this.auth.currentUser());
-    
-    console.log(roles);
-    
+
     // si no hay roles (no logeado), no muestres nada
     if (!roles.length) return [];
 
     // ADMIN_GENERAL ve todo
-    if (roles.includes('ADMIN_GENERAL')) {
-      return this.menuItemsSource as MenuItems[];
-    }
+    if (roles.includes('ADMIN_GENERAL')) return this.menuItemsSource as MenuItems[];
 
-const canSee = (item: any): boolean => {
-  // ADMIN_GENERAL ve todo
-  if (roles.includes('ADMIN_GENERAL')) return true;
+    const canSee = (item: any): boolean => {
+      // ADMIN_GENERAL ve todo
+      if (roles.includes('ADMIN_GENERAL')) return true;
 
-  // si NO definiste roles, NO se ve (evita fugas)
-  if (!item.roles?.length) return false;
+      // si NO definiste roles, NO se ve (evita fugas)
+      if (!item.roles?.length) return false;
 
-  return item.roles.some((r: string) => roles.includes(r));
-};
+      return item.roles.some((r: string) => roles.includes(r));
+    };
 
     const filterTree = (items: any[]): any[] => {
       return items
