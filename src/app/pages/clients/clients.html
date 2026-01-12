@@ -10,27 +10,30 @@
 
             <app-input-field formControlName="email" label="Correo" type="email" [isFilter]="true">
             </app-input-field>
-            
+
             <app-input-field formControlName="phone" label="Telefono" type="phone" [isFilter]="true">
             </app-input-field>
-       
+
             <app-input-field formControlName="name" label="Nombre" type="text" [isFilter]="true">
             </app-input-field>
 
-            <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+            <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters"
+                (action)="onBtnsSectionAction($event)">
             </app-btns-section>
         </div>
     </form>
 </div>
 
 @if (expensesTableData?.data) {
-    <div class="c-module-table ">
-        <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig"
-            [displayedColumns]="displayedColumns" (action)="onTableAction($event)">
-        </app-data-table>
+<div class="c-module-table ">
+    <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns" 
+        (action)="onTableAction($event)">
+    </app-data-table>
+    <!-- [actionPermissions]="{editRoles: ['ADMIN_GENERAL']}" -->
 
-        <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-            [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
-        </mat-paginator>
-    </div>
+    <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+    </mat-paginator>
+</div>
 }

@@ -1,15 +1,14 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   standalone: true,
-  imports: [RouterModule],
-  template: `
-    <div style="padding:24px">
-      <h2>Sin permisos</h2>
-      <p>No tienes permisos para acceder a esta sección.</p>
-      <a routerLink="/gastos">Volver</a>
-    </div>
-  `,
+  imports: [CommonModule, RouterModule, MatIconModule, MatButtonModule],
+  templateUrl: './unauthorized.html',
+  styleUrl: './unauthorized.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Unauthorized {}

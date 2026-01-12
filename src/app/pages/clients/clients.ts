@@ -71,6 +71,7 @@ const DISPLAYED_COLUMNS: string[] = [
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
+  // newRoles: ['ADMIN_GENERAL'], // por ahora solo admin crea clientes
 };
 
 @Component({
