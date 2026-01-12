@@ -8,7 +8,7 @@
   </div>
 
   <nav class="flex-1 mt-4">
-    @for (item of menuItems; track item.name) {
+    @for (item of menuItems(); track item.name) {
 
     @if (!item.children?.length) {
     <!-- Item normal (Gastos) -->
