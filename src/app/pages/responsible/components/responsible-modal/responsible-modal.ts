@@ -8,11 +8,8 @@ import { ModuleHeader } from '../../../../shared/ui/module-header/module-header'
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
-import { Catalog } from '../../../../shared/interfaces/general-interfaces';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { ResponsibleService } from '../../services/responsible.service';
 

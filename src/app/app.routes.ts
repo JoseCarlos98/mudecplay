@@ -64,6 +64,12 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['ADMIN_GENERAL'] },
       },
+      {
+        path: 'usuarios',
+        loadComponent: () => import('./pages/users/users').then((m) => m.Users),
+        canActivate: [rolesGuard],
+        data: { roles: ['ADMIN_GENERAL'] },
+      },
 
       // Default
       { path: '', redirectTo: 'gastos', pathMatch: 'full' },

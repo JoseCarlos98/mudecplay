@@ -1,0 +1,64 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="data?.id ? 'Editar usuario' : 'Registrar usuario'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() : saveData()" id="form" class="c-form">
+    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+      <div class="md:col-span-1">
+        <app-input-field formControlName="name" label="Nombre" type="text"></app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="lastName" label="Apellidos" type="text"></app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="email" label="Correo" type="email"></app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select formControlName="isActive" label="Estado" [options]="activeOptions"></app-input-select>
+      </div>
+
+      <!-- Roles (multiple) -->
+      <div class="md:col-span-1">
+      <app-input-select
+          formControlName="roles"
+          label="Roles"
+          [options]="rolesCatalog"
+          [multiple]="true">
+        </app-input-select>
+      </div>
+
+      <!-- Password (create obligatorio, edit opcional) -->
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="password"
+          [label]="data?.id ? 'Nueva contraseña (opcional)' : 'Contraseña'"
+          type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="passwordConfirm"
+          [label]="data?.id ? 'Confirmar nueva contraseña (opcional)' : 'Confirmar contraseña'"
+          type="text">
+        </app-input-field>
+
+        @if (passwordMismatch) {
+          <small class="field-error">Las contraseñas no coinciden.</small>
+        }
+      </div>
+    </div>
+  </form>
+
+  <app-btns-section
+    type="save"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="form.invalid">
+  </app-btns-section>
+</div>

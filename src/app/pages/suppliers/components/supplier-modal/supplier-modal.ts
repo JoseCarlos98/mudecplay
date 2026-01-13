@@ -90,12 +90,12 @@ export class SupplierModal implements OnInit {
     console.log(formData);
 
 
-    // this.supplierService.create(formData).subscribe({
-    //   next: (response) => {
-    //     if (response.success) this.closeModal(true);
-    //   },
-    //   error: (err) => console.error('Error al guardar gastos:', err),
-    // });
+    this.supplierService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {

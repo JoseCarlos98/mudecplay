@@ -46,6 +46,7 @@ export class Sidebar {
         { name: 'Clientes', icon: 'groups', route: '/clientes' },
         { name: 'Responsables', icon: 'person', route: '/responsables' },
         { name: 'Productos', icon: 'inventory', route: '/productos' },
+        { name: 'Usuarios', icon: 'people', route: '/usuarios' },
       ],
     },
   ];
