@@ -5,6 +5,10 @@
     (action)="closeModal()">
   </app-module-header>
 
+  @if (data?.id) {
+    <p class="text-info">Para actualizar la contraseña, ingrese una nueva contraseña.</p>
+  } 
+
   <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() : saveData()" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
       <div class="md:col-span-1">

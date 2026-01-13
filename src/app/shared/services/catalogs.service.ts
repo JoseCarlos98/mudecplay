@@ -61,5 +61,9 @@ export class CatalogsService {
   areasSuppliersCatalog(): Observable<Catalog[]> {
     return this.http.get<Catalog[]>(`${this.apiUrl}/areas/catalog`);
   }
+  
+  rolesCatalog(): Observable<Catalog[]> {
+    return this.http.get<Catalog[]>(`${this.apiUrl}/roles/catalog`);
+  }
 
 }

@@ -14,6 +14,7 @@ import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { UsersService } from '../../services/user.service';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { CreateUserPayload, RoleCode, UpdateUserPayload, UserResponseDto } from '../../interfaces/users-interfaces';
+import { CatalogsService } from '../../../../shared/services/catalogs.service';
 
 
 const HEADER_CONFIG: ModuleHeaderConfig = { modal: true };
@@ -46,6 +47,7 @@ function samePassword(group: AbstractControl): ValidationErrors | null {
 })
 export class UserModal {
   private readonly usersService = inject(UsersService);
+  private readonly catalogsService = inject(CatalogsService);
   private readonly dialogRef = inject(MatDialogRef<UserModal>);
   readonly data = inject<UserResponseDto | null>(MAT_DIALOG_DATA);
   private readonly fb = inject(FormBuilder);
@@ -85,6 +87,8 @@ export class UserModal {
 
   ngOnInit(): void {
     this.loadRoles();
+    console.log(this.data);
+    
 
     if (this.data?.id) {
       this.form.patchValue({
@@ -104,7 +108,7 @@ export class UserModal {
   }
 
   private loadRoles(): void {
-    this.usersService.rolesCatalog().subscribe({
+    this.catalogsService.rolesCatalog().subscribe({
       next: (roles) => (this.rolesCatalog = roles),
       error: (err) => console.error('Error al cargar roles:', err),
     });
@@ -123,10 +127,12 @@ export class UserModal {
       lastName: v.lastName,
       email: v.email,
       isActive: v.isActive,
-      roles: v.roles,
-      password: v.password, // create: obligatorio
+      roleCodes: v.roles,
+      password: v.password,
     };
 
+    console.log(payload);
+    
     this.usersService
       .create(payload)
       .subscribe({
@@ -150,7 +156,7 @@ export class UserModal {
       lastName: v.lastName,
       email: v.email,
       isActive: v.isActive,
-      roles: v.roles,
+      roleCodes: v.roles,
       // password solo si lo capturaron (edit opcional)
       ...(v.password?.trim() ? { password: v.password } : {}),
     };

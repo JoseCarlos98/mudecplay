@@ -55,7 +55,7 @@ export interface CreateUserPayload {
   lastName: string;
   email: string;
   password: string;
-  roles: RoleCode[];
+  roleCodes: RoleCode[];
   isActive: boolean;
 }
 
@@ -63,7 +63,7 @@ export interface UpdateUserPayload {
   name: string;
   lastName: string;
   email: string;
-  roles: RoleCode[];
+  roleCodes: RoleCode[];
   isActive: boolean;
 
   // opcional si luego permites cambiar password en el mismo PATCH:
