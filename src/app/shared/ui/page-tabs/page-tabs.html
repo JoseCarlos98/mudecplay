@@ -1,16 +1,16 @@
-<div class="home-page card-content">
-  <header class="home-header">
+<div class="home-page card-content" [class.home-page--compact]="compact">
+  <header class="home-header" [class.home-header--compact]="compact">
     <div>
       <h1>{{ title }}</h1>
 
-      @if (description) {
-        <p> {{ description }} </p>
+      @if (showHeaderDescription && description) {
+        <p>{{ description }}</p>
       }
     </div>
   </header>
 
   <!-- Tabs -->
-  <nav class="home-tabs">
+  <nav class="home-tabs" [class.home-tabs--compact]="compact">
     @for (tab of tabs; track tab.id) {
       <button
         type="button"
@@ -18,17 +18,13 @@
         [class.home-tab--active]="activeTab === tab.id"
         (click)="onTabClick(tab.id)"
       >
-        <mat-icon class="home-tab__icon">
-          {{ tab.icon }}
-        </mat-icon>
+        <mat-icon class="home-tab__icon">{{ tab.icon }}</mat-icon>
 
         <span class="home-tab__text">
           <strong>{{ tab.label }}</strong>
 
-          @if (tab.description) {
-            <small>
-              {{ tab.description }}
-            </small>
+          @if (showTabDescriptions && tab.description) {
+            <small>{{ tab.description }}</small>
           }
         </span>
       </button>
@@ -36,7 +32,7 @@
   </nav>
 
   <!-- Contenido -->
-  <section class="home-content" [class.home-content--hidden]="contentState() === 'hidden'" >
+  <section class="home-content" [class.home-content--hidden]="contentState() === 'hidden'">
     <ng-content></ng-content>
   </section>
 </div>

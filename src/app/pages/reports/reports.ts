@@ -25,32 +25,33 @@ export class Reports {
   activeSection = signal<ReportsSection>('project_detail');
 
   // Tabs (tipos de reporte)
-  tabs: PageTab[] = [
-    {
-      id: 'project_detail',
-      icon: 'receipt_long',
-      label: 'Detalle de gastos por proyecto',
-      description: 'Listado completo con fechas, conceptos y totales',
-    },
-    {
-      id: 'project_by_supplier',
-      icon: 'store',
-      label: 'Gasto por proveedor (en proyecto)',
-      description: 'Cuánto se ha gastado con cada proveedor dentro del proyecto',
-    },
-    {
-      id: 'by_area',
-      icon: 'category',
-      label: 'Gasto por área',
-      description: 'Resumen por área (materiales, mano de obra, etc.)',
-    },
-    {
-      id: 'project_payables',
-      icon: 'request_quote',
-      label: 'Resumen del proyecto (lo gastado y lo que debo)',
-      description: 'Cuentas por pagar + totales acumulados del proyecto',
-    },
-  ];
+tabs: PageTab[] = [
+  {
+    id: 'project_detail',
+    icon: 'receipt_long',
+    label: 'Detalle de gastos por proyecto',
+    description: 'Listado completo con fechas, conceptos y totales',
+  },
+  {
+    id: 'project_by_supplier',
+    icon: 'store',
+    label: 'Gasto por proveedor',
+    description: 'Dentro del proyecto seleccionado: cuánto se ha gastado con cada proveedor',
+  },
+  {
+    id: 'by_area',
+    icon: 'category',
+    label: 'Gasto por área',
+    description: 'Resumen por área: materiales, mano de obra, etc.',
+  },
+  {
+    id: 'project_payables',
+    icon: 'request_quote',
+    label: 'Resumen del proyecto',
+    description: 'Totales acumulados + cuentas por pagar (lo que debo)',
+  },
+];
+
 
   onActiveTabChange(nextId: string) {
     const next = nextId as ReportsSection;

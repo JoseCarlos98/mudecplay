@@ -24,22 +24,24 @@ export class PageTabsComponent implements OnChanges {
   /** El padre controla este valor. El hijo NO lo muta. */
   @Input() activeTab: string | null = null;
 
+  /** Flags UI (por default mantienen el comportamiento anterior) */
+  @Input() compact = false;
+  @Input() showHeaderDescription = true;
+  @Input() showTabDescriptions = true;
+
   /** El hijo solo emite la intención de cambiar. */
   @Output() activeTabChange = new EventEmitter<string>();
 
   // estado de animación del contenido
   contentState = signal<'visible' | 'hidden'>('visible');
 
-  /** El hijo NO cambia activeTab. Solo emite el intento. */
   onTabClick(tabId: string) {
     if (tabId === this.activeTab) return;
     this.activeTabChange.emit(tabId);
   }
 
-  /** Reacciona cuando el padre realmente cambia el input (confirmado). */
   ngOnChanges(changes: SimpleChanges) {
     if (changes['activeTab'] && !changes['activeTab'].firstChange) {
-      // dispara animación solo cuando cambió el input controlado
       this.contentState.set('hidden');
       setTimeout(() => this.contentState.set('visible'), 50);
     }
