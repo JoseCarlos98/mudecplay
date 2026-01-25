@@ -32,6 +32,15 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['GASTOS_EDITOR'] },
       },
+    
+      //  Reportes (editor)
+      {
+        path: 'reportes',
+        loadComponent: () =>
+          import('./pages/reports/reports').then((m) => m.Reports),
+        canActivate: [rolesGuard],
+        data: { roles: ['REPORTES_EMISOR'] },
+      },
 
       // Catálogos (admin general)
       {

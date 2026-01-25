@@ -1,0 +1,23 @@
+<app-page-tabs
+  [title]="'Reportes'"
+  [description]=
+    "
+        'Configura lo que se mostrará en la página pública del cliente: ' +
+        'banners, destacados del mes y preguntas frecuentes.'
+    "
+  [tabs]="tabs"
+  [activeTab]="activeSection()"
+  (activeTabChange)="onActiveTabChange($event)"
+>
+  @switch (activeSection()) {
+    @case ('banners') {
+        <p>Tap 1</p>
+    }
+    @case ('highlights') {
+        <p>Tap 2</p>
+    }
+    @case ('faq') {
+        <p>Tap 3</p>
+    }
+  }
+</app-page-tabs>
