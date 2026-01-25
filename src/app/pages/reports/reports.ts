@@ -1,56 +1,68 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { PageTabsComponent } from '../../shared/ui/page-tabs/page-tabs';
+
+import { PageTabsComponent, PageTab } from '../../shared/ui/page-tabs/page-tabs';
 import { DialogService } from '../../shared/services/dialog.service';
 import { confirmPendingTabChange } from '../../shared/customs/confirm-pending-tab-change';
-export interface PageTab {
-  id: string;
-  icon: string;
-  label: string;
-  description?: string;
-}
 
-type HomeSection = 'banners' | 'highlights' | 'faq';
+type ReportsSection =
+  | 'project_detail'
+  | 'project_by_supplier'
+  | 'by_area'
+  | 'project_payables';
 
 @Component({
   selector: 'app-reports',
-  standalone : true,
+  standalone: true,
   imports: [CommonModule, PageTabsComponent],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
 export class Reports {
-    private readonly dialog = inject(DialogService);
+  private readonly dialog = inject(DialogService);
 
-    activeSection = signal<HomeSection>('banners');
+  // Tab activo
+  activeSection = signal<ReportsSection>('project_detail');
 
+  // Tabs (tipos de reporte)
   tabs: PageTab[] = [
-    { id: 'banners', icon: 'image', label: 'Banners mensuales', description: '2 banners principales en la parte superior' },
-    { id: 'highlights', icon: 'star', label: 'Destacados del mes', description: 'Tarjetas con imagen y título' },
-    { id: 'faq', icon: 'help', label: 'Preguntas frecuentes', description: 'FAQ + preguntas de usuarios' },
+    {
+      id: 'project_detail',
+      icon: 'receipt_long',
+      label: 'Detalle de gastos por proyecto',
+      description: 'Listado completo con fechas, conceptos y totales',
+    },
+    {
+      id: 'project_by_supplier',
+      icon: 'store',
+      label: 'Gasto por proveedor (en proyecto)',
+      description: 'Cuánto se ha gastado con cada proveedor dentro del proyecto',
+    },
+    {
+      id: 'by_area',
+      icon: 'category',
+      label: 'Gasto por área',
+      description: 'Resumen por área (materiales, mano de obra, etc.)',
+    },
+    {
+      id: 'project_payables',
+      icon: 'request_quote',
+      label: 'Resumen del proyecto (lo gastado y lo que debo)',
+      description: 'Cuentas por pagar + totales acumulados del proyecto',
+    },
   ];
 
-  //   private getActiveChild() {
-  //   switch (this.activeSection()) {
-  //     case 'banners': return this.bannersCmp ?? null;
-  //     case 'highlights': return this.highlightsCmp ?? null;
-  //     case 'faq': return this.faqCmp ?? null;
-  //     default: return null;
-  //   }
-  // }
-
-    onActiveTabChange(nextId: string) {
-    const next = nextId as HomeSection;
+  onActiveTabChange(nextId: string) {
+    const next = nextId as ReportsSection;
     if (next === this.activeSection()) return;
-
-    // const child = this.getActiveChild();
 
     confirmPendingTabChange({
       dialog: this.dialog,
-      // hasPending: () => !!child?.hasPendingChanges?.(),
+      // cuando conectemos forms/preview:
+      // hasPending: () => this.form?.dirty ?? false,
       apply: () => this.activeSection.set(next),
-      message: 'Tienes cambios sin guardar en esta sección. ¿Cambiar de pestaña de todos modos?',
-      confirmText: 'Cambiar sin guardar',
+      message: 'Tienes cambios sin generar/guardar. ¿Cambiar de pestaña de todos modos?',
+      confirmText: 'Cambiar',
       cancelText: 'Cancelar',
     }).subscribe();
   }

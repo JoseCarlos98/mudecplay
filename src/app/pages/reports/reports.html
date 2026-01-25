@@ -1,23 +1,39 @@
 <app-page-tabs
   [title]="'Reportes'"
-  [description]=
-    "
-        'Configura lo que se mostrará en la página pública del cliente: ' +
-        'banners, destacados del mes y preguntas frecuentes.'
-    "
+  [description]="'Genera reportes en PDF a partir de filtros: proyecto, proveedor, área y rango de fechas.'"
   [tabs]="tabs"
   [activeTab]="activeSection()"
   (activeTabChange)="onActiveTabChange($event)"
 >
   @switch (activeSection()) {
-    @case ('banners') {
-        <p>Tap 1</p>
+
+    @case ('project_detail') {
+      <div class="p-4">
+        <h3 class="text-lg font-semibold mb-2">Detalle de gastos por proyecto</h3>
+        <p class="text-sm text-gray-600">Aquí irá el formulario de filtros + preview del PDF.</p>
+      </div>
     }
-    @case ('highlights') {
-        <p>Tap 2</p>
+
+    @case ('project_by_supplier') {
+      <div class="p-4">
+        <h3 class="text-lg font-semibold mb-2">Gasto por proveedor (en proyecto)</h3>
+        <p class="text-sm text-gray-600">Aquí irá el formulario de filtros + preview del PDF.</p>
+      </div>
     }
-    @case ('faq') {
-        <p>Tap 3</p>
+
+    @case ('by_area') {
+      <div class="p-4">
+        <h3 class="text-lg font-semibold mb-2">Gasto por área</h3>
+        <p class="text-sm text-gray-600">Aquí irá el formulario de filtros + preview del PDF.</p>
+      </div>
     }
+
+    @case ('project_payables') {
+      <div class="p-4">
+        <h3 class="text-lg font-semibold mb-2">Resumen del proyecto (lo gastado y lo que debo)</h3>
+        <p class="text-sm text-gray-600">Aquí irá el formulario de filtros + preview del PDF.</p>
+      </div>
+    }
+
   }
 </app-page-tabs>
