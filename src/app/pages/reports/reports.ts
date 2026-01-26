@@ -4,6 +4,9 @@ import { Component, inject, signal } from '@angular/core';
 import { PageTabsComponent, PageTab } from '../../shared/ui/page-tabs/page-tabs';
 import { DialogService } from '../../shared/services/dialog.service';
 import { confirmPendingTabChange } from '../../shared/customs/confirm-pending-tab-change';
+import { ProjectReport } from './components/project-report/project-report';
+
+
 
 type ReportsSection =
   | 'project_detail'
@@ -14,7 +17,7 @@ type ReportsSection =
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, PageTabsComponent],
+  imports: [CommonModule, PageTabsComponent, ProjectReport],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
@@ -29,7 +32,7 @@ tabs: PageTab[] = [
   {
     id: 'project_detail',
     icon: 'receipt_long',
-    label: 'Detalle de gastos por proyecto',
+    label: 'Gasto por proyecto',
     description: 'Listado completo con fechas, conceptos y totales',
   },
   {
