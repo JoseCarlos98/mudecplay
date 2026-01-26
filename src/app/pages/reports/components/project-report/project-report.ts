@@ -70,7 +70,7 @@ export class ProjectReport {
       endDate: v.dateRange.endDate,
       // suppliersIds: v.suppliersIds ?? [],
       suppliersIds: (v.suppliersIds ?? []).map((s: any) => s.id),
-      projectIds: v.projectIds ?? [],
+      projectId: v.projectIds ?? [],
     };
 
     console.log('[REPORTES] payload preview:', payload);

@@ -9,10 +9,8 @@ export type ReportType =
 
 // filtros del preview “Detalle de gastos por proyecto”
 export interface ProjectDetailReportFilters {
-  // dateRange: {
-    startDate: string; // 'YYYY-MM-DD'
-    endDate: string;   // 'YYYY-MM-DD'
-  // };
+  startDate: string; // 'YYYY-MM-DD'
+  endDate: string;   // 'YYYY-MM-DD'
   suppliersIds?: Catalog[]; // tu autocomplete manda objetos {id,name}
-  projectIds?: Catalog[];
+  projectId?: Catalog[];
 }

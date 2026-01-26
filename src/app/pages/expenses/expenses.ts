@@ -210,7 +210,6 @@ export class Expenses implements OnInit {
       endDate: ui.dateRange?.endDate ?? null,
       suppliersIds: (ui.suppliersIds ?? []).map((s: any) => s.id),
       projectIds: (ui.projectIds ?? []).map((p: any) => p.id),
-
       status_id: ui.status_id ?? null,
       paymentStatus: ui.paymentStatus ?? null,
     };
