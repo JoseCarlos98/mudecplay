@@ -546,3 +546,8 @@ body {
   }
 }
 
+
+::ng-deep .c-pdf-viewer .toolbar #end {
+// ::ng-deep .cr-progress, #menuButton, #center, #end {
+  opacity: 0!important;
+}

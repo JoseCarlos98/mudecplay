@@ -42,3 +42,9 @@
   place-items: center;
   color: #6b7280;
 }
+
+
+::ng-deep .c-pdf-viewer .toolbar #end {
+// ::ng-deep .cr-progress, #menuButton, #center, #end {
+  opacity: 0!important;
+}

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { DateRangeValue, InputDate } from '../../../../shared/ui/input-date/input-date';
 import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
@@ -25,7 +25,11 @@ export class ProjectReport {
   pdfUrl = signal<SafeResourceUrl | null>(null);
 
   formFilters = this.fb.group({
-    dateRange: this.fb.control<DateRangeValue | null>(null),
+    
+    // dateRange: this.fb.control<DateRangeValue | null>(null),
+    dateRange: this.fb.control<DateRangeValue | null>(null, {
+      validators: Validators.required,
+    }),
     suppliersIds: this.fb.control<Catalog[]>([]),
     projectId: this.fb.control<Catalog[]>([]), // en UI es multiple, pero aquí tomaremos 1
   });
@@ -36,6 +40,12 @@ export class ProjectReport {
     const hasSuppliers = (v.suppliersIds?.length ?? 0) > 0;
     const hasProjects = (v.projectId?.length ?? 0) > 0;
     return hasDates || hasSuppliers || hasProjects;
+  }
+  
+  get hasActiveSearch(): boolean {
+    const v = this.formFilters.getRawValue();
+    const hasDates = !!v.dateRange?.startDate || !!v.dateRange?.endDate;
+    return hasDates
   }
 
   onBtnsSectionAction(action: string): void {

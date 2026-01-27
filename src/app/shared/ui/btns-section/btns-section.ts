@@ -52,6 +52,8 @@ export class BtnsSection {
    * - false => se deshabilita para evitar limpiar cuando no hay nada aplicado
    */
   @Input() hasActiveFilters: boolean = false;
+  
+  @Input() hasActiveSearch: boolean = false;
 
   /**
    * Evento único para todas las acciones del footer.

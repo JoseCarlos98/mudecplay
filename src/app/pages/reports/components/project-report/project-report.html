@@ -32,6 +32,7 @@
 
       <app-btns-section
         type="search"
+        [hasActiveSearch]="hasActiveSearch"
         [hasActiveFilters]="hasActiveFilters"
         (action)="onBtnsSectionAction($event)">
       </app-btns-section>
@@ -40,7 +41,7 @@
 
   @if (pdfUrl()) {
   <div style="margin-top: 16px; height: 720px; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-    <iframe [src]="pdfUrl()" style="width: 100%; height: 100%; border: 0;"></iframe>
+    <iframe class="c-pdf-viewer" [src]="pdfUrl()" style="width: 100%; height: 100%; border: 0;"></iframe>
   </div>
 }
 
