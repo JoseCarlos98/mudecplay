@@ -8,12 +8,13 @@ import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { ProjectDetailPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { MatIcon } from '@angular/material/icon';
 
 
 @Component({
   selector: 'app-project-report',
   standalone: true,
-  imports: [CommonModule, Autocomplete, ReactiveFormsModule, InputDate, SearchMultiSelect, BtnsSection],
+  imports: [CommonModule, Autocomplete, MatIcon, ReactiveFormsModule, InputDate, SearchMultiSelect, BtnsSection],
   templateUrl: './project-report.html',
   styleUrl: './project-report.scss',
 })
