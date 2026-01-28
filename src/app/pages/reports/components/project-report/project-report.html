@@ -30,17 +30,15 @@
         </app-btns-section>
       </div>
 
-      <div class="span-2">
-        <div class="flex items-center justify-end gap-2 btn-report-action">
+        <div class="md:col-span-1 flex items-center justify-end gap-2">
           <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
             <mat-icon>history</mat-icon>
             <span>Guardar en historial</span>
           </button>
-          <button type="button" class="btn-primary" (click)="downloadPdf()" [disabled]="!hasActiveSearch">
+          <!-- <button type="button" class="btn-primary" (click)="downloadPdf()" [disabled]="!hasActiveSearch">
             <mat-icon>download</mat-icon>
             <span>Descargar PDF</span>
-          </button>
-        </div>
+          </button> -->
       </div>
     </div>
   </form>
