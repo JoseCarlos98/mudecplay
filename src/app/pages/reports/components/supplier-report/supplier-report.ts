@@ -12,9 +12,10 @@ import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 
 import { ProjectDetailPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
 
+
 @Component({
-  selector: 'app-project-report',
-  standalone: true,
+  selector: 'app-supplier-report',
+ standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -24,10 +25,10 @@ import { ProjectDetailPreviewPayload, ReportsApiService } from '../../services/r
     BtnsSection,
     MatIcon,
   ],
-  templateUrl: './project-report.html',
-  styleUrl: './project-report.scss',
+  templateUrl: './supplier-report.html',
+  styleUrl: './supplier-report.scss',
 })
-export class ProjectReport implements OnDestroy {
+export class SupplierReport implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ReportsApiService);
   private readonly sanitizer = inject(DomSanitizer);
