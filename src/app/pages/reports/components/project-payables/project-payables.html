@@ -1,0 +1,63 @@
+<section class="report-tab">
+  <header class="report-tab__header">
+    <h2 class="report-tab__title">Resumen del proyecto (Gastado / Pagado / Pendiente)</h2>
+    <p class="report-tab__desc">Selecciona filtros y genera el preview del PDF.</p>
+  </header>
+
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+      <div class="md:col-span-1">
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de fecha"
+          mode="range">
+        </app-input-date>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-autocomplete
+          formControlName="projectId"
+          label="Proyecto"
+          [remote]="true"
+          catalogType="project">
+        </app-autocomplete>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-autocomplete-multiple
+          formControlName="suppliersIds"
+          label="Proveedores (opcional)"
+          [remote]="true"
+          catalogType="supplier"
+          valueMode="objects">
+        </app-autocomplete-multiple>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-btns-section
+          type="search"
+          [hasActiveSearch]="hasActiveSearch"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+
+      <div class="md:col-span-1 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="onSaveHistory()"
+          [disabled]="!hasActiveSearch">
+          <mat-icon>history</mat-icon>
+          <span>Guardar en historial</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  @if (pdfUrl()) {
+    <div class="c-pdf-wrap">
+      <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+    </div>
+  }
+</section>

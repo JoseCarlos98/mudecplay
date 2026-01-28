@@ -7,6 +7,7 @@ import { confirmPendingTabChange } from '../../shared/customs/confirm-pending-ta
 import { ProjectReport } from './components/project-report/project-report';
 import { SupplierReport } from './components/supplier-report/supplier-report';
 import { AreaReport } from './components/area-report/area-report';
+import { ProjectPayables } from './components/project-payables/project-payables';
 
 
 
@@ -19,7 +20,7 @@ type ReportsSection =
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport, AreaReport],
+  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport, AreaReport, ProjectPayables],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
