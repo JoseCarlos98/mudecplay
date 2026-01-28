@@ -5,6 +5,7 @@ import { PageTabsComponent, PageTab } from '../../shared/ui/page-tabs/page-tabs'
 import { DialogService } from '../../shared/services/dialog.service';
 import { confirmPendingTabChange } from '../../shared/customs/confirm-pending-tab-change';
 import { ProjectReport } from './components/project-report/project-report';
+import { SupplierReport } from './components/supplier-report/supplier-report';
 
 
 
@@ -17,7 +18,7 @@ type ReportsSection =
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, PageTabsComponent, ProjectReport],
+  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })

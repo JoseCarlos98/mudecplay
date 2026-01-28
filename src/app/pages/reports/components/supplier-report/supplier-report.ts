@@ -9,13 +9,13 @@ import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/a
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
+import { ProjectBySupplierPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
 
-import { ProjectDetailPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
 
 
 @Component({
   selector: 'app-supplier-report',
- standalone: true,
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -74,16 +74,16 @@ export class SupplierReport implements OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.saveProjectDetailHistory(payload).subscribe({
-      next: (res) => console.log('[REPORTES] historial ok:', res),
-      error: (err) => console.error('[REPORTES] historial error', err),
+    this.api.saveProjectBySupplierHistory(payload).subscribe({
+      next: (res) => console.log('[REPORTES] historial (por proveedor) ok:', res),
+      error: (err) => console.error('[REPORTES] historial (por proveedor) error', err),
     });
   }
 
   downloadPdf(): void {
     // descarga el PDF del preview ya generado (sin guardar historial)
     if (this.lastObjectUrl) {
-      this.forceDownload(this.lastObjectUrl, 'reporte-detalle-proyecto.pdf');
+      this.forceDownload(this.lastObjectUrl, 'reporte-gasto-por-proveedor.pdf');
       return;
     }
 
@@ -91,15 +91,15 @@ export class SupplierReport implements OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.previewProjectDetail(payload).subscribe({
+    this.api.previewProjectBySupplier(payload).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);
         this.lastObjectUrl = url;
         this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
-        this.forceDownload(url, 'reporte-detalle-proyecto.pdf');
+        this.forceDownload(url, 'reporte-gasto-por-proveedor.pdf');
       },
-      error: (err) => console.error('[REPORTES] download preview error', err),
+      error: (err) => console.error('[REPORTES] download preview (por proveedor) error', err),
     });
   }
 
@@ -107,21 +107,20 @@ export class SupplierReport implements OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.previewProjectDetail(payload).subscribe({
+    this.api.previewProjectBySupplier(payload).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);
         this.lastObjectUrl = url;
         this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
-        console.log('[REPORTES] PDF preview OK');
+        console.log('[REPORTES] PDF preview (por proveedor) OK');
       },
-      error: (err) => console.error('[REPORTES] preview error', err),
+      error: (err) => console.error('[REPORTES] preview (por proveedor) error', err),
     });
   }
 
-  private buildPayloadOrNull(): ProjectDetailPreviewPayload | null {
+  private buildPayloadOrNull(): ProjectBySupplierPreviewPayload | null {
     const v = this.formFilters.getRawValue();
-
     const startDate = v.dateRange?.startDate;
     const endDate = v.dateRange?.endDate;
     const projectId = v.projectId;
@@ -146,7 +145,10 @@ export class SupplierReport implements OnDestroy {
   }
 
   private clear(): void {
-    this.formFilters.reset({ dateRange: null, suppliersIds: [], projectId: null }, { emitEvent: false });
+    this.formFilters.reset(
+      { dateRange: null, suppliersIds: [], projectId: null },
+      { emitEvent: false },
+    );
     this.revokeObjectUrl();
     this.pdfUrl.set(null);
   }
