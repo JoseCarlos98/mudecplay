@@ -1,12 +1,13 @@
+// src/app/pages/reports/services/reports-api.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
 export interface ProjectDetailPreviewPayload {
-  startDate: string;
-  endDate: string;
+  startDate: string;     // YYYY-MM-DD
+  endDate: string;       // YYYY-MM-DD
   suppliersIds?: number[];
-  projectId: number;
+  projectId: number;     // UNO
 }
 
 @Injectable({ providedIn: 'root' })
@@ -19,4 +20,9 @@ export class ReportsApiService {
       responseType: 'blob',
     });
   }
+
+  // luego: history (lo dejamos para después)
+  // saveProjectDetailHistory(payload: ProjectDetailPreviewPayload) {
+  //   return this.http.post(`${this.baseUrl}/reports/project-detail/history`, payload);
+  // }
 }

@@ -170,7 +170,9 @@ body {
   }
 }
 
-
+  .required {
+      color: var(--color-error) !important;
+    }
 /* ============================
  * 6. Botones (estilos base + variantes)
  * ============================ */
