@@ -6,6 +6,7 @@ import { DialogService } from '../../shared/services/dialog.service';
 import { confirmPendingTabChange } from '../../shared/customs/confirm-pending-tab-change';
 import { ProjectReport } from './components/project-report/project-report';
 import { SupplierReport } from './components/supplier-report/supplier-report';
+import { AreaReport } from './components/area-report/area-report';
 
 
 
@@ -18,7 +19,7 @@ type ReportsSection =
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport],
+  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport, AreaReport],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })

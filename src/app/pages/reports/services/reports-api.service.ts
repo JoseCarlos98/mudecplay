@@ -20,6 +20,13 @@ export interface ProjectBySupplierPreviewPayload {
   projectId: number;
 }
 
+export interface ByAreaPreviewPayload {
+  startDate: string;
+  endDate: string;
+  areaIds?: number[]; // opcional
+}
+
+
 @Injectable({ providedIn: 'root' })
 export class ReportsApiService {
   private readonly http = inject(HttpClient);
@@ -49,5 +56,16 @@ export class ReportsApiService {
 
   saveProjectBySupplierHistory(payload: ProjectBySupplierPreviewPayload) {
     return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/project-by-supplier/history`, payload);
+  }
+
+
+  previewByArea(payload: ByAreaPreviewPayload) {
+    return this.http.post(`${this.baseUrl}/reports/by-area/preview`, payload, {
+      responseType: 'blob',
+    });
+  }
+
+  saveByAreaHistory(payload: ByAreaPreviewPayload) {
+    return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/by-area/history`, payload);
   }
 }
