@@ -6,7 +6,7 @@
   </header>
 
   <form [formGroup]="formFilters">
-    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
       <div class="md:col-span-1">
         <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range"></app-input-date>
       </div>
@@ -29,6 +29,7 @@
         </app-btns-section>
       </div>
 
+      <div></div>
       <div class="md:col-span-1 flex items-center justify-end gap-2">
         <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
           <mat-icon>history</mat-icon>
