@@ -170,9 +170,10 @@ body {
   }
 }
 
-  .required {
-      color: var(--color-error) !important;
-    }
+.required {
+  color: var(--color-error) !important;
+}
+
 /* ============================
  * 6. Botones (estilos base + variantes)
  * ============================ */
@@ -519,8 +520,12 @@ body {
   color: #4b5563;
 }
 
-
-
+.btn-report-action {
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: stretch;
+}
 
 /* ============================
  * 10. Media queries específicas
@@ -546,10 +551,4 @@ body {
       margin-top: 0;
     }
   }
-}
-
-
-::ng-deep .c-pdf-viewer .toolbar #end {
-// ::ng-deep .cr-progress, #menuButton, #center, #end {
-  opacity: 0!important;
 }

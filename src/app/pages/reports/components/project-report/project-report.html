@@ -5,49 +5,49 @@
   </header>
 
   <form [formGroup]="formFilters">
-    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-      <app-input-date
-        formControlName="dateRange"
-        label="Rango de fecha"
-        mode="range">
-      </app-input-date>
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+      <div class="md:col-span-1">
 
-      <app-autocomplete
-        formControlName="projectId"
-        label="Proyecto"
-        [remote]="true"
-        catalogType="project">
-      </app-autocomplete>
+        <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range"></app-input-date>
+      </div>
 
-      <app-autocomplete-multiple
-        formControlName="suppliersIds"
-        label="Proveedores"
-        [remote]="true"
-        catalogType="supplier"
-        valueMode="objects">
-      </app-autocomplete-multiple>
+      <div class="md:col-span-1">
 
-      <app-btns-section
-        type="search"
-        [hasActiveSearch]="hasActiveSearch"
-        [hasActiveFilters]="hasActiveFilters"
-        (action)="onBtnsSectionAction($event)">
-      </app-btns-section>
+        <app-autocomplete formControlName="projectId" label="Proyecto" [remote]="true"
+          catalogType="project"></app-autocomplete>
+      </div>
+      <div class="md:col-span-1">
 
-      <div></div>
+        <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+          catalogType="supplier" valueMode="objects">
+        </app-autocomplete-multiple>
+      </div>
 
-      <div class="flex items-center justify-end">
-        <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
-          <mat-icon>history</mat-icon>
-          <span>Guardar en historial</span>
-        </button>
+      <div class="md:col-span-1">
+
+        <app-btns-section type="search" [hasActiveSearch]="hasActiveSearch" [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+
+      <div class="span-2">
+        <div class="flex items-center justify-end gap-2 btn-report-action">
+          <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
+            <mat-icon>history</mat-icon>
+            <span>Guardar en historial</span>
+          </button>
+          <button type="button" class="btn-primary" (click)="downloadPdf()" [disabled]="!hasActiveSearch">
+            <mat-icon>download</mat-icon>
+            <span>Descargar PDF</span>
+          </button>
+        </div>
       </div>
     </div>
   </form>
 
   @if (pdfUrl()) {
-    <div class="c-pdf-wrap">
-      <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
-    </div>
+  <div class="c-pdf-wrap">
+    <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+  </div>
   }
 </section>

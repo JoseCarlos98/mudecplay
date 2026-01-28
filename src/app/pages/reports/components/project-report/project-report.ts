@@ -19,7 +19,6 @@ import { ProjectDetailPreviewPayload, ReportsApiService } from '../../services/r
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    // UI
     InputDate,
     Autocomplete,
     SearchMultiSelect,
@@ -57,7 +56,7 @@ export class ProjectReport implements OnDestroy {
 
   get hasActiveSearch(): boolean {
     const v = this.formFilters.getRawValue();
-    return !!v.dateRange?.startDate && !!v.dateRange?.endDate && !!v.projectId;;
+    return !!v.dateRange?.startDate && !!v.dateRange?.endDate && !!v.projectId;
   }
 
   onBtnsSectionAction(action: string): void {
@@ -72,34 +71,45 @@ export class ProjectReport implements OnDestroy {
   }
 
   onSaveHistory(): void {
-    // aquí todavía no implementamos (lo harás luego)
-    // solo deja listo el botón sin romper nada
-    console.log('[REPORTES] Guardar en historial (pendiente)');
+    const payload = this.buildPayloadOrNull();
+    if (!payload) return;
+
+    this.api.saveProjectDetailHistory(payload).subscribe({
+      next: (res) => console.log('[REPORTES] historial ok:', res),
+      error: (err) => console.error('[REPORTES] historial error', err),
+    });
   }
 
-  private preview(): void {
-    const v = this.formFilters.getRawValue();
-    const startDate = v.dateRange?.startDate;
-    const endDate = v.dateRange?.endDate;
-    const projectId = v.projectId;
-
-    if (!startDate || !endDate || !projectId) {
+  downloadPdf(): void {
+    // descarga el PDF del preview ya generado (sin guardar historial)
+    if (this.lastObjectUrl) {
+      this.forceDownload(this.lastObjectUrl, 'reporte-detalle-proyecto.pdf');
       return;
     }
 
-    const payload: ProjectDetailPreviewPayload = {
-      startDate,
-      endDate,
-      suppliersIds: (v.suppliersIds ?? []).map((x) => parseFloat(x.id)),
-      projectId,
-    };
-
-    console.log('[REPORTES] preview payload:', payload);
+    // si aún no hay preview, lo genera y luego descarga
+    const payload = this.buildPayloadOrNull();
+    if (!payload) return;
 
     this.api.previewProjectDetail(payload).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
+        const url = URL.createObjectURL(blob);
+        this.lastObjectUrl = url;
+        this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+        this.forceDownload(url, 'reporte-detalle-proyecto.pdf');
+      },
+      error: (err) => console.error('[REPORTES] download preview error', err),
+    });
+  }
 
+  private preview(): void {
+    const payload = this.buildPayloadOrNull();
+    if (!payload) return;
+
+    this.api.previewProjectDetail(payload).subscribe({
+      next: (blob) => {
+        this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);
         this.lastObjectUrl = url;
         this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
@@ -109,14 +119,36 @@ export class ProjectReport implements OnDestroy {
     });
   }
 
+  private buildPayloadOrNull(): ProjectDetailPreviewPayload | null {
+    const v = this.formFilters.getRawValue();
+
+    const startDate = v.dateRange?.startDate;
+    const endDate = v.dateRange?.endDate;
+    const projectId = v.projectId;
+
+    if (!startDate || !endDate || !projectId) return null;
+
+    return {
+      startDate,
+      endDate,
+      suppliersIds: (v.suppliersIds ?? []).map((x) => Number(x.id)),
+      projectId,
+    };
+  }
+
+  private forceDownload(url: string, filename: string): void {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   private clear(): void {
-    this.formFilters.reset(
-      { dateRange: null, suppliersIds: [], projectId: null },
-      { emitEvent: false },
-    );
+    this.formFilters.reset({ dateRange: null, suppliersIds: [], projectId: null }, { emitEvent: false });
     this.revokeObjectUrl();
     this.pdfUrl.set(null);
-    console.log('[REPORTES] filtros limpiados');
   }
 
   private revokeObjectUrl(): void {

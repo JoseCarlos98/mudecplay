@@ -1,7 +1,7 @@
-// src/app/pages/reports/services/reports-api.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { ApiSuccess } from '../../../shared/interfaces/general-interfaces';
 
 export interface ProjectDetailPreviewPayload {
   startDate: string;     // YYYY-MM-DD
@@ -19,6 +19,10 @@ export class ReportsApiService {
     return this.http.post(`${this.baseUrl}/reports/project-detail/preview`, payload, {
       responseType: 'blob',
     });
+  }
+
+    saveProjectDetailHistory(payload: ProjectDetailPreviewPayload) {
+    return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/project-detail/history`, payload);
   }
 
   // luego: history (lo dejamos para después)
