@@ -1,4 +1,3 @@
-// src/app/pages/reports/tabs/area-report/area-report.ts
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -13,6 +12,7 @@ import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { ByAreaPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-area-report',
@@ -35,6 +35,9 @@ export class AreaReport implements OnInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly catalogsService = inject(CatalogsService);
 
+  loadingPreview = signal(false);
+  errorPreview = signal<string | null>(null);
+
   pdfUrl = signal<SafeResourceUrl | null>(null);
   private lastObjectUrl: string | null = null;
 
@@ -45,7 +48,7 @@ export class AreaReport implements OnInit, OnDestroy {
     areaIds: this.fb.control<number[]>([]),
   });
 
-    catalogArea: Catalog[] = [];
+  catalogArea: Catalog[] = [];
 
   get hasActiveFilters(): boolean {
     const v = this.formFilters.getRawValue();
@@ -63,7 +66,7 @@ export class AreaReport implements OnInit, OnDestroy {
     this.loadCatalogs()
   }
 
-   loadCatalogs() {
+  loadCatalogs() {
     this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogArea = response;
@@ -97,7 +100,12 @@ export class AreaReport implements OnInit, OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.previewByArea(payload).subscribe({
+    this.loadingPreview.set(true);
+    this.errorPreview.set(null);
+
+    this.api.previewByArea(payload).pipe(
+      finalize(() => this.loadingPreview.set(false)),
+    ).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);
@@ -116,7 +124,7 @@ export class AreaReport implements OnInit, OnDestroy {
     const areaIds = v?.areaIds || [];
 
     console.log(v);
-    
+
     if (!startDate || !endDate) return null;
 
     return {

@@ -11,6 +11,7 @@ import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 
 import { ProjectPayablesPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-project-payables',
@@ -31,6 +32,9 @@ export class ProjectPayables implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ReportsApiService);
   private readonly sanitizer = inject(DomSanitizer);
+
+  loadingPreview = signal(false);
+  errorPreview = signal<string | null>(null);
 
   pdfUrl = signal<SafeResourceUrl | null>(null);
   private lastObjectUrl: string | null = null;
@@ -83,7 +87,12 @@ export class ProjectPayables implements OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.previewProjectPayables(payload).subscribe({
+    this.loadingPreview.set(true);
+    this.errorPreview.set(null);
+
+    this.api.previewProjectPayables(payload).pipe(
+      finalize(() => this.loadingPreview.set(false)),
+    ).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);

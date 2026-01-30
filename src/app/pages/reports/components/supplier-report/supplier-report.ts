@@ -10,6 +10,7 @@ import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { ProjectBySupplierPreviewPayload, ReportsApiService } from '../../services/reports-api.service';
+import { finalize } from 'rxjs';
 
 
 
@@ -32,6 +33,9 @@ export class SupplierReport implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ReportsApiService);
   private readonly sanitizer = inject(DomSanitizer);
+
+  loadingPreview = signal(false);
+  errorPreview = signal<string | null>(null);
 
   pdfUrl = signal<SafeResourceUrl | null>(null);
   private lastObjectUrl: string | null = null;
@@ -107,7 +111,12 @@ export class SupplierReport implements OnDestroy {
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.previewProjectBySupplier(payload).subscribe({
+    this.loadingPreview.set(true);
+    this.errorPreview.set(null);
+
+    this.api.previewProjectBySupplier(payload).pipe(
+      finalize(() => this.loadingPreview.set(false)),
+    ).subscribe({
       next: (blob) => {
         this.revokeObjectUrl();
         const url = URL.createObjectURL(blob);

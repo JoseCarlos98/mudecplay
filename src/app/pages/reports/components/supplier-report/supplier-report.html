@@ -9,47 +9,29 @@
   <form [formGroup]="formFilters">
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
       <div class="md:col-span-1">
-        <app-input-date
-          formControlName="dateRange"
-          label="Rango de fecha"
-          mode="range">
+        <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">
         </app-input-date>
       </div>
 
       <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="projectId"
-          label="Proyecto"
-          [remote]="true"
-          catalogType="project">
+        <app-autocomplete formControlName="projectId" label="Proyecto" [remote]="true" catalogType="project">
         </app-autocomplete>
       </div>
 
       <div class="md:col-span-1">
-        <app-autocomplete-multiple
-          formControlName="suppliersIds"
-          label="Proveedores (opcional)"
-          [remote]="true"
-          catalogType="supplier"
-          valueMode="objects">
+        <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores (opcional)" [remote]="true"
+          catalogType="supplier" valueMode="objects">
         </app-autocomplete-multiple>
       </div>
 
       <div class="md:col-span-1">
-        <app-btns-section
-          type="search"
-          [hasActiveSearch]="hasActiveSearch"
-          [hasActiveFilters]="hasActiveFilters"
+        <app-btns-section type="search" [hasActiveSearch]="hasActiveSearch" [hasActiveFilters]="hasActiveFilters"
           (action)="onBtnsSectionAction($event)">
         </app-btns-section>
       </div>
 
       <div class="md:col-span-1 flex items-center justify-end gap-2">
-        <button
-          type="button"
-          class="btn-primary"
-          (click)="onSaveHistory()"
-          [disabled]="!hasActiveSearch">
+        <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
           <mat-icon>history</mat-icon>
           <span>Guardar en historial</span>
         </button>
@@ -69,9 +51,29 @@
     </div>
   </form>
 
-  @if (pdfUrl()) {
-    <div class="c-pdf-wrap">
-      <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+  @if (pdfUrl() || loadingPreview()) {
+  <div class="c-pdf-wrap">
+    @if (pdfUrl()) {
+    <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+    } @else {
+    <!-- Placeholder cuando aún no hay pdf, pero está cargando -->
+    <div class="c-pdf-placeholder"></div>
+    }
+
+    @if (loadingPreview()) {
+    <div class="c-pdf-overlay">
+      <div class="c-loader">
+        <div class="c-spinner"></div>
+        <div class="c-loader-text">Generando preview…</div>
+      </div>
     </div>
+    }
+  </div>
+  }
+
+  @if (errorPreview()) {
+  <div class="c-preview-error">
+    {{ errorPreview() }}
+  </div>
   }
 </section>

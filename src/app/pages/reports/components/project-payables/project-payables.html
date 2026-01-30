@@ -55,9 +55,29 @@
     </div>
   </form>
 
-  @if (pdfUrl()) {
-    <div class="c-pdf-wrap">
-      <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+  @if (pdfUrl() || loadingPreview()) {
+  <div class="c-pdf-wrap">
+    @if (pdfUrl()) {
+    <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+    } @else {
+    <!-- Placeholder cuando aún no hay pdf, pero está cargando -->
+    <div class="c-pdf-placeholder"></div>
+    }
+
+    @if (loadingPreview()) {
+    <div class="c-pdf-overlay">
+      <div class="c-loader">
+        <div class="c-spinner"></div>
+        <div class="c-loader-text">Generando preview…</div>
+      </div>
     </div>
+    }
+  </div>
+  }
+
+  @if (errorPreview()) {
+  <div class="c-preview-error">
+    {{ errorPreview() }}
+  </div>
   }
 </section>
