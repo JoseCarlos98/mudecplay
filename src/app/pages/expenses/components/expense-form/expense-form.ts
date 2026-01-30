@@ -242,22 +242,25 @@ export class ExpenseForm implements OnInit {
 
     const payload = this.buildPayloadFromForm();
 
-    this.expenseService.create(payload).subscribe({
-      next: (response) => {
-        if (!response.success) return;
+    console.log(payload);
+    
 
-        // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
-        if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
-          this.loadNextXmlFromQueueOrExit();
-          return;
-        }
+    // this.expenseService.create(payload).subscribe({
+    //   next: (response) => {
+    //     if (!response.success) return;
 
-        // Fin de cola o gasto manual → volver al listado
-        this.expenseService.clearXmlQueue(); // por si era el último
-        this.router.navigateByUrl('/gastos');
-      },
-      error: (err) => console.error('Error al crear gasto:', err),
-    });
+    //     // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
+    //     if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
+    //       this.loadNextXmlFromQueueOrExit();
+    //       return;
+    //     }
+
+    //     // Fin de cola o gasto manual → volver al listado
+    //     this.expenseService.clearXmlQueue(); // por si era el último
+    //     this.router.navigateByUrl('/gastos');
+    //   },
+    //   error: (err) => console.error('Error al crear gasto:', err),
+    // });
   }
 
   // ==========================
@@ -273,14 +276,14 @@ export class ExpenseForm implements OnInit {
 
     console.log('VERIFICAR OBNNEJTOS ANTES DE GUARDAR ', payload);
 
-    this.expenseService.update(this.expenseId, payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/gastos');
-        }
-      },
-      error: (err) => console.error('Error al actualizar gasto:', err),
-    });
+    // this.expenseService.update(this.expenseId, payload).subscribe({
+    //   next: (response) => {
+    //     if (response.success) {
+    //       this.router.navigateByUrl('/gastos');
+    //     }
+    //   },
+    //   error: (err) => console.error('Error al actualizar gasto:', err),
+    // });
   }
 
   // ==========================

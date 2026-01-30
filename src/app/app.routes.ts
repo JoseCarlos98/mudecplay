@@ -81,7 +81,7 @@ export const routes: Routes = [
       },
 
       // Default
-      { path: '', redirectTo: 'gastos', pathMatch: 'full' },
+      // { path: '', redirectTo: 'gastos', pathMatch: 'full' },
     ],
   },
 

@@ -18,6 +18,8 @@ export const rolesGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   if (auth.hasRole('ADMIN_GENERAL')) return true;
 
   // otros roles
+  console.log(auth.hasAnyRole(requiredRoles));
+  
   if (auth.hasAnyRole(requiredRoles)) return true;
 
   return router.parseUrl('/unauthorized'); // o a /home

@@ -40,7 +40,7 @@ export class Sidebar {
       name: 'Reportes',
       icon: 'bar_chart',
       route: '/reportes',
-      roles: ['GASTOS_EDITOR']
+      roles: ['REPORTES_EMISOR']
     },
     {
       name: 'Catálogos',

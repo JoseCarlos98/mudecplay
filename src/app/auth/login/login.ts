@@ -39,10 +39,30 @@ export class LoginComponent {
     const { email, password } = this.form.value as { email: string; password: string };
 
     this.authService.login(email, password).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.isSubmitting.set(false);
-        this.router.navigateByUrl('/'); // o '/home' según tu app
+
+        const roles: string[] = res?.user?.roles ?? [];
+
+        // prioridad: admin > gastos > reportes (ajústalo a tu gusto)
+        if (roles.includes('ADMIN_GENERAL')) {
+          this.router.navigateByUrl('/gastos'); // o /gastos si quieres
+          return;
+        }
+
+        if (roles.includes('GASTOS_EDITOR')) {
+          this.router.navigateByUrl('/gastos');
+          return;
+        }
+
+        if (roles.includes('REPORTES_EMISOR')) {
+          this.router.navigateByUrl('/reportes');
+          return;
+        }
+
+        this.router.navigateByUrl('/unauthorized');
       },
+
       error: (err) => {
         this.isSubmitting.set(false);
         this.loginError = err?.error?.message || 'Error al iniciar sesión. Verifica tus datos.';
