@@ -180,6 +180,7 @@ export class Users implements OnInit {
         message: `¿Quieres eliminar el usuario:\n"${row.email}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
+        size: 'mini',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;

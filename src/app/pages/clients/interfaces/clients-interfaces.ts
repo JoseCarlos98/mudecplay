@@ -21,7 +21,8 @@ export interface ClientsResponseDto {
   will_invoice: boolean;
   email: string;
   address: string | null; 
-  area: Area;             
+  area: Area;     
+  responsible: Catalog | null;        
 }
 
 export interface Area {

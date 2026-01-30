@@ -13,6 +13,7 @@ export interface FiltersSupplier {
 export interface SupplierResponseDto {
   id: number;
   company_name: string;
+  rfc: string;
   name: string;
   contact_name: string;
   phone: string;

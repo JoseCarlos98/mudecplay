@@ -169,7 +169,6 @@ export class Projects {
     });
   }
 
-
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
@@ -282,13 +281,12 @@ export class Projects {
 
   // Confirmación + delete
   onDelete(project: entity.ProjectResponseDto) {
-    console.log(project);
-
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el proyecto:\n"${project.name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
+        size: 'mini'
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;

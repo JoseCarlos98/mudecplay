@@ -12,7 +12,7 @@
 
 } @else if(type == 'search') {
 <div class="btns-action-filters">
-    <button type="button" class="btn-primary" (click)="action.emit('search')" [disabled]="!hasActiveSearch">
+    <button type="button" class="btn-primary" (click)="action.emit('search')" [disabled]=" hasActiveSearch ? !hasActiveSearch : null">
         <mat-icon>search</mat-icon>
     </button>
 

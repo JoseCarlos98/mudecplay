@@ -10,7 +10,7 @@
         <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
             <mat-select [placeholder]="placeholder" [multiple]="multiple" [disabled]="disabled" [value]="value"
                 (selectionChange)="onSelectionChange($event)" (blur)="markAsTouched()">
-                @if (!multiple) {
+                @if (!multiple && all) {
                 <mat-option [value]="''">
                     Todos
                 </mat-option>

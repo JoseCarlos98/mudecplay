@@ -15,6 +15,7 @@ import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { ProjectService } from '../../services/projects.service';
+import { toIdForm } from '../../../../shared/helpers/general-helpers';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -77,7 +78,11 @@ export class ProjectModal implements OnInit {
       return;
     }
 
-    const formData = this.form.value;
+    const formData = {
+      ...this.form.value,
+      client_id: toIdForm(this.form.value.client_id),
+      responsible_id: toIdForm(this.form.value.responsible_id),
+    };
 
     this.supplierService.update(this.data.id, formData).subscribe({
       next: (response) => {

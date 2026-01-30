@@ -16,6 +16,7 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { ClientsService } from '../../services/clients.service';
 import { ClientsResponseDto } from '../../interfaces/clients-interfaces';
+import { toIdForm } from '../../../../shared/helpers/general-helpers';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -54,7 +55,10 @@ export class ClientModal {
     console.log(this.data);
     this.loadCatalogs()
 
-    if (this.data?.id) this.form.patchValue(this.data);
+    if (this.data?.id) this.form.patchValue({
+      ...this.data,
+      responsible_id: this.data.responsible
+    });
   }
 
   // ==========================
@@ -91,7 +95,10 @@ export class ClientModal {
       return;
     }
 
-    const formData = this.form.value;
+       const formData = {
+      ...this.form.value,
+      responsible_id : toIdForm(this.form.value.responsible_id),
+    };
 
     this.clientsService.update(this.data.id, formData).subscribe({
       next: (response) => {

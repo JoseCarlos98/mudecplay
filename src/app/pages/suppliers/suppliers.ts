@@ -260,9 +260,10 @@ export class Suppliers {
   onDelete(supplier: entity.SupplierResponseDto) {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el proveedor:\n"${supplier.company_name.trim()}"?`,
+        message: `¿Quieres eliminar el proveedor:\n"${supplier?.rfc?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
+        size: 'mini'
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;

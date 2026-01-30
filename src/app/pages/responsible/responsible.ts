@@ -242,6 +242,7 @@ export class Responsible {
         message: `¿Quieres eliminar el responsable:\n"${supplier.name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
+        size: 'mini'
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;

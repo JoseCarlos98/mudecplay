@@ -22,6 +22,7 @@ export class ProjectService {
       params = setScalar(params, 'page', filters.page);
       params = setScalar(params, 'limit', filters.limit);
       params = appendArray(params, 'clientsIds', filters.clientsIds ?? []);
+      params = appendArray(params, 'responsibleIds', filters.responsibleIds ?? []);
       params = setScalar(params, 'name', filters.name?.trim());
       params = setScalar(params, 'phone', filters.phone?.trim());
       params = setScalar(params, 'email', filters.email?.trim());

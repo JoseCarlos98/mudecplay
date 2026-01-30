@@ -173,7 +173,7 @@ export class Clients {
       page: ui.page,
       limit: ui.limit,
       responsibleIds: ui.responsibleIds ?? [],
-      name: ui.name ?? null,
+      name: ui.name?.trim() || '',
       email: ui.email?.trim() || '',
       phone: ui.phone?.trim() || '',
     };
@@ -271,9 +271,10 @@ export class Clients {
   onDelete(supplier: entity.ClientsResponseDto) {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el cliente:\n"${supplier.company_name.trim()}"?`,
+        message: `¿Quieres eliminar el cliente:\n"${supplier?.company_name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
+        size: 'mini'
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
@@ -291,38 +292,36 @@ export class Clients {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasSuppliers = (form.clientsIds?.length ?? 0) > 0;
-    const hasAreas = (form.areasIds?.length ?? 0) > 0;
-    const hasEmail = !!(form.email && form.email.trim() !== '');
-    const hasPhone = !!(form.phone !== '');
-    const hasName = !!(form.name !== '');
+    const hasResponsible = (form.responsibleIds?.length ?? 0) > 0;
+    const hasName = (form.name?.trim() ?? '') !== '';
+    const hasEmail = (form.email?.trim() ?? '') !== '';
+    const hasPhone = (form.phone?.trim() ?? '') !== '';
 
-    return hasSuppliers || hasAreas || hasEmail || hasPhone || hasName;
+    return hasResponsible || hasName || hasEmail || hasPhone;
   }
 
   clearAllAndSearch() {
-    // Limpia formulario de filtros
     this.formFilters.reset(
       {
-        clientsIds: [],
-        areasIds: [],
+        responsibleIds: [],
+        name: '',
         email: '',
         phone: '',
+        clientsIds: [],
+        areasIds: [],
       },
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       responsibleIds: [],
-      email: '',
       name: '',
+      email: '',
       phone: '',
-    }
+    };
 
-    // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
     this.loadClients();
   }
@@ -346,27 +345,33 @@ export class Clients {
     const saved = this.storage.getItem<entity.ClientsUiFilters>(EXPENSES_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // Parchear formulario con lo guardado
+    const state: entity.ClientsUiFilters = {
+      responsibleIds: saved.responsibleIds ?? [],
+      name: saved.name ?? '',
+      email: saved.email ?? '',
+      phone: saved.phone ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+    };
+
     this.formFilters.patchValue(
       {
-        responsibleIds: saved.responsibleIds,
-        email: saved.email,
-        phone: saved.phone,
+        responsibleIds: state.responsibleIds,
+        name: state.name,
+        email: state.email,
+        phone: state.phone,
       },
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
-    this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
+    this.filters = this.buildBackendFiltersFromUi(state);
     this.loadClients();
   }
+
 
   /**
    * Guarda el estado de filtros de la UI en localStorage.
