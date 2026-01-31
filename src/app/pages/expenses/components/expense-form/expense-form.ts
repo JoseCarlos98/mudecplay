@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import {
   FormArray,
   FormBuilder,
@@ -14,6 +14,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import {
@@ -71,6 +72,7 @@ export class ExpenseForm implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
   readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Config del header
   readonly headerConfig = HEADER_CONFIG;
@@ -82,8 +84,8 @@ export class ExpenseForm implements OnInit {
   cfdiUuidFromXml: string | null = null;
 
   // contador visual de la cola de XML
-  xmlQueueTotal: number = 0;     // total de CFDI en la cola
-  xmlQueuePending: number = 0;   // pendientes después del actual
+  xmlQueueTotal: number = 0; // total de CFDI en la cola
+  xmlQueuePending: number = 0; // pendientes después del actual
 
   // Formulario reactivo principal
   form: FormGroup = this.fb.group({
@@ -94,8 +96,11 @@ export class ExpenseForm implements OnInit {
     items: this.fb.array([this.createItemGroup()]),
   });
 
-  // Control para el proyecto masivo
-  bulkProjectCtrl = this.fb.control<Catalog | null>(null);
+  // Control para el proyecto masivo (su value será id/number por tu CVA)
+  bulkProjectCtrl = this.fb.control<any>(null);
+
+  //  guardamos el objeto seleccionado para aplicar y para que se vea el nombre
+  bulkProjectSelected: Catalog | null = null;
 
   // Si es 0 => creación; si tiene valor => edición
   expenseId: number = 0;
@@ -122,6 +127,15 @@ export class ExpenseForm implements OnInit {
         this.loadNextXmlFromQueueOrExit(); // carga el primer CFDI de la cola
       }
     }
+
+    //  si limpian el autocomplete masivo (X), limpiamos también el objeto guardado
+    this.bulkProjectCtrl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((v) => {
+        if (v == null || v === '') {
+          this.bulkProjectSelected = null;
+        }
+      });
   }
 
   // ==========================
@@ -138,8 +152,6 @@ export class ExpenseForm implements OnInit {
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
-        console.log(response);
-
         this.formData = response;
 
         // Si el backend manda cfdi_uuid, lo usamos como bandera
@@ -242,25 +254,22 @@ export class ExpenseForm implements OnInit {
 
     const payload = this.buildPayloadFromForm();
 
-    console.log(payload);
-    
+    this.expenseService.create(payload).subscribe({
+      next: (response) => {
+        if (!response.success) return;
 
-    // this.expenseService.create(payload).subscribe({
-    //   next: (response) => {
-    //     if (!response.success) return;
+        // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
+        if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
+          this.loadNextXmlFromQueueOrExit();
+          return;
+        }
 
-    //     // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
-    //     if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
-    //       this.loadNextXmlFromQueueOrExit();
-    //       return;
-    //     }
-
-    //     // Fin de cola o gasto manual → volver al listado
-    //     this.expenseService.clearXmlQueue(); // por si era el último
-    //     this.router.navigateByUrl('/gastos');
-    //   },
-    //   error: (err) => console.error('Error al crear gasto:', err),
-    // });
+        // Fin de cola o gasto manual → volver al listado
+        this.expenseService.clearXmlQueue(); // por si era el último
+        this.router.navigateByUrl('/gastos');
+      },
+      error: (err) => console.error('Error al crear gasto:', err),
+    });
   }
 
   // ==========================
@@ -274,16 +283,14 @@ export class ExpenseForm implements OnInit {
 
     const payload = this.buildPayloadFromForm();
 
-    console.log('VERIFICAR OBNNEJTOS ANTES DE GUARDAR ', payload);
-
-    // this.expenseService.update(this.expenseId, payload).subscribe({
-    //   next: (response) => {
-    //     if (response.success) {
-    //       this.router.navigateByUrl('/gastos');
-    //     }
-    //   },
-    //   error: (err) => console.error('Error al actualizar gasto:', err),
-    // });
+    this.expenseService.update(this.expenseId, payload).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.router.navigateByUrl('/gastos');
+        }
+      },
+      error: (err) => console.error('Error al actualizar gasto:', err),
+    });
   }
 
   // ==========================
@@ -295,17 +302,13 @@ export class ExpenseForm implements OnInit {
 
   /** Algún item seleccionado (para habilitar botón aplicar) */
   get hasAnySelected(): boolean {
-    return this.itemsFA.controls.some(
-      (ctrl) => !!ctrl.get('selected')?.value,
-    );
+    return this.itemsFA.controls.some((ctrl) => !!ctrl.get('selected')?.value);
   }
 
   /** Todos seleccionados (para estado del checkbox "Seleccionar todos") */
   get allSelected(): boolean {
     if (!this.itemsFA.length) return false;
-    return this.itemsFA.controls.every(
-      (ctrl) => !!ctrl.get('selected')?.value,
-    );
+    return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
   }
 
   // ==========================
@@ -317,10 +320,7 @@ export class ExpenseForm implements OnInit {
     const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
 
     return this.fb.group({
-      amount: [
-        data?.amount ?? null,
-        [Validators.required, Validators.min(0.01)],
-      ],
+      amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
       payment_amount: [data?.payment_amount ?? null],
       payment_date: [defaultPaymentDate],
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
@@ -340,7 +340,6 @@ export class ExpenseForm implements OnInit {
 
   removeItem(index: number) {
     if (this.itemsFA.length <= 1) return;
-    // Igual, si viene de XML, podrías bloquear esto; por ahora sí permito borrar manual
     if (this.isXmlImport) return;
     this.itemsFA.removeAt(index);
   }
@@ -355,16 +354,22 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  //  se llama cuando el autocomplete masivo selecciona una opción
+  onBulkProjectSelected(p: Catalog) {
+    this.bulkProjectSelected = p;
+  }
+
   /** Aplica el proyecto elegido a todos los ítems seleccionados */
   applyBulkProject(): void {
-    const project = this.bulkProjectCtrl.value;
+    const project = this.bulkProjectSelected;
     if (!project) return;
 
     this.itemsFA.controls.forEach((ctrl) => {
       if (ctrl.get('selected')?.value) {
+        //  ponemos el objeto completo para que el autocomplete muestre el nombre
         ctrl.get('project_id')?.setValue(project);
-        ctrl.markAsDirty();
-        ctrl.markAsTouched();
+        ctrl.get('project_id')?.markAsDirty();
+        ctrl.get('project_id')?.markAsTouched();
       }
     });
   }
@@ -410,24 +415,21 @@ export class ExpenseForm implements OnInit {
       supplier_id: toIdForm(raw.supplier_id),
       cfdi_uuid: this.cfdiUuidFromXml ?? null,
 
-      items: (raw.items ?? []).map(
-        (item: any): entity.CreateExpenseItem => ({
-          amount: Number(item.amount),
+      items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
+        amount: Number(item.amount),
 
-          payment_amount:
-            item.payment_amount !== null && item.payment_amount !== ''
-              ? Number(item.payment_amount)
-              : null,
+        payment_amount:
+          item.payment_amount !== null && item.payment_amount !== ''
+            ? Number(item.payment_amount)
+            : null,
 
-          // Solo mandamos fecha cuando amount == payment_amount;
-          // el control ya trae por defecto la fecha actual.
-          payment_date:
-            item.amount == item.payment_amount ? item.payment_date : null,
+        // Solo mandamos fecha cuando amount == payment_amount;
+        // el control ya trae por defecto la fecha actual.
+        payment_date: item.amount == item.payment_amount ? item.payment_date : null,
 
-          project_id: toIdForm(item.project_id),
-          product_id: toIdForm(item.product_id),
-        }),
-      ),
+        project_id: toIdForm(item.project_id),
+        product_id: toIdForm(item.product_id),
+      })),
     };
   }
 
@@ -455,6 +457,10 @@ export class ExpenseForm implements OnInit {
     const status = this.expenseService.getXmlQueueStatus();
     this.xmlQueueTotal = status.total;
     this.xmlQueuePending = status.pending;
+
+    //  limpiamos selección masiva para evitar que se quede pegada
+    this.bulkProjectCtrl.setValue(null, { emitEvent: true });
+    this.bulkProjectSelected = null;
   }
 
   confirmExitFromXmlFlow() {

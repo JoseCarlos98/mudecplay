@@ -8,6 +8,7 @@ import {
   Self,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -41,7 +42,7 @@ import { MatButtonModule } from '@angular/material/button';
     MatIcon,
     MatTooltipModule,
     MatIconModule,
-    MatButtonModule
+    MatButtonModule,
   ],
   templateUrl: './autocomplete.html',
   styleUrls: ['./autocomplete.scss'],
@@ -51,13 +52,15 @@ export class Autocomplete implements ControlValueAccessor {
   // servicios
   private readonly catalogsService = inject(CatalogsService);
 
+  // importante para OnPush + CVA (para repintar cuando writeValue cambia displayValue)
+  private readonly cdr = inject(ChangeDetectorRef);
+
   // ====== Inputs de configuración ======
-  @Input() label:string = 'Seleccionar';
-  @Input() placeholder:string = 'Buscar';
+  @Input() label: string = 'Seleccionar';
+  @Input() placeholder: string = 'Buscar';
   @Input() remote: boolean = false;
-  @Input() catalogType: 
-  'supplier' | 'project' | 'responsible' | 
-  'client' | 'product' = 'supplier';
+  @Input() catalogType: 'supplier' | 'project' | 'responsible' | 'client' | 'product' =
+    'supplier';
   @Input() data: Catalog[] = [];
 
   // cuando en editar ya tienes el nombre, lo muestras
@@ -75,8 +78,8 @@ export class Autocomplete implements ControlValueAccessor {
   // lo que el usuario va escribiendo
   private input$ = new Subject<string>();
 
-  // valor REAL del form (id o lo que mandes)
-  private innerValue: string | Catalog | null = null;
+  // valor REAL del form (id o Catalog)
+  private innerValue: number | string | Catalog | null = null;
 
   // cache en memoria del componente
   private optionsPool: Catalog[] = [];
@@ -87,8 +90,8 @@ export class Autocomplete implements ControlValueAccessor {
   disabled: boolean = false;
 
   // CVA callbacks
-  private onChange: (val: any) => void = () => { };
-  private onTouched: () => void = () => { };
+  private onChange: (val: any) => void = () => {};
+  private onTouched: () => void = () => {};
 
   // para leer estado del form y mostrar errores
   constructor(@Optional() @Self() private ngControl: NgControl) {
@@ -114,7 +117,7 @@ export class Autocomplete implements ControlValueAccessor {
 
           // si no tengo, voy al backend y lo guardo
           return this.fetchRemote(term).pipe(
-            tap((results) => this.addToPool(results))
+            tap((results) => this.addToPool(results)),
           );
         }
 
@@ -124,7 +127,7 @@ export class Autocomplete implements ControlValueAccessor {
     );
   }
 
-   get showRequiredMark(): boolean {
+  get showRequiredMark(): boolean {
     const control = this.ngControl?.control;
     if (!control || !control.validator) return false;
     const res = control.validator({} as any);
@@ -135,26 +138,30 @@ export class Autocomplete implements ControlValueAccessor {
   writeValue(value: any) {
     this.innerValue = value;
 
-    // 1) si viene objeto
-    if (value && typeof value !== 'string') {
+    // 1) si viene objeto (Catalog)
+    if (value && typeof value === 'object') {
       this.displayValue = value.name ?? '';
+      this.cdr.markForCheck();
       return;
     }
 
-    // 2) si viene id y hay data local
-    if (typeof value === 'string' && this.data?.length) {
+    // 2) si viene id (number|string) y hay data local
+    if ((typeof value === 'number' || typeof value === 'string') && this.data?.length) {
       const found = this.data.find((d) => d.id === value);
       this.displayValue = found ? found.name : '';
+      this.cdr.markForCheck();
       return;
     }
 
     // 3) si estás en remoto y te pasan el nombre inicial
     if (this.initialDisplay) {
       this.displayValue = this.initialDisplay;
+      this.cdr.markForCheck();
       return;
     }
 
     this.displayValue = '';
+    this.cdr.markForCheck();
   }
 
   registerOnChange(fn: any) {
@@ -167,23 +174,32 @@ export class Autocomplete implements ControlValueAccessor {
 
   setDisabledState(isDisabled: boolean) {
     this.disabled = isDisabled;
+    this.cdr.markForCheck();
   }
 
   // cuando escribe
   onInputChange(term: string | Catalog) {
     const text = typeof term === 'string' ? term : term?.name ?? '';
     this.displayValue = text;
+
+    // ojo: si escribe, esto manda string al form (tu diseño actual)
     this.onChange(typeof term === 'string' ? term : term?.id);
+
     this.input$.next(text);
+    this.cdr.markForCheck()
   }
 
   // cuando selecciona una opción
   onOptionSelected(option: Catalog) {
     this.innerValue = option.id;
     this.displayValue = option.name;
+
     this.onChange(option.id);
+
     this.onTouched();
     this.optionSelected.emit(option);
+
+    this.cdr.markForCheck();
   }
 
   onBlur() {
@@ -200,14 +216,19 @@ export class Autocomplete implements ControlValueAccessor {
 
     // si quieres volver a mostrar la lista completa local
     if (!this.remote && this.data?.length) this.input$.next('');
+
+    this.cdr.markForCheck();
   }
 
   // para el mat-autocomplete
-  displayWith = (value: string | Catalog): string => {
+  displayWith = (value: any): string => {
     if (!value) return '';
-    if (typeof value !== 'string') return value.name;
-    const found = this.data.find((d) => d.id === value);
-    return found ? found.name : value;
+
+    if (typeof value === 'object') return value.name ?? '';
+
+    // id (number|string)
+    const found = this.data?.find((d) => d.id === value);
+    return found ? found.name : String(value);
   };
 
   get hasError(): boolean {
@@ -242,31 +263,24 @@ export class Autocomplete implements ControlValueAccessor {
   private filterLocal(term: string): Catalog[] {
     if (!term) return this.data;
     const lower = term.toLowerCase();
-    return this.data.filter((item) =>
-      item.name.toLowerCase().includes(lower),
-    );
+    return this.data.filter((item) => item.name.toLowerCase().includes(lower));
   }
 
   private getLastFromPool(limit: number): Catalog[] {
-    // toma los últimos agregados (los más recientes)
-    // si los ibas haciendo push, los últimos están al final
-    return this.optionsPool.slice(-limit).reverse(); // reverse para que el último vaya arriba
+    return this.optionsPool.slice(-limit).reverse();
   }
 
   private filterFromPool(term: string): Catalog[] {
     const lower = term.toLowerCase();
-    return this.optionsPool.filter(opt =>
-      opt.name.toLowerCase().includes(lower)
-    );
+    return this.optionsPool.filter((opt) => opt.name.toLowerCase().includes(lower));
   }
 
   private addToPool(results: Catalog[]) {
     for (const item of results) {
-      const exists = this.optionsPool.some(opt => opt.id === item.id);
-      if (!exists) {
-        this.optionsPool.push(item);
-      }
+      const exists = this.optionsPool.some((opt) => opt.id === item.id);
+      if (!exists) this.optionsPool.push(item);
     }
+
     if (this.optionsPool.length > 200) {
       this.optionsPool.splice(0, this.optionsPool.length - 200);
     }
