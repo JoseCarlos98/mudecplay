@@ -99,7 +99,7 @@ export class ExpenseForm implements OnInit {
   // Control para el proyecto masivo (su value será id/number por tu CVA)
   bulkProjectCtrl = this.fb.control<any>(null);
 
-  //  guardamos el objeto seleccionado para aplicar y para que se vea el nombre
+  // guardamos el objeto seleccionado para aplicar y para que se vea el nombre
   bulkProjectSelected: Catalog | null = null;
 
   // Si es 0 => creación; si tiene valor => edición
@@ -128,7 +128,7 @@ export class ExpenseForm implements OnInit {
       }
     }
 
-    //  si limpian el autocomplete masivo (X), limpiamos también el objeto guardado
+    // si limpian el autocomplete masivo (X), limpiamos también el objeto guardado
     this.bulkProjectCtrl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => {
@@ -174,13 +174,18 @@ export class ExpenseForm implements OnInit {
             amount: item.amount,
             payment_amount: item.payment_amount ?? null,
             payment_date: item.payment_date ?? null,
+
+            base_amount: (item as any).base_amount ?? null,
+            discount_amount: (item as any).discount_amount ?? null,
+            tax_amount: (item as any).tax_amount ?? null,
+
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
               : null,
             product_id: item.product
               ? toCatalogAutoComplete(item.product.id, item.product.name)
               : null,
-          }),
+          } as any),
         );
 
         this.form.setControl('items', this.fb.array(itemsFGs));
@@ -211,11 +216,16 @@ export class ExpenseForm implements OnInit {
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
         payment_date: item.payment_date ?? null,
+
+        base_amount: (item as any).base_amount ?? null,
+        discount_amount: (item as any).discount_amount ?? null,
+        tax_amount: (item as any).tax_amount ?? null,
+
         project_id: null,
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
           : null,
-      }),
+      } as any),
     );
 
     this.form.setControl('items', this.fb.array(itemsFGs));
@@ -240,6 +250,11 @@ export class ExpenseForm implements OnInit {
     this.itemsFA.controls.forEach((ctrl) => {
       ctrl.get('product_id')?.disable();
       ctrl.get('amount')?.disable();
+
+      // Estos también vienen del CFDI (solo lectura)
+      ctrl.get('base_amount')?.disable();
+      ctrl.get('discount_amount')?.disable();
+      ctrl.get('tax_amount')?.disable();
     });
   }
 
@@ -314,13 +329,17 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  ITEMS FORM
   // ==========================
-  createItemGroup(data?: entity.ExpenseItemForm): FormGroup {
-    // Si viene fecha del backend/edición, la respetamos.
-    // Si no, ponemos la fecha actual para evitar que el usuario tenga que seleccionarla.
+  createItemGroup(data?: any): FormGroup {
     const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
 
     return this.fb.group({
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
+
+      // NUEVOS CAMPOS CFDI (se guardan; en XML se muestran bloqueados)
+      base_amount: [data?.base_amount ?? null],
+      discount_amount: [data?.discount_amount ?? null],
+      tax_amount: [data?.tax_amount ?? null],
+
       payment_amount: [data?.payment_amount ?? null],
       payment_date: [defaultPaymentDate],
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
@@ -354,7 +373,7 @@ export class ExpenseForm implements OnInit {
     });
   }
 
-  //  se llama cuando el autocomplete masivo selecciona una opción
+  // se llama cuando el autocomplete masivo selecciona una opción
   onBulkProjectSelected(p: Catalog) {
     this.bulkProjectSelected = p;
   }
@@ -366,7 +385,6 @@ export class ExpenseForm implements OnInit {
 
     this.itemsFA.controls.forEach((ctrl) => {
       if (ctrl.get('selected')?.value) {
-        //  ponemos el objeto completo para que el autocomplete muestre el nombre
         ctrl.get('project_id')?.setValue(project);
         ctrl.get('project_id')?.markAsDirty();
         ctrl.get('project_id')?.markAsTouched();
@@ -418,13 +436,28 @@ export class ExpenseForm implements OnInit {
       items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
         amount: Number(item.amount),
 
+        // IMPORTANTES: mandar para persistir lo del CFDI
+        base_amount:
+          item.base_amount !== null && item.base_amount !== undefined && item.base_amount !== ''
+            ? Number(item.base_amount)
+            : null,
+        discount_amount:
+          item.discount_amount !== null &&
+          item.discount_amount !== undefined &&
+          item.discount_amount !== ''
+            ? Number(item.discount_amount)
+            : null,
+        tax_amount:
+          item.tax_amount !== null && item.tax_amount !== undefined && item.tax_amount !== ''
+            ? Number(item.tax_amount)
+            : null,
+
         payment_amount:
           item.payment_amount !== null && item.payment_amount !== ''
             ? Number(item.payment_amount)
             : null,
 
         // Solo mandamos fecha cuando amount == payment_amount;
-        // el control ya trae por defecto la fecha actual.
         payment_date: item.amount == item.payment_amount ? item.payment_date : null,
 
         project_id: toIdForm(item.project_id),
@@ -458,7 +491,7 @@ export class ExpenseForm implements OnInit {
     this.xmlQueueTotal = status.total;
     this.xmlQueuePending = status.pending;
 
-    //  limpiamos selección masiva para evitar que se quede pegada
+    // limpiamos selección masiva para evitar que se quede pegada
     this.bulkProjectCtrl.setValue(null, { emitEvent: true });
     this.bulkProjectSelected = null;
   }

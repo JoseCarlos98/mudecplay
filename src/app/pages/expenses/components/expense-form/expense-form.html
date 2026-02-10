@@ -99,7 +99,7 @@
             </app-autocomplete>
           </div>
 
-          <!-- ✅ cambiamos el disabled para que dependa del objeto seleccionado -->
+          <!--  cambiamos el disabled para que dependa del objeto seleccionado -->
           <button
             type="button"
             class="btn-primary"
@@ -133,7 +133,8 @@
                 </div>
 
                 <!-- Monto total -->
-                <div>
+                <div class="discount_amount">
+                  <span>{{itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2'}}</span>
                   <app-input-field formControlName="amount" label="Monto" type="money"></app-input-field>
                 </div>
 

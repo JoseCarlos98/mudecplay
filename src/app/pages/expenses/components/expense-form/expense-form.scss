@@ -13,6 +13,14 @@
     }
 }
 
+.discount_amount {
+  position: relative;
+  span {
+    position: absolute;
+    right: 0;
+  }
+}
+
 /* =======================
    BLOQUE ESTADO XML
    ======================= */

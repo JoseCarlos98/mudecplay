@@ -43,6 +43,12 @@ export interface ProductMini {
 export interface ExpenseItem {
   id: number;
   amount: number;
+
+  // NUEVO (cuando el gasto viene de XML)
+  base_amount: number;
+  discount_amount: number;
+  tax_amount: number;
+
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
@@ -53,12 +59,12 @@ export interface ExpenseItem {
 export interface ExpenseResponseDto {
   id: number;
   date: string;
-  internal_folio: string;         // ← ahora coincide con el backend
+  internal_folio: string; // ← ahora coincide con el backend
   remaining_amount: number;
   total_amount: number;
   supplier: Supplier | null;
   status: ExpenseStatus;
-  cfdi_uuid?: string | null
+  cfdi_uuid?: string | null;
   items: ExpenseItem[];
 }
 
@@ -82,6 +88,12 @@ export interface ExpenseResponseDtoMapper {
 
 export interface CreateExpenseItem {
   amount: number;
+
+  // NUEVO (para mandar al guardar cuando viene de XML)
+  base_amount?: number | null;
+  discount_amount?: number | null;
+  tax_amount?: number | null;
+
   project_id?: number | null;
   product_id?: number | null;
   payment_amount?: number | null;
@@ -106,6 +118,12 @@ export type UpdateExpense = CreateExpense;
 export interface ExpenseItemDetail {
   id: number;
   amount: number;
+
+  // NUEVO
+  base_amount: number;
+  discount_amount: number;
+  tax_amount: number;
+
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
@@ -143,6 +161,12 @@ export interface ExpenseDetail {
 
 export interface ExpenseItemForm {
   amount: number | null;
+
+  // NUEVO (para conservar y mandar al guardar desde XML)
+  base_amount: number | null;
+  discount_amount: number | null;
+  tax_amount: number | null;
+
   payment_amount: number | null;
   payment_date: string | null;
   project_id: Catalog | null;
@@ -171,6 +195,12 @@ export interface ExpensesUiFilters {
 export interface XmlExpenseItemDraftDto {
   concept: string; // descripción original del CFDI (para mostrar al usuario)
   amount: number;
+
+  // NUEVO
+  base_amount: number;
+  discount_amount: number;
+  tax_amount: number;
+
   payment_amount: number | null;
   payment_date: string | null;
   project_id: number | null;
@@ -183,7 +213,7 @@ export interface XmlExpenseItemDraftDto {
 export interface XmlExpenseDraftDto {
   uuid: string;
   sourceFileName: string;
-  date: string;   // 'YYYY-MM-DD'
+  date: string; // 'YYYY-MM-DD'
   subtotal: number;
   total: number;
   supplier: {
@@ -217,5 +247,5 @@ export interface XmlPreviewResponseDto {
 
 export interface XmlQueueState {
   total: number;
-  currentIndex: number; 
+  currentIndex: number;
 }

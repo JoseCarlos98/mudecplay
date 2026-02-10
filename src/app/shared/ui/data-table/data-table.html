@@ -57,11 +57,12 @@
               <!-- MONEY -->
               @case ('money') {
                 <span
+                  class="money-cell"
                   [class.empty-cell]="isEmptyValue(element[col.key])">
                   {{
                     isEmptyValue(element[col.key])
                       ? getEmptyLabel(col.fallback)
-                      : (element[col.key] | currency:'$ ':'symbol':'1.2-2')
+                      : (element[col.key] | currency:'$':'symbol':'1.2-2')
                   }}
                 </span>
               }
