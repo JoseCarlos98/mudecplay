@@ -15,9 +15,28 @@
 
 .discount_amount {
   position: relative;
-  span {
+  
+  .discount_badge {
     position: absolute;
+    z-index: 100;
+    top: 0;
     right: 0;
+
+    font-size: 12px;
+    line-height: 1;
+    padding: 4px 10px;
+    border-radius: 999px;
+
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .12);
+
+    white-space: nowrap;
+
+    cursor: text;       
+    // pointer-events: auto; 
+
+    // opcional: un poquito más "badge"
+    // box-shadow: 0 2px 8px rgba(0,0,0,.06);
   }
 }
 

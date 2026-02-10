@@ -37,6 +37,7 @@ import {
 } from '../../../../shared/helpers/general-helpers';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -59,6 +60,8 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     InputDate,
     MatButtonModule,
     MatCheckboxModule,
+    MatTooltipModule,
+    MatTooltip
   ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
@@ -163,9 +166,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-                response.supplier.id,
-                response.supplier.company_name,
-              )
+              response.supplier.id,
+              response.supplier.company_name,
+            )
             : null,
         });
 
@@ -443,8 +446,8 @@ export class ExpenseForm implements OnInit {
             : null,
         discount_amount:
           item.discount_amount !== null &&
-          item.discount_amount !== undefined &&
-          item.discount_amount !== ''
+            item.discount_amount !== undefined &&
+            item.discount_amount !== ''
             ? Number(item.discount_amount)
             : null,
         tax_amount:
@@ -521,6 +524,24 @@ export class ExpenseForm implements OnInit {
         this.expenseService.clearXmlQueue();
         this.navigateToList();
       });
+  }
+
+  buildDiscountTooltip(itemCtrl: any): string {
+    const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
+    const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
+    const tax = Number(itemCtrl.get('tax_amount')?.value ?? 0);
+    const total = Number(itemCtrl.get('amount')?.value ?? 0);
+
+    // Formato simple con $ y 2 decimales (para tooltip nativo)
+    const money = (n: number) =>
+      `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    return [
+      `Base: ${money(base)}`,
+      `Descuento: -${money(discount)}`,
+      `IVA: ${money(tax)}`,
+      `Total: ${money(total)}`,
+    ].join('\n');
   }
 
   navigateToList() {

@@ -1,43 +1,42 @@
 <div class="card-content-form">
   <app-module-header
     [title]="expenseId ? 'Editar Gasto' : (isXmlImport ? 'Registrar Gasto desde XML' : 'Registrar Gasto')"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+    [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
   @if (isXmlImport) {
-    <div class="xml-status">
-      <div class="xml-status__top-row">
-        <span class="xml-status__tag">
-          <mat-icon class="xml-status__tag-icon">feed</mat-icon>
-          Desde XML
+  <div class="xml-status">
+    <div class="xml-status__top-row">
+      <span class="xml-status__tag">
+        <mat-icon class="xml-status__tag-icon">feed</mat-icon>
+        Desde XML
+      </span>
+
+      <div class="xml-status__counter">
+        <span class="xml-status__counter-main">
+          CFDI
+          {{
+          xmlQueueTotal > 0
+          ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+          : 'actual'
+          }}
         </span>
 
-        <div class="xml-status__counter">
-          <span class="xml-status__counter-main">
-            CFDI
-            {{
-              xmlQueueTotal > 0
-                ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
-                : 'actual'
-            }}
-          </span>
-
-          @if (xmlQueuePending > 0) {
-            <span class="xml-status__counter-pending">
-              · Quedan {{ xmlQueuePending }} por registrar
-            </span>
-          }
-        </div>
+        @if (xmlQueuePending > 0) {
+        <span class="xml-status__counter-pending">
+          · Quedan {{ xmlQueuePending }} por registrar
+        </span>
+        }
       </div>
-
-      <p class="text-info">
-        Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
-        <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
-        no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
-        asignar <strong>proyectos</strong>.
-      </p>
     </div>
+
+    <p class="text-info">
+      Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
+      <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
+      no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
+      asignar <strong>proyectos</strong>.
+    </p>
+  </div>
   }
 
   <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
@@ -49,12 +48,8 @@
 
       <!-- Proveedor -->
       <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="supplier_id"
-          label="Proveedor"
-          [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''"
-          catalogType="supplier">
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
         </app-autocomplete>
       </div>
 
@@ -72,38 +67,28 @@
 
           <!-- Botón para agregar nueva fila -->
           @if (!this.cfdiUuidFromXml) {
-            <button type="button" class="btn-add-row" (click)="addItem()">
-              <mat-icon>add</mat-icon>
-              <span>Agregar</span>
-            </button>
+          <button type="button" class="btn-add-row" (click)="addItem()">
+            <mat-icon>add</mat-icon>
+            <span>Agregar</span>
+          </button>
           }
         </div>
 
         <!-- Barra de acciones masivas -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
-          <mat-checkbox
-            color="primary"
-            class="bulk-checkbox"
-            [checked]="allSelected"
+          <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
             (change)="onToggleSelectAll($event.checked)">
             Seleccionar todos
           </mat-checkbox>
 
           <div class="bulk-project">
-            <app-autocomplete
-              [formControl]="bulkProjectCtrl"
-              label="Asignar proyecto a selección"
-              [remote]="true"
-              catalogType="project"
-              (optionSelected)="onBulkProjectSelected($event)">
+            <app-autocomplete [formControl]="bulkProjectCtrl" label="Asignar proyecto a selección" [remote]="true"
+              catalogType="project" (optionSelected)="onBulkProjectSelected($event)">
             </app-autocomplete>
           </div>
 
           <!--  cambiamos el disabled para que dependa del objeto seleccionado -->
-          <button
-            type="button"
-            class="btn-primary"
-            [disabled]="!hasAnySelected || !bulkProjectSelected"
+          <button type="button" class="btn-primary" [disabled]="!hasAnySelected || !bulkProjectSelected"
             (click)="applyBulkProject()">
             <mat-icon>done_all</mat-icon>
             <span>Aplicar a seleccionados</span>
@@ -113,113 +98,95 @@
         <!-- Lista de filas dinámicas -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
-            <div class="forms-controls" [formGroupName]="i">
-              <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-                <!-- Producto -->
-                <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <div class="project-cell-header">
-                      <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
-                    </div>
-
-                    <app-autocomplete
-                      class="w-100"
-                      formControlName="product_id"
-                      label="Producto"
-                      [remote]="true"
-                      catalogType="product">
-                    </app-autocomplete>
+          <div class="forms-controls" [formGroupName]="i">
+            <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
+              <!-- Producto -->
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div class="project-cell-header">
+                    <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
                   </div>
-                </div>
 
-                <!-- Monto total -->
-                <div class="discount_amount">
-                  <span>{{itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2'}}</span>
-                  <app-input-field formControlName="amount" label="Monto" type="money"></app-input-field>
-                </div>
-
-                <!-- Proyecto -->
-                <div class="project-cell">
-                  <app-autocomplete
-                    formControlName="project_id"
-                    label="Proyecto"
-                    [remote]="true"
-                    catalogType="project">
+                  <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
+                    catalogType="product">
                   </app-autocomplete>
                 </div>
               </div>
 
-              <!-- Fila 2: 2 inputs + restante + botón eliminar -->
-              <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
-                <!-- Abono / Pago -->
-                <div>
-                  <app-input-field
-                    formControlName="payment_amount"
-                    label="Abono / Pago"
-                    type="money"
-                    [ngClass]="{
+              <!-- Monto total -->
+              <div class="discount_amount">
+                @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
+                <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
+                  Descuento CFDI:
+                  -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                </span>
+                }
+
+                <app-input-field formControlName="amount" label="Monto" type="money">
+                </app-input-field>
+              </div>
+
+              <!-- Proyecto -->
+              <div class="project-cell">
+                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
+                </app-autocomplete>
+              </div>
+            </div>
+
+            <!-- Fila 2: 2 inputs + restante + botón eliminar -->
+            <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
+              <!-- Abono / Pago -->
+              <div>
+                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
                       'field-invalid':
                         itemCtrl.get('amount')?.value &&
                         itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
                     }">
-                  </app-input-field>
-                </div>
+                </app-input-field>
+              </div>
 
-                <!-- Fecha de pago -->
-                @if (
-                  itemCtrl.get('amount')?.value &&
-                  itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
-                ) {
-                  <div>
-                    <app-input-date
-                      formControlName="payment_date"
-                      label="Fecha de pago"
-                      mode="single"
-                      [showClear]="true">
-                    </app-input-date>
-                  </div>
-                }
+              <!-- Fecha de pago -->
+              @if (
+              itemCtrl.get('amount')?.value &&
+              itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
+              ) {
+              <div>
+                <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
+                </app-input-date>
+              </div>
+              }
 
-                <!-- Restante + botón borrar -->
-                <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                  @if (itemCtrl.get('amount')?.value) {
-                    <small
-                      class="text-mb text-gray-500"
-                      [ngClass]="{
+              <!-- Restante + botón borrar -->
+              <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                @if (itemCtrl.get('amount')?.value) {
+                <small class="text-mb text-gray-500" [ngClass]="{
                         'error-restant':
                           itemCtrl.get('amount')?.value &&
                           itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
                       }">
-                      Restante:
-                      {{
-                        (itemCtrl.get('amount')?.value || 0) -
-                        (itemCtrl.get('payment_amount')?.value || 0)
-                        | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
-                      }}
-                    </small>
-                  }
+                  Restante:
+                  {{
+                  (itemCtrl.get('amount')?.value || 0) -
+                  (itemCtrl.get('payment_amount')?.value || 0)
+                  | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
+                  }}
+                </small>
+                }
 
-                  @if (itemsFA.length > 1 && !this.cfdiUuidFromXml) {
-                    <button
-                      type="button"
-                      mat-icon-button
-                      class="delete-btn self-end md:self-auto"
-                      (click)="removeItem(i)">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  }
-                </div>
+                @if (itemsFA.length > 1 && !this.cfdiUuidFromXml) {
+                <button type="button" mat-icon-button class="delete-btn self-end md:self-auto" (click)="removeItem(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                }
               </div>
             </div>
+          </div>
           }
         </div>
       </div>
     </div>
   </form>
 
-  <app-btns-section
-    form="form"
-    [saveDisabled]="!form.valid"
-    (action)="onFooterAction($event)">
+  <app-btns-section form="form" [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
   </app-btns-section>
 </div>
