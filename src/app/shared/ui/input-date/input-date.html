@@ -36,6 +36,7 @@
           </button>
         } @else {
           <mat-datepicker-toggle
+          [ngClass]="{'icon-opacity': disabled}"
             matIconSuffix
             [for]="pickerSingle"
           ></mat-datepicker-toggle>

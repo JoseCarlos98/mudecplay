@@ -12,7 +12,7 @@
             [matTooltip]="'Eliminar selección'">close</mat-icon>
         </button>
       } @else {
-        <mat-icon matSuffix>search</mat-icon>
+          <mat-icon [ngClass]="{'icon-opacity': disabled}" matSuffix>search</mat-icon>
       }
 
       <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef" [value]="displayValue"
