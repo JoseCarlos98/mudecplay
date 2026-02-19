@@ -4,15 +4,15 @@ import { environment } from '../../../../environments/environment';
 import { ApiSuccess } from '../../../shared/interfaces/general-interfaces';
 
 export interface ProjectDetailPreviewPayload {
-  startDate: string;
-  endDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   suppliersIds?: number[];
   projectId: number;
 }
 
 export interface ProjectBySupplierPreviewPayload {
-  startDate: string;
-  endDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   suppliersIds?: number[];
   projectId: number;
 }
@@ -23,10 +23,10 @@ export interface ByAreaPreviewPayload {
   areaIds?: number[];
 }
 
-// ✅ NUEVO: Payables (Resumen)
+//  NUEVO: Payables (Resumen)
 export interface ProjectPayablesPreviewPayload {
-  startDate: string;
-  endDate: string;
+  startDate?: string | null;
+  endDate?: string | null;
   projectId: number;
   suppliersIds?: number[]; // opcional
 }
@@ -66,7 +66,7 @@ export class ReportsApiService {
     return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/by-area/history`, payload);
   }
 
-  // ✅ NUEVO: Payables (Resumen)
+  //  NUEVO: Payables (Resumen)
   previewProjectPayables(payload: ProjectPayablesPreviewPayload) {
     return this.http.post(`${this.baseUrl}/reports/project-payables/preview`, payload, {
       responseType: 'blob',

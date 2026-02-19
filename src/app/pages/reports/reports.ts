@@ -44,12 +44,12 @@ tabs: PageTab[] = [
     label: 'Gasto por proveedor',
     description: 'Dentro del proyecto seleccionado: cuánto se ha gastado con cada proveedor',
   },
-  {
-    id: 'by_area',
-    icon: 'category',
-    label: 'Gasto por área',
-    description: 'Resumen por área: materiales, mano de obra, etc.',
-  },
+  // {
+  //   id: 'by_area',
+  //   icon: 'category',
+  //   label: 'Gasto por área',
+  //   description: 'Resumen por área: materiales, mano de obra, etc.',
+  // },
   {
     id: 'project_payables',
     icon: 'request_quote',

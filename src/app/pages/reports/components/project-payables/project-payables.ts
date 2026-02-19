@@ -40,9 +40,7 @@ export class ProjectPayables implements OnDestroy {
   private lastObjectUrl: string | null = null;
 
   formFilters = this.fb.group({
-    dateRange: this.fb.control<DateRangeValue | null>(null, {
-      validators: Validators.required,
-    }),
+    dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<Catalog[]>([]), // opcional
     projectId: this.fb.control<number | null>(null, {
       validators: Validators.required,
@@ -51,15 +49,13 @@ export class ProjectPayables implements OnDestroy {
 
   get hasActiveFilters(): boolean {
     const v = this.formFilters.getRawValue();
-    const hasDates = !!v.dateRange?.startDate || !!v.dateRange?.endDate;
-    const hasSuppliers = (v.suppliersIds?.length ?? 0) > 0;
     const hasProject = !!v.projectId;
-    return hasDates || hasSuppliers || hasProject;
+    return hasProject;
   }
 
   get hasActiveSearch(): boolean {
     const v = this.formFilters.getRawValue();
-    return !!v.dateRange?.startDate && !!v.dateRange?.endDate && !!v.projectId;
+    return !!v.projectId;
   }
 
   onBtnsSectionAction(action: string): void {
@@ -84,6 +80,8 @@ export class ProjectPayables implements OnDestroy {
   }
 
   private preview(): void {
+    console.log('llamar preview');
+    
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
@@ -111,7 +109,7 @@ export class ProjectPayables implements OnDestroy {
     const endDate = v.dateRange?.endDate;
     const projectId = v.projectId;
 
-    if (!startDate || !endDate || !projectId) return null;
+    if (!projectId) return null;
 
     return {
       startDate,
