@@ -6,7 +6,7 @@ import { RoleCode } from '../interfaces/auth.interface';
 export class PermissionsService {
   private auth = inject(AuthService);
 
-  private get roles(): RoleCode[] {
+   get roles(): RoleCode[] {
     return (this.auth.currentUser()?.roles ?? []) as RoleCode[];
   }
 

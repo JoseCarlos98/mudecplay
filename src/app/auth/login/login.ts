@@ -44,19 +44,22 @@ export class LoginComponent {
 
         const roles: string[] = res?.user?.roles ?? [];
 
-        // prioridad: admin > gastos > reportes (ajústalo a tu gusto)
-        if (roles.includes('ADMIN_GENERAL')) {
-          this.router.navigateByUrl('/gastos'); // o /gastos si quieres
-          return;
-        }
+        const roleHome: Record<string, string> = {
+          ADMIN_GENERAL: '/gastos',
+          GASTOS_EDITOR: '/gastos',
+          REPORTES_EMISOR: '/reportes',
+          PROVEEDORES_EDITOR: '/proveedores',
+          PROYECTOS_EDITOR: '/proyectos',
+          CLIENTES_EDITOR: '/clientes',
+          RESPONSABLES_EDITOR: '/responsables',
+          PRODUCTOS_EDITOR: '/productos',
+        };
 
-        if (roles.includes('GASTOS_EDITOR')) {
-          this.router.navigateByUrl('/gastos');
-          return;
-        }
+        // Toma el PRIMER rol (en el orden que venga) que tenga ruta
+        const firstRoleWithRoute = roles.find((r) => !!roleHome[r]);
 
-        if (roles.includes('REPORTES_EMISOR')) {
-          this.router.navigateByUrl('/reportes');
+        if (firstRoleWithRoute) {
+          this.router.navigateByUrl(roleHome[firstRoleWithRoute]);
           return;
         }
 

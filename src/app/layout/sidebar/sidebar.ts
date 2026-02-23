@@ -36,23 +36,21 @@ export class Sidebar {
   // Menú "source" con roles (NO renderizar directo)
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
-    {
-      name: 'Reportes',
-      icon: 'bar_chart',
-      route: '/reportes',
-      roles: ['REPORTES_EMISOR']
-    },
+    { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
+
+    // OJO: "Catálogos" NO tiene roles propios; se mostrará si algún hijo es visible
     {
       name: 'Catálogos',
       icon: '',
-      roles: ['ADMIN_GENERAL'],
       children: [
-        { name: 'Proveedores', icon: 'store', route: '/proveedores' },
-        { name: 'Proyectos', icon: 'work', route: '/proyectos' },
-        { name: 'Clientes', icon: 'groups', route: '/clientes' },
-        { name: 'Responsables', icon: 'person', route: '/responsables' },
-        { name: 'Productos', icon: 'inventory', route: '/productos' },
-        { name: 'Usuarios', icon: 'people', route: '/usuarios' },
+        { name: 'Proveedores', icon: 'store', route: '/proveedores', roles: ['PROVEEDORES_EDITOR'] },
+        { name: 'Proyectos', icon: 'work', route: '/proyectos', roles: ['PROYECTOS_EDITOR'] },
+        { name: 'Clientes', icon: 'groups', route: '/clientes', roles: ['CLIENTES_EDITOR'] },
+        { name: 'Responsables', icon: 'person', route: '/responsables', roles: ['RESPONSABLES_EDITOR'] },
+        { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },
+
+        // Usuarios: solo admin (según tu regla)
+        { name: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['ADMIN_GENERAL'] },
       ],
     },
   ];
@@ -61,17 +59,15 @@ export class Sidebar {
   readonly menuItems = computed<MenuItems[]>(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
 
-    // si no hay roles (no logeado), no muestres nada
+    // si no hay roles, no muestres nada
     if (!roles.length) return [];
 
-    // ADMIN_GENERAL ve todo
+    // ADMIN_GENERAL ve todo tal cual
     if (roles.includes('ADMIN_GENERAL')) return this.menuItemsSource as MenuItems[];
 
     const canSee = (item: any): boolean => {
-      // ADMIN_GENERAL ve todo
-      if (roles.includes('ADMIN_GENERAL')) return true;
-
-      // si NO definiste roles, NO se ve (evita fugas)
+      // si NO definiste roles en el item, no se ve por sí mismo
+      // (pero el padre puede verse si tiene hijos visibles)
       if (!item.roles?.length) return false;
 
       return item.roles.some((r: string) => roles.includes(r));
@@ -85,9 +81,13 @@ export class Sidebar {
           const hasVisibleChild = !!children?.length;
           const visibleBySelf = canSee(it);
 
+          // Si no es visible por sí mismo y no tiene hijos visibles -> fuera
           if (!visibleBySelf && !hasVisibleChild) return null;
 
-          return { ...it, children };
+          // Si tiene hijos, regresamos el item con hijos filtrados
+          if (it.children?.length) return { ...it, children };
+
+          return { ...it };
         })
         .filter(Boolean);
     };

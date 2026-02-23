@@ -40,7 +40,7 @@ import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { finalize } from 'rxjs';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
-
+import { PermissionsService } from '../../auth/services/permissions.service';
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
@@ -74,7 +74,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
   showUploadXml: true,
   newRoles: ['GASTOS_EDITOR'],
-  uploadXmlRoles: ['GASTOS_EDITOR'],
+  uploadXmlRoles: ['GASTOS_XML_IMPORTADOR'],
 };
 
 // Catálogo extra de estados “virtuales”
@@ -87,7 +87,6 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
   { id: 'paid', name: 'Pagado' },
   { id: 'unpaid', name: 'Con saldo' },
 ];
-
 
 @Component({
   selector: 'app-expenses',
@@ -130,6 +129,7 @@ export class Expenses implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly storage = inject(LocalStorageService);
+  private readonly permissionsService = inject(PermissionsService);
 
   canDeleteRow = (row: entity.ExpenseResponseDto) => {
     // No permitir borrar si viene de CFDI
@@ -178,6 +178,8 @@ export class Expenses implements OnInit {
   ngOnInit(): void {
     this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
     this.loadCatalogs();              // carga catálogos de selects
+    console.log('ROLES ACTUALES DEL USUARIO PARA GASTOS', this.permissionsService.roles);
+    
   }
 
   // ==========================
