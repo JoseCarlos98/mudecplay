@@ -30,6 +30,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallbackVariant: 'chip-warning',
   },
   { key: 'amount', label: 'Monto total', type: 'money', align: 'right' },
+  { key: 'withheld_amount', label: 'Retención', type: 'money', align: 'right' },
   { key: 'discount_amount', label: 'Descuento', type: 'money', align: 'right' },
   { key: 'payment_amount', label: 'Pagado', type: 'money', align: 'right' },
   { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
