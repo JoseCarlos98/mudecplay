@@ -37,7 +37,7 @@ import {
 } from '../../../../shared/helpers/general-helpers';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
-import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -61,7 +61,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,
-    MatTooltip
   ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
@@ -181,6 +180,7 @@ export class ExpenseForm implements OnInit {
             base_amount: (item as any).base_amount ?? null,
             discount_amount: (item as any).discount_amount ?? null,
             tax_amount: (item as any).tax_amount ?? null,
+            withheld_amount: (item as any).withheld_amount ?? null, // NUEVO
 
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
@@ -223,6 +223,7 @@ export class ExpenseForm implements OnInit {
         base_amount: (item as any).base_amount ?? null,
         discount_amount: (item as any).discount_amount ?? null,
         tax_amount: (item as any).tax_amount ?? null,
+        withheld_amount: (item as any).withheld_amount ?? null, // NUEVO
 
         project_id: null,
         product_id: item.product
@@ -258,6 +259,7 @@ export class ExpenseForm implements OnInit {
       ctrl.get('base_amount')?.disable();
       ctrl.get('discount_amount')?.disable();
       ctrl.get('tax_amount')?.disable();
+      ctrl.get('withheld_amount')?.disable(); // NUEVO
     });
   }
 
@@ -338,10 +340,11 @@ export class ExpenseForm implements OnInit {
     return this.fb.group({
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
 
-      // NUEVOS CAMPOS CFDI (se guardan; en XML se muestran bloqueados)
+      // CAMPOS CFDI (se guardan; en XML se muestran bloqueados)
       base_amount: [data?.base_amount ?? null],
       discount_amount: [data?.discount_amount ?? null],
       tax_amount: [data?.tax_amount ?? null],
+      withheld_amount: [data?.withheld_amount ?? null], // NUEVO
 
       payment_amount: [data?.payment_amount ?? null],
       payment_date: [defaultPaymentDate],
@@ -349,13 +352,11 @@ export class ExpenseForm implements OnInit {
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
       }),
-      // campo solo de UI para selección masiva
       selected: this.fb.control<boolean>(false),
     });
   }
 
   addItem() {
-    // Si el gasto viene de XML, no permitimos agregar más ítems
     if (this.isXmlImport) return;
     this.itemsFA.push(this.createItemGroup());
   }
@@ -369,19 +370,16 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  SELECCIÓN MASIVA
   // ==========================
-  /** Marca / desmarca todos los ítems */
   onToggleSelectAll(checked: boolean): void {
     this.itemsFA.controls.forEach((ctrl) => {
       ctrl.get('selected')?.setValue(checked);
     });
   }
 
-  // se llama cuando el autocomplete masivo selecciona una opción
   onBulkProjectSelected(p: Catalog) {
     this.bulkProjectSelected = p;
   }
 
-  /** Aplica el proyecto elegido a todos los ítems seleccionados */
   applyBulkProject(): void {
     const project = this.bulkProjectSelected;
     if (!project) return;
@@ -439,15 +437,12 @@ export class ExpenseForm implements OnInit {
       items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
         amount: Number(item.amount),
 
-        // IMPORTANTES: mandar para persistir lo del CFDI
         base_amount:
           item.base_amount !== null && item.base_amount !== undefined && item.base_amount !== ''
             ? Number(item.base_amount)
             : null,
         discount_amount:
-          item.discount_amount !== null &&
-            item.discount_amount !== undefined &&
-            item.discount_amount !== ''
+          item.discount_amount !== null && item.discount_amount !== undefined && item.discount_amount !== ''
             ? Number(item.discount_amount)
             : null,
         tax_amount:
@@ -455,12 +450,17 @@ export class ExpenseForm implements OnInit {
             ? Number(item.tax_amount)
             : null,
 
+        // NUEVO
+        withheld_amount:
+          item.withheld_amount !== null && item.withheld_amount !== undefined && item.withheld_amount !== ''
+            ? Number(item.withheld_amount)
+            : null,
+
         payment_amount:
           item.payment_amount !== null && item.payment_amount !== ''
             ? Number(item.payment_amount)
             : null,
 
-        // Solo mandamos fecha cuando amount == payment_amount;
         payment_date: item.amount == item.payment_amount ? item.payment_date : null,
 
         project_id: toIdForm(item.project_id),
@@ -469,11 +469,9 @@ export class ExpenseForm implements OnInit {
     };
   }
 
-  /** Carga el siguiente draft de la cola en el formulario */
   loadNextXmlFromQueueOrExit() {
     const nextDraft = this.expenseService.consumeNextXmlDraft();
 
-    // Si ya no hay más drafts, terminamos flujo XML
     if (!nextDraft) {
       this.expenseService.clearXmlQueue();
       this.isXmlImport = false;
@@ -482,19 +480,15 @@ export class ExpenseForm implements OnInit {
       return;
     }
 
-    // Reset duro del form antes de parchear el nuevo CFDI
     this.form.reset();
     this.form.setControl('items', this.fb.array([this.createItemGroup()]));
 
-    // Rellenamos con el nuevo draft
     this.patchFormFromXmlDraft(nextDraft);
 
-    // Recalculamos contadores de la cola
     const status = this.expenseService.getXmlQueueStatus();
     this.xmlQueueTotal = status.total;
     this.xmlQueuePending = status.pending;
 
-    // limpiamos selección masiva para evitar que se quede pegada
     this.bulkProjectCtrl.setValue(null, { emitEvent: true });
     this.bulkProjectSelected = null;
   }
@@ -520,7 +514,6 @@ export class ExpenseForm implements OnInit {
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
-        // limpiamos cola y volvemos al listado
         this.expenseService.clearXmlQueue();
         this.navigateToList();
       });
@@ -532,7 +525,6 @@ export class ExpenseForm implements OnInit {
     const tax = Number(itemCtrl.get('tax_amount')?.value ?? 0);
     const total = Number(itemCtrl.get('amount')?.value ?? 0);
 
-    // Formato simple con $ y 2 decimales (para tooltip nativo)
     const money = (n: number) =>
       `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -542,6 +534,25 @@ export class ExpenseForm implements OnInit {
       `IVA: ${money(tax)}`,
       `Total: ${money(total)}`,
     ].join('\n');
+  }
+  
+  buildWithheldTooltip(itemCtrl: any): string {
+    const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
+    const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
+    const tax = Number(itemCtrl.get('tax_amount')?.value ?? 0);
+    const withheld = Number(itemCtrl.get('withheld_amount')?.value ?? 0);
+    const total = Number(itemCtrl.get('amount')?.value ?? 0);
+
+    const money = (n: number) =>
+      `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    return [
+      `Base: ${money(base)}`,
+      discount > 0 ? `Descuento: -${money(discount)}` : null,
+      `IVA: ${money(tax)}`,
+      `Retención: -${money(withheld)}`,
+      `Total: ${money(total)}`,
+    ].filter(Boolean).join('\n');
   }
 
   navigateToList() {

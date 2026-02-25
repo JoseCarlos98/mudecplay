@@ -44,10 +44,11 @@ export interface ExpenseItem {
   id: number;
   amount: number;
 
-  // NUEVO (cuando el gasto viene de XML)
+  // Desglose CFDI
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
+  withheld_amount: number; // NUEVO
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -89,10 +90,11 @@ export interface ExpenseResponseDtoMapper {
 export interface CreateExpenseItem {
   amount: number;
 
-  // NUEVO (para mandar al guardar cuando viene de XML)
+  // Desglose CFDI (para mandar al guardar cuando viene de XML)
   base_amount?: number | null;
   discount_amount?: number | null;
   tax_amount?: number | null;
+  withheld_amount?: number | null; // NUEVO
 
   project_id?: number | null;
   product_id?: number | null;
@@ -119,10 +121,11 @@ export interface ExpenseItemDetail {
   id: number;
   amount: number;
 
-  // NUEVO
+  // Desglose CFDI
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
+  withheld_amount: number; // NUEVO
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -162,10 +165,11 @@ export interface ExpenseDetail {
 export interface ExpenseItemForm {
   amount: number | null;
 
-  // NUEVO (para conservar y mandar al guardar desde XML)
+  // Desglose CFDI (para conservar y mandar al guardar desde XML)
   base_amount: number | null;
   discount_amount: number | null;
   tax_amount: number | null;
+  withheld_amount: number | null; // NUEVO
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -183,7 +187,6 @@ export interface ExpensesUiFilters {
   projectIds: number[];
   status_id: string | number | null;
   paymentStatus: "paid" | "unpaid" | null;
-  // concept lo quitamos porque ya no existe en backend ni en entidad
   page: number;
   limit: number;
 }
@@ -196,10 +199,11 @@ export interface XmlExpenseItemDraftDto {
   concept: string; // descripción original del CFDI (para mostrar al usuario)
   amount: number;
 
-  // NUEVO
+  // Desglose CFDI
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
+  withheld_amount: number; // NUEVO
 
   payment_amount: number | null;
   payment_date: string | null;
