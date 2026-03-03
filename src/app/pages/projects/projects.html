@@ -37,6 +37,14 @@
                 [isFilter]="true">
             </app-input-field>
 
+            <app-input-select 
+                formControlName="statusProject" 
+                label="Estado de proyecto" 
+                [options]="statusProjectOptions">
+            </app-input-select>
+
+        </div>
+        <div class="c-filter">
             <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)"></app-btns-section>
         </div>
     </form>

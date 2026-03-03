@@ -36,12 +36,10 @@ import * as entity from '../projects/interfaces/project-interfaces';
 import { ProjectService } from './services/projects.service';
 import { ProjectModal } from './components/project-modal/project-modal';
 
-
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
-
-const EXPENSES_FILTERS_KEY = 'mp_projects_filters_v1';
+const PROJECTS_FILTERS_KEY = 'mp_projects_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Proyecto' },
@@ -65,6 +63,12 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'email', label: 'Correo' },
   { key: 'days_credit', label: 'Crédito (días)' },
   {
+    key: 'statusProject',
+    label: '¿Abierto?',
+    type: 'booleanConfirm',
+    align: 'center',
+  },
+  {
     key: 'will_invoice',
     label: '¿Factura?',
     type: 'booleanConfirm',
@@ -72,15 +76,19 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
 ];
 
-const DISPLAYED_COLUMNS: string[] = [
-  ...COLUMNS_CONFIG.map((c) => c.key),
-  'actions',
-];
+const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
 };
 
+const PAYMENT_STATUS_OPTIONS: Catalog[] = [
+  { id: 'open', name: 'Abierto' },
+  { id: 'close', name: 'Cerrado' },
+];
+
+type ProjectStatus = 'open' | 'close';
+type ProjectStatusOrNull = ProjectStatus | null;
 
 @Component({
   selector: 'app-projects',
@@ -131,6 +139,7 @@ export class Projects {
   readonly headerConfig = HEADER_CONFIG;
 
   catalogAreaSuppliers: Catalog[] = [];
+  readonly statusProjectOptions = PAYMENT_STATUS_OPTIONS;
 
   // ==========================
   //  ESTADO / DATA
@@ -146,15 +155,15 @@ export class Projects {
     email: this.fb.control<string>(''),
     name: this.fb.control<string>(''),
     phone: this.fb.control<string>(''),
+    statusProject: this.fb.control<ProjectStatusOrNull>(null),
   });
-
 
   // ==========================
   //  CICLO DE VIDA
   // ==========================
   ngOnInit() {
     this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs();              // carga catálogos de selects
+    this.loadCatalogs(); // carga catálogos de selects
   }
 
   // ==========================
@@ -175,9 +184,10 @@ export class Projects {
   /**
    * Recibe el estado de la UI (form + paginación)
    * y devuelve el objeto de filtros que espera el backend.
+   * OJO: si statusProject es null, NO se envía al backend.
    */
   private buildBackendFiltersFromUi(ui: entity.ProjectUiFilters): entity.FiltersProject {
-    return {
+    const f: entity.FiltersProject = {
       page: ui.page,
       limit: ui.limit,
       clientsIds: ui.clientsIds ?? [],
@@ -186,6 +196,13 @@ export class Projects {
       name: ui.name?.trim() || '',
       phone: ui.phone?.trim() || '',
     };
+
+    if (ui.statusProject) {
+      // 'open' | 'close'
+      f.statusProject = ui.statusProject as any;
+    }
+
+    return f;
   }
 
   // ==========================
@@ -201,6 +218,7 @@ export class Projects {
       email: value.email?.trim() || '',
       name: value.name?.trim() || '',
       phone: value.phone?.trim() || '',
+      statusProject: (value.statusProject ?? null) as any, // null si no seleccionó
       page: 1,
       limit: this.filters.limit,
     };
@@ -214,7 +232,6 @@ export class Projects {
     // Disparamos la carga
     this.loadProject();
   }
-
 
   loadProject() {
     this.projectService.getProjects(this.filters).subscribe({
@@ -271,7 +288,7 @@ export class Projects {
   onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>) {
     switch (ev.type) {
       case 'edit':
-        this.projectModal(ev.row)
+        this.projectModal(ev.row);
         break;
       case 'delete':
         this.onDelete(ev.row);
@@ -286,7 +303,7 @@ export class Projects {
         message: `¿Quieres eliminar el proyecto:\n"${project.name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
-        size: 'mini'
+        size: 'mini',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
@@ -305,11 +322,13 @@ export class Projects {
     const form = this.formFilters.getRawValue();
 
     const hasClients = (form.clientsIds?.length ?? 0) > 0;
+    const hasResponsible = (form.responsibleIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
     const hasPhone = !!(form.phone && form.phone.trim() !== '');
     const hasName = !!(form.name && form.name.trim() !== '');
+    const hasStatus = form.statusProject !== null;
 
-    return hasClients || hasEmail || hasPhone || hasName;
+    return hasClients || hasResponsible || hasEmail || hasPhone || hasName || hasStatus;
   }
 
   clearAllAndSearch() {
@@ -317,9 +336,11 @@ export class Projects {
     this.formFilters.reset(
       {
         clientsIds: [],
+        responsibleIds: [],
         email: '',
         phone: '',
         name: '',
+        statusProject: null,
       },
       { emitEvent: false },
     );
@@ -329,13 +350,17 @@ export class Projects {
       page: 1,
       limit: this.filters.limit,
       clientsIds: [],
+      responsibleIds: [],
       email: '',
       phone: '',
       name: '',
-    }
+      // statusProject se omite a propósito
+    } as any;
 
     // Limpia storage para este módulo
-    this.storage.removeItem(EXPENSES_FILTERS_KEY);
+    this.storage.removeItem(PROJECTS_FILTERS_KEY);
+
+    // Carga sin filtros
     this.loadProject();
   }
 
@@ -355,7 +380,7 @@ export class Projects {
   //  LOCAL STORAGE (FILTROS)
   // ==========================
   private restoreFiltersFromStorage() {
-    const saved = this.storage.getItem<entity.ProjectUiFilters>(EXPENSES_FILTERS_KEY);
+    const saved = this.storage.getItem<entity.ProjectUiFilters>(PROJECTS_FILTERS_KEY);
 
     if (!saved) {
       // Primera vez: busca con los valores por defecto del form
@@ -363,13 +388,15 @@ export class Projects {
       return;
     }
 
-    // Parchear formulario con lo guardado
+    // Parchear formulario con lo guardado (incluye statusProject)
     this.formFilters.patchValue(
       {
-        clientsIds: saved.clientsIds,
-        name: saved.name,
-        email: saved.email,
-        phone: saved.phone,
+        clientsIds: saved.clientsIds ?? [],
+        responsibleIds: saved.responsibleIds ?? [],
+        name: saved.name ?? '',
+        email: saved.email ?? '',
+        phone: saved.phone ?? '',
+        statusProject: (saved.statusProject ?? null) as any,
       },
       { emitEvent: false },
     );
@@ -396,11 +423,12 @@ export class Projects {
         email: value.email?.trim() || '',
         phone: value.phone?.trim() || '',
         name: value.name?.trim() || '',
+        statusProject: (value.statusProject ?? null) as any, // NO '' ✅
         page: this.filters.page,
         limit: this.filters.limit,
       };
     }
 
-    this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+    this.storage.setItem(PROJECTS_FILTERS_KEY, state);
   }
 }

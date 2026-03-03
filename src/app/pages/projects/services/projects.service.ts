@@ -26,6 +26,7 @@ export class ProjectService {
       params = setScalar(params, 'name', filters.name?.trim());
       params = setScalar(params, 'phone', filters.phone?.trim());
       params = setScalar(params, 'email', filters.email?.trim());
+      params = setScalar(params, 'statusProject', filters.statusProject?.trim());
     }
 
     return this.http.get<PaginatedResponse<entity.ProjectResponseDto>>(url, { params });

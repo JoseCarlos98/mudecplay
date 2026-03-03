@@ -2,6 +2,7 @@ export interface FiltersProject {
   name?: string | '';
   email?: string | '';
   phone?: string | '';
+  statusProject?: string | '';
   clientsIds?: number[] | null;
   responsibleIds?: number[] | null;
   limit: number;
@@ -17,6 +18,7 @@ export interface ProjectResponseDto {
   email: string;
   days_credit: number;
   will_invoice: boolean;
+  statusProject: boolean;
 }
 
 export interface CreateProject {
@@ -30,6 +32,7 @@ export interface CreateProject {
   days_credit: number;
   contact_name: string;
   will_invoice: boolean;
+  statusProject: boolean;
 }
 
 export interface PatchProject {
@@ -43,6 +46,7 @@ export interface PatchProject {
   days_credit?: number;
   contact_name?: string;
   will_invoice: boolean;
+  statusProject: boolean;
 }
 
 export interface ProjectUiFilters {
@@ -50,6 +54,7 @@ export interface ProjectUiFilters {
   responsibleIds: number[];
   email: string;
   phone: string;
+  statusProject: string;
   name: string;
   page: number;
   limit: number;

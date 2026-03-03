@@ -667,3 +667,16 @@ body {
 .icon-opacity {
   opacity: 0!important;
 }
+
+.c-filter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: end;
+  
+  .btns-action-filters {
+    margin-bottom: 15px;
+    display: flex;
+    gap: 10px;
+  }
+}
