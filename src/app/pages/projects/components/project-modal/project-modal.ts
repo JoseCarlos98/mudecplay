@@ -47,6 +47,7 @@ export class ProjectModal implements OnInit {
     location: this.fb.control<string | null>(null),
     days_credit: this.fb.control<number | null>(null),
     contact_name: this.fb.control<string | null>(null),
+    charge_amount: this.fb.control<string | null>(null, { validators: Validators.required }),
   });
 
   ngOnInit() {

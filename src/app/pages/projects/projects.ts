@@ -61,6 +61,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'location', label: 'Ubicación' },
   { key: 'phone', label: 'Teléfono', type: 'phone' },
   { key: 'email', label: 'Correo' },
+  { key: 'charge_amount', label: 'Monto de cargo', type: 'money' },
   { key: 'days_credit', label: 'Crédito (días)' },
   {
     key: 'statusProject',

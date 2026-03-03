@@ -44,6 +44,7 @@ export interface PatchProject {
   phone: string;
   email: string;
   days_credit?: number;
+  charge_amount?: number;
   contact_name?: string;
   will_invoice: boolean;
   statusProject: boolean;

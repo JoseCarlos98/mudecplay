@@ -28,6 +28,14 @@
       </div>
 
       <div class="md:col-span-1">
+        <app-input-field
+          formControlName="charge_amount"
+          label="Monto de cargo"
+          type="money">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
         <app-autocomplete
           formControlName="responsible_id"
           label="Responsable"
