@@ -1,0 +1,69 @@
+<section class="report-tab">
+    <header class="report-tab__header">
+        <h2 class="report-tab__title">Proyectos Cotizados e Invertidos</h2>
+        <p class="report-tab__desc">Selecciona filtros y genera el preview del PDF.</p>
+    </header>
+
+    <form [formGroup]="formFilters">
+        <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-5">
+            <div class="md:col-span-1">
+                <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range"></app-input-date>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-autocomplete formControlName="projectId" label="Proyecto" [remote]="true"
+                    catalogType="project"></app-autocomplete>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-input-select formControlName="statusProject" label="Estado de proyecto"
+                    [options]="statusProjectOptions">
+                </app-input-select>
+            </div>
+
+            <div class="md:col-span-1">
+                <app-btns-section type="search" [hasActiveSearch]="hasActiveSearch"
+                    [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+                </app-btns-section>
+            </div>
+
+            <div class="md:col-span-1 flex items-center justify-end gap-2">
+                <button type="button" class="btn-primary" (click)="onSaveHistory()" [disabled]="!hasActiveSearch">
+                    <mat-icon>history</mat-icon>
+                    <span>Guardar en historial</span>
+                </button>
+                <!-- <button type="button" class="btn-primary" (click)="downloadPdf()" [disabled]="!hasActiveSearch">
+            <mat-icon>download</mat-icon>
+            <span>Descargar PDF</span>
+          </button> -->
+            </div>
+        </div>
+    </form>
+
+    @if (pdfUrl() || loadingPreview()) {
+    <div class="c-pdf-wrap">
+        @if (pdfUrl()) {
+        <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+        } @else {
+        <!-- Placeholder cuando aún no hay pdf, pero está cargando -->
+        <div class="c-pdf-placeholder"></div>
+        }
+
+        @if (loadingPreview()) {
+        <div class="c-pdf-overlay">
+            <div class="c-loader">
+                <div class="c-spinner"></div>
+                <div class="c-loader-text">Generando preview…</div>
+            </div>
+        </div>
+        }
+    </div>
+    }
+
+    @if (errorPreview()) {
+    <div class="c-preview-error">
+        {{ errorPreview() }}
+    </div>
+    }
+
+</section>

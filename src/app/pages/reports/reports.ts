@@ -8,6 +8,7 @@ import { ProjectReport } from './components/project-report/project-report';
 import { SupplierReport } from './components/supplier-report/supplier-report';
 import { AreaReport } from './components/area-report/area-report';
 import { ProjectPayables } from './components/project-payables/project-payables';
+import { ProjectStatus } from './components/project-status/project-status';
 
 
 
@@ -15,12 +16,13 @@ type ReportsSection =
   | 'project_detail'
   | 'project_by_supplier'
   | 'by_area'
-  | 'project_payables';
+  | 'project_payables'
+  | 'project_status';
 
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, PageTabsComponent, ProjectReport, SupplierReport, AreaReport, ProjectPayables],
+  imports: [CommonModule, ProjectStatus, PageTabsComponent, ProjectReport, SupplierReport, AreaReport, ProjectPayables],
   templateUrl: './reports.html',
   styleUrl: './reports.scss',
 })
@@ -31,32 +33,39 @@ export class Reports {
   activeSection = signal<ReportsSection>('project_detail');
 
   // Tabs (tipos de reporte)
-tabs: PageTab[] = [
-  {
-    id: 'project_detail',
-    icon: 'receipt_long',
-    label: 'Gasto por proyecto',
-    description: 'Listado completo con fechas, conceptos y totales',
-  },
-  {
-    id: 'project_by_supplier',
-    icon: 'store',
-    label: 'Gasto por proveedor',
-    description: 'Dentro del proyecto seleccionado: cuánto se ha gastado con cada proveedor',
-  },
-  // {
-  //   id: 'by_area',
-  //   icon: 'category',
-  //   label: 'Gasto por área',
-  //   description: 'Resumen por área: materiales, mano de obra, etc.',
-  // },
-  {
-    id: 'project_payables',
-    icon: 'request_quote',
-    label: 'Resumen del proyecto',
-    description: 'Totales acumulados + cuentas por pagar (lo que debo)',
-  },
-];
+  tabs: PageTab[] = [
+    {
+      id: 'project_detail',
+      icon: 'receipt_long',
+      label: 'Gasto por proyecto',
+      description: 'Listado completo con fechas, conceptos y totales',
+    },
+    {
+      id: 'project_by_supplier',
+      icon: 'store',
+      label: 'Gasto por proveedor',
+      description: 'Dentro del proyecto seleccionado: cuánto se ha gastado con cada proveedor',
+    },
+    // {
+    //   id: 'by_area',
+    //   icon: 'category',
+    //   label: 'Gasto por área',
+    //   description: 'Resumen por área: materiales, mano de obra, etc.',
+    // },
+    {
+      id: 'project_payables',
+      icon: 'request_quote',
+      label: 'Resumen del proyecto',
+      description: 'Totales acumulados + cuentas por pagar (lo que debo)',
+    },
+    {
+      id: 'project_status',
+      icon: 'request_quote',
+      label: 'Estado Financiero',
+      description: 'Totales acumulados y cuentas por pagar',
+    }
+
+  ];
 
 
   onActiveTabChange(nextId: string) {
