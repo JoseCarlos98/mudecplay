@@ -36,6 +36,7 @@ export class InputSelect implements ControlValueAccessor {
   @Input() placeholder: string = 'Seleccionar';
   @Input() multiple: boolean = false;
   @Input() all: boolean = false;
+  @Input() notclean: boolean = false;
 
   // <-- aquí mandas directamente tus catálogos { id, name }
   @Input() options: SelectCatalogOption[] = [];

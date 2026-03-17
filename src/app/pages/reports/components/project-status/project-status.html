@@ -12,7 +12,12 @@
 
 
       <div class="md:col-span-1">
-        <app-input-select formControlName="statusProject" label="Estado de proyecto" [options]="statusProjectOptions">
+        <app-input-select 
+          formControlName="statusProject" 
+          label="Estado de proyecto" 
+          [options]="statusProjectOptions"
+          [notclean]="true"
+          >
         </app-input-select>
       </div>
 

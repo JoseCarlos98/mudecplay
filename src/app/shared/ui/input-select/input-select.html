@@ -23,7 +23,7 @@
                 }
             </mat-select>
 
-            @if (hasValue) {
+            @if (hasValue && !notclean) {
             <button type="button" matSuffix mat-icon-button [disableRipple]="true"
                 (mousedown)="$event.preventDefault(); $event.stopPropagation()"
                 (click)="$event.stopPropagation(); clearSelection()" aria-label="Limpiar selección">
