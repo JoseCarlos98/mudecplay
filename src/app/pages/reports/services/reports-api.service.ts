@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ApiSuccess } from '../../../shared/interfaces/general-interfaces';
+import { ProjectsByStatusPreviewPayload } from '../interfaces/reports-interfaces';
 
 export interface ProjectDetailPreviewPayload {
   startDate?: string | null;
@@ -75,5 +76,16 @@ export class ReportsApiService {
 
   saveProjectPayablesHistory(payload: ProjectPayablesPreviewPayload) {
     return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/project-payables/history`, payload);
+  }
+
+  // Projects by status (cotizado e invertido)
+  previewProjectsByStatus(payload: ProjectsByStatusPreviewPayload) {
+    return this.http.post(`${this.baseUrl}/reports/projects-by-status/preview`, payload, {
+      responseType: 'blob',
+    });
+  }
+
+  saveProjectsByStatusHistory(payload: ProjectsByStatusPreviewPayload) {
+    return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/projects-by-status/history`, payload);
   }
 }

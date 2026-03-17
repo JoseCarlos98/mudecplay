@@ -66,6 +66,12 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['PRODUCTOS_EDITOR'] },
       },
+      {
+        path: 'cuentas-por-cobrar',
+        loadComponent: () => import('./pages/accounts-receivable/accounts-receivable').then((m) => m.AccountsReceivable),
+        canActivate: [rolesGuard],
+        data: { roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
+      },
 
       // Usuarios (si lo quieres solo admin)
       {

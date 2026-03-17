@@ -27,15 +27,39 @@ export class CatalogsService {
     return this.http.get<Catalog[]>(url, { params })
   }
 
-  projectsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+  projectsCatalog(
+    searchTerm: string = '',
+    extraParams?: Record<string, any>,
+  ): Observable<Catalog[]> {
     const url = `${this.apiUrl}/projects/catalog`;
     let params = new HttpParams();
 
-    if (searchTerm) params = params.set('search', searchTerm)
+    // search (como ya lo tienes)
+    if (searchTerm?.trim()) {
+      params = params.set('search', searchTerm.trim());
+    }
 
-    return this.http.get<Catalog[]>(url, { params })
+    // extras (ej: { statusProject: 'open' })
+    if (extraParams) {
+      for (const [key, value] of Object.entries(extraParams)) {
+        if (value === undefined || value === null) continue;
+        if (typeof value === 'string' && value.trim() === '') continue;
+
+        // arrays -> key=1&key=2...
+        if (Array.isArray(value)) {
+          for (const v of value) {
+            if (v === undefined || v === null) continue;
+            params = params.append(key, String(v));
+          }
+        } else {
+          params = params.set(key, String(value));
+        }
+      }
+    }
+
+    return this.http.get<Catalog[]>(url, { params });
   }
-  
+
   responsibleCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/responsibles/catalog`;
     let params = new HttpParams();
@@ -61,7 +85,7 @@ export class CatalogsService {
   areasSuppliersCatalog(): Observable<Catalog[]> {
     return this.http.get<Catalog[]>(`${this.apiUrl}/areas/catalog`);
   }
-  
+
   rolesCatalog(): Observable<Catalog[]> {
     return this.http.get<Catalog[]>(`${this.apiUrl}/roles/catalog`);
   }

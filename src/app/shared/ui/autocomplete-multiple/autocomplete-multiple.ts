@@ -16,7 +16,7 @@ import { Subject, of, debounceTime, distinctUntilChanged, switchMap, tap } from 
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -47,13 +47,18 @@ export class SearchMultiSelect implements ControlValueAccessor {
   @Input() errorMessage = 'Este campo es obligatorio';
 
   /**
+   * ✅ NUEVO: parámetros extra para el backend (opcional)
+   * Ej: { statusProject: 'open' } para /projects/catalog
+   *
+   * - No rompe nada: si no lo mandas, se ignora.
+   * - Se envía solo en modo remote.
+   */
+  @Input() extraParams?: Record<string, any>;
+
+  /**
    * Cómo viaja el valor hacia el formulario:
    * - 'ids' (default): number[] | string[]
    * - 'objects': Catalog[]
-   *
-   * Esto nos permite usar:
-   *   - modo simple para selects normales
-   *   - modo objetos para filtros persistentes (localStorage)
    */
   @Input() valueMode: 'ids' | 'objects' = 'ids';
 
@@ -110,7 +115,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
   }
 
   // =====================================================
-  //  ControlValueAccessor (integración con Reactive Forms)
+  //  ControlValueAccessor
   // =====================================================
 
   writeValue(value: any): void {
@@ -120,20 +125,18 @@ export class SearchMultiSelect implements ControlValueAccessor {
       return;
     }
 
-    // MODO por IDS (comportamiento anterior)
+    // MODO por IDS
     if (this.valueMode === 'ids') {
       this.selectedIds = Array.isArray(value) ? value : [];
-      // no podemos hidratar labels porque solo tenemos ids
       this.cdr.markForCheck();
       return;
     }
 
     // MODO por OBJETOS (Catalog[])
     const arr = Array.isArray(value) ? (value as Catalog[]) : [];
-    this.addToPool(arr);                       // cacheamos para tener nombres
-    this.selectedIds = arr.map((v) => v.id);   // el select sigue trabajando con ids
+    this.addToPool(arr);
+    this.selectedIds = arr.map((v) => v.id);
 
-    // aseguramos que las opciones visibles incluyan los seleccionados
     this.filteredOptions = this.pinSelected(this.allOptions);
     this.cdr.markForCheck();
   }
@@ -178,7 +181,7 @@ export class SearchMultiSelect implements ControlValueAccessor {
 
     let emitted: any;
 
-    // MODO IDS → se emite el array de ids (comportamiento actual)
+    // MODO IDS → se emite el array de ids
     if (this.valueMode === 'ids') {
       emitted = value;
     } else {
@@ -231,16 +234,23 @@ export class SearchMultiSelect implements ControlValueAccessor {
     return this.data.filter((i) => i.name.toLowerCase().includes(lower));
   }
 
+  /**
+   * ✅ IMPORTANTE:
+   * fetchRemote ahora pasa extraParams al CatalogsService cuando aplique.
+   * Esto NO rompe nada porque extraParams es opcional.
+   */
   private fetchRemote(search: string) {
+    const extra = this.sanitizeExtraParams(this.extraParams);
+
     switch (this.catalogType) {
       case 'supplier':
-        return this.catalogsService.suppliersCatalog(search);
+        return this.catalogsService.suppliersCatalog(search); // sin extras por ahora
       case 'project':
-        return this.catalogsService.projectsCatalog(search);
+        return this.catalogsService.projectsCatalog(search, extra); //  con extras
       case 'client':
-        return this.catalogsService.clientsCatalog(search);
+        return this.catalogsService.clientsCatalog(search); // sin extras por ahora
       case 'responsible':
-        return this.catalogsService.responsibleCatalog(search);
+        return this.catalogsService.responsibleCatalog(search); // sin extras por ahora
       default:
         return of([] as Catalog[]);
     }
@@ -252,8 +262,6 @@ export class SearchMultiSelect implements ControlValueAccessor {
 
     this.selectedIds = [];
 
-    // Si el valor viaja como objetos, emitimos [] de objetos;
-    // si viaja como ids, emitimos [] de ids.
     const emptyValue = this.valueMode === 'ids' ? [] : ([] as Catalog[]);
     this.onChange(emptyValue);
     this.onTouched();
@@ -286,4 +294,22 @@ export class SearchMultiSelect implements ControlValueAccessor {
   }
 
   compareById = (a: any, b: any) => String(a) === String(b);
+
+  /**
+   * ✅ Limpia extraParams para no mandar basura al backend
+   * - elimina null/undefined/''
+   * - deja solo keys con valor útil
+   */
+  private sanitizeExtraParams(params?: Record<string, any>): Record<string, any> | undefined {
+    if (!params) return undefined;
+
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries(params)) {
+      if (v === undefined || v === null) continue;
+      if (typeof v === 'string' && v.trim() === '') continue;
+      out[k] = v;
+    }
+
+    return Object.keys(out).length ? out : undefined;
+  }
 }
