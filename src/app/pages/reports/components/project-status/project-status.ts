@@ -49,11 +49,9 @@ export class ProjectStatus implements OnDestroy {
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
 
-    // ✅ Multi-select de proyectos (Catalog[])
-    projectIds: this.fb.control<Catalog[]>([]),
+    projectIds: this.fb.control<Catalog[]>([], { validators: Validators.required }),
 
-    // ✅ Primero se elige estatus; esto habilita el selector de proyectos
-    statusProject: this.fb.control<'open' | 'close' | null>(null, {
+    statusProject: this.fb.control<'open' | 'close' | null>('open', {
       validators: Validators.required,
     }),
   });

@@ -12,7 +12,14 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule, MatSelectChange } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
-import { Subject, of, debounceTime, distinctUntilChanged, switchMap, tap } from 'rxjs';
+import {
+  Subject,
+  of,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { CatalogsService } from '../../services/catalogs.service';
 import { Catalog } from '../../interfaces/general-interfaces';
 import { MatIconModule } from '@angular/material/icon';
@@ -34,7 +41,6 @@ import { MatButtonModule } from '@angular/material/button';
   ],
   templateUrl: './autocomplete-multiple.html',
   styleUrls: ['./autocomplete-multiple.scss'],
-  // changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchMultiSelect implements ControlValueAccessor {
   // ====== API del componente (Inputs personalizables) ======
@@ -42,18 +48,34 @@ export class SearchMultiSelect implements ControlValueAccessor {
   @Input() placeholder = 'Todos';
   @Input() searchPlaceholder = 'Buscar';
   @Input() remote = false;
-  @Input() catalogType: 'supplier' | 'project' | 'client' | 'responsible' = 'supplier';
+  @Input() catalogType: 'supplier' | 'project' | 'client' | 'responsible' =
+    'supplier';
   @Input() data: Catalog[] = [];
   @Input() errorMessage = 'Este campo es obligatorio';
 
   /**
-   * ✅ NUEVO: parámetros extra para el backend (opcional)
-   * Ej: { statusProject: 'open' } para /projects/catalog
-   *
-   * - No rompe nada: si no lo mandas, se ignora.
-   * - Se envía solo en modo remote.
+   *  NUEVO (Opción A): parámetros extra para el backend (opcional)
+   * - Cuando cambian (ej. statusProject open/close), se reinicia el pool local
+   *   para evitar mezclar resultados de otro “scope”.
+   * - NO rompe nada: si no lo usas, se comporta igual que antes.
    */
-  @Input() extraParams?: Record<string, any>;
+  @Input()
+  set extraParams(value: Record<string, any> | undefined) {
+    const sanitized = this.sanitizeExtraParams(value);
+    const nextKey = this.buildStableKey(sanitized);
+
+    // si no cambia, no hacemos nada
+    if (nextKey === this.extraParamsKey) return;
+
+    this.extraParamsKey = nextKey;
+    this.extraParamsSanitized = sanitized;
+
+    // 🔥 Opción A: reset del cache/pool cuando cambian parámetros
+    this.resetRemotePoolKeepSelection();
+  }
+  get extraParams(): Record<string, any> | undefined {
+    return this.extraParamsSanitized;
+  }
 
   /**
    * Cómo viaja el valor hacia el formulario:
@@ -75,6 +97,10 @@ export class SearchMultiSelect implements ControlValueAccessor {
 
   private readonly catalogsService = inject(CatalogsService);
   private readonly cdr = inject(ChangeDetectorRef);
+
+  //  cache del “scope” actual
+  private extraParamsSanitized?: Record<string, any>;
+  private extraParamsKey: string = '';
 
   constructor(@Optional() @Self() private ngControl: NgControl) {
     if (this.ngControl) this.ngControl.valueAccessor = this;
@@ -105,7 +131,9 @@ export class SearchMultiSelect implements ControlValueAccessor {
           return this.fetchRemote(text).pipe(
             tap((results) => {
               this.addToPool(results);
-              this.filteredOptions = this.pinSelected(this.filterFromPool(text));
+              this.filteredOptions = this.pinSelected(
+                this.filterFromPool(text),
+              );
               this.cdr.markForCheck();
             }),
           );
@@ -115,9 +143,8 @@ export class SearchMultiSelect implements ControlValueAccessor {
   }
 
   // =====================================================
-  //  ControlValueAccessor
+  //  ControlValueAccessor (Reactive Forms)
   // =====================================================
-
   writeValue(value: any): void {
     if (!value) {
       this.selectedIds = [];
@@ -157,15 +184,15 @@ export class SearchMultiSelect implements ControlValueAccessor {
   // ==========================
   //  Eventos de UI
   // ==========================
-
   onOpenedChange(opened: boolean) {
     if (!opened) return;
 
     if (!this.remote) {
       this.filteredOptions = this.pinSelected(this.data);
     } else {
-      // últimos 10 vistos + seleccionados arriba
-      this.filteredOptions = this.pinSelected(this.optionsPool.slice(-10).reverse());
+      this.filteredOptions = this.pinSelected(
+        this.optionsPool.slice(-10).reverse(),
+      );
     }
 
     this.cdr.markForCheck();
@@ -181,11 +208,9 @@ export class SearchMultiSelect implements ControlValueAccessor {
 
     let emitted: any;
 
-    // MODO IDS → se emite el array de ids
     if (this.valueMode === 'ids') {
       emitted = value;
     } else {
-      // MODO OBJETOS → construimos Catalog[] en base al pool
       const map = new Map<string, Catalog>();
       for (const opt of this.allOptions) {
         map.set(String(opt.id), opt);
@@ -219,7 +244,6 @@ export class SearchMultiSelect implements ControlValueAccessor {
   // ==========================
   //  Helpers
   // ==========================
-
   private get allOptions(): Catalog[] {
     const uniq = new Map<string | number, Catalog>();
     for (const o of [...this.data, ...this.optionsPool]) {
@@ -235,22 +259,21 @@ export class SearchMultiSelect implements ControlValueAccessor {
   }
 
   /**
-   * ✅ IMPORTANTE:
-   * fetchRemote ahora pasa extraParams al CatalogsService cuando aplique.
-   * Esto NO rompe nada porque extraParams es opcional.
+   *  Ahora pasa extraParams (sanitizados) al catálogo de proyectos.
    */
   private fetchRemote(search: string) {
-    const extra = this.sanitizeExtraParams(this.extraParams);
-
     switch (this.catalogType) {
       case 'supplier':
-        return this.catalogsService.suppliersCatalog(search); // sin extras por ahora
+        return this.catalogsService.suppliersCatalog(search);
       case 'project':
-        return this.catalogsService.projectsCatalog(search, extra); //  con extras
+        return this.catalogsService.projectsCatalog(
+          search,
+          this.extraParamsSanitized,
+        );
       case 'client':
-        return this.catalogsService.clientsCatalog(search); // sin extras por ahora
+        return this.catalogsService.clientsCatalog(search);
       case 'responsible':
-        return this.catalogsService.responsibleCatalog(search); // sin extras por ahora
+        return this.catalogsService.responsibleCatalog(search);
       default:
         return of([] as Catalog[]);
     }
@@ -273,6 +296,13 @@ export class SearchMultiSelect implements ControlValueAccessor {
     this.cdr.markForCheck();
   }
 
+   get showRequiredMark(): boolean {
+    const control = this.ngControl?.control;
+    if (!control || !control.validator) return false;
+    const res = control.validator({} as any);
+    return !!res?.['required'];
+  }
+
   private addToPool(results: Catalog[]) {
     for (const item of results) {
       if (!this.optionsPool.some((o) => String(o.id) === String(item.id))) {
@@ -288,7 +318,9 @@ export class SearchMultiSelect implements ControlValueAccessor {
 
   private pinSelected(list: Catalog[]): Catalog[] {
     const selectedSet = new Set(this.selectedIds.map(String));
-    const selectedObjs = this.allOptions.filter((o) => selectedSet.has(String(o.id)));
+    const selectedObjs = this.allOptions.filter((o) =>
+      selectedSet.has(String(o.id)),
+    );
     const rest = list.filter((o) => !selectedSet.has(String(o.id)));
     return [...selectedObjs, ...rest];
   }
@@ -296,11 +328,44 @@ export class SearchMultiSelect implements ControlValueAccessor {
   compareById = (a: any, b: any) => String(a) === String(b);
 
   /**
-   * ✅ Limpia extraParams para no mandar basura al backend
+   *  reset del pool cuando cambian extraParams,
+   * pero sin perder los seleccionados (si existen en allOptions).
+   *
+   * Evita que se “cuelen” opciones de otro estatus (open/close) por cache.
+   */
+  private resetRemotePoolKeepSelection(): void {
+    if (!this.remote) return;
+
+    // Guardamos los objetos seleccionados que ya tengamos (para no perder labels)
+    const selectedSet = new Set(this.selectedIds.map(String));
+    const selectedObjs = this.allOptions.filter((o) =>
+      selectedSet.has(String(o.id)),
+    );
+
+    // Reset pool + opciones visibles
+    this.optionsPool = [];
+
+    // Re-cacheamos los seleccionados para que sigan apareciendo arriba
+    if (selectedObjs.length) {
+      this.addToPool(selectedObjs);
+    }
+
+    // Deja el listado “limpio” (seleccionados arriba si hay) hasta que el usuario busque
+    this.filteredOptions = this.pinSelected(
+      this.optionsPool.slice(-10).reverse(),
+    );
+
+    this.cdr.markForCheck();
+  }
+
+  /**
+   * Limpia extraParams:
    * - elimina null/undefined/''
    * - deja solo keys con valor útil
    */
-  private sanitizeExtraParams(params?: Record<string, any>): Record<string, any> | undefined {
+  private sanitizeExtraParams(
+    params?: Record<string, any>,
+  ): Record<string, any> | undefined {
     if (!params) return undefined;
 
     const out: Record<string, any> = {};
@@ -311,5 +376,17 @@ export class SearchMultiSelect implements ControlValueAccessor {
     }
 
     return Object.keys(out).length ? out : undefined;
+  }
+
+  /**
+   * Genera una key estable para detectar cambios aunque el objeto venga con
+   * keys en diferente orden.
+   */
+  private buildStableKey(params?: Record<string, any>): string {
+    if (!params) return '';
+    const entries = Object.entries(params).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+    return JSON.stringify(entries);
   }
 }
