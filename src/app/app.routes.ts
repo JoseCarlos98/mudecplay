@@ -78,7 +78,7 @@ export const routes: Routes = [
         path: 'usuarios',
         loadComponent: () => import('./pages/users/users').then((m) => m.Users),
         canActivate: [rolesGuard],
-        data: { roles: ['ADMIN_GENERAL'] },
+        data: { roles: ['USUARIOS_EDITOR'] },
       },
 
       // (Opcional) default interno

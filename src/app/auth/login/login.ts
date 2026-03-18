@@ -53,6 +53,7 @@ export class LoginComponent {
           CLIENTES_EDITOR: '/clientes',
           RESPONSABLES_EDITOR: '/responsables',
           PRODUCTOS_EDITOR: '/productos',
+          USUARIOS_EDITOR: '/usuarios',
         };
 
         // Toma el PRIMER rol (en el orden que venga) que tenga ruta

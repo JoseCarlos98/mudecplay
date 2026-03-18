@@ -51,7 +51,7 @@ export class Sidebar {
         { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },
 
         // Usuarios: solo admin (según tu regla)
-        { name: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['ADMIN_GENERAL'] },
+        { name: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['USUARIOS_EDITOR'] },
       ],
     },
   ];
