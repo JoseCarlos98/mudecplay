@@ -49,7 +49,9 @@ export class ProjectStatus implements OnDestroy {
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
 
-    projectIds: this.fb.control<Catalog[]>([], { validators: Validators.required }),
+    projectIds: this.fb.control<Catalog[]>([], {
+      validators: Validators.required,
+    }),
 
     statusProject: this.fb.control<'open' | 'close' | null>('open', {
       validators: Validators.required,
@@ -57,14 +59,19 @@ export class ProjectStatus implements OnDestroy {
   });
 
   /**
-   * Solo es obligatorio seleccionar estatus.
-   * Proyectos puede ir vacío => "Todos" (del estatus seleccionado).
+   * Igual que SupplierReport:
+   * - Para habilitar “Buscar”, debe existir lo requerido.
+   * - Aquí lo requerido es: statusProject + al menos 1 proyecto
    */
   get hasActiveFilters(): boolean {
-    return !!this.formFilters.get('statusProject')?.value;
+    const v = this.formFilters.getRawValue();
+    const hasStatus = !!v.statusProject;
+    const hasProjects = (v.projectIds?.length ?? 0) > 0;
+    return hasStatus && hasProjects;
   }
 
   get hasActiveSearch(): boolean {
+    // mismos requisitos
     return this.hasActiveFilters;
   }
 
@@ -84,8 +91,8 @@ export class ProjectStatus implements OnDestroy {
     if (!payload) return;
 
     this.api.saveProjectsByStatusHistory(payload).subscribe({
-      next: (res) => console.log('[REPORTES] historial ok:', res),
-      error: (err) => console.error('[REPORTES] historial error', err),
+      next: (res) => console.log('[REPORTES] historial (financiero) ok:', res),
+      error: (err) => console.error('[REPORTES] historial (financiero) error', err),
     });
   }
 
@@ -96,8 +103,7 @@ export class ProjectStatus implements OnDestroy {
     this.loadingPreview.set(true);
     this.errorPreview.set(null);
 
-    this.api
-      .previewProjectsByStatus(payload)
+    this.api.previewProjectsByStatus(payload)
       .pipe(finalize(() => this.loadingPreview.set(false)))
       .subscribe({
         next: (blob) => {
@@ -107,7 +113,7 @@ export class ProjectStatus implements OnDestroy {
           this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
         },
         error: (err) => {
-          console.error('[REPORTES] preview error', err);
+          console.error('[REPORTES] preview (financiero) error', err);
           this.errorPreview.set('No se pudo generar el preview. Intenta de nuevo.');
         },
       });
@@ -118,15 +124,18 @@ export class ProjectStatus implements OnDestroy {
 
     const startDate = v.dateRange?.startDate ?? null;
     const endDate = v.dateRange?.endDate ?? null;
+
     const statusProject = v.statusProject;
+    const projectIds = v.projectIds ?? [];
 
     if (!statusProject) return null;
+    if (!projectIds.length) return null;
 
     return {
       startDate,
       endDate,
       statusProject,
-      projectIds: (v.projectIds ?? []).map((x) => Number(x.id)),
+      projectIds: projectIds.map((x) => Number(x.id)),
     };
   }
 

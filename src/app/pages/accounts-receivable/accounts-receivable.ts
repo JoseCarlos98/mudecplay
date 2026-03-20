@@ -1,7 +1,8 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -19,88 +20,59 @@ import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
-import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
 
 // Servicios
+import { AccountsReceivableService } from './services/accounts-receivable.service';
 import { DialogService } from '../../shared/services/dialog.service';
-import { CatalogsService } from '../../shared/services/catalogs.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
 
 // Interfaces
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
-import * as entity from '../accounts-receivable/interfaces/accounts-receivable-interfaces';
+import * as entity from './interfaces/accounts-receivable-interfaces';
 
-// Componentes propios
-import { finalize } from 'rxjs';
+// Auth
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
-import { PermissionsService } from '../../auth/services/permissions.service';
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
+import { ModalReceivableXml } from './components/modal-receivable-xml/modal-receivable-xml';
 
-const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
+const ACCOUNTS_RECEIVABLE_FILTERS_KEY = 'mp_accounts_receivable_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
-
-  { key: 'internal_folio', label: 'Folio' },
-  { key: 'date', label: 'Fecha', type: 'date' },
-  {
-    key: 'supplier',
-    label: 'Proveedor',
-    type: 'relation',
-    path: 'company_name',
-    fallback: 'No asignado',
-    fallbackVariant: 'chip-warning',
-  },
-  { key: 'products', label: 'Productos', type: 'showItems' },
-  { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
-  { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
+  { key: 'company_label', label: 'Empresa', type: 'chip', typeVariant: 'chip-neutral' },
+  { key: 'invoice_display', label: 'Factura' },
+  { key: 'receiver_name', label: 'Cliente' },
+  { key: 'issue_date', label: 'Fecha emisión', type: 'date' },
+  { key: 'total', label: 'Total', type: 'money', align: 'right' },
+  { key: 'status_label', label: 'Estatus', type: 'chip', typeVariant: 'chip-neutral' },
+  { key: 'collected_at', label: 'Fecha cobro', type: 'date' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map((c) => c.key),
   'actions',
 ];
-
 const HEADER_CONFIG: ModuleHeaderConfig = {
-  showNew: true,
+  showNew: false,
   showUploadXml: true,
-  newRoles: ['GASTOS_EDITOR'],
-  uploadXmlRoles: ['GASTOS_XML_IMPORTADOR'],
+  uploadXmlRoles: ['CUENTAS_POR_COBRAR_XML_IMPORTADOR'],
 };
-
-// Catálogo extra de estados “virtuales”
-const STATUS_COMPLEMENTS: Catalog[] = [
-  { id: 'missing_supplier', name: 'Sin proveedor' },
-  { id: 'missing_project', name: 'Sin proyecto' },
-];
-
-const STATUSXML: Catalog[] = [
-  { id: 'pending', name: 'Pendiente' },
-  { id: 'collected', name: 'Cobrada' },
-];
 
 @Component({
   selector: 'app-accounts-receivable',
   standalone: true,
   imports: [
     CommonModule,
-    // UI
     ModuleHeader,
     DataTable,
     BtnsSection,
     InputDate,
     InputField,
     InputSelect,
-    SearchMultiSelect,
-    // Angular Material
     MatPaginatorModule,
-    MatFormFieldModule,  
+    MatFormFieldModule,
     MatSelectModule,
     MatInputModule,
     MatIconModule,
@@ -108,414 +80,314 @@ const STATUSXML: Catalog[] = [
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    // Forms
     FormsModule,
     ReactiveFormsModule,
-    HasRoleDirective
+    HasRoleDirective,
   ],
   templateUrl: './accounts-receivable.html',
   styleUrl: './accounts-receivable.scss',
 })
-export class AccountsReceivable  {
-// export class AccountsReceivable implements OnInit {
+export class AccountsReceivable implements OnInit {
+  private readonly accountsReceivableService = inject(AccountsReceivableService);
+  private readonly dialogService = inject(DialogService);
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly storage = inject(LocalStorageService);
 
-  // // ==========================
-  // //  INYECCIONES
-  // // ==========================
-  // // private readonly expenseService = inject(ExpenseService);
-  // private readonly dialogService = inject(DialogService);
-  // private readonly catalogsService = inject(CatalogsService);
-  // private readonly fb = inject(FormBuilder);
-  // private readonly router = inject(Router);
-  // private readonly storage = inject(LocalStorageService);
-  // private readonly permissionsService = inject(PermissionsService);
+  @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
 
-  // canDeleteRow = (row: entity.ExpenseResponseDto) => {
-  //   // No permitir borrar si viene de CFDI
-  //   return !row.cfdi_uuid;
-  // };
+  readonly columnsConfig = COLUMNS_CONFIG;
+  readonly displayedColumns = DISPLAYED_COLUMNS;
+  readonly headerConfig = HEADER_CONFIG;
+  readonly statusOptions = entity.ACCOUNTS_RECEIVABLE_STATUS_OPTIONS;
+  readonly companyOptions = entity.ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS;
 
-  // deleteTooltip = (row: entity.ExpenseResponseDto) => {
-  //   if (row.cfdi_uuid) {
-  //     return 'No puedes eliminar gastos creados desde un CFDI.';
-  //   }
-  //   return null;
-  // };
+  filters: entity.FiltersAccountsReceivable = { page: 1, limit: 5 };
 
-  // @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
+  accountsReceivableTableData!: PaginatedResponse<entity.AccountReceivableRow>;
 
-  // // ==========================
-  // //  CONFIG UI
-  // // ==========================
-  // readonly columnsConfig = COLUMNS_CONFIG;
-  // readonly displayedColumns = DISPLAYED_COLUMNS;
-  // readonly headerConfig = HEADER_CONFIG;
-  // readonly statusOptions = STATUSXML;
+  formFilters = this.fb.group({
+    dateRange: this.fb.control<DateRangeValue | null>(null),
+    folio: this.fb.control<string>(''),
+    companyCode: this.fb.control<string | null>(null),
+    clientQuery: this.fb.control<string>(''),
+    status: this.fb.control<'pending' | 'collected' | null>(null),
+  });
 
-  // catalogStatusExpense: Catalog[] = [];
+  ngOnInit(): void {
+    this.restoreFiltersFromStorage();
+  }
 
-  // // ==========================
-  // //  ESTADO / DATA
-  // // ==========================
-  // // Filtros que van al backend
-  // filters: entity.FiltersAccountsReceivable = { page: 1, limit: 5 };
-  // // expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
+  private buildBackendFiltersFromUi(
+    ui: entity.AccountsReceivableUiFilters,
+  ): entity.FiltersAccountsReceivable {
+    return {
+      page: ui.page,
+      limit: ui.limit,
+      startDate: ui.dateRange?.startDate ?? null,
+      endDate: ui.dateRange?.endDate ?? null,
+      folio: ui.folio?.trim() || null,
+      companyCode: ui.companyCode ?? null,
+      clientQuery: ui.clientQuery?.trim() || null,
+      status: ui.status ?? null,
+    };
+  }
 
-  // // Form de filtros de la grilla (estado de la UI)
-  // formFilters = this.fb.group({
-  //   dateRange: this.fb.control<DateRangeValue | null>(null),
-  //   folio: this.fb.control<string>(''),
-  //   clientsIds: this.fb.control<any[]>([]),
-  //   status: this.fb.control<'pending' | 'collected' | null>(null),
-  // });
+  searchWithFilters(): void {
+    const value = this.formFilters.getRawValue();
 
-  // // ==========================
-  // //  CICLO DE VIDA
-  // // ==========================
-  // ngOnInit(): void {
-  //   this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-  //   this.loadCatalogs();              // carga catálogos de selects
-  //   console.log('ROLES ACTUALES DEL USUARIO PARA GASTOS', this.permissionsService.roles);
+    const uiState: entity.AccountsReceivableUiFilters = {
+      dateRange: value.dateRange ?? null,
+      folio: value.folio ?? '',
+      companyCode: value.companyCode ?? null,
+      clientQuery: value.clientQuery ?? '',
+      status: value.status ?? null,
+      page: 1,
+      limit: this.filters.limit,
+    };
 
-  // }
+    this.filters = this.buildBackendFiltersFromUi(uiState);
+    this.saveFiltersToStorage(uiState);
+    this.loadAccountsReceivable();
+  }
 
-  // // ==========================
-  // //  CARGA DE CATÁLOGOS
-  // // ==========================
-  // loadCatalogs(): void {
-  //   this.catalogsService.statusExpenseCatalog().subscribe({
-  //     next: (response: Catalog[]) => {
-  //       this.catalogStatusExpense = [
-  //         ...response,
-  //         ...STATUS_COMPLEMENTS,
-  //       ];
-  //     },
-  //     error: (err) => console.error('Error al cargar estados de gasto:', err),
-  //   });
-  // }
+  onTableAction(ev: DataTableActionEvent<entity.AccountReceivableRow>): void {
+    switch (ev.type) {
+      case 'edit':
+        this.router.navigateByUrl(`/cuentas-por-cobrar/editar/${ev.row.id}`);
+        break;
 
-  // // ==========================
-  // //  HELPER: UI → FILTROS BACKEND
-  // // ==========================
-  // /**
-  //  * Recibe el estado de la UI (form + paginación)
-  //  * y devuelve el objeto de filtros que espera el backend.
-  //  */
-  // private buildBackendFiltersFromUi(ui: entity.AccountsReceivableUiFilters): entity.FiltersExpenses {
-  //   return {
-  //     page: ui.page,
-  //     limit: ui.limit,
-  //     startDate: ui.dateRange?.startDate ?? null,
-  //     endDate: ui.dateRange?.endDate ?? null,
-  //     suppliersIds: (ui.clientsIds ?? []).map((s: any) => s.id),
-  //     projectIds: (ui.projectIds ?? []).map((p: any) => p.id),
-  //     status_id: ui.status_id ?? null,
-  //     paymentStatus: ui.paymentStatus ?? null,
-  //   };
-  // }
+      case 'delete':
+        this.onDelete(ev.row);
+        break;
+    }
+  }
 
-  // // ==========================
-  // //  FILTROS + BÚSQUEDA
-  // // ==========================
-  // searchWithFilters(): void {
-  //   const value = this.formFilters.getRawValue();
+  onDelete(account: entity.AccountReceivableRow): void {
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        message: `¿Quieres eliminar la cuenta por cobrar:\n"${account.series ? account.series + '-' : ''}${account.folio}"?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
 
-  //   // Estado completo de la UI (incluye página/limit)
-  //   const uiState: entity.AccountsReceivableUiFilters = {
-  //     dateRange: value.dateRange ?? null,
-  //     suppliersIds: value.suppliersIds ?? [],
-  //     projectIds: value.projectIds ?? [],
-  //     status_id: value.status_id ?? null,
-  //     paymentStatus: value.paymentStatus ?? null,
-  //     page: 1,
-  //     limit: this.filters.limit,
-  //   };
+        this.accountsReceivableService.remove(account.id).subscribe({
+          next: () => this.loadAccountsReceivable(),
+          error: (err) => console.error('Error al eliminar cuenta por cobrar:', err),
+        });
+      });
+  }
+  
+  loadAccountsReceivable(): void {
+    this.accountsReceivableService.getAccountsReceivable(this.filters).subscribe({
+      next: (response) => {
+        const data: entity.AccountReceivableRow[] = (response.data ?? []).map((row) => ({
+          ...row,
+          invoice_display: row.series ? `${row.series}-${row.folio}` : row.folio,
+          company_label: this.resolveCompanyLabel(row.company_code),
+          status_label: row.status === 'collected' ? 'Cobrada' : 'Pendiente',
+        }));
 
-  //   // Mapeamos a filtros de backend usando el helper
-  //   this.filters = this.buildBackendFiltersFromUi(uiState);
+        this.accountsReceivableTableData = {
+          ...response,
+          data,
+        };
+      },
+      error: (err) => console.error('Error al cargar cuentas por cobrar:', err),
+    });
+  }
 
-  //   // Guardamos el estado de UI para persistir filtros
-  //   this.saveFiltersToStorage(uiState);
+  onPageChange(event: PageEvent): void {
+    this.filters.page = event.pageIndex + 1;
+    this.filters.limit = event.pageSize;
 
-  //   // Disparamos la carga
-  //   this.loadExpenses();
-  // }
+    this.saveFiltersToStorage();
+    this.loadAccountsReceivable();
+  }
 
-  // loadExpenses(): void {
-  //   // this.expenseService.getExpenses(this.filters).subscribe({
-  //   //   next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
-  //   //     this.expensesTableData = response;
-  //   //   },
-  //   //   error: (err) => console.error('Error al cargar gastos:', err),
-  //   // });
-  // }
+  onHeaderAction(action: string): void {
+    switch (action) {
+      case 'upload':
+        this.xmlInput.nativeElement.click();
+        break;
+    }
+  }
 
-  // // ==========================
-  // //  PAGINACIÓN
-  // // ==========================
-  // onPageChange(event: PageEvent): void {
-  //   this.filters.page = event.pageIndex + 1;
-  //   this.filters.limit = event.pageSize;
+  onBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'search':
+        this.searchWithFilters();
+        break;
+      case 'clean':
+        this.clearAllAndSearch();
+        break;
+    }
+  }
 
-  //   // Actualizamos solo page/limit en storage con el estado actual del form
-  //   this.saveFiltersToStorage();
-  //   this.loadExpenses();
-  // }
+  get hasActiveFilters(): boolean {
+    const form = this.formFilters.getRawValue();
 
-  // // ==========================
-  // //  ACCIONES HEADER
-  // // ==========================
-  // onHeaderAction(action: string): void {
-  //   switch (action) {
-  //     case 'new':
-  //       this.router.navigateByUrl('/gastos/nuevo');
-  //       break;
-  //     case 'upload':
-  //       this.xmlInput.nativeElement.click();
-  //       break;
-  //   }
-  // }
+    const hasDates = !!(form.dateRange?.startDate || form.dateRange?.endDate);
+    const hasFolio = !!form.folio?.trim();
+    const hasCompany = !!form.companyCode;
+    const hasClientQuery = !!form.clientQuery?.trim();
+    const hasStatus = !!form.status;
 
-  // // ==========================
-  // //  ACCIONES FOOTER-FILTROS
-  // // ==========================
-  // onBtnsSectionAction(action: string): void {
-  //   switch (action) {
-  //     case 'search':
-  //       this.searchWithFilters();
-  //       break;
-  //     case 'clean':
-  //       this.clearAllAndSearch();
-  //       break;
-  //   }
-  // }
+    return hasDates || hasFolio || hasCompany || hasClientQuery || hasStatus;
+  }
 
-  // // ==========================
-  // //  ACCIONES TABLA
-  // // ==========================
-  // onTableAction(ev: DataTableActionEvent<entity.ExpenseResponseDto>): void {
-  //   switch (ev.type) {
-  //     case 'edit':
-  //       this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
-  //       break;
+  clearAllAndSearch(): void {
+    this.formFilters.reset(
+      {
+        dateRange: null,
+        folio: '',
+        companyCode: null,
+        clientQuery: '',
+        status: null,
+      },
+      { emitEvent: false },
+    );
 
-  //     case 'delete':
-  //       this.onDelete(ev.row);
-  //       break;
+    this.filters = {
+      page: 1,
+      limit: this.filters.limit,
+      startDate: null,
+      endDate: null,
+      folio: null,
+      companyCode: null,
+      clientQuery: null,
+      status: null,
+    };
 
-  //     case 'showItems':
-  //       this.expenseModal(ev.row.items);
-  //       break;
-  //   }
-  // }
+    this.storage.removeItem(ACCOUNTS_RECEIVABLE_FILTERS_KEY);
+    this.loadAccountsReceivable();
+  }
 
-  // // Confirmación + delete
-  // onDelete(expense: entity.ExpenseResponseDto): void {
-  //   this.dialogService
-  //     .confirm({
-  //       size: 'mini',
-  //       message: `¿Quieres eliminar el gasto:\n"${expense.internal_folio.trim()}"?`,
-  //       confirmText: 'Eliminar',
-  //       cancelText: 'Cancelar',
-  //     })
-  //     .subscribe((confirmed) => {
-  //       if (!confirmed) return;
+  private restoreFiltersFromStorage(): void {
+    const saved =
+      this.storage.getItem<entity.AccountsReceivableUiFilters>(
+        ACCOUNTS_RECEIVABLE_FILTERS_KEY,
+      );
 
-  //       // this.expenseService.remove(expense.id).subscribe({
-  //       //   next: () => this.loadExpenses(),
-  //       //   error: (err) => console.error('Error al eliminar gasto:', err),
-  //       // });
-  //     });
-  // }
+    if (!saved) {
+      this.searchWithFilters();
+      return;
+    }
 
-  // // ==========================
-  // //  ESTADO DE FILTROS (UI)
-  // // ==========================
-  // get hasActiveFilters(): boolean {
-  //   const form = this.formFilters.getRawValue();
+    this.formFilters.patchValue(
+      {
+        dateRange: saved.dateRange,
+        folio: saved.folio,
+        companyCode: saved.companyCode,
+        clientQuery: saved.clientQuery,
+        status: saved.status,
+      },
+      { emitEvent: false },
+    );
 
-  //   const hasDates = !!(form.dateRange?.startDate || form.dateRange?.endDate);
-  //   const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-  //   const hasProjects = (form.projectIds?.length ?? 0) > 0;
-  //   const hasStatus = form.status_id !== '';
-  //   const hasConcept = !!(form.concept && form.concept.trim() !== '');
+    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.loadAccountsReceivable();
+  }
 
-  //   return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
-  // }
+  private saveFiltersToStorage(state?: entity.AccountsReceivableUiFilters): void {
+    if (!state) {
+      const value = this.formFilters.getRawValue();
 
-  // clearAllAndSearch(): void {
-  //   // Limpia formulario de filtros
-  //   this.formFilters.reset(
-  //     {
-  //       dateRange: null,
-  //       suppliersIds: [],
-  //       projectIds: [],
-  //       status_id: '',
-  //       paymentStatus: null,
-  //       concept: '',
-  //     },
-  //     { emitEvent: false },
-  //   );
+      state = {
+        dateRange: value.dateRange ?? null,
+        folio: value.folio ?? '',
+        companyCode: value.companyCode ?? null,
+        clientQuery: value.clientQuery ?? '',
+        status: value.status ?? null,
+        page: this.filters.page,
+        limit: this.filters.limit,
+      };
+    }
 
-  //   // Resetea filtros de backend
-  //   this.filters = {
-  //     page: 1,
-  //     limit: this.filters.limit,
-  //     startDate: null,
-  //     endDate: null,
-  //     paymentStatus: null,
-  //     suppliersIds: [],
-  //     projectIds: [],
-  //     status_id: null,
-  //   }
+    this.storage.setItem(ACCOUNTS_RECEIVABLE_FILTERS_KEY, state);
+  }
 
-  //   // Limpia storage para este módulo
-  //   this.storage.removeItem(EXPENSES_FILTERS_KEY);
-  //   this.loadExpenses();
-  // }
+  onXmlSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
 
-  // // ==========================
-  // //  MODAL DE ITEMS
-  // // ==========================
-  // expenseModal(expense?: entity.ExpenseItem[]): void {
-  //   // this.dialogService
-  //   //   .open(ExpenseModal, expense ? expense : null, 'medium')
-  //   //   .afterClosed()
-  //   //   .subscribe((result) => {
-  //   //     if (result) this.loadExpenses();
-  //   //   });
-  // }
+    const files = Array.from(input.files);
 
-  // // ==========================
-  // //  LOCAL STORAGE (FILTROS)
-  // // ==========================
-  // private restoreFiltersFromStorage(): void {
-  //   const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
+    this.accountsReceivableService
+      .uploadXml(files)
+      .pipe(finalize(() => (input.value = '')))
+      .subscribe({
+        next: (resp) => {
+          const drafts = resp.drafts ?? [];
+          const duplicates = resp.duplicates ?? [];
+          const errors = resp.errors ?? [];
 
-  //   if (!saved) {
-  //     // Primera vez: busca con los valores por defecto del form
-  //     this.searchWithFilters();
-  //     return;
-  //   }
+          if (errors.length > 0 && drafts.length === 0 && duplicates.length === 0) {
+            const msg = errors
+              .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
+              .join('\n');
 
-  //   // Parchear formulario con lo guardado
-  //   this.formFilters.patchValue(
-  //     {
-  //       dateRange: saved.dateRange,
-  //       suppliersIds: saved.suppliersIds,
-  //       projectIds: saved.projectIds,
-  //       status_id: saved.status_id,
-  //     },
-  //     { emitEvent: false },
-  //   );
+            this.dialogService.confirm({
+              title: 'Errores al leer XML',
+              message: msg || 'Ocurrió un error al procesar los XML.',
+              confirmText: 'OK',
+              cancelText: '',
+            }).subscribe();
+            return;
+          }
 
-  //   // Reconstruir filtros de backend desde el estado de UI guardado
-  //   this.filters = this.buildBackendFiltersFromUi(saved);
+          if (!drafts.length && !duplicates.length) {
+            this.dialogService.confirm({
+              title: 'Sin resultados',
+              message: 'No se encontraron XML válidos en la carga.',
+              confirmText: 'OK',
+              cancelText: '',
+            }).subscribe();
+            return;
+          }
 
-  //   // Cargar tabla con esos filtros
-  //   this.loadExpenses();
-  // }
+          this.dialogService
+            .open(
+              ModalReceivableXml,
+              {
+                drafts,
+                duplicates,
+              },
+              'large',
+            )
+            .afterClosed()
+            .subscribe((result) => {
+              if (!result) return;
 
-  // /**
-  //  * Guarda el estado de filtros de la UI en localStorage.
-  //  * - Si recibe `state`, guarda ese.
-  //  * - Si no, reconstruye el estado a partir del form + this.filters.
-  //  */
-  // private saveFiltersToStorage(state?: entity.ExpensesUiFilters): void {
-  //   if (!state) {
-  //     const value = this.formFilters.getRawValue();
+              if (result.action === 'import' && result.drafts?.length) {
+                this.accountsReceivableService.setXmlQueueToImport(result.drafts);
+                this.router.navigateByUrl('/cuentas-por-cobrar/nuevo');
+              }
+            });
+        },
+        error: (err) => {
+          console.error('Error al subir XMLs', err);
+          this.dialogService.confirm({
+            title: 'Error',
+            message: 'Ocurrió un error al subir los XML.',
+            confirmText: 'OK',
+            cancelText: '',
+          }).subscribe();
+        },
+      });
+  }
 
-  //     state = {
-  //       dateRange: value.dateRange ?? null,
-  //       suppliersIds: value.suppliersIds ?? [],
-  //       projectIds: value.projectIds ?? [],
-  //       status_id: value.status_id ?? null,
-  //       paymentStatus: value.paymentStatus ?? null,
-  //       page: this.filters.page,
-  //       limit: this.filters.limit,
-  //     };
-  //   }
-
-  //   this.storage.setItem(EXPENSES_FILTERS_KEY, state);
-  // }
-
-
-  // onXmlSelected(event: Event): void {
-  //   const input = event.target as HTMLInputElement;
-  //   if (!input.files || input.files.length === 0) return;
-
-  //   const files = Array.from(input.files);
-
-  //   // this.expenseService
-  //   //   .uploadXml(files)
-  //   //   .pipe(finalize(() => (input.value = '')))
-  //   //   .subscribe({
-  //   //     next: (resp) => {
-  //   //       const drafts = resp.drafts ?? [];
-  //   //       const duplicates = resp.duplicates ?? [];
-  //   //       const errors = resp.errors ?? [];
-
-  //   //       // 1) errores "duros"
-  //   //       if (errors.length > 0 && drafts.length === 0 && duplicates.length === 0) {
-  //   //         const msg = errors
-  //   //           .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
-  //   //           .join('\n');
-
-  //   //         this.dialogService.confirm({
-  //   //           title: 'Errores al leer XML',
-  //   //           message: msg || 'Ocurrió un error al procesar los XML.',
-  //   //           confirmText: 'OK',
-  //   //           cancelText: '',
-  //   //         }).subscribe();
-  //   //         return;
-  //   //       }
-
-  //   //       // 2) No hay nada que mostrar
-  //   //       if (!drafts.length && !duplicates.length) {
-  //   //         this.dialogService
-  //   //           .confirm({
-  //   //             title: 'Sin resultados',
-  //   //             message: 'No se encontraron CFDI válidos en los XML cargados.',
-  //   //             confirmText: 'OK',
-  //   //             cancelText: '',
-  //   //           })
-  //   //           .subscribe();
-  //   //         return;
-  //   //       }
-
-  //   //       // 3) Abrimos el modal "pro" con tabla de nuevos + duplicados
-  //   //       this.dialogService
-  //   //         .open(
-  //   //           XmlsModal,
-  //   //           {
-  //   //             drafts,
-  //   //             duplicates,
-  //   //           },
-  //   //           'large', // o 'medium', como prefieras
-  //   //         )
-  //   //         .afterClosed()
-  //   //         .subscribe((result) => {
-  //   //           if (!result) return;
-
-  //   //           // b) Importar drafts → mandar cola al formulario
-  //   //           if (result.action === 'import' && result.drafts?.length) {
-  //   //             this.expenseService.setXmlQueueToImport(result.drafts);
-  //   //             this.router.navigateByUrl('/gastos/nuevo');
-  //   //           }
-  //   //         });
-  //   //     },
-  //   //     error: (err) => {
-  //   //       console.error('Error al subir XMLs', err);
-  //   //       this.dialogService
-  //   //         .confirm({
-  //   //           title: 'Error',
-  //   //           message: 'Ocurrió un error al subir los XML.',
-  //   //           confirmText: 'OK',
-  //   //           cancelText: '',
-  //   //         })
-  //   //         .subscribe();
-  //   //     },
-  //   //   });
-  // }
-
+  private resolveCompanyLabel(code: string): string {
+    switch (code) {
+      case 'MUDECPLAY':
+        return 'MUDECPLAY';
+      case 'CONSTRUCTORA_PELEN':
+        return 'CONSTRUCTORA PELEN';
+      default:
+        return code || 'OTRA';
+    }
+  }
 }

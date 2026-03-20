@@ -1,57 +1,78 @@
-<!-- <div class="card-content shadow-md">
-    <input #xmlInput type="file" accept=".xml" multiple hidden (change)="onXmlSelected($event)" />
-    <app-module-header title="Cuentas por cobrar" [config]="headerConfig" (action)="onHeaderAction($event)">
-    </app-module-header>
+<div class="card-content shadow-md">
+  <input
+    #xmlInput
+    type="file"
+    accept=".xml"
+    multiple
+    hidden
+    (change)="onXmlSelected($event)"
+  />
 
-<form [formGroup]="formFilters">
-  <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
-    <app-input-date
-      formControlName="dateRange"
-      label="Fecha de emisión"
-      mode="range">
-    </app-input-date>
+  <app-module-header
+    title="Cuentas por cobrar"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
 
-    <app-input-field
-      formControlName="folio"
-      label="Folio"
-      type="text"
-      [isFilter]="true">
-    </app-input-field>
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+      <app-input-date
+        formControlName="dateRange"
+        label="Fecha de emisión"
+        mode="range">
+      </app-input-date>
 
-    <app-autocomplete-multiple
-      formControlName="clientsIds"
-      label="Clientes"
-      [remote]="true"
-      catalogType="client"
-      valueMode="objects">
-    </app-autocomplete-multiple>
+      <app-input-field
+        formControlName="folio"
+        label="Folio"
+        type="text"
+        [isFilter]="true">
+      </app-input-field>
 
-    <app-input-select
-      formControlName="status"
-      label="Estado de cobro"
-      [options]="statusOptions">
-    </app-input-select>
+      <app-input-select
+        formControlName="companyCode"
+        label="Empresa"
+        [options]="companyOptions">
+      </app-input-select>
 
-    <app-btns-section
-      type="search"
-      [hasActiveFilters]="hasActiveFilters"
-      (action)="onBtnsSectionAction($event)">
-    </app-btns-section>
-  </div>
-</form>
+      <app-input-field
+        formControlName="clientQuery"
+        label="Cliente / RFC"
+        type="text"
+        [isFilter]="true">
+      </app-input-field>
+
+      <app-input-select
+        formControlName="status"
+        label="Estado de cobro"
+        [options]="statusOptions">
+      </app-input-select>
+
+      <app-btns-section
+        type="search"
+        [hasActiveFilters]="hasActiveFilters"
+        (action)="onBtnsSectionAction($event)">
+      </app-btns-section>
+    </div>
+  </form>
 </div>
 
-@if (expensesTableData?.data) {
-<div class="c-module-table ">
-    <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig"
-        [displayedColumns]="displayedColumns" [canDelete]="canDeleteRow" [deleteTooltip]="deleteTooltip"
-        [actionPermissions]="{
-        editRoles: ['GASTOS_EDITOR']
-      }" (action)="onTableAction($event)">
+@if (accountsReceivableTableData?.data) {
+  <div class="c-module-table">
+      <app-data-table
+      [data]="accountsReceivableTableData.data"
+      [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns"
+      (action)="onTableAction($event)">
     </app-data-table>
 
-    <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-        [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+    <mat-paginator
+      [length]="accountsReceivableTableData.meta.total"
+      [pageSize]="filters.limit"
+      [pageIndex]="filters.page - 1"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
     </mat-paginator>
-</div>
-} -->
+  </div>
+}

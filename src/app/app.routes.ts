@@ -68,7 +68,7 @@ export const routes: Routes = [
       },
       {
         path: 'cuentas-por-cobrar',
-        loadComponent: () => import('./pages/accounts-receivable/accounts-receivable').then((m) => m.AccountsReceivable),
+        loadChildren: () => import('./pages/accounts-receivable/accounts-receivable.routes').then((m) => m.ACCOUNTS_RECEIVABLE_ROUTES),
         canActivate: [rolesGuard],
         data: { roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
       },
