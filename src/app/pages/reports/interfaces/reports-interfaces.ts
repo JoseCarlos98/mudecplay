@@ -1,25 +1,31 @@
 import { Catalog } from '../../../shared/interfaces/general-interfaces';
 
-// tipos de reporte (igual que backend)
 export type ReportType =
   | 'project_detail'
   | 'project_by_supplier'
   | 'by_area'
   | 'project_payables'
-  | 'projects_by_status';
+  | 'projects_by_status'
+  | 'accounts_receivable_report';
 
-// filtros del preview “Detalle de gastos por proyecto”
 export interface ProjectDetailReportFilters {
-  startDate?: string | null; // 'YYYY-MM-DD'
-  endDate?: string | null;   // 'YYYY-MM-DD'
-  suppliersIds?: Catalog[];  // tu autocomplete manda objetos {id,name}
+  startDate?: string | null;
+  endDate?: string | null;
+  suppliersIds?: Catalog[];
   projectId?: Catalog[];
 }
 
-//  Proyectos cotizados e invertidos por estatus (N proyectos)
 export interface ProjectsByStatusPreviewPayload {
   startDate?: string | null;
   endDate?: string | null;
-  projectIds?: number[];              //  ahora es arreglo
+  projectIds?: number[];
   statusProject: 'open' | 'close';
+}
+
+export interface AccountsReceivablePreviewPayload {
+  startDate?: string | null;
+  endDate?: string | null;
+  companyCodes?: string[] | null;
+  status?: 'pending' | 'collected' | null;
+  receiverRfc?: string | null;
 }
