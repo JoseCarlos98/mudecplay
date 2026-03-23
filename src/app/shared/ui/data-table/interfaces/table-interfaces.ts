@@ -68,7 +68,4 @@ export interface DataTableExtraAction<T> {
 
   /** Clase opcional para el ícono */
   iconClass?: string;
-
-  /** Aria-label opcional */
-  ariaLabel?: string | ((row: T) => string);
 }

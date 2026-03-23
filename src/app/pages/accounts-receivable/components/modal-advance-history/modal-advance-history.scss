@@ -1,0 +1,44 @@
+.c-modal {
+  .advance-history-summary {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+    }
+  }
+
+  .advance-history-empty {
+    padding: 1.25rem 0.25rem;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+
+  .c-module-table {
+    position: relative;
+
+    ::ng-deep .table-container {
+      height: auto !important;
+      max-height: calc(100vh - 350px) !important;
+    }
+
+    .total-aumont {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      bottom: 11px;
+      left: 18px;
+
+      span {
+        margin-left: 5px;
+        color: black;
+      }
+    }
+  }
+}

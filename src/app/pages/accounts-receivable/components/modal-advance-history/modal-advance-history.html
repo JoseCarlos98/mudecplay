@@ -1,0 +1,57 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="'Historial de anticipos'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="advance-history-body">
+    <div class="advance-history-summary">
+      <div>
+        <strong>Factura:</strong> {{ invoiceDisplay }}
+      </div>
+
+      <div>
+        <strong>Cliente:</strong>
+        {{ detail?.receiver_name || data.receiver_name }}
+      </div>
+
+      <div>
+        <strong>Total factura:</strong>
+        {{ (detail?.total ?? data.total) | currency:'$ ':'symbol':'1.2-2' }}
+      </div>
+
+      <div>
+        <strong>Anticipo acumulado:</strong>
+        {{ (detail?.advance_amount ?? data.advance_amount) | currency:'$ ':'symbol':'1.2-2' }}
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="advance-history-empty">
+        Cargando historial...
+      </div>
+    } @else if (advances.length) {
+      <div class="c-module-table">
+        <app-data-table
+          [data]="paginatedItems"
+          [columnsConfig]="columnsConfig"
+          [displayedColumns]="displayedColumns">
+        </app-data-table>
+
+        <mat-paginator
+          [length]="advances.length"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    } @else {
+      <div class="advance-history-empty">
+        Esta factura aún no tiene anticipos registrados.
+      </div>
+    }
+  </div>
+</div>

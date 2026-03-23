@@ -42,6 +42,7 @@ import * as entity from './interfaces/accounts-receivable-interfaces';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 import { ModalReceivableXml } from './components/modal-receivable-xml/modal-receivable-xml';
 import { ModalAdvance } from './components/modal-advance/modal-advance';
+import { ModalAdvanceHistory } from './components/modal-advance-history/modal-advance-history';
 
 const ACCOUNTS_RECEIVABLE_FILTERS_KEY = 'mp_accounts_receivable_filters_v1';
 
@@ -110,13 +111,18 @@ export class AccountsReceivable implements OnInit {
     {
       type: 'addAdvance',
       icon: 'payments',
-      tooltip: 'Realizar anticipo',
-      visible: (row) => row.status === 'pending',
+      tooltip: 'Registrar anticipo',
+      visible: (row) =>
+        row.status === 'pending' &&
+        Number(row.advance_amount ?? 0) < Number(row.total ?? 0),
       disabled: () => false,
-      ariaLabel: (row) => {
-        const invoice = row.series ? `${row.series}-${row.folio}` : row.folio;
-        return `Realizar anticipo a la factura ${invoice}`;
-      },
+    },
+    {
+      type: 'showAdvanceHistory',
+      icon: 'history',
+      tooltip: 'Ver historial de anticipos',
+      visible: (row) => Number(row.advance_amount ?? 0) > 0,
+      disabled: () => false,
     },
   ];
 
@@ -182,7 +188,19 @@ export class AccountsReceivable implements OnInit {
       case 'addAdvance':
         this.openAdvanceModal(ev.row);
         break;
+
+      case 'showAdvanceHistory':
+        this.openAdvanceHistoryModal(ev.row);
+        break;
     }
+  }
+
+  private openAdvanceHistoryModal(account: entity.AccountReceivableRow): void {
+    this.dialogService.open(
+      ModalAdvanceHistory,
+      account,
+      'small',
+    );
   }
 
   private openAdvanceModal(account: entity.AccountReceivableRow): void {

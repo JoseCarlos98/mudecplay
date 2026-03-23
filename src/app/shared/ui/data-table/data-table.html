@@ -166,7 +166,7 @@
               [matTooltipDisabled]="!getExtraActionTooltip(extra, element)">
               <button mat-icon-button [class]="extra.buttonClass || ''"
                 [disabled]="isExtraActionDisabled(extra, element)"
-                [attr.aria-label]="getExtraActionAriaLabel(extra, element)" (click)="onRowAction(extra.type, element)">
+                 (click)="onRowAction(extra.type, element)">
                 <mat-icon [class]="extra.iconClass || ''">
                   {{ extra.icon }}
                 </mat-icon>

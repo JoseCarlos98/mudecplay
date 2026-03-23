@@ -116,18 +116,6 @@ export class DataTable<T> implements OnChanges {
     return action.tooltip;
   }
 
-  getExtraActionAriaLabel(action: DataTableExtraAction<T>, row: T): string {
-    if (typeof action.ariaLabel === 'function') {
-      return action.ariaLabel(row);
-    }
-
-    if (typeof action.ariaLabel === 'string' && action.ariaLabel.trim()) {
-      return action.ariaLabel;
-    }
-
-    const tooltip = this.getExtraActionTooltip(action, row);
-    return tooltip || action.type;
-  }
 
   // --- lo demás igual ---
   getRelationValue(value: any, path?: string) {
