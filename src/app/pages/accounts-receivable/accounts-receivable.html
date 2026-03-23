@@ -59,10 +59,11 @@
 
 @if (accountsReceivableTableData?.data) {
   <div class="c-module-table">
-      <app-data-table
+    <app-data-table
       [data]="accountsReceivableTableData.data"
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
+      [extraActions]="extraActions"
       (action)="onTableAction($event)">
     </app-data-table>
 

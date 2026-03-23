@@ -18,6 +18,7 @@ import {
   ColumnsConfig,
   DataTableActionEvent,
   DataTableActionType,
+  DataTableExtraAction,
 } from './interfaces/table-interfaces';
 
 import type { TableActionPermissions } from './interfaces/table-interfaces';
@@ -49,17 +50,23 @@ export class DataTable<T> implements OnChanges {
 
   private readonly DEFAULT_DELETE_ROLES: RoleCode[] = ['ADMIN_GENERAL'];
 
-  /** Reglas de acciones (por defecto: todo permitido, sin tooltip) */
+  /** Reglas base */
   @Input() canEdit: (row: T) => boolean = () => true;
   @Input() canDelete: (row: T) => boolean = () => true;
   @Input() editTooltip: (row: T) => string | null = () => null;
   @Input() deleteTooltip: (row: T) => string | null = () => null;
 
   /**
-   * Roles requeridos para mostrar botones (si no se pasa, se muestran por defecto)
+   * Roles requeridos para mostrar botones base
    * Admin bypass lo maneja PermissionsService.
    */
   @Input() actionPermissions: TableActionPermissions = {};
+
+  /**
+   * Botones extra enviados desde el componente padre.
+   * Ejemplo: anticipo, cobrar, historial, etc.
+   */
+  @Input() extraActions: DataTableExtraAction<T>[] = [];
 
   @Output() action = new EventEmitter<DataTableActionEvent<T>>();
 
@@ -71,7 +78,7 @@ export class DataTable<T> implements OnChanges {
     }
   }
 
-  onRowAction(type: DataTableActionType, row: T) {
+  onRowAction(type: DataTableActionType, row: T): void {
     this.action.emit({ type, row });
   }
 
@@ -84,10 +91,42 @@ export class DataTable<T> implements OnChanges {
     return this.actionPermissions?.deleteRoles ?? this.DEFAULT_DELETE_ROLES;
   }
 
-  /** helper genérico */
+  /** helper genérico de roles */
   canShow(roles?: RoleCode[]): boolean {
     if (!roles?.length) return true;
     return this.permissionsService.hasAnyRole(roles);
+  }
+
+  /** ---- Extra actions helpers ---- */
+  isExtraActionVisible(action: DataTableExtraAction<T>, row: T): boolean {
+    return action.visible ? action.visible(row) : true;
+  }
+
+  isExtraActionDisabled(action: DataTableExtraAction<T>, row: T): boolean {
+    return action.disabled ? action.disabled(row) : false;
+  }
+
+  getExtraActionTooltip(action: DataTableExtraAction<T>, row: T): string {
+    if (!action.tooltip) return '';
+
+    if (typeof action.tooltip === 'function') {
+      return action.tooltip(row) ?? '';
+    }
+
+    return action.tooltip;
+  }
+
+  getExtraActionAriaLabel(action: DataTableExtraAction<T>, row: T): string {
+    if (typeof action.ariaLabel === 'function') {
+      return action.ariaLabel(row);
+    }
+
+    if (typeof action.ariaLabel === 'string' && action.ariaLabel.trim()) {
+      return action.ariaLabel;
+    }
+
+    const tooltip = this.getExtraActionTooltip(action, row);
+    return tooltip || action.type;
   }
 
   // --- lo demás igual ---
@@ -127,8 +166,10 @@ export class DataTable<T> implements OnChanges {
     if (!digits) return country || raw;
 
     if (digits.length <= 3) return `${country} ${digits}`.trim();
-    if (digits.length <= 6)
+    if (digits.length <= 6) {
       return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
+    }
+
     return `${country} ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`.trim();
   }
 }

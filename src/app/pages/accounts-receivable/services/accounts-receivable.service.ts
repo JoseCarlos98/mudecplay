@@ -2,7 +2,10 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiSuccess, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import {
+  ApiSuccess,
+  PaginatedResponse,
+} from '../../../shared/interfaces/general-interfaces';
 import * as entity from '../interfaces/accounts-receivable-interfaces';
 
 @Injectable({
@@ -28,15 +31,37 @@ export class AccountsReceivableService {
     let params = new HttpParams();
 
     if (filters) {
-      if (filters.page != null) params = params.set('page', String(filters.page));
-      if (filters.limit != null) params = params.set('limit', String(filters.limit));
+      if (filters.page != null) {
+        params = params.set('page', String(filters.page));
+      }
 
-      if (filters.startDate) params = params.set('startDate', filters.startDate);
-      if (filters.endDate) params = params.set('endDate', filters.endDate);
-      if (filters.folio) params = params.set('folio', filters.folio);
-      if (filters.companyCode) params = params.set('companyCode', filters.companyCode);
-      if (filters.clientQuery) params = params.set('clientQuery', filters.clientQuery);
-      if (filters.status) params = params.set('status', filters.status);
+      if (filters.limit != null) {
+        params = params.set('limit', String(filters.limit));
+      }
+
+      if (filters.startDate) {
+        params = params.set('startDate', filters.startDate);
+      }
+
+      if (filters.endDate) {
+        params = params.set('endDate', filters.endDate);
+      }
+
+      if (filters.folio?.trim()) {
+        params = params.set('folio', filters.folio.trim());
+      }
+
+      if (filters.companyCode?.trim()) {
+        params = params.set('companyCode', filters.companyCode.trim());
+      }
+
+      if (filters.clientQuery?.trim()) {
+        params = params.set('clientQuery', filters.clientQuery.trim());
+      }
+
+      if (filters.status) {
+        params = params.set('status', filters.status);
+      }
     }
 
     return this.http.get<PaginatedResponse<entity.AccountReceivableResponseDto>>(
@@ -52,9 +77,7 @@ export class AccountsReceivableService {
   // ==========================
   //  CREATE / UPDATE / DELETE
   // ==========================
-  create(
-    payload: entity.CreateAccountReceivable,
-  ): Observable<ApiSuccess> {
+  create(payload: entity.CreateAccountReceivable): Observable<ApiSuccess> {
     return this.http.post<ApiSuccess>(this.apiUrl, payload);
   }
 
@@ -67,6 +90,16 @@ export class AccountsReceivableService {
 
   remove(id: number): Observable<ApiSuccess> {
     return this.http.delete<ApiSuccess>(`${this.apiUrl}/${id}`);
+  }
+
+  // ==========================
+  //  ANTICIPOS
+  // ==========================
+  addAdvance(
+    id: number,
+    payload: entity.CreateAccountReceivableAdvance,
+  ): Observable<ApiSuccess> {
+    return this.http.post<ApiSuccess>(`${this.apiUrl}/${id}/advances`, payload);
   }
 
   // ==========================
@@ -108,6 +141,7 @@ export class AccountsReceivableService {
   getXmlQueueStatus(): entity.XmlQueueState {
     const total = this.xmlDraftQueue.length;
     const pending = Math.max(total - this.xmlDraftQueueIndex, 0);
+
     return { total, pending };
   }
 

@@ -71,7 +71,7 @@
         </app-input-field>
       </div>
 
-      <div class="md:col-span-2">
+      <div class="md:col-span-1">
         <app-input-field
           formControlName="receiver_name"
           label="Cliente"
@@ -112,7 +112,7 @@
         </app-input-field>
       </div>
 
-      <div class="md:col-span-3">
+      <div class="md:col-span-1">
         <app-input-field
           formControlName="cfdi_uuid"
           label="UUID"
@@ -144,7 +144,7 @@
         </app-input-field>
       </div>
 
-      <div class="md:col-span-2">
+      <div class="md:col-span-1">
         <app-input-field
           formControlName="source_file_name"
           label="Archivo XML"
@@ -153,12 +153,28 @@
       </div>
 
       <div class="md:col-span-1">
-          <!-- [formControl]="form.controls['folio']" -->
         <app-input-field
         formControlName="folio"
           label="Factura"
-          type="text"
-       >
+          type="text">
+        </app-input-field>
+      </div>
+
+        <div class="md:col-span-1">
+        <app-autocomplete
+          formControlName="project_id"
+          label="Proyecto"
+          [remote]="true"
+          catalogType="project">
+        </app-autocomplete>
+      </div>
+
+      
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="advances"
+          label="Total anticipos"
+          type="text">
         </app-input-field>
       </div>
 

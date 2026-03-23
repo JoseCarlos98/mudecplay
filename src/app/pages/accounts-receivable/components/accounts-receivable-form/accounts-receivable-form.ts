@@ -26,6 +26,8 @@ import {
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { AccountsReceivableService } from '../../services/accounts-receivable.service';
 import * as entity from '../../interfaces/accounts-receivable-interfaces';
+import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -47,6 +49,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
+    Autocomplete
   ],
   templateUrl: './accounts-receivable-form.html',
   styleUrl: './accounts-receivable-form.scss',
@@ -86,6 +89,8 @@ export class AccountsReceivableForm implements OnInit {
     total: this.fb.control<number | null>(null, { validators: Validators.required }),
     currency: this.fb.control<string | null>('MXN', { validators: Validators.required }),
     source_file_name: this.fb.control<string | null>(null),
+    advances: this.fb.control<string | null>(null),
+    project_id: this.fb.control<Catalog | null>(null),
 
     status: this.fb.control<'pending' | 'collected' | null>('pending', {
       validators: Validators.required,
@@ -150,6 +155,7 @@ export class AccountsReceivableForm implements OnInit {
       'total',
       'currency',
       'source_file_name',
+      'advances',
     ].forEach((field) => {
       this.form.get(field)?.disable();
     });
@@ -178,6 +184,7 @@ export class AccountsReceivableForm implements OnInit {
           source_file_name: response.source_file_name,
           status: response.status,
           collected_at: response.collected_at,
+          project_id : response.project
         });
 
         this.applyReadonlyLocking();

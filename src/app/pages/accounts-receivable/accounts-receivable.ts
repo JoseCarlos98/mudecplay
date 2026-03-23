@@ -19,7 +19,11 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableExtraAction,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
@@ -31,12 +35,13 @@ import { DialogService } from '../../shared/services/dialog.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
 
 // Interfaces
-import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import { PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from './interfaces/accounts-receivable-interfaces';
 
 // Auth
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 import { ModalReceivableXml } from './components/modal-receivable-xml/modal-receivable-xml';
+import { ModalAdvance } from './components/modal-advance/modal-advance';
 
 const ACCOUNTS_RECEIVABLE_FILTERS_KEY = 'mp_accounts_receivable_filters_v1';
 
@@ -46,14 +51,13 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'receiver_name', label: 'Cliente' },
   { key: 'issue_date', label: 'Fecha emisión', type: 'date' },
   { key: 'total', label: 'Total', type: 'money', align: 'right' },
+  { key: 'advance_amount', label: 'Total anticipos', type: 'money', align: 'right' },
   { key: 'status_label', label: 'Estatus', type: 'chip', typeVariant: 'chip-neutral' },
   { key: 'collected_at', label: 'Fecha cobro', type: 'date' },
 ];
 
-const DISPLAYED_COLUMNS: string[] = [
-  ...COLUMNS_CONFIG.map((c) => c.key),
-  'actions',
-];
+const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
+
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: false,
   showUploadXml: true,
@@ -101,6 +105,20 @@ export class AccountsReceivable implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
   readonly statusOptions = entity.ACCOUNTS_RECEIVABLE_STATUS_OPTIONS;
   readonly companyOptions = entity.ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS;
+
+  readonly extraActions: DataTableExtraAction<entity.AccountReceivableRow>[] = [
+    {
+      type: 'addAdvance',
+      icon: 'payments',
+      tooltip: 'Realizar anticipo',
+      visible: (row) => row.status === 'pending',
+      disabled: () => false,
+      ariaLabel: (row) => {
+        const invoice = row.series ? `${row.series}-${row.folio}` : row.folio;
+        return `Realizar anticipo a la factura ${invoice}`;
+      },
+    },
+  ];
 
   filters: entity.FiltersAccountsReceivable = { page: 1, limit: 5 };
 
@@ -160,7 +178,24 @@ export class AccountsReceivable implements OnInit {
       case 'delete':
         this.onDelete(ev.row);
         break;
+
+      case 'addAdvance':
+        this.openAdvanceModal(ev.row);
+        break;
     }
+  }
+
+  private openAdvanceModal(account: entity.AccountReceivableRow): void {
+    this.dialogService
+      .open(ModalAdvance, account, 'mini')
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+
+        if (result.action === 'saved') {
+          this.loadAccountsReceivable();
+        }
+      });
   }
 
   onDelete(account: entity.AccountReceivableRow): void {
@@ -180,7 +215,7 @@ export class AccountsReceivable implements OnInit {
         });
       });
   }
-  
+
   loadAccountsReceivable(): void {
     this.accountsReceivableService.getAccountsReceivable(this.filters).subscribe({
       next: (response) => {
@@ -267,10 +302,9 @@ export class AccountsReceivable implements OnInit {
   }
 
   private restoreFiltersFromStorage(): void {
-    const saved =
-      this.storage.getItem<entity.AccountsReceivableUiFilters>(
-        ACCOUNTS_RECEIVABLE_FILTERS_KEY,
-      );
+    const saved = this.storage.getItem<entity.AccountsReceivableUiFilters>(
+      ACCOUNTS_RECEIVABLE_FILTERS_KEY,
+    );
 
     if (!saved) {
       this.searchWithFilters();
@@ -326,26 +360,28 @@ export class AccountsReceivable implements OnInit {
           const errors = resp.errors ?? [];
 
           if (errors.length > 0 && drafts.length === 0 && duplicates.length === 0) {
-            const msg = errors
-              .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
-              .join('\n');
+            const msg = errors.map((e) => `• ${e.sourceFileName}: ${e.reason}`).join('\n');
 
-            this.dialogService.confirm({
-              title: 'Errores al leer XML',
-              message: msg || 'Ocurrió un error al procesar los XML.',
-              confirmText: 'OK',
-              cancelText: '',
-            }).subscribe();
+            this.dialogService
+              .confirm({
+                title: 'Errores al leer XML',
+                message: msg || 'Ocurrió un error al procesar los XML.',
+                confirmText: 'OK',
+                cancelText: '',
+              })
+              .subscribe();
             return;
           }
 
           if (!drafts.length && !duplicates.length) {
-            this.dialogService.confirm({
-              title: 'Sin resultados',
-              message: 'No se encontraron XML válidos en la carga.',
-              confirmText: 'OK',
-              cancelText: '',
-            }).subscribe();
+            this.dialogService
+              .confirm({
+                title: 'Sin resultados',
+                message: 'No se encontraron XML válidos en la carga.',
+                confirmText: 'OK',
+                cancelText: '',
+              })
+              .subscribe();
             return;
           }
 
@@ -370,12 +406,14 @@ export class AccountsReceivable implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir XMLs', err);
-          this.dialogService.confirm({
-            title: 'Error',
-            message: 'Ocurrió un error al subir los XML.',
-            confirmText: 'OK',
-            cancelText: '',
-          }).subscribe();
+          this.dialogService
+            .confirm({
+              title: 'Error',
+              message: 'Ocurrió un error al subir los XML.',
+              confirmText: 'OK',
+              cancelText: '',
+            })
+            .subscribe();
         },
       });
   }

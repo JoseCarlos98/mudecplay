@@ -1,5 +1,5 @@
-import { Catalog } from "../../../shared/interfaces/general-interfaces";
-import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
+import { Catalog } from '../../../shared/interfaces/general-interfaces';
+import { DateRangeValue } from '../../../shared/ui/input-date/input-date';
 
 /* =====================================================
  *  FILTROS (LISTADO DE CUENTAS POR COBRAR)
@@ -17,12 +17,27 @@ export interface FiltersAccountsReceivable {
 }
 
 /* =====================================================
- *  RESPUESTA LISTADO / DETALLE
+ *  RELACIONES / AUXILIARES
+ * ===================================================== */
+
+export interface AccountReceivableProject {
+  id: number;
+  name: string;
+}
+
+export interface AccountReceivableAdvance {
+  id: number;
+  amount: number;
+  advance_date: string;
+  created_at: string;
+}
+
+/* =====================================================
+ *  RESPUESTA LISTADO
  * ===================================================== */
 
 export interface AccountReceivableResponseDto {
   id: number;
-  fol: number;
   cfdi_uuid: string;
   series: string | null;
   folio: string;
@@ -38,9 +53,17 @@ export interface AccountReceivableResponseDto {
   status: 'pending' | 'collected';
   collected_at: string | null;
   source_file_name: string | null;
+  advance_amount: number;
+  project: AccountReceivableProject | null;
 }
 
-export type AccountReceivableDetail = AccountReceivableResponseDto;
+/* =====================================================
+ *  RESPUESTA DETALLE
+ * ===================================================== */
+
+export interface AccountReceivableDetail extends AccountReceivableResponseDto {
+  advances: AccountReceivableAdvance[];
+}
 
 /**
  * Mapper para la tabla
@@ -71,11 +94,22 @@ export interface CreateAccountReceivable {
   status?: 'pending' | 'collected';
   collected_at?: string | null;
   source_file_name?: string | null;
+  project_id?: number | null;
 }
 
 export interface UpdateAccountReceivable {
   status?: 'pending' | 'collected';
   collected_at?: string | null;
+  project_id?: number | null;
+}
+
+/* =====================================================
+ *  ANTICIPOS
+ * ===================================================== */
+
+export interface CreateAccountReceivableAdvance {
+  amount: number;
+  advance_date: string;
 }
 
 /* =====================================================
