@@ -51,6 +51,8 @@ export class ProjectModal implements OnInit {
   });
 
   ngOnInit() {
+    console.log(this.data);
+    
     if (this.data?.id) this.form.patchValue({
       ...this.data,
       responsible_id: this.data.responsible,

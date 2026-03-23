@@ -50,6 +50,13 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_label', label: 'Empresa', type: 'chip', typeVariant: 'chip-neutral' },
   { key: 'invoice_display', label: 'Factura' },
   { key: 'receiver_name', label: 'Cliente' },
+  {
+    key: 'project',
+    label: 'Proyecto',
+    type: 'relation',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
   { key: 'issue_date', label: 'Fecha emisión', type: 'date' },
   { key: 'total', label: 'Total', type: 'money', align: 'right' },
   { key: 'advance_amount', label: 'Total anticipos', type: 'money', align: 'right' },

@@ -28,6 +28,7 @@ import { AccountsReceivableService } from '../../services/accounts-receivable.se
 import * as entity from '../../interfaces/accounts-receivable-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
+import { toIdForm } from '../../../../shared/helpers/general-helpers';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -49,7 +50,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    Autocomplete
+    Autocomplete,
   ],
   templateUrl: './accounts-receivable-form.html',
   styleUrl: './accounts-receivable-form.scss',
@@ -76,20 +77,42 @@ export class AccountsReceivableForm implements OnInit {
   formData!: entity.AccountReceivableDetail;
 
   form: FormGroup = this.fb.group({
-    company_code: this.fb.control<string | null>(null, { validators: Validators.required }),
-    emitter_name: this.fb.control<string | null>(null, { validators: Validators.required }),
-    emitter_rfc: this.fb.control<string | null>(null, { validators: Validators.required }),
-    receiver_name: this.fb.control<string | null>(null, { validators: Validators.required }),
-    receiver_rfc: this.fb.control<string | null>(null, { validators: Validators.required }),
-    issue_date: this.fb.control<string | null>(null, { validators: Validators.required }),
+    company_code: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    emitter_name: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    emitter_rfc: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    receiver_name: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    receiver_rfc: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    issue_date: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
     series: this.fb.control<string | null>(null),
-    folio: this.fb.control<string | null>(null, { validators: Validators.required }),
-    cfdi_uuid: this.fb.control<string | null>(null, { validators: Validators.required }),
-    subtotal: this.fb.control<number | null>(null, { validators: Validators.required }),
-    total: this.fb.control<number | null>(null, { validators: Validators.required }),
-    currency: this.fb.control<string | null>('MXN', { validators: Validators.required }),
+    folio: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    cfdi_uuid: this.fb.control<string | null>(null, {
+      validators: Validators.required,
+    }),
+    subtotal: this.fb.control<number | null>(null, {
+      validators: Validators.required,
+    }),
+    total: this.fb.control<number | null>(null, {
+      validators: Validators.required,
+    }),
+    currency: this.fb.control<string | null>('MXN', {
+      validators: Validators.required,
+    }),
     source_file_name: this.fb.control<string | null>(null),
-    advances: this.fb.control<string | null>(null),
+    advance_amount: this.fb.control<number | null>(0),
     project_id: this.fb.control<Catalog | null>(null),
 
     status: this.fb.control<'pending' | 'collected' | null>('pending', {
@@ -155,7 +178,7 @@ export class AccountsReceivableForm implements OnInit {
       'total',
       'currency',
       'source_file_name',
-      'advances',
+      'advance_amount',
     ].forEach((field) => {
       this.form.get(field)?.disable();
     });
@@ -182,9 +205,10 @@ export class AccountsReceivableForm implements OnInit {
           total: response.total,
           currency: response.currency,
           source_file_name: response.source_file_name,
+          advance_amount: response.advance_amount,
           status: response.status,
           collected_at: response.collected_at,
-          project_id : response.project
+          project_id: response.project,
         });
 
         this.applyReadonlyLocking();
@@ -211,6 +235,8 @@ export class AccountsReceivableForm implements OnInit {
       total: draft.total,
       currency: draft.currency,
       source_file_name: draft.sourceFileName,
+      advance_amount: 0,
+      project_id: null,
       status: 'pending',
       collected_at: null,
     });
@@ -277,8 +303,12 @@ export class AccountsReceivableForm implements OnInit {
       total: Number(raw.total ?? 0),
       currency: raw.currency ?? 'MXN',
       status: raw.status ?? 'pending',
-      collected_at: raw.status === 'collected' ? raw.collected_at ?? this.getTodayIsoDate() : null,
+      collected_at:
+        raw.status === 'collected'
+          ? raw.collected_at ?? this.getTodayIsoDate()
+          : null,
       source_file_name: raw.source_file_name ?? null,
+      project_id: toIdForm(raw.project_id),
     };
   }
 
@@ -287,7 +317,11 @@ export class AccountsReceivableForm implements OnInit {
 
     return {
       status: raw.status ?? 'pending',
-      collected_at: raw.status === 'collected' ? raw.collected_at ?? this.getTodayIsoDate() : null,
+      collected_at:
+        raw.status === 'collected'
+          ? raw.collected_at ?? this.getTodayIsoDate()
+          : null,
+      project_id: toIdForm(raw.project_id),
     };
   }
 
@@ -316,6 +350,8 @@ export class AccountsReceivableForm implements OnInit {
       total: null,
       currency: 'MXN',
       source_file_name: null,
+      advance_amount: 0,
+      project_id: null,
       status: 'pending',
       collected_at: null,
     });

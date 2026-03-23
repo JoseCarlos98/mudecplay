@@ -45,7 +45,13 @@ const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razón Social' },
   { key: 'name', label: 'Nombre Comercial' },
-  { key: 'area', label: 'Área', type: 'relation', path: 'name' },
+     {
+    key: 'area',
+    label: 'Área',
+    type: 'relation',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
   { key: 'contact_name', label: 'Contacto' },
   { key: 'phone', label: 'Teléfono', type: 'phone' },
   { key: 'email', label: 'Correo' },

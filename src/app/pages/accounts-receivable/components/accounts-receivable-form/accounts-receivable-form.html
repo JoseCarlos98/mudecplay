@@ -35,7 +35,8 @@
         Los datos de la <strong>empresa</strong>, <strong>cliente</strong>,
         <strong>factura</strong>, <strong>fecha</strong> y <strong>total</strong>
         provienen del CFDI y no pueden modificarse. Solo puedes definir el
-        <strong>estado de cobro</strong> y la <strong>fecha de cobro</strong>.
+        <strong>proyecto</strong>, el <strong>estado de cobro</strong> y la
+        <strong>fecha de cobro</strong>.
       </p>
     </div>
   }
@@ -152,15 +153,16 @@
         </app-input-field>
       </div>
 
-      <div class="md:col-span-1">
+          <div class="md:col-span-1">
         <app-input-field
-        formControlName="folio"
-          label="Factura"
-          type="text">
+          formControlName="advance_amount"
+          label="Total anticipos"
+          type="money">
         </app-input-field>
       </div>
 
-        <div class="md:col-span-1">
+
+      <div class="md:col-span-1">
         <app-autocomplete
           formControlName="project_id"
           label="Proyecto"
@@ -169,15 +171,7 @@
         </app-autocomplete>
       </div>
 
-      
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="advances"
-          label="Total anticipos"
-          type="text">
-        </app-input-field>
-      </div>
-
+  
       <div class="md:col-span-1">
         <app-input-select
           formControlName="status"
