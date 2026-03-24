@@ -184,5 +184,4 @@ export const ACCOUNTS_RECEIVABLE_STATUS_OPTIONS: Catalog[] = [
 export const ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS: Catalog[] = [
   { id: 'MUDECPLAY', name: 'MUDECPLAY' },
   { id: 'CONSTRUCTORA_PELEN', name: 'CONSTRUCTORA PELEN' },
-  { id: 'OTRA', name: 'OTRA' },
 ];

@@ -450,7 +450,7 @@ export class AccountsReceivable implements OnInit {
       case 'CONSTRUCTORA_PELEN':
         return 'CONSTRUCTORA PELEN';
       default:
-        return code || 'OTRA';
+        return code;
     }
   }
 }
