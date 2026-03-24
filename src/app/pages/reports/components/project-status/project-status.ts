@@ -6,12 +6,12 @@ import { MatIcon } from '@angular/material/icon';
 import { finalize } from 'rxjs';
 
 import { DateRangeValue, InputDate } from '../../../../shared/ui/input-date/input-date';
+import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { ReportsApiService } from '../../services/reports-api.service';
 import { ProjectsByStatusPreviewPayload } from '../../interfaces/reports-interfaces';
-import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 const STATUS_PROJECT_OPTIONS: Catalog[] = [
   { id: 'open', name: 'Abierto' },
@@ -48,21 +48,14 @@ export class ProjectStatus implements OnDestroy {
 
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
-
     projectIds: this.fb.control<Catalog[]>([], {
       validators: Validators.required,
     }),
-
     statusProject: this.fb.control<'open' | 'close' | null>('open', {
       validators: Validators.required,
     }),
   });
 
-  /**
-   * Igual que SupplierReport:
-   * - Para habilitar “Buscar”, debe existir lo requerido.
-   * - Aquí lo requerido es: statusProject + al menos 1 proyecto
-   */
   get hasActiveFilters(): boolean {
     const v = this.formFilters.getRawValue();
     const hasStatus = !!v.statusProject;
@@ -71,7 +64,6 @@ export class ProjectStatus implements OnDestroy {
   }
 
   get hasActiveSearch(): boolean {
-    // mismos requisitos
     return this.hasActiveFilters;
   }
 
@@ -91,8 +83,8 @@ export class ProjectStatus implements OnDestroy {
     if (!payload) return;
 
     this.api.saveProjectsByStatusHistory(payload).subscribe({
-      next: (res) => console.log('[REPORTES] historial (financiero) ok:', res),
-      error: (err) => console.error('[REPORTES] historial (financiero) error', err),
+      next: (res) => console.log('[REPORTES] historial (estado financiero) ok:', res),
+      error: (err) => console.error('[REPORTES] historial (estado financiero) error', err),
     });
   }
 
@@ -103,7 +95,8 @@ export class ProjectStatus implements OnDestroy {
     this.loadingPreview.set(true);
     this.errorPreview.set(null);
 
-    this.api.previewProjectsByStatus(payload)
+    this.api
+      .previewProjectsByStatus(payload)
       .pipe(finalize(() => this.loadingPreview.set(false)))
       .subscribe({
         next: (blob) => {
@@ -113,7 +106,7 @@ export class ProjectStatus implements OnDestroy {
           this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
         },
         error: (err) => {
-          console.error('[REPORTES] preview (financiero) error', err);
+          console.error('[REPORTES] preview (estado financiero) error', err);
           this.errorPreview.set('No se pudo generar el preview. Intenta de nuevo.');
         },
       });
@@ -124,7 +117,6 @@ export class ProjectStatus implements OnDestroy {
 
     const startDate = v.dateRange?.startDate ?? null;
     const endDate = v.dateRange?.endDate ?? null;
-
     const statusProject = v.statusProject;
     const projectIds = v.projectIds ?? [];
 
