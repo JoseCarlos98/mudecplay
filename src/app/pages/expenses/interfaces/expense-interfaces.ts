@@ -60,9 +60,10 @@ export interface ExpenseItem {
 export interface ExpenseResponseDto {
   id: number;
   date: string;
-  internal_folio: string; // ← ahora coincide con el backend
+  internal_folio: string;
   remaining_amount: number;
   total_amount: number;
+  can_generate_receipt: boolean;
   supplier: Supplier | null;
   status: ExpenseStatus;
   cfdi_uuid?: string | null;

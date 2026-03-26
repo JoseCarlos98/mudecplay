@@ -18,7 +18,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import { ColumnsConfig, DataTableActionEvent, DataTableExtraAction } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
@@ -143,6 +143,8 @@ export class Expenses implements OnInit {
     return null;
   };
 
+
+
   @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
 
   // ==========================
@@ -152,6 +154,16 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
   readonly paymentStatusOptions = PAYMENTSTATUSOPTIONS;
+
+  readonly extraActions: DataTableExtraAction<entity.ExpenseResponseDto>[] = [
+    {
+      type: 'downloadReceipt',
+      icon: 'picture_as_pdf',
+      tooltip: 'Descargar comprobante',
+      visible: (row) => row.can_generate_receipt === true,
+      disabled: () => false,
+    },
+  ];
 
   catalogStatusExpense: Catalog[] = [];
 
@@ -179,7 +191,7 @@ export class Expenses implements OnInit {
     this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
     this.loadCatalogs();              // carga catálogos de selects
     console.log('ROLES ACTUALES DEL USUARIO PARA GASTOS', this.permissionsService.roles);
-    
+
   }
 
   // ==========================
@@ -309,7 +321,30 @@ export class Expenses implements OnInit {
       case 'showItems':
         this.expenseModal(ev.row.items);
         break;
+
+      case 'downloadReceipt':
+        this.downloadReceipt(ev.row);
+        break;
     }
+  }
+
+  private downloadReceipt(expense: entity.ExpenseResponseDto): void {
+    this.expenseService.downloadReceiptPdf(expense.id).subscribe({
+      next: (blob) => {
+        const fileUrl = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+
+        anchor.href = fileUrl;
+        anchor.download = `comprobante-gasto-${expense.internal_folio}.pdf`;
+        anchor.click();
+
+        anchor.remove();
+        window.URL.revokeObjectURL(fileUrl);
+      },
+      error: (err) => {
+        console.error('Error al descargar comprobante:', err);
+      },
+    });
   }
 
   // Confirmación + delete

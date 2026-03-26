@@ -63,7 +63,7 @@ export class SupplierModal implements OnInit {
 
     if (this.data?.id) this.form.patchValue({
       ...this.data,
-      area_id: this.data.area.id
+      area_id: this.data?.area?.id
     });
   }
 

@@ -160,6 +160,7 @@
           <div>
 
             <!-- EXTRA ACTIONS: primero -->
+             <!-- {{extraActions | json}} -->
             @for (extra of extraActions; track extra.type) {
             @if (canShow(extra.roles) && isExtraActionVisible(extra, element)) {
             <span [matTooltip]="getExtraActionTooltip(extra, element)"

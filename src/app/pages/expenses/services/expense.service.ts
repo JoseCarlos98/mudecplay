@@ -21,7 +21,7 @@ export class ExpenseService {
   private xmlDraftQueue: entity.XmlExpenseDraftDto[] = [];
   private xmlDraftQueueIndex = 0;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   // ==========================
   // CRUD DE EXPENSES
@@ -140,5 +140,10 @@ export class ExpenseService {
   clearXmlQueue(): void {
     this.xmlDraftQueue = [];
     this.xmlDraftQueueIndex = 0;
+  }
+
+  downloadReceiptPdf(id: number): Observable<Blob> {
+    const url = `${this.apiUrl}/${id}/receipt-pdf`;
+    return this.http.get(url, { responseType: 'blob' });
   }
 }

@@ -44,6 +44,7 @@ const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_name', label: 'Razón Social' },
+  { key: 'rfc', label: 'RFC' },
   { key: 'name', label: 'Nombre Comercial' },
      {
     key: 'area',

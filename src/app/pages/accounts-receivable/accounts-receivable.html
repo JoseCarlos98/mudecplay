@@ -64,7 +64,10 @@
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
       [extraActions]="extraActions"
-      (action)="onTableAction($event)">
+      (action)="onTableAction($event)"
+       [actionPermissions]="{
+        editRoles: ['CUENTAS_POR_COBRAR_EDITOR']
+      }">
     </app-data-table>
 
     <mat-paginator
