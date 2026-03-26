@@ -83,12 +83,12 @@ export class ProjectModal implements OnInit {
 
     const formData = this.form.value;
 
-  //   this.supplierService.create(formData).subscribe({
-  //     next: (response) => {
-  //       if (response.success) this.closeModal(true);
-  //     },
-  //     error: (err) => console.error('Error al guardar gastos:', err),
-  //   });
+    this.supplierService.create(formData).subscribe({
+      next: (response) => {
+        if (response.success) this.closeModal(true);
+      },
+      error: (err) => console.error('Error al guardar gastos:', err),
+    });
   }
 
   updateData() {
@@ -116,6 +116,13 @@ export class ProjectModal implements OnInit {
   // ==========================
   onBtnsSectionAction(action: string) {
     switch (action) {
+      case 'save':
+        if (this.data?.id) {
+          this.updateData()
+        } else {
+          this.saveData();
+        }
+        break;
       case 'cancel':
         this.closeModal();
         break;
