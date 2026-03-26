@@ -64,6 +64,7 @@ export interface ExpenseResponseDto {
   remaining_amount: number;
   total_amount: number;
   can_generate_receipt: boolean;
+  is_archived: boolean;
   supplier: Supplier | null;
   status: ExpenseStatus;
   cfdi_uuid?: string | null;

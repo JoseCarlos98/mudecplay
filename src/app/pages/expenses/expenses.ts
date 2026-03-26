@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -41,6 +41,8 @@ import { finalize } from 'rxjs';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 import { PermissionsService } from '../../auth/services/permissions.service';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
+
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
@@ -48,6 +50,7 @@ import { PermissionsService } from '../../auth/services/permissions.service';
 const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
+  { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
   { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
 
   { key: 'internal_folio', label: 'Folio' },
@@ -114,12 +117,23 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
     // Forms
     FormsModule,
     ReactiveFormsModule,
-    HasRoleDirective
+    HasRoleDirective,
+    LoadingOverlay
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
 })
 export class Expenses implements OnInit {
+  @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
+
+  // ==========================
+  //  CONFIG UI
+  // ==========================
+  readonly columnsConfig = COLUMNS_CONFIG;
+  readonly displayedColumns = DISPLAYED_COLUMNS;
+  readonly headerConfig = HEADER_CONFIG;
+  readonly paymentStatusOptions = PAYMENTSTATUSOPTIONS;
+
   // ==========================
   //  INYECCIONES
   // ==========================
@@ -131,8 +145,10 @@ export class Expenses implements OnInit {
   private readonly storage = inject(LocalStorageService);
   private readonly permissionsService = inject(PermissionsService);
 
+  readonly downloadingReceipt = signal(false);
+  readonly downloadingReceiptExpenseId = signal<number | null>(null);
+
   canDeleteRow = (row: entity.ExpenseResponseDto) => {
-    // No permitir borrar si viene de CFDI
     return !row.cfdi_uuid;
   };
 
@@ -143,25 +159,20 @@ export class Expenses implements OnInit {
     return null;
   };
 
-
-
-  @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
-
-  // ==========================
-  //  CONFIG UI
-  // ==========================
-  readonly columnsConfig = COLUMNS_CONFIG;
-  readonly displayedColumns = DISPLAYED_COLUMNS;
-  readonly headerConfig = HEADER_CONFIG;
-  readonly paymentStatusOptions = PAYMENTSTATUSOPTIONS;
-
   readonly extraActions: DataTableExtraAction<entity.ExpenseResponseDto>[] = [
     {
       type: 'downloadReceipt',
       icon: 'picture_as_pdf',
       tooltip: 'Descargar comprobante',
       visible: (row) => row.can_generate_receipt === true,
-      disabled: () => false,
+      disabled: (row) =>
+        this.downloadingReceipt() && this.downloadingReceiptExpenseId() === row.id,
+    },
+    {
+      type: 'archiveExpense',
+      icon: 'archive',
+      tooltip: 'Archivar gasto',
+      visible: (row) => row.can_generate_receipt === true && !row.is_archived,
     },
   ];
 
@@ -170,11 +181,9 @@ export class Expenses implements OnInit {
   // ==========================
   //  ESTADO / DATA
   // ==========================
-  // Filtros que van al backend
   filters: entity.FiltersExpenses = { page: 1, limit: 5 };
   expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     suppliersIds: this.fb.control<number[]>([]),
@@ -188,10 +197,9 @@ export class Expenses implements OnInit {
   //  CICLO DE VIDA
   // ==========================
   ngOnInit(): void {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs();              // carga catálogos de selects
+    this.restoreFiltersFromStorage();
+    this.loadCatalogs();
     console.log('ROLES ACTUALES DEL USUARIO PARA GASTOS', this.permissionsService.roles);
-
   }
 
   // ==========================
@@ -212,10 +220,6 @@ export class Expenses implements OnInit {
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  /**
-   * Recibe el estado de la UI (form + paginación)
-   * y devuelve el objeto de filtros que espera el backend.
-   */
   private buildBackendFiltersFromUi(ui: entity.ExpensesUiFilters): entity.FiltersExpenses {
     return {
       page: ui.page,
@@ -235,7 +239,6 @@ export class Expenses implements OnInit {
   searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ExpensesUiFilters = {
       dateRange: value.dateRange ?? null,
       suppliersIds: value.suppliersIds ?? [],
@@ -246,13 +249,8 @@ export class Expenses implements OnInit {
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
-
-    // Guardamos el estado de UI para persistir filtros
     this.saveFiltersToStorage(uiState);
-
-    // Disparamos la carga
     this.loadExpenses();
   }
 
@@ -272,7 +270,6 @@ export class Expenses implements OnInit {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
-    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadExpenses();
   }
@@ -325,29 +322,59 @@ export class Expenses implements OnInit {
       case 'downloadReceipt':
         this.downloadReceipt(ev.row);
         break;
+
+      case 'archiveExpense':
+        this.openArchiveExpenseModal(ev.row);
+        break;
     }
   }
 
-  private downloadReceipt(expense: entity.ExpenseResponseDto): void {
-    this.expenseService.downloadReceiptPdf(expense.id).subscribe({
-      next: (blob) => {
-        const fileUrl = window.URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-
-        anchor.href = fileUrl;
-        anchor.download = `comprobante-gasto-${expense.internal_folio}.pdf`;
-        anchor.click();
-
-        anchor.remove();
-        window.URL.revokeObjectURL(fileUrl);
-      },
-      error: (err) => {
-        console.error('Error al descargar comprobante:', err);
-      },
-    });
+  private openArchiveExpenseModal(expense: entity.ExpenseResponseDto): void {
+    console.log('Abrir modal para archivar gasto:', expense);
   }
 
-  // Confirmación + delete
+  private downloadReceipt(expense: entity.ExpenseResponseDto): void {
+    if (this.downloadingReceipt()) return;
+
+    this.downloadingReceipt.set(true);
+    this.downloadingReceiptExpenseId.set(expense.id);
+
+    this.expenseService
+      .downloadReceiptPdf(expense.id)
+      .pipe(
+        finalize(() => {
+          this.downloadingReceipt.set(false);
+          this.downloadingReceiptExpenseId.set(null);
+        }),
+      )
+      .subscribe({
+        next: (blob) => {
+          const fileUrl = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+
+          anchor.href = fileUrl;
+          anchor.download = `comprobante-gasto-${expense.internal_folio}.pdf`;
+          document.body.appendChild(anchor);
+          anchor.click();
+          anchor.remove();
+
+          window.URL.revokeObjectURL(fileUrl);
+        },
+        error: (err) => {
+          console.error('Error al descargar comprobante:', err);
+
+          this.dialogService
+            .confirm({
+              title: 'Error',
+              message: 'No se pudo descargar el comprobante PDF.',
+              confirmText: 'OK',
+              cancelText: '',
+            })
+            .subscribe();
+        },
+      });
+  }
+
   onDelete(expense: entity.ExpenseResponseDto): void {
     this.dialogService
       .confirm({
@@ -382,7 +409,6 @@ export class Expenses implements OnInit {
   }
 
   clearAllAndSearch(): void {
-    // Limpia formulario de filtros
     this.formFilters.reset(
       {
         dateRange: null,
@@ -395,7 +421,6 @@ export class Expenses implements OnInit {
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
@@ -405,9 +430,8 @@ export class Expenses implements OnInit {
       suppliersIds: [],
       projectIds: [],
       status_id: null,
-    }
+    };
 
-    // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
     this.loadExpenses();
   }
@@ -431,12 +455,10 @@ export class Expenses implements OnInit {
     const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         dateRange: saved.dateRange,
@@ -447,18 +469,10 @@ export class Expenses implements OnInit {
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
     this.loadExpenses();
   }
 
-  /**
-   * Guarda el estado de filtros de la UI en localStorage.
-   * - Si recibe `state`, guarda ese.
-   * - Si no, reconstruye el estado a partir del form + this.filters.
-   */
   private saveFiltersToStorage(state?: entity.ExpensesUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
@@ -477,7 +491,6 @@ export class Expenses implements OnInit {
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
   }
 
-
   onXmlSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
@@ -493,7 +506,6 @@ export class Expenses implements OnInit {
           const duplicates = resp.duplicates ?? [];
           const errors = resp.errors ?? [];
 
-          // 1) errores "duros"
           if (errors.length > 0 && drafts.length === 0 && duplicates.length === 0) {
             const msg = errors
               .map((e) => `• ${e.sourceFileName}: ${e.reason}`)
@@ -508,7 +520,6 @@ export class Expenses implements OnInit {
             return;
           }
 
-          // 2) No hay nada que mostrar
           if (!drafts.length && !duplicates.length) {
             this.dialogService
               .confirm({
@@ -521,7 +532,6 @@ export class Expenses implements OnInit {
             return;
           }
 
-          // 3) Abrimos el modal "pro" con tabla de nuevos + duplicados
           this.dialogService
             .open(
               XmlsModal,
@@ -529,13 +539,12 @@ export class Expenses implements OnInit {
                 drafts,
                 duplicates,
               },
-              'large', // o 'medium', como prefieras
+              'large',
             )
             .afterClosed()
             .subscribe((result) => {
               if (!result) return;
 
-              // b) Importar drafts → mandar cola al formulario
               if (result.action === 'import' && result.drafts?.length) {
                 this.expenseService.setXmlQueueToImport(result.drafts);
                 this.router.navigateByUrl('/gastos/nuevo');
@@ -555,5 +564,4 @@ export class Expenses implements OnInit {
         },
       });
   }
-
 }

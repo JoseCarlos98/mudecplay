@@ -9,6 +9,7 @@ import { DateRangeValue, InputDate } from '../../../../shared/ui/input-date/inpu
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import {
   AccountsReceivablePreviewPayload,
@@ -36,6 +37,7 @@ const STATUS_OPTIONS: Catalog[] = [
     InputSelect,
     BtnsSection,
     MatIcon,
+    LoadingOverlay,
   ],
   templateUrl: './accounts-receivable-report.html',
   styleUrl: './accounts-receivable-report.scss',
@@ -48,13 +50,14 @@ export class AccountsReceivableReport implements OnDestroy {
   readonly companyOptions = COMPANY_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;
 
-  loadingPreview = signal(false);
-  errorPreview = signal<string | null>(null);
+  readonly loadingPreview = signal(false);
+  readonly loadingHistory = signal(false);
+  readonly errorPreview = signal<string | null>(null);
 
-  pdfUrl = signal<SafeResourceUrl | null>(null);
+  readonly pdfUrl = signal<SafeResourceUrl | null>(null);
   private lastObjectUrl: string | null = null;
 
-  formFilters = this.fb.group({
+  readonly formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     companyCodes: this.fb.control<string[]>([]),
     status: this.fb.control<'pending' | 'collected' | null>(null),
@@ -87,15 +90,27 @@ export class AccountsReceivableReport implements OnDestroy {
   }
 
   onSaveHistory(): void {
+    if (this.loadingPreview() || this.loadingHistory()) return;
+
     const payload = this.buildPayload();
 
-    this.api.saveAccountsReceivableHistory(payload).subscribe({
-      next: (res) => console.log('[REPORTES] historial (cuentas por cobrar) ok:', res),
-      error: (err) => console.error('[REPORTES] historial (cuentas por cobrar) error', err),
-    });
+    this.loadingHistory.set(true);
+
+    this.api.saveAccountsReceivableHistory(payload)
+      .pipe(finalize(() => this.loadingHistory.set(false)))
+      .subscribe({
+        next: (res) => {
+          console.log('[REPORTES] historial (cuentas por cobrar) ok:', res);
+        },
+        error: (err) => {
+          console.error('[REPORTES] historial (cuentas por cobrar) error', err);
+        },
+      });
   }
 
   downloadPdf(): void {
+    if (this.loadingPreview() || this.loadingHistory()) return;
+
     if (this.lastObjectUrl) {
       this.forceDownload(this.lastObjectUrl, 'reporte-cuentas-por-cobrar.pdf');
       return;
@@ -103,19 +118,29 @@ export class AccountsReceivableReport implements OnDestroy {
 
     const payload = this.buildPayload();
 
-    this.api.previewAccountsReceivable(payload).subscribe({
-      next: (blob) => {
-        this.revokeObjectUrl();
-        const url = URL.createObjectURL(blob);
-        this.lastObjectUrl = url;
-        this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
-        this.forceDownload(url, 'reporte-cuentas-por-cobrar.pdf');
-      },
-      error: (err) => console.error('[REPORTES] download preview (cuentas por cobrar) error', err),
-    });
+    this.loadingPreview.set(true);
+    this.errorPreview.set(null);
+
+    this.api.previewAccountsReceivable(payload)
+      .pipe(finalize(() => this.loadingPreview.set(false)))
+      .subscribe({
+        next: (blob) => {
+          this.revokeObjectUrl();
+          const url = URL.createObjectURL(blob);
+          this.lastObjectUrl = url;
+          this.pdfUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+          this.forceDownload(url, 'reporte-cuentas-por-cobrar.pdf');
+        },
+        error: (err) => {
+          console.error('[REPORTES] download preview (cuentas por cobrar) error', err);
+          this.errorPreview.set('No se pudo generar el PDF del reporte.');
+        },
+      });
   }
 
   private preview(): void {
+    if (this.loadingPreview() || this.loadingHistory()) return;
+
     const payload = this.buildPayload();
 
     this.loadingPreview.set(true);

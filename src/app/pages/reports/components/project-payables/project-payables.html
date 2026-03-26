@@ -23,7 +23,8 @@
         </app-autocomplete>
       </div>
 
-      <!-- <div class="md:col-span-1">
+      <!--
+      <div class="md:col-span-1">
         <app-autocomplete-multiple
           formControlName="suppliersIds"
           label="Proveedores (opcional)"
@@ -31,7 +32,8 @@
           catalogType="supplier"
           valueMode="objects">
         </app-autocomplete-multiple>
-      </div> -->
+      </div>
+      -->
 
       <div class="md:col-span-2">
         <app-btns-section
@@ -47,37 +49,32 @@
           type="button"
           class="btn-primary"
           (click)="onSaveHistory()"
-          [disabled]="!hasActiveSearch">
+          [disabled]="!hasActiveSearch || loadingPreview() || loadingHistory()">
           <mat-icon>history</mat-icon>
-          <span>Guardar en historial</span>
+          <span>{{ loadingHistory() ? 'Guardando...' : 'Guardar en historial' }}</span>
         </button>
       </div>
     </div>
   </form>
 
   @if (pdfUrl() || loadingPreview()) {
-  <div class="c-pdf-wrap">
-    @if (pdfUrl()) {
-    <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
-    } @else {
-    <!-- Placeholder cuando aún no hay pdf, pero está cargando -->
-    <div class="c-pdf-placeholder"></div>
-    }
+    <div class="c-pdf-wrap">
+      @if (pdfUrl()) {
+        <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+      } @else {
+        <div class="c-pdf-placeholder"></div>
+      }
 
-    @if (loadingPreview()) {
-    <div class="c-pdf-overlay">
-      <div class="c-loader">
-        <div class="c-spinner"></div>
-        <div class="c-loader-text">Generando preview…</div>
-      </div>
+      <app-loading-overlay
+        [visible]="loadingPreview()"
+        text="Generando preview...">
+      </app-loading-overlay>
     </div>
-    }
-  </div>
   }
 
   @if (errorPreview()) {
-  <div class="c-preview-error">
-    {{ errorPreview() }}
-  </div>
+    <div class="c-preview-error">
+      {{ errorPreview() }}
+    </div>
   }
 </section>

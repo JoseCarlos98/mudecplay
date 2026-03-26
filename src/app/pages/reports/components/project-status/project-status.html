@@ -48,9 +48,9 @@
           type="button"
           class="btn-primary"
           (click)="onSaveHistory()"
-          [disabled]="!hasActiveSearch">
+          [disabled]="!hasActiveSearch || loadingPreview() || loadingHistory()">
           <mat-icon>history</mat-icon>
-          <span>Guardar en historial</span>
+          <span>{{ loadingHistory() ? 'Guardando...' : 'Guardar en historial' }}</span>
         </button>
       </div>
     </div>
@@ -64,14 +64,10 @@
         <div class="c-pdf-placeholder"></div>
       }
 
-      @if (loadingPreview()) {
-        <div class="c-pdf-overlay">
-          <div class="c-loader">
-            <div class="c-spinner"></div>
-            <div class="c-loader-text">Generando preview…</div>
-          </div>
-        </div>
-      }
+      <app-loading-overlay
+        [visible]="loadingPreview()"
+        text="Generando preview...">
+      </app-loading-overlay>
     </div>
   }
 

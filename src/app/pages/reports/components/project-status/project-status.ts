@@ -9,6 +9,7 @@ import { DateRangeValue, InputDate } from '../../../../shared/ui/input-date/inpu
 import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { ReportsApiService } from '../../services/reports-api.service';
 import { ProjectsByStatusPreviewPayload } from '../../interfaces/reports-interfaces';
@@ -29,6 +30,7 @@ const STATUS_PROJECT_OPTIONS: Catalog[] = [
     BtnsSection,
     MatIcon,
     InputSelect,
+    LoadingOverlay,
   ],
   templateUrl: './project-status.html',
   styleUrl: './project-status.scss',
@@ -40,13 +42,14 @@ export class ProjectStatus implements OnDestroy {
 
   readonly statusProjectOptions = STATUS_PROJECT_OPTIONS;
 
-  loadingPreview = signal(false);
-  errorPreview = signal<string | null>(null);
+  readonly loadingPreview = signal(false);
+  readonly loadingHistory = signal(false);
+  readonly errorPreview = signal<string | null>(null);
 
-  pdfUrl = signal<SafeResourceUrl | null>(null);
+  readonly pdfUrl = signal<SafeResourceUrl | null>(null);
   private lastObjectUrl: string | null = null;
 
-  formFilters = this.fb.group({
+  readonly formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     projectIds: this.fb.control<Catalog[]>([], {
       validators: Validators.required,
@@ -79,16 +82,28 @@ export class ProjectStatus implements OnDestroy {
   }
 
   onSaveHistory(): void {
+    if (this.loadingPreview() || this.loadingHistory()) return;
+
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
-    this.api.saveProjectsByStatusHistory(payload).subscribe({
-      next: (res) => console.log('[REPORTES] historial (estado financiero) ok:', res),
-      error: (err) => console.error('[REPORTES] historial (estado financiero) error', err),
-    });
+    this.loadingHistory.set(true);
+
+    this.api.saveProjectsByStatusHistory(payload)
+      .pipe(finalize(() => this.loadingHistory.set(false)))
+      .subscribe({
+        next: (res) => {
+          console.log('[REPORTES] historial (estado financiero) ok:', res);
+        },
+        error: (err) => {
+          console.error('[REPORTES] historial (estado financiero) error', err);
+        },
+      });
   }
 
   private preview(): void {
+    if (this.loadingPreview() || this.loadingHistory()) return;
+
     const payload = this.buildPayloadOrNull();
     if (!payload) return;
 
@@ -133,7 +148,11 @@ export class ProjectStatus implements OnDestroy {
 
   private clear(): void {
     this.formFilters.reset(
-      { dateRange: null, projectIds: [], statusProject: null },
+      {
+        dateRange: null,
+        projectIds: [],
+        statusProject: null,
+      },
       { emitEvent: false },
     );
 
