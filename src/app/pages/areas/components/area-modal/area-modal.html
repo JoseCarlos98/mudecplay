@@ -1,0 +1,25 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="data?.id ? 'Editar área' : 'Registrar área'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <form [formGroup]="form" id="form" class="c-form">
+    <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="name"
+          label="Nombre"
+          type="text">
+        </app-input-field>
+      </div>
+    </div>
+  </form>
+
+  <app-btns-section
+    type="save"
+    [saveDisabled]="!form.valid"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>
