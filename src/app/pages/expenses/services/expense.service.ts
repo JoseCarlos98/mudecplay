@@ -146,4 +146,9 @@ export class ExpenseService {
     const url = `${this.apiUrl}/${id}/receipt-pdf`;
     return this.http.get(url, { responseType: 'blob' });
   }
+
+  archive(id: number): Observable<ApiSuccess> {
+    const url = `${this.apiUrl}/${id}/archive`;
+    return this.http.patch<ApiSuccess>(url, {});
+  }
 }

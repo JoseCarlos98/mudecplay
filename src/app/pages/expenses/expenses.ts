@@ -42,6 +42,7 @@ import { XmlsModal } from './components/xmls-modal/xmls-modal';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 import { PermissionsService } from '../../auth/services/permissions.service';
 import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
+import { ModalArchive } from './components/modal-archive/modal-archive';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -50,7 +51,6 @@ import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay'
 const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
   { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
 
   { key: 'internal_folio', label: 'Folio' },
@@ -66,6 +66,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'products', label: 'Productos', type: 'showItems' },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
+  { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -329,10 +330,6 @@ export class Expenses implements OnInit {
     }
   }
 
-  private openArchiveExpenseModal(expense: entity.ExpenseResponseDto): void {
-    console.log('Abrir modal para archivar gasto:', expense);
-  }
-
   private downloadReceipt(expense: entity.ExpenseResponseDto): void {
     if (this.downloadingReceipt()) return;
 
@@ -489,6 +486,15 @@ export class Expenses implements OnInit {
     }
 
     this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+  }
+
+  private openArchiveExpenseModal(expense: entity.ExpenseResponseDto): void {
+    this.dialogService
+      .open(ModalArchive, expense, 'mini')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.loadExpenses();
+      });
   }
 
   onXmlSelected(event: Event): void {
