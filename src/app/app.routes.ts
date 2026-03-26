@@ -73,16 +73,19 @@ export const routes: Routes = [
         data: { roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
       },
 
-      // Usuarios (si lo quieres solo admin)
       {
         path: 'usuarios',
         loadComponent: () => import('./pages/users/users').then((m) => m.Users),
         canActivate: [rolesGuard],
         data: { roles: ['USUARIOS_EDITOR'] },
       },
+      {
+        path: 'areas',
+        loadComponent: () => import('./pages/areas/areas').then((m) => m.Areas),
+        canActivate: [rolesGuard],
+        data: { roles: ['AREAS_EDITOR'] },
+      },
 
-      // (Opcional) default interno
-      // { path: '', redirectTo: 'gastos', pathMatch: 'full' },
     ],
   },
 

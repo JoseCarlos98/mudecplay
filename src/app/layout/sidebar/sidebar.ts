@@ -33,24 +33,20 @@ export class Sidebar {
 
   readonly panelOpenState = signal(false);
 
-  // Menú "source" con roles (NO renderizar directo)
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
     { name: 'Cuentas por Cobrar', icon: 'account_balance', route: '/cuentas-por-cobrar', roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
     { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
-
-    // OJO: "Catálogos" NO tiene roles propios; se mostrará si algún hijo es visible
     {
       name: 'Catálogos',
       icon: '',
       children: [
         { name: 'Proveedores', icon: 'store', route: '/proveedores', roles: ['PROVEEDORES_EDITOR'] },
         { name: 'Proyectos', icon: 'work', route: '/proyectos', roles: ['PROYECTOS_EDITOR'] },
+        { name: 'Areas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] }, 
         { name: 'Clientes', icon: 'groups', route: '/clientes', roles: ['CLIENTES_EDITOR'] },
         { name: 'Responsables', icon: 'person', route: '/responsables', roles: ['RESPONSABLES_EDITOR'] },
         { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },
-
-        // Usuarios: solo admin (según tu regla)
         { name: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['USUARIOS_EDITOR'] },
       ],
     },
