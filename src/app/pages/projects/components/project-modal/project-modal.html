@@ -35,6 +35,15 @@
         </app-input-field>
       </div>
 
+           <!-- Clasificación -->
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="area_id"
+          label="Área"
+          [options]="catalogArea">
+        </app-input-select>
+      </div>
+
       <div class="md:col-span-1">
         <app-autocomplete
           formControlName="responsible_id"

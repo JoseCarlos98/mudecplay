@@ -1,3 +1,5 @@
+import { Area } from "../../suppliers/interfaces/supplier-interfaces";
+
 export interface FiltersProject {
   name?: string | '';
   email?: string | '';
@@ -19,6 +21,7 @@ export interface ProjectResponseDto {
   days_credit: number;
   will_invoice: boolean;
   statusProject: boolean;
+  area: Area; 
 }
 
 export interface CreateProject {

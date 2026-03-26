@@ -16,6 +16,7 @@ import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { ProjectService } from '../../services/projects.service';
 import { toIdForm } from '../../../../shared/helpers/general-helpers';
+import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true
@@ -24,7 +25,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 @Component({
   selector: 'app-project-modal',
   imports: [CommonModule, MatDatepickerModule, ModuleHeader, MatIconModule, MatFormFieldModule, MatInputModule, ReactiveFormsModule,
-    Autocomplete, InputField, BtnsSection, BtnsSection, MatSlideToggle],
+    Autocomplete, InputField, BtnsSection, InputSelect, BtnsSection, MatSlideToggle],
   templateUrl: './project-modal.html',
   styleUrl: './project-modal.scss',
 })
@@ -36,9 +37,12 @@ export class ProjectModal implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly headerConfig = HEADER_CONFIG;
 
+  catalogArea: Catalog[] = [];
+
   form: FormGroup = this.fb.group({
     responsible_id: this.fb.control<Catalog | null>(null),
     client_id: this.fb.control<Catalog | null>(null),
+    area_id: this.fb.control<number | null>(null, { validators: Validators.required }),
     name: this.fb.control<string | null>(null, { validators: Validators.required }),
     phone: this.fb.control<string | null>(null, { validators: Validators.required }),
     email: this.fb.control<string | null>(null, { validators: Validators.required }),
@@ -52,11 +56,22 @@ export class ProjectModal implements OnInit {
 
   ngOnInit() {
     console.log(this.data);
+    this.loadCatalogs()
     
     if (this.data?.id) this.form.patchValue({
       ...this.data,
       responsible_id: this.data.responsible,
       client_id: this.data.client,
+      area_id: this.data?.area?.id
+    });
+  }
+
+   loadCatalogs() {
+    this.catalogsService.areasSuppliersCatalog().subscribe({
+      next: (response: Catalog[]) => {
+        this.catalogArea = response;
+      },
+      error: (err) => console.error('Error al cargar estados de gasto:', err),
     });
   }
 
@@ -68,12 +83,12 @@ export class ProjectModal implements OnInit {
 
     const formData = this.form.value;
 
-    this.supplierService.create(formData).subscribe({
-      next: (response) => {
-        if (response.success) this.closeModal(true);
-      },
-      error: (err) => console.error('Error al guardar gastos:', err),
-    });
+  //   this.supplierService.create(formData).subscribe({
+  //     next: (response) => {
+  //       if (response.success) this.closeModal(true);
+  //     },
+  //     error: (err) => console.error('Error al guardar gastos:', err),
+  //   });
   }
 
   updateData() {

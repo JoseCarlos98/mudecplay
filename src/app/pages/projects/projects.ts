@@ -51,12 +51,20 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallbackVariant: 'chip-warning',
   },
   {
+    key: 'area',
+    label: 'Área',
+    type: 'relation',
+    fallback: 'No asignado',
+    fallbackVariant: 'chip-warning',
+  },
+  {
     key: 'responsible',
     label: 'Responsable',
     type: 'relation',
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
+
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
   { key: 'phone', label: 'Teléfono', type: 'phone' },
