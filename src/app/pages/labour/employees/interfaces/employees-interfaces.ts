@@ -1,11 +1,6 @@
 
 type EmployeeStatus = 'active' | 'inactive' | 'reentry';
 
-interface CatalogOption {
-  id: string;
-  name: string;
-}
-
 interface EmployeeRow {
   id: number;
   full_name: string;

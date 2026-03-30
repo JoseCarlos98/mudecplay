@@ -20,17 +20,13 @@ import {
   BtnsSection,
   ModuleFooterAction,
 } from '../../../../../shared/ui/btns-section/btns-section';
-
-interface CatalogOption {
-  id: string;
-  name: string;
-}
+import { Catalog } from '../../../../../shared/interfaces/general-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };
 
-const AREA_OPTIONS: CatalogOption[] = [
+const AREA_OPTIONS: Catalog[] = [
   { id: 'CARPINTEROS', name: 'Carpinteros' },
   { id: 'BARNIZADORES', name: 'Barnizadores' },
   { id: 'PINTORES', name: 'Pintores' },

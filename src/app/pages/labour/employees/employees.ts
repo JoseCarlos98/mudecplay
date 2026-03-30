@@ -13,9 +13,10 @@ import { InputField } from '../../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../../shared/ui/input-select/input-select';
 import { HasRoleDirective } from '../../../auth/directives/has-role.directive';
 import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
+import { Catalog } from '../../../shared/interfaces/general-interfaces';
 
 
-const AREA_OPTIONS: CatalogOption[] = [
+const AREA_OPTIONS: Catalog[] = [
   { id: 'CARPINTEROS', name: 'Carpinteros' },
   { id: 'BARNIZADORES', name: 'Barnizadores' },
   { id: 'PINTORES', name: 'Pintores' },
@@ -29,7 +30,7 @@ const AREA_OPTIONS: CatalogOption[] = [
   { id: 'TECNICOS', name: 'Técnicos' },
 ];
 
-const STATUS_OPTIONS: CatalogOption[] = [
+const STATUS_OPTIONS: Catalog[] = [
   { id: 'active', name: 'Activo' },
   { id: 'inactive', name: 'Baja' },
   { id: 'reentry', name: 'Reingreso' },
