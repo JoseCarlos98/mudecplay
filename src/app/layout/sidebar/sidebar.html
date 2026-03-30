@@ -13,7 +13,7 @@
         <span class="brand-subtitle color-secundary">Panel</span>
       </div>
 
-       <div class="brand-icon">
+      <div class="brand-icon">
         <mat-icon class="color-secundary">business</mat-icon>
       </div>
     </div>
@@ -41,7 +41,7 @@
           <div class="sidebar-group" [class.is-open]="isSectionOpen(item.name)">
             <button
               type="button"
-              class="sidebar-link sidebar-link--button c-card-menu"
+              class="sidebar-link sidebar-link--button sidebar-link--section"
               (click)="toggleSection(item, $event)"
               [matTooltip]="item.name"
               [matTooltipDisabled]="isExpanded()"
