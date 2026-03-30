@@ -6,11 +6,9 @@ import { Header } from '../header/header';
 
 @Component({
   selector: 'app-layout',
-  imports: [CommonModule, Sidebar, Header, RouterModule,],
+  standalone: true,
+  imports: [CommonModule, Sidebar, Header, RouterModule],
   templateUrl: './layout.html',
   styleUrl: './layout.scss',
 })
-export class Layout {
-  isSidebarCollapsed = true;
-  toggleSidebar() { this.isSidebarCollapsed = !this.isSidebarCollapsed; }
-}
+export class Layout {}

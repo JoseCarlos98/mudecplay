@@ -1,13 +1,16 @@
-import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
-import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+
 import { MenuItems } from './models/siderbar-models';
 import { AuthService } from '../../auth/services/auth.service';
 
@@ -16,22 +19,20 @@ import { AuthService } from '../../auth/services/auth.service';
   standalone: true,
   imports: [
     CommonModule,
-    MatTooltipModule,
-    MatButtonModule,
     RouterModule,
-    MatToolbarModule,
     MatIconModule,
-    MatListModule,
-    MatExpansionModule,
-    MatSidenavModule,
+    MatTooltipModule,
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
   private readonly auth = inject(AuthService);
+  private readonly hostRef = inject(ElementRef<HTMLElement>);
 
-  readonly panelOpenState = signal(false);
+  readonly isExpanded = signal(false);
+  readonly openSectionName = signal<string | null>(null);
 
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
@@ -39,11 +40,11 @@ export class Sidebar {
     { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
     {
       name: 'Catálogos',
-      icon: '',
+      icon: 'folder_open',
       children: [
         { name: 'Proveedores', icon: 'store', route: '/proveedores', roles: ['PROVEEDORES_EDITOR'] },
         { name: 'Proyectos', icon: 'work', route: '/proyectos', roles: ['PROYECTOS_EDITOR'] },
-        { name: 'Areas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] }, 
+        { name: 'Areas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] },
         { name: 'Clientes', icon: 'groups', route: '/clientes', roles: ['CLIENTES_EDITOR'] },
         { name: 'Responsables', icon: 'person', route: '/responsables', roles: ['RESPONSABLES_EDITOR'] },
         { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },
@@ -52,21 +53,17 @@ export class Sidebar {
     },
   ];
 
-  // Menú filtrado por roles (ADMIN_GENERAL ve todo)
   readonly menuItems = computed<MenuItems[]>(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
 
-    // si no hay roles, no muestres nada
     if (!roles.length) return [];
 
-    // ADMIN_GENERAL ve todo tal cual
-    if (roles.includes('ADMIN_GENERAL')) return this.menuItemsSource as MenuItems[];
+    if (roles.includes('ADMIN_GENERAL')) {
+      return this.menuItemsSource as MenuItems[];
+    }
 
     const canSee = (item: any): boolean => {
-      // si NO definiste roles en el item, no se ve por sí mismo
-      // (pero el padre puede verse si tiene hijos visibles)
       if (!item.roles?.length) return false;
-
       return item.roles.some((r: string) => roles.includes(r));
     };
 
@@ -74,16 +71,12 @@ export class Sidebar {
       return items
         .map((it) => {
           const children = it.children?.length ? filterTree(it.children) : undefined;
-
           const hasVisibleChild = !!children?.length;
           const visibleBySelf = canSee(it);
 
-          // Si no es visible por sí mismo y no tiene hijos visibles -> fuera
           if (!visibleBySelf && !hasVisibleChild) return null;
 
-          // Si tiene hijos, regresamos el item con hijos filtrados
           if (it.children?.length) return { ...it, children };
-
           return { ...it };
         })
         .filter(Boolean);
@@ -91,6 +84,45 @@ export class Sidebar {
 
     return filterTree(this.menuItemsSource) as MenuItems[];
   });
+
+  expand(): void {
+    this.isExpanded.set(true);
+  }
+
+  collapse(): void {
+    this.isExpanded.set(false);
+  }
+
+  onFocusOut(event: FocusEvent): void {
+    const next = event.relatedTarget as Node | null;
+    if (!next || !this.hostRef.nativeElement.contains(next)) {
+      this.collapse();
+    }
+  }
+
+  hasChildren(item: MenuItems): boolean {
+    return !!item.children?.length;
+  }
+
+  isSectionOpen(itemName: string): boolean {
+    return this.openSectionName() === itemName;
+  }
+
+  toggleSection(item: MenuItems, ev?: Event): void {
+    ev?.stopPropagation();
+
+    if (!item.children?.length) return;
+
+    if (!this.isExpanded()) {
+      this.isExpanded.set(true);
+      this.openSectionName.set(item.name);
+      return;
+    }
+
+    this.openSectionName.update((current) =>
+      current === item.name ? null : item.name,
+    );
+  }
 
   logout(): void {
     this.auth.logout();
