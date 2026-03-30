@@ -28,8 +28,8 @@ export const routes: Routes = [
       },
       {
         path: 'mano-de-obra',
-        loadComponent: () =>
-          import('./pages/labour/labour').then((m) => m.Labour),
+        loadChildren: () =>
+          import('./pages/labour/labour.routes').then((m) => m.LABOUR_ROUTES),
         canActivate: [rolesGuard],
         // data: { roles: ['MANO_DE_OBRA_EDITOR'] },
       },
