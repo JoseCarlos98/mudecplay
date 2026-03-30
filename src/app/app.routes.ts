@@ -26,7 +26,13 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['GASTOS_EDITOR'] },
       },
-
+      {
+        path: 'mano-de-obra',
+        loadComponent: () =>
+          import('./pages/labour/labour').then((m) => m.Labour),
+        canActivate: [rolesGuard],
+        // data: { roles: ['MANO_DE_OBRA_EDITOR'] },
+      },
       {
         path: 'reportes',
         loadComponent: () =>
