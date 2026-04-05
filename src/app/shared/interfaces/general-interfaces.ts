@@ -24,3 +24,9 @@ export interface ConfirmModalAction {
   confirmText: string
   cancelText: string
 }
+
+export interface PresignResponse {
+  uploadUrl: string;
+  key: string;
+  publicUrl: string;
+}

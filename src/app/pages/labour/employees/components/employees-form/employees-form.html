@@ -77,7 +77,7 @@
           <div class="employee-row-grid employee-row-grid--three">
             <div>
               <app-input-select
-                formControlName="area"
+                formControlName="employee_area_id"
                 label="Área"
                 [options]="areaOptions">
               </app-input-select>
@@ -188,7 +188,7 @@
 
   <app-btns-section
     form="form"
-    [saveDisabled]="form.invalid"
+    [saveDisabled]="form.invalid || isSaving"
     (action)="onFooterAction($event)">
   </app-btns-section>
 </div>

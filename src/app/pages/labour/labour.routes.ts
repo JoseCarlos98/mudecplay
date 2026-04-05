@@ -16,6 +16,11 @@ export const LABOUR_ROUTES: Routes = [
     loadComponent: () =>
       import('./employees/components/employees-form/employees-form').then(m => m.EmployeesForm),
   },
+  {
+    path: 'empleados/editar/:id',
+    loadComponent: () =>
+      import('./employees/components/employees-form/employees-form').then(m => m.EmployeesForm),
+  },
   // {
   //   path: 'asistencia-diaria',
   //   loadComponent: () =>

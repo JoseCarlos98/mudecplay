@@ -9,28 +9,47 @@ import {
 } from '@angular/common/http';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../auth/services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private snackBar = inject(MatSnackBar);
-  private auth = inject(AuthService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly auth = inject(AuthService);
+
+  private isHandlingUnauthorized = false;
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    const apiBase = (environment.apiUrl || '').replace(/\/+$/, '');
+    const isOurApi = !!apiBase && req.url.startsWith(apiBase);
+
+    const isPresignedAws =
+      req.url.includes('amazonaws.com') ||
+      req.url.includes('cloudfront.net') ||
+      req.url.includes('X-Amz-Algorithm');
+
+    const isLoginEndpoint = !!apiBase && req.url === `${apiBase}/auth/login`;
+
+    // No agregar token a requests externas o presigned URLs
+    if (!isOurApi || isPresignedAws) {
+      return next.handle(req);
+    }
+
     const token = this.auth.getToken();
 
     const authReq = token
       ? req.clone({
-          setHeaders: { Authorization: `Bearer ${token}` },
+          setHeaders: {
+            Authorization: `Bearer ${token}`,
+          },
         })
       : req;
 
     return next.handle(authReq).pipe(
       tap((event) => {
         if (event instanceof HttpResponse) {
-          const body = event.body;
+          const body = event.body as any;
 
-          // Tu patrón: endpoints regresan { success, message }
           if (body?.success) {
             let fallbackMsg = '';
 
@@ -57,9 +76,12 @@ export class AuthInterceptor implements HttpInterceptor {
         }
       }),
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 401) {
-          // token inválido/expirado
+        if (err.status === 401 && !isLoginEndpoint && !this.isHandlingUnauthorized) {
+          this.isHandlingUnauthorized = true;
           this.auth.logout();
+          setTimeout(() => {
+            this.isHandlingUnauthorized = false;
+          }, 0);
         } else if (err.status === 403) {
           this.snackBar.open('No tienes permisos para realizar esta acción.', '', {
             horizontalPosition: 'end',
