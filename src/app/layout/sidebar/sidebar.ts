@@ -51,55 +51,14 @@ export class Sidebar {
         { name: 'Nómina', icon: 'receipt_long', route: '/mano-de-obra/nomina', roles: ['MANO_OBRA_EDITOR'] },
       ],
     },
-    // {
-    //   name: 'Mano de obra',
-    //   icon: 'engineering',
-    //   children: [
-    //     {
-    //       name: 'Empleados',
-    //       icon: 'badge',
-    //       route: '/mano-de-obra/empleados',
-    //       roles: ['MANO_OBRA_EMPLEADOS_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Asistencia diaria',
-    //       icon: 'fact_check',
-    //       route: '/mano-de-obra/asistencia-diaria',
-    //       roles: ['MANO_OBRA_ASISTENCIA_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Llegadas y retardos',
-    //       icon: 'schedule',
-    //       route: '/mano-de-obra/llegadas-retardos',
-    //       roles: ['MANO_OBRA_RETARDOS_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Horas extras',
-    //       icon: 'more_time',
-    //       route: '/mano-de-obra/horas-extras',
-    //       roles: ['MANO_OBRA_HORAS_EXTRAS_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Préstamos',
-    //       icon: 'payments',
-    //       route: '/mano-de-obra/prestamos',
-    //       roles: ['MANO_OBRA_PRESTAMOS_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Nómina',
-    //       icon: 'receipt_long',
-    //       route: '/mano-de-obra/nomina',
-    //       roles: ['MANO_OBRA_NOMINA_EDITOR'],
-    //     },
-    //   ],
-    // },
     {
       name: 'Catálogos',
       icon: 'folder_open',
       children: [
         { name: 'Proveedores', icon: 'store', route: '/proveedores', roles: ['PROVEEDORES_EDITOR'] },
         { name: 'Proyectos', icon: 'work', route: '/proyectos', roles: ['PROYECTOS_EDITOR'] },
-        { name: 'Areas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] },
+        { name: 'Áreas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] },
+        { name: 'Áreas de Empleados', icon: 'grid_view', route: '/areas-empleados', roles: ['AREAS_EMPLEADOS_EDITOR'] },
         { name: 'Clientes', icon: 'groups', route: '/clientes', roles: ['CLIENTES_EDITOR'] },
         { name: 'Responsables', icon: 'person', route: '/responsables', roles: ['RESPONSABLES_EDITOR'] },
         { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },

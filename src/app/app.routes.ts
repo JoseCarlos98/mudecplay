@@ -91,6 +91,12 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['AREAS_EDITOR'] },
       },
+      {
+        path: 'areas-empleados',
+        loadComponent: () => import('./pages/employee-areas/employee-areas').then((m) => m.EmployeeAreas),
+        canActivate: [rolesGuard],
+        data: { roles: ['AREAS_EMPLEADOS_EDITOR'] },
+      },
 
     ],
   },
