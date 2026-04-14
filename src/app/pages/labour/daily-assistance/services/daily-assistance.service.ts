@@ -11,7 +11,9 @@ import * as entity from '../interfaces/daily-assistance-interfaces';
 })
 export class DailyAssistanceService {
   private readonly http = inject(HttpClient);
+
   private readonly apiUrl = `${environment.apiUrl}/employee-attendances`;
+  private readonly employeesApiUrl = `${environment.apiUrl}/employees`;
 
   getAttendances(
     filters: entity.FiltersDailyAssistance,
@@ -38,6 +40,21 @@ export class DailyAssistanceService {
 
     return this.http.get<PaginatedResponse<entity.EmployeeAttendanceRow>>(
       this.apiUrl,
+      { params },
+    );
+  }
+
+  getAttendanceEmployees(
+    search?: string,
+  ): Observable<entity.EmployeeAttendanceCatalogRow[]> {
+    let params = new HttpParams();
+
+    if (search?.trim()) {
+      params = params.set('search', search.trim());
+    }
+
+    return this.http.get<entity.EmployeeAttendanceCatalogRow[]>(
+      `${this.employeesApiUrl}/attendance-catalog`,
       { params },
     );
   }

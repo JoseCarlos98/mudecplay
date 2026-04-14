@@ -9,42 +9,29 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
-import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { Catalog, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import { CatalogsService } from '../../../shared/services/catalogs.service';
 
 import { DailyAssistanceService } from './services/daily-assistance.service';
 import * as entity from './interfaces/daily-assistance-interfaces';
-import { EmployeesService } from '../employees/services/employees.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {};
 
-type ProjectOption = {
-  id: number;
-  name: string;
-};
+// type ProjectOption = {
+//   id: number;
+//   name: string;
+// };
 
-type EmployeeApiRow = {
-  id: number;
-  full_name: string;
+type EmployeeCard = entity.EmployeeAttendanceCatalogRow & {
   curp: string;
-  address?: string | null;
-  birth_date?: string | null;
-  age?: number | null;
-  employee_area_id: number | null;
-  employee_area?: {
-    id: number;
-    name: string;
-  } | null;
+  address: string | null;
+  birth_date: string | null;
+  age: number | null;
+  entry_date: string | null;
+  discharge_date: string | null;
+  reentry_date: string | null;
+  photoUrl: string | null;
   position: string;
-  entry_date?: string | null;
-  discharge_date?: string | null;
-  reentry_date?: string | null;
-  weekly_salary: number;
-  employment_status: 'active' | 'inactive' | 'reentry' | string;
-  photoUrl?: string | null;
-};
-
-type EmployeeCard = EmployeeApiRow & {
   area_label: string;
   daily_salary: number;
   isSelected: boolean;
@@ -72,7 +59,6 @@ type AttendanceCard = entity.EmployeeAttendanceRow & {
 export class DailyAssistance implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly dailyAssistanceService = inject(DailyAssistanceService);
-  private readonly employeesService = inject(EmployeesService);
   private readonly catalogsService = inject(CatalogsService);
 
   readonly headerConfig = HEADER_CONFIG;
@@ -83,14 +69,14 @@ export class DailyAssistance implements OnInit {
   currentDate = this.getToday();
   currentView: entity.DailyAssistanceView = 'unassigned';
 
-  projectOptions: ProjectOption[] = [];
+  projectOptions: Catalog[] = [];
 
   employees: EmployeeCard[] = [];
   assignedAttendances: AttendanceCard[] = [];
   cancelledAttendances: AttendanceCard[] = [];
 
   selectedEmployeeIds = new Set<number>();
-  selectedProjectId: number | null = null;
+  selectedProjectId: number | string | null = null;
 
   editingAttendance: AttendanceCard | null = null;
   cancellingAttendance: AttendanceCard | null = null;
@@ -105,7 +91,7 @@ export class DailyAssistance implements OnInit {
     return this.employees.filter((employee) => this.selectedEmployeeIds.has(employee.id));
   }
 
-  get selectedProject(): ProjectOption | null {
+  get selectedProject(): Catalog | null {
     return this.projectOptions.find((project) => project.id === this.selectedProjectId) ?? null;
   }
 
@@ -163,7 +149,7 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = null;
   }
 
-  selectProject(projectId: number): void {
+  selectProject(projectId: number | string): void {
     this.selectedProjectId = projectId;
   }
 
@@ -290,14 +276,9 @@ export class DailyAssistance implements OnInit {
         limit: 500,
       }) as Observable<PaginatedResponse<entity.EmployeeAttendanceRow>>,
 
-      employees: this.employeesService.getEmployees({
-        page: 1,
-        limit: 500,
-        full_name: null,
-        curp: null,
-        employee_area_id: null,
-        employment_status: null,
-      }) as Observable<PaginatedResponse<EmployeeApiRow>>,
+      employees: this.dailyAssistanceService.getAttendanceEmployees() as Observable<
+        entity.EmployeeAttendanceCatalogRow[]
+      >,
 
       projects: this.getProjectsCatalog(),
     })
@@ -320,14 +301,12 @@ export class DailyAssistance implements OnInit {
 
   private buildBoardState(
     attendancesResponse: PaginatedResponse<entity.EmployeeAttendanceRow>,
-    employeesResponse: PaginatedResponse<EmployeeApiRow>,
+    employeesResponse: entity.EmployeeAttendanceCatalogRow[],
   ): void {
     const attendances = attendancesResponse.data ?? [];
-    const allEmployees = (employeesResponse.data ?? []).filter((employee) => {
-      return employee.employment_status !== 'inactive';
-    });
+    const allEmployees = employeesResponse ?? [];
 
-    const employeeMap = new Map<number, EmployeeApiRow>(
+    const employeeMap = new Map<number, entity.EmployeeAttendanceCatalogRow>(
       allEmployees.map((employee) => [employee.id, employee]),
     );
 
@@ -347,9 +326,18 @@ export class DailyAssistance implements OnInit {
 
     this.employees = allEmployees
       .filter((employee) => !attendanceEmployeeIds.has(employee.id))
-      .map((employee) => ({
+      .map((employee): EmployeeCard => ({
         ...employee,
-        area_label: employee.employee_area?.name ?? 'Sin área',
+        curp: '',
+        address: null,
+        birth_date: null,
+        age: null,
+        entry_date: null,
+        discharge_date: null,
+        reentry_date: null,
+        photoUrl: null,
+        position: employee.position ?? 'Sin puesto',
+        area_label: employee.employee_area_name ?? 'Sin área',
         daily_salary: Number(employee.weekly_salary ?? 0) / 7,
         isSelected: this.selectedEmployeeIds.has(employee.id),
       }))
@@ -360,7 +348,7 @@ export class DailyAssistance implements OnInit {
 
   private mapAttendanceCard(
     attendance: entity.EmployeeAttendanceRow,
-    employeeMap: Map<number, EmployeeApiRow>,
+    employeeMap: Map<number, entity.EmployeeAttendanceCatalogRow>,
   ): AttendanceCard {
     const employee = employeeMap.get(attendance.employee_id);
 
@@ -370,7 +358,7 @@ export class DailyAssistance implements OnInit {
         attendance.employee_name ??
         employee?.full_name ??
         'Empleado sin nombre',
-      employee_area_label: employee?.employee_area?.name ?? 'Sin área',
+      employee_area_label: employee?.employee_area_name ?? 'Sin área',
       employee_position: employee?.position ?? 'Sin puesto',
       employee_area_id: employee?.employee_area_id ?? null,
     };
@@ -392,33 +380,18 @@ export class DailyAssistance implements OnInit {
     }));
   }
 
-  private getProjectsCatalog(): Observable<ProjectOption[]> {
-    const service = this.catalogsService as any;
-
-    if (typeof service.projectsCatalog === 'function') {
-      return service.projectsCatalog().pipe(
-        map((rows: any[]) =>
-          (rows ?? []).map((row) => ({
-            id: Number(row.id),
-            name: String(row.name ?? ''),
-          })),
-        ),
-      );
-    }
-
-    if (typeof service.projectCatalog === 'function') {
-      return service.projectCatalog().pipe(
-        map((rows: any[]) =>
-          (rows ?? []).map((row) => ({
-            id: Number(row.id),
-            name: String(row.name ?? ''),
-          })),
-        ),
-      );
-    }
-
-    return of([]);
-  }
+private getProjectsCatalog(): Observable<Catalog[]> {
+  return this.catalogsService
+    .projectsCatalog('', { statusProject: 'open' })
+    .pipe(
+      map((rows: any[]) =>
+        (rows ?? []).map((row) => ({
+          id: Number(row.id),
+          name: String(row.name ?? ''),
+        })),
+      ),
+    );
+}
 
   private getToday(): string {
     return new Date().toISOString().slice(0, 10);

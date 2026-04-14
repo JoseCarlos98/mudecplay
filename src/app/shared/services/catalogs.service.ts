@@ -34,6 +34,9 @@ export class CatalogsService {
     const url = `${this.apiUrl}/projects/catalog`;
     let params = new HttpParams();
 
+    console.log(extraParams);
+    
+
     // search (como ya lo tienes)
     if (searchTerm?.trim()) {
       params = params.set('search', searchTerm.trim());

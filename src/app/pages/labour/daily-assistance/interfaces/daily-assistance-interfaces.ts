@@ -59,7 +59,7 @@ export interface CreateEmployeeAttendance {
 }
 
 export interface UpdateEmployeeAttendance {
-  project_id: number;
+  project_id: number | string;
 }
 
 export interface CancelEmployeeAttendance {
@@ -70,4 +70,14 @@ export interface SuccessResponse {
   id?: number;
   message: string;
   success: boolean;
+}
+
+export interface EmployeeAttendanceCatalogRow {
+  id: number;
+  full_name: string;
+  employee_area_id: number | null;
+  employee_area_name: string | null;
+  position: string | null;
+  weekly_salary: number;
+  employment_status: string;
 }
