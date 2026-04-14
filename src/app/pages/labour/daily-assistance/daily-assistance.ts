@@ -9,18 +9,19 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
-import { Catalog, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import { CatalogsService } from '../../../shared/services/catalogs.service';
+import { InputField } from '../../../shared/ui/input-field/input-field';
 
 import { DailyAssistanceService } from './services/daily-assistance.service';
 import * as entity from './interfaces/daily-assistance-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {};
 
-// type ProjectOption = {
-//   id: number;
-//   name: string;
-// };
+type ProjectOption = {
+  id: number;
+  name: string;
+};
 
 type EmployeeCard = entity.EmployeeAttendanceCatalogRow & {
   curp: string;
@@ -52,6 +53,7 @@ type AttendanceCard = entity.EmployeeAttendanceRow & {
     FormsModule,
     MatIconModule,
     ModuleHeader,
+    InputField,
   ],
   templateUrl: './daily-assistance.html',
   styleUrl: './daily-assistance.scss',
@@ -69,14 +71,17 @@ export class DailyAssistance implements OnInit {
   currentDate = this.getToday();
   currentView: entity.DailyAssistanceView = 'unassigned';
 
-  projectOptions: Catalog[] = [];
+  employeeSearchTerm = '';
+  projectSearchTerm = '';
+
+  projectOptions: ProjectOption[] = [];
 
   employees: EmployeeCard[] = [];
   assignedAttendances: AttendanceCard[] = [];
   cancelledAttendances: AttendanceCard[] = [];
 
   selectedEmployeeIds = new Set<number>();
-  selectedProjectId: number | string | null = null;
+  selectedProjectId: number | null = null;
 
   editingAttendance: AttendanceCard | null = null;
   cancellingAttendance: AttendanceCard | null = null;
@@ -91,7 +96,7 @@ export class DailyAssistance implements OnInit {
     return this.employees.filter((employee) => this.selectedEmployeeIds.has(employee.id));
   }
 
-  get selectedProject(): Catalog | null {
+  get selectedProject(): ProjectOption | null {
     return this.projectOptions.find((project) => project.id === this.selectedProjectId) ?? null;
   }
 
@@ -111,16 +116,48 @@ export class DailyAssistance implements OnInit {
     return this.cancelledAttendances.length;
   }
 
+  get hasEmployeeSearch(): boolean {
+    return !!this.employeeSearchTerm.trim();
+  }
+
+  get hasProjectSearch(): boolean {
+    return !!this.projectSearchTerm.trim();
+  }
+
   get displayEmployees(): EmployeeCard[] {
-    return this.employees;
+    const term = this.normalizeText(this.employeeSearchTerm);
+
+    if (!term) return this.employees;
+
+    return this.employees.filter((employee) => {
+      const haystack = [
+        employee.full_name,
+        employee.position,
+        employee.area_label,
+      ]
+        .map((value) => this.normalizeText(value))
+        .join(' ');
+
+      return haystack.includes(term);
+    });
   }
 
   get displayAssignedAttendances(): AttendanceCard[] {
-    return this.assignedAttendances;
+    return this.filterAttendances(this.assignedAttendances);
   }
 
   get displayCancelledAttendances(): AttendanceCard[] {
-    return this.cancelledAttendances;
+    return this.filterAttendances(this.cancelledAttendances);
+  }
+
+  get displayProjects(): ProjectOption[] {
+    const term = this.normalizeText(this.projectSearchTerm);
+
+    if (!term) return this.projectOptions;
+
+    return this.projectOptions.filter((project) =>
+      this.normalizeText(project.name).includes(term),
+    );
   }
 
   get totalSelectedDailySalary(): number {
@@ -128,6 +165,17 @@ export class DailyAssistance implements OnInit {
       (sum, employee) => sum + Number(employee.daily_salary ?? 0),
       0,
     );
+  }
+
+  get employeeSearchLabel(): string {
+    switch (this.currentView) {
+      case 'assigned':
+        return 'Buscar asignado';
+      case 'cancelled':
+        return 'Buscar cancelado';
+      default:
+        return 'Buscar trabajador';
+    }
   }
 
   changeView(view: entity.DailyAssistanceView): void {
@@ -149,7 +197,7 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = null;
   }
 
-  selectProject(projectId: number | string): void {
+  selectProject(projectId: number): void {
     this.selectedProjectId = projectId;
   }
 
@@ -182,7 +230,7 @@ export class DailyAssistance implements OnInit {
     const requests = Array.from(this.selectedEmployeeIds).map((employeeId) =>
       this.dailyAssistanceService.create({
         employee_id: employeeId,
-        project_id: this.selectedProjectId as number,
+        project_id: Number(this.selectedProjectId),
         work_date: this.currentDate,
       }),
     );
@@ -216,7 +264,7 @@ export class DailyAssistance implements OnInit {
 
     this.dailyAssistanceService
       .update(this.editingAttendance.id, {
-        project_id: this.selectedProjectId,
+        project_id: Number(this.selectedProjectId),
       })
       .pipe(
         finalize(() => {
@@ -364,6 +412,26 @@ export class DailyAssistance implements OnInit {
     };
   }
 
+  private filterAttendances(rows: AttendanceCard[]): AttendanceCard[] {
+    const term = this.normalizeText(this.employeeSearchTerm);
+
+    if (!term) return rows;
+
+    return rows.filter((row) => {
+      const haystack = [
+        row.employee_full_name,
+        row.employee_area_label,
+        row.employee_position,
+        row.project_name ?? '',
+        row.cancellation_reason ?? '',
+      ]
+        .map((value) => this.normalizeText(value))
+        .join(' ');
+
+      return haystack.includes(term);
+    });
+  }
+
   private resetActionState(): void {
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
@@ -380,18 +448,26 @@ export class DailyAssistance implements OnInit {
     }));
   }
 
-private getProjectsCatalog(): Observable<Catalog[]> {
-  return this.catalogsService
-    .projectsCatalog('', { statusProject: 'open' })
-    .pipe(
-      map((rows: any[]) =>
-        (rows ?? []).map((row) => ({
-          id: Number(row.id),
-          name: String(row.name ?? ''),
-        })),
-      ),
-    );
-}
+  private getProjectsCatalog(): Observable<ProjectOption[]> {
+    return this.catalogsService
+      .projectsCatalog('', { statusProject: 'open' })
+      .pipe(
+        map((rows: any[]) =>
+          (rows ?? []).map((row) => ({
+            id: Number(row.id),
+            name: String(row.name ?? ''),
+          })),
+        ),
+      );
+  }
+
+  private normalizeText(value: unknown): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
+  }
 
   private getToday(): string {
     return new Date().toISOString().slice(0, 10);

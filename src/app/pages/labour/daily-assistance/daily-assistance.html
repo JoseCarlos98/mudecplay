@@ -4,32 +4,32 @@
     [config]="headerConfig">
   </app-module-header>
 
-<div class="daily-top-summary">
-  <div class="daily-top-card daily-top-card--date">
-    <span class="daily-top-card__label">Fecha</span>
-    <strong class="daily-top-card__value">{{ currentDate | date:'dd/MM/yyyy' }}</strong>
-  </div>
+  <div class="daily-top-summary">
+    <div class="daily-top-card daily-top-card--date">
+      <span class="daily-top-card__label">Fecha</span>
+      <strong class="daily-top-card__value">{{ currentDate | date:'dd/MM/yyyy' }}</strong>
+    </div>
 
-  <div class="daily-top-card">
-    <span class="daily-top-card__label">Total</span>
-    <strong class="daily-top-card__value">{{ totalEmployeesCount }}</strong>
-  </div>
+    <div class="daily-top-card">
+      <span class="daily-top-card__label">Total</span>
+      <strong class="daily-top-card__value">{{ totalEmployeesCount }}</strong>
+    </div>
 
-  <div class="daily-top-card">
-    <span class="daily-top-card__label">Sin asignar</span>
-    <strong class="daily-top-card__value">{{ unassignedCount }}</strong>
-  </div>
+    <div class="daily-top-card">
+      <span class="daily-top-card__label">Sin asignar</span>
+      <strong class="daily-top-card__value">{{ unassignedCount }}</strong>
+    </div>
 
-  <div class="daily-top-card">
-    <span class="daily-top-card__label">Asignados</span>
-    <strong class="daily-top-card__value">{{ assignedCount }}</strong>
-  </div>
+    <div class="daily-top-card">
+      <span class="daily-top-card__label">Asignados</span>
+      <strong class="daily-top-card__value">{{ assignedCount }}</strong>
+    </div>
 
-  <div class="daily-top-card">
-    <span class="daily-top-card__label">Cancelados</span>
-    <strong class="daily-top-card__value">{{ cancelledCount }}</strong>
+    <div class="daily-top-card">
+      <span class="daily-top-card__label">Cancelados</span>
+      <strong class="daily-top-card__value">{{ cancelledCount }}</strong>
+    </div>
   </div>
-</div>
 </div>
 
 <div class="card-content daily-assistance-board-card">
@@ -86,6 +86,16 @@
           </p>
         </div>
 
+        <div class="daily-board-column__search">
+          <app-input-field
+            [(ngModel)]="employeeSearchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            [label]="employeeSearchLabel"
+            type="text"
+            [isFilter]="true">
+          </app-input-field>
+        </div>
+
         @if (currentView === 'unassigned') {
           <div class="daily-cards-list">
             @for (employee of displayEmployees; track employee.id) {
@@ -120,7 +130,11 @@
             } @empty {
               <div class="daily-empty-state">
                 <mat-icon>groups</mat-icon>
-                <span>No hay trabajadores disponibles para el día de hoy.</span>
+                <span>
+                  {{ hasEmployeeSearch
+                    ? 'No hay trabajadores que coincidan con la búsqueda.'
+                    : 'No hay trabajadores disponibles para el día de hoy.' }}
+                </span>
               </div>
             }
           </div>
@@ -168,7 +182,11 @@
             } @empty {
               <div class="daily-empty-state">
                 <mat-icon>fact_check</mat-icon>
-                <span>No hay asistencias asignadas para hoy.</span>
+                <span>
+                  {{ hasEmployeeSearch
+                    ? 'No hay asignados que coincidan con la búsqueda.'
+                    : 'No hay asistencias asignadas para hoy.' }}
+                </span>
               </div>
             }
           </div>
@@ -208,7 +226,11 @@
             } @empty {
               <div class="daily-empty-state">
                 <mat-icon>cancel</mat-icon>
-                <span>No hay asistencias canceladas para hoy.</span>
+                <span>
+                  {{ hasEmployeeSearch
+                    ? 'No hay cancelados que coincidan con la búsqueda.'
+                    : 'No hay asistencias canceladas para hoy.' }}
+                </span>
               </div>
             }
           </div>
@@ -223,8 +245,18 @@
           </p>
         </div>
 
+        <div class="daily-board-column__search">
+          <app-input-field
+            [(ngModel)]="projectSearchTerm"
+            [ngModelOptions]="{ standalone: true }"
+            label="Buscar proyecto"
+            type="text"
+            [isFilter]="true">
+          </app-input-field>
+        </div>
+
         <div class="daily-projects-list">
-          @for (project of projectOptions; track project.id) {
+          @for (project of displayProjects; track project.id) {
             <button
               type="button"
               class="daily-project-card"
@@ -236,7 +268,11 @@
           } @empty {
             <div class="daily-empty-state">
               <mat-icon>folder_open</mat-icon>
-              <span>No hay proyectos disponibles.</span>
+              <span>
+                {{ hasProjectSearch
+                  ? 'No hay proyectos que coincidan con la búsqueda.'
+                  : 'No hay proyectos disponibles.' }}
+              </span>
             </div>
           }
         </div>
