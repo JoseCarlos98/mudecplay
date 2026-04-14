@@ -8,7 +8,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface Catalog {
-  id: string;
+  id: string | number;
   name: string;
 }
 

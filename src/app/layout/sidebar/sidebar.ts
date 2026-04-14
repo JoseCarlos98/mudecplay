@@ -38,17 +38,46 @@ export class Sidebar {
     { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
     { name: 'Cuentas por Cobrar', icon: 'account_balance', route: '/cuentas-por-cobrar', roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
     { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
-
     {
       name: 'Mano de obra',
       icon: 'engineering',
       children: [
-        { name: 'Empleados', icon: 'badge', route: '/mano-de-obra/empleados', roles: ['MANO_OBRA_EDITOR'] },
-        { name: 'Asistencia diaria', icon: 'fact_check', route: '/mano-de-obra/asistencia-diaria', roles: ['MANO_OBRA_EDITOR'] },
-        { name: 'Llegadas y retardos', icon: 'schedule', route: '/mano-de-obra/llegadas-retardos', roles: ['MANO_OBRA_EDITOR'] },
-        { name: 'Horas extras', icon: 'more_time', route: '/mano-de-obra/horas-extras', roles: ['MANO_OBRA_EDITOR'] },
-        { name: 'Préstamos', icon: 'payments', route: '/mano-de-obra/prestamos', roles: ['MANO_OBRA_EDITOR'] },
-        { name: 'Nómina', icon: 'receipt_long', route: '/mano-de-obra/nomina', roles: ['MANO_OBRA_EDITOR'] },
+        {
+          name: 'Empleados',
+          icon: 'badge',
+          route: '/mano-de-obra/empleados',
+          roles: ['EMPLEADOS_EDITOR'],
+        },
+        {
+          name: 'Asistencia diaria',
+          icon: 'fact_check',
+          route: '/mano-de-obra/asistencia-diaria',
+          roles: ['ASISTENCIA_EDITOR'],
+        },
+        {
+          name: 'Llegadas y retardos',
+          icon: 'schedule',
+          route: '/mano-de-obra/llegadas-retardos',
+          roles: ['RETARDOS_EDITOR'],
+        },
+        {
+          name: 'Horas extras',
+          icon: 'more_time',
+          route: '/mano-de-obra/horas-extras',
+          roles: ['HORAS_EXTRAS_EDITOR'],
+        },
+        {
+          name: 'Préstamos',
+          icon: 'payments',
+          route: '/mano-de-obra/prestamos',
+          roles: ['PRESTAMOS_EDITOR'],
+        },
+        {
+          name: 'Nómina',
+          icon: 'receipt_long',
+          route: '/mano-de-obra/nomina',
+          roles: ['NOMINA_EDITOR'],
+        },
       ],
     },
     {

@@ -31,7 +31,6 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/labour/labour.routes').then((m) => m.LABOUR_ROUTES),
         canActivate: [rolesGuard],
-        // data: { roles: ['MANO_DE_OBRA_EDITOR'] },
       },
       {
         path: 'reportes',
@@ -97,6 +96,12 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['AREAS_EMPLEADOS_EDITOR'] },
       },
+      // {
+      //   path: 'asistencia-empleados',
+      //   loadComponent: () => import('./pages/labour/daily-assistance/daily-assistance').then((m) => m.DailyAssistance),
+      //   canActivate: [rolesGuard],
+      //   data: { roles: ['ASISTENCIA_EDITOR'] },
+      // },
 
     ],
   },
