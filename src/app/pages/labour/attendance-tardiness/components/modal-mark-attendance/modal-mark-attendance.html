@@ -1,6 +1,6 @@
 <div class="c-modal">
   <app-module-header
-    [title]="'Marcar llegada'"
+    [title]="modalTitle"
     [config]="headerConfig"
     (action)="closeModal()">
   </app-module-header>
@@ -18,9 +18,22 @@
       <div>
         <strong>Fecha asistencia:</strong> {{ data.work_date | date:'dd/MM/yyyy' }}
       </div>
+
+      @if (data.daily_salary != null) {
+        <div>
+          <strong>Sueldo diario:</strong>
+          {{ data.daily_salary | currency:'$ ':'symbol':'1.2-2' }}
+        </div>
+      }
     </div>
 
     <form [formGroup]="form" class="attendance-form">
+      @if (isEditMode && data.arrival_time) {
+        <div class="attendance-note">
+          Hora registrada actualmente: <strong>{{ data.arrival_time }}</strong>
+        </div>
+      }
+
       <app-input-field
         formControlName="arrivalTime"
         label="Hora de llegada"

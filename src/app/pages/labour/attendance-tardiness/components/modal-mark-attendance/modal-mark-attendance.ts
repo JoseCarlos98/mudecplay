@@ -8,11 +8,15 @@ import { BtnsSection } from '../../../../../shared/ui/btns-section/btns-section'
 import { InputField } from '../../../../../shared/ui/input-field/input-field';
 
 
+
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true,
 };
 
+export type MarkAttendanceMode = 'mark' | 'edit';
+
 export interface MarkAttendanceModalData {
+  mode: MarkAttendanceMode;
   id: number;
   employee_name: string;
   area_name: string | null;
@@ -56,7 +60,7 @@ export class ModalMarkAttendance {
   saving = false;
 
   form = this.fb.group({
-    arrivalTime: this.fb.control<string>(this.data.arrival_time ?? this.getCurrentHour(), {
+    arrivalTime: this.fb.control<string>(this.getInitialArrivalTime(), {
       nonNullable: true,
       validators: [Validators.required],
     }),
@@ -65,8 +69,18 @@ export class ModalMarkAttendance {
     }),
   });
 
+  get modalTitle(): string {
+    return this.data.mode === 'edit'
+      ? 'Editar hora de llegada'
+      : 'Marcar llegada';
+  }
+
   get areaName(): string {
     return this.data.area_name?.trim() || 'Sin dato';
+  }
+
+  get isEditMode(): boolean {
+    return this.data.mode === 'edit';
   }
 
   get isTardy(): boolean {
@@ -135,11 +149,8 @@ export class ModalMarkAttendance {
     this.dialogRef.close(result ?? null);
   }
 
-  private getCurrentHour(): string {
-    const now = new Date();
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${hours}:${minutes}`;
+  private getInitialArrivalTime(): string {
+    return this.data.arrival_time ?? '08:00';
   }
 
   private toMinutes(time: string): number {

@@ -21,7 +21,17 @@
 
   .attendance-form {
     display: grid;
-    gap: 1rem;
+  }
+
+  .attendance-note {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1f2937;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    margin-bottom: 12px;
   }
 
   .attendance-preview {
@@ -30,7 +40,8 @@
     padding: 0.9rem 1rem;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
-
+    margin-bottom: 21px;
+    
     div {
       font-size: 0.92rem;
       line-height: 1.35;

@@ -15,7 +15,7 @@ import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { InputField } from '../../../shared/ui/input-field/input-field';
 import { InputSelect, SelectCatalogOption } from '../../../shared/ui/input-select/input-select';
 import { LocalStorageService } from '../../../shared/services/local-storage.service';
-import { ModalMarkAttendance } from './components/modal-mark-attendance/modal-mark-attendance';
+import { MarkAttendanceModalData, MarkAttendanceModalResult, MarkAttendanceMode, ModalMarkAttendance } from './components/modal-mark-attendance/modal-mark-attendance';
 import { DialogService } from '../../../shared/services/dialog.service';
 
 const ATTENDANCE_TARDINESS_FILTERS_KEY = 'mp_attendance_tardiness_filters_v1';
@@ -32,6 +32,7 @@ interface AttendanceTardinessRow {
   tardiness_minutes: number | null;
   tardiness_discount: number | null;
   tardiness_reason: string | null;
+  daily_salary?: number | null;
 }
 
 interface AttendanceTardinessUiFilters {
@@ -101,10 +102,90 @@ const STATUS_OPTIONS: SelectCatalogOption[] = [
   { id: 'Retardo', name: 'Retardo' },
 ];
 
+// const DUMMY_DATA: AttendanceTardinessRow[] = [
+//   {
+//     id: 1,
+//     employee_name: 'Juan Pérez',
+//     area_name: null,
+//     work_date: '2026-04-19',
+//     arrival_time: null,
+//     arrival_status: 'Pendiente',
+//     tardiness_minutes: null,
+//     tardiness_discount: null,
+//     tardiness_reason: null,
+//     daily_salary: 500,
+//   },
+//   {
+//     id: 2,
+//     employee_name: 'Luis Ramos',
+//     area_name: 'Pintores',
+//     work_date: '2026-04-19',
+//     arrival_time: '08:06',
+//     arrival_status: 'A tiempo',
+//     tardiness_minutes: 0,
+//     tardiness_discount: 0,
+//     tardiness_reason: null,
+//   },
+//   {
+//     id: 3,
+//     employee_name: 'Miguel Castro',
+//     area_name: 'Eléctricos',
+//     work_date: '2026-04-19',
+//     arrival_time: '08:17',
+//     arrival_status: 'Retardo',
+//     tardiness_minutes: 17,
+//     tardiness_discount: 89.25,
+//     tardiness_reason: 'Tráfico',
+//   },
+//   {
+//     id: 4,
+//     employee_name: 'José Hernández',
+//     area_name: 'Choferes',
+//     work_date: '2026-04-19',
+//     arrival_time: null,
+//     arrival_status: 'Pendiente',
+//     tardiness_minutes: null,
+//     tardiness_discount: null,
+//     tardiness_reason: null,
+//   },
+//   {
+//     id: 5,
+//     employee_name: 'Carlos Soto',
+//     area_name: 'Plomeros',
+//     work_date: '2026-04-18',
+//     arrival_time: '08:10',
+//     arrival_status: 'A tiempo',
+//     tardiness_minutes: 0,
+//     tardiness_discount: 0,
+//     tardiness_reason: null,
+//   },
+//   {
+//     id: 6,
+//     employee_name: 'Marco Ibarra',
+//     area_name: 'Técnicos',
+//     work_date: '2026-04-18',
+//     arrival_time: '08:24',
+//     arrival_status: 'Retardo',
+//     tardiness_minutes: 24,
+//     tardiness_discount: 126.5,
+//     tardiness_reason: 'Ponchadura',
+//   },
+//   {
+//     id: 7,
+//     employee_name: 'Pedro López',
+//     area_name: 'Jardineros',
+//     work_date: '2026-04-18',
+//     arrival_time: null,
+//     arrival_status: 'Pendiente',
+//     tardiness_minutes: null,
+//     tardiness_discount: null,
+//     tardiness_reason: null,
+//   },
+// ];
 const DUMMY_DATA: AttendanceTardinessRow[] = [
   {
     id: 1,
-    employee_name: 'Juan Pérez',
+    employee_name: 'Vegeta',
     area_name: null,
     work_date: '2026-04-19',
     arrival_time: null,
@@ -112,6 +193,7 @@ const DUMMY_DATA: AttendanceTardinessRow[] = [
     tardiness_minutes: null,
     tardiness_discount: null,
     tardiness_reason: null,
+    daily_salary: 500,
   },
   {
     id: 2,
@@ -123,6 +205,7 @@ const DUMMY_DATA: AttendanceTardinessRow[] = [
     tardiness_minutes: 0,
     tardiness_discount: 0,
     tardiness_reason: null,
+    daily_salary: 480,
   },
   {
     id: 3,
@@ -134,53 +217,21 @@ const DUMMY_DATA: AttendanceTardinessRow[] = [
     tardiness_minutes: 17,
     tardiness_discount: 89.25,
     tardiness_reason: 'Tráfico',
+    daily_salary: 420,
   },
   {
     id: 4,
-    employee_name: 'José Hernández',
+    employee_name: 'Goku',
     area_name: 'Choferes',
     work_date: '2026-04-19',
-    arrival_time: null,
+    arrival_time: '08:14',
     arrival_status: 'Pendiente',
-    tardiness_minutes: null,
+    tardiness_minutes: 18,
     tardiness_discount: null,
     tardiness_reason: null,
-  },
-  {
-    id: 5,
-    employee_name: 'Carlos Soto',
-    area_name: 'Plomeros',
-    work_date: '2026-04-18',
-    arrival_time: '08:10',
-    arrival_status: 'A tiempo',
-    tardiness_minutes: 0,
-    tardiness_discount: 0,
-    tardiness_reason: null,
-  },
-  {
-    id: 6,
-    employee_name: 'Marco Ibarra',
-    area_name: 'Técnicos',
-    work_date: '2026-04-18',
-    arrival_time: '08:24',
-    arrival_status: 'Retardo',
-    tardiness_minutes: 24,
-    tardiness_discount: 126.5,
-    tardiness_reason: 'Ponchadura',
-  },
-  {
-    id: 7,
-    employee_name: 'Pedro López',
-    area_name: 'Jardineros',
-    work_date: '2026-04-18',
-    arrival_time: null,
-    arrival_status: 'Pendiente',
-    tardiness_minutes: null,
-    tardiness_discount: null,
-    tardiness_reason: null,
+    daily_salary: 1500,
   },
 ];
-
 @Component({
   selector: 'app-attendance-tardiness',
   standalone: true,
@@ -339,15 +390,13 @@ export class AttendanceTardiness implements OnInit {
   }
 
   onTableAction(ev: DataTableActionEvent<AttendanceTardinessRow>): void {
-    console.log('Table action:', ev);
-
     switch (ev.type) {
       case 'markArrival':
-        this.openMarkAttendanceModal(ev.row);
+        this.openMarkAttendanceModal(ev.row, 'mark');
         break;
 
       case 'editArrival':
-        console.log('Editar llegada de:', ev.row.employee_name);
+        this.openMarkAttendanceModal(ev.row, 'edit');
         break;
 
       case 'delete':
@@ -356,18 +405,32 @@ export class AttendanceTardiness implements OnInit {
     }
   }
 
-  private openMarkAttendanceModal(row: AttendanceTardinessRow): void {
+  private openMarkAttendanceModal(
+    row: AttendanceTardinessRow,
+    mode: MarkAttendanceMode,
+  ): void {
+    const modalData: MarkAttendanceModalData = {
+      mode,
+      id: row.id,
+      employee_name: row.employee_name,
+      area_name: row.area_name,
+      work_date: row.work_date,
+      arrival_time: row.arrival_time,
+      tardiness_reason: row.tardiness_reason,
+      daily_salary: row.daily_salary ?? null,
+    };
+
     this.dialogService
-      .open(ModalMarkAttendance, row, 'mini')
+      .open(ModalMarkAttendance, modalData, 'mini')
       .afterClosed()
-      .subscribe((result) => {
+      .subscribe((result: MarkAttendanceModalResult | null) => {
         if (!result || result.action !== 'saved') return;
 
-        console.log('Payload modal marcar llegada:', result.payload);
+        console.log('Resultado modal:', result.payload);
 
-        // aquí después llamas al servicio real
-        // y al guardar:
-        // this.loadAttendanceTardiness();
+        // Aquí luego va tu llamada real al servicio.
+        // Por ahora, si quieres reflejarlo en dummy visualmente,
+        // puedes actualizar localmente y recargar tabla.
       });
   }
 
