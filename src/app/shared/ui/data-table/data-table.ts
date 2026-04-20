@@ -160,4 +160,12 @@ export class DataTable<T> implements OnChanges {
 
     return `${country} ${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`.trim();
   }
+
+  get showEditEffective(): boolean {
+    return this.actionPermissions?.showEdit ?? true;
+  }
+
+  get showDeleteEffective(): boolean {
+    return this.actionPermissions?.showDelete ?? true;
+  }
 }

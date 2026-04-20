@@ -1,0 +1,50 @@
+.c-modal {
+  .mark-attendance-body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .attendance-summary {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+  }
+
+  .attendance-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .attendance-preview {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+
+    div {
+      font-size: 0.92rem;
+      line-height: 1.35;
+      color: #374151;
+    }
+
+    &--success {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    &--warning {
+      background: #fff7ed;
+      border-color: #fdba74;
+    }
+  }
+}

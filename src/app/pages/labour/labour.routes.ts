@@ -35,13 +35,14 @@ export const LABOUR_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['ASISTENCIA_EDITOR'] },
   },
-  // {
-  //   path: 'llegadas-retardos',
-  //   loadComponent: () =>
-  //     import('./retardos/retardos').then(m => m.Retardos),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['RETARDOS_EDITOR'] },
-  // },
+  {
+    path: 'llegadas-retardos',
+    loadComponent: () =>
+      import('./attendance-tardiness/attendance-tardiness').then(m => m.AttendanceTardiness),
+    canActivate: [rolesGuard],
+    data: { roles: ['LLEGADAS_RETARDOS_EDITOR'] },
+  },
+
   // {
   //   path: 'horas-extras',
   //   loadComponent: () =>

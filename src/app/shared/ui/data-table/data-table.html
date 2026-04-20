@@ -177,7 +177,7 @@
             }
 
             <!-- EDIT: después -->
-            @if (canShow(editRolesEffective)) {
+            @if (showEditEffective && canShow(editRolesEffective)) {
             <span [matTooltip]="editTooltip(element) || ''" [matTooltipDisabled]="!(editTooltip(element))">
               <button matTooltip="Editar" mat-icon-button class="edit-btn" [disabled]="!canEdit(element)"
                 (click)="onRowAction('edit', element)">
@@ -187,7 +187,7 @@
             }
 
             <!-- DELETE: al final -->
-            @if (canShow(deleteRolesEffective)) {
+            @if (showDeleteEffective && canShow(deleteRolesEffective)) {
             <span [matTooltip]="deleteTooltip(element) || ''" [matTooltipDisabled]="!(deleteTooltip(element))">
               <button  matTooltip="Eliminar" mat-icon-button class="delete-btn" [disabled]="!canDelete(element)"
                 (click)="onRowAction('delete', element)">

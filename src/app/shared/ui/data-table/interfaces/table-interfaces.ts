@@ -37,6 +37,12 @@ export interface ColumnsConfig {
 }
 
 export interface TableActionPermissions {
+  /** Mostrar u ocultar botón editar */
+  showEdit?: boolean;
+
+  /** Mostrar u ocultar botón eliminar */
+  showDelete?: boolean;
+
   /** Roles requeridos para mostrar el botón de editar */
   editRoles?: RoleCode[];
 

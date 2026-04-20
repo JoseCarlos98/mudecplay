@@ -58,7 +58,7 @@ export class Sidebar {
           name: 'Llegadas y retardos',
           icon: 'schedule',
           route: '/mano-de-obra/llegadas-retardos',
-          roles: ['RETARDOS_EDITOR'],
+          roles: ['LLEGADAS_RETARDOS_EDITOR'],
         },
         {
           name: 'Horas extras',
