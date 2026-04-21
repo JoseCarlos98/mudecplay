@@ -60,24 +60,24 @@ export class Sidebar {
           route: '/mano-de-obra/llegadas-retardos',
           roles: ['LLEGADAS_RETARDOS_EDITOR'],
         },
-        {
-          name: 'Horas extras',
-          icon: 'more_time',
-          route: '/mano-de-obra/horas-extras',
-          roles: ['HORAS_EXTRAS_EDITOR'],
-        },
-        {
-          name: 'Préstamos',
-          icon: 'payments',
-          route: '/mano-de-obra/prestamos',
-          roles: ['PRESTAMOS_EDITOR'],
-        },
-        {
-          name: 'Nómina',
-          icon: 'receipt_long',
-          route: '/mano-de-obra/nomina',
-          roles: ['NOMINA_EDITOR'],
-        },
+        // {
+        //   name: 'Horas extras',
+        //   icon: 'more_time',
+        //   route: '/mano-de-obra/horas-extras',
+        //   roles: ['HORAS_EXTRAS_EDITOR'],
+        // },
+        // {
+        //   name: 'Préstamos',
+        //   icon: 'payments',
+        //   route: '/mano-de-obra/prestamos',
+        //   roles: ['PRESTAMOS_EDITOR'],
+        // },
+        // {
+        //   name: 'Nómina',
+        //   icon: 'receipt_long',
+        //   route: '/mano-de-obra/nomina',
+        //   roles: ['NOMINA_EDITOR'],
+        // },
       ],
     },
     {

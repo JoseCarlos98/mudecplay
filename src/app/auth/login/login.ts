@@ -55,6 +55,18 @@ export class LoginComponent {
           PRODUCTOS_EDITOR: '/productos',
           USUARIOS_EDITOR: '/usuarios',
           CUENTAS_POR_COBRAR_EDITOR: '/cuentas-por-cobrar',
+
+          AREAS_EDITOR: '/areas',
+          AREAS_EMPLEADOS_EDITOR: '/areas-empleados',
+
+          EMPLEADOS_EDITOR: '/mano-de-obra/empleados',
+          ASISTENCIA_EDITOR: '/mano-de-obra/asistencia-diaria',
+          LLEGADAS_RETARDOS_EDITOR: '/mano-de-obra/llegadas-retardos',
+
+          // Déjalos listos si luego habilitas las rutas
+          HORAS_EXTRAS_EDITOR: '/mano-de-obra',
+          PRESTAMOS_EDITOR: '/mano-de-obra',
+          NOMINA_EDITOR: '/mano-de-obra',
         };
 
         // Toma el PRIMER rol (en el orden que venga) que tenga ruta

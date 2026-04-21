@@ -3,9 +3,20 @@ import { Labour } from './labour';
 import { rolesGuard } from '../../auth/guards/roles.guard';
 
 export const LABOUR_ROUTES: Routes = [
-   {
+  {
     path: '',
     component: Labour,
+    canActivate: [rolesGuard],
+    data: {
+      roles: [
+        'EMPLEADOS_EDITOR',
+        'ASISTENCIA_EDITOR',
+        'LLEGADAS_RETARDOS_EDITOR',
+        'HORAS_EXTRAS_EDITOR',
+        'PRESTAMOS_EDITOR',
+        'NOMINA_EDITOR',
+      ],
+    },
   },
   {
     path: 'empleados',
@@ -42,28 +53,4 @@ export const LABOUR_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['LLEGADAS_RETARDOS_EDITOR'] },
   },
-
-  // {
-  //   path: 'horas-extras',
-  //   loadComponent: () =>
-  //     import('./horas-extras/horas-extras').then(m => m.HorasExtras),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['HORAS_EXTRAS_EDITOR'] },
-  // },
-  // {
-  //   path: 'prestamos',
-  //   loadComponent: () =>
-  //     import('./prestamos/prestamos').then(m => m.Prestamos),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['PRESTAMOS_EDITOR'] },
-  // },
-  // {
-  //   path: 'nomina',
-  //   loadComponent: () =>
-  //     import('./nomina/nomina').then(m => m.Nomina),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['NOMINA_EDITOR'] },
-  // },
-
-
 ];

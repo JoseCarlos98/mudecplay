@@ -26,11 +26,27 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['GASTOS_EDITOR'] },
       },
+      // {
+      //   path: 'mano-de-obra',
+      //   loadChildren: () =>
+      //     import('./pages/labour/labour.routes').then((m) => m.LABOUR_ROUTES),
+      //   canActivate: [rolesGuard],
+      // },
       {
         path: 'mano-de-obra',
         loadChildren: () =>
           import('./pages/labour/labour.routes').then((m) => m.LABOUR_ROUTES),
         canActivate: [rolesGuard],
+        data: {
+          roles: [
+            'EMPLEADOS_EDITOR',
+            'ASISTENCIA_EDITOR',
+            'LLEGADAS_RETARDOS_EDITOR',
+            'HORAS_EXTRAS_EDITOR',
+            'PRESTAMOS_EDITOR',
+            'NOMINA_EDITOR',
+          ],
+        },
       },
       {
         path: 'reportes',
