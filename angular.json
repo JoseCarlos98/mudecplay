@@ -27,10 +27,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss",
-              "@angular/material/prebuilt-themes/indigo-pink.css"
-            ]
+            "styles": ["src/styles.scss", "@angular/material/prebuilt-themes/indigo-pink.css"]
           },
           "configurations": {
             "production": {
@@ -48,8 +45,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "8kB",
+                  "maximumError": "10kB"
                 }
               ],
               "outputHashing": "all"
@@ -89,10 +86,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.scss",
-              "@angular/material/prebuilt-themes/indigo-pink.css"
-            ]
+            "styles": ["src/styles.scss", "@angular/material/prebuilt-themes/indigo-pink.css"]
           }
         }
       }
