@@ -48,13 +48,16 @@ export interface ExpenseItem {
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
-  withheld_amount: number; // NUEVO
+  withheld_amount: number;
 
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
   project: Project | null;
   product: ProductMini | null;
+
+  // NUEVO: display para Mano de Obra
+  product_display_name?: string | null;
 }
 
 export interface ExpenseResponseDto {
@@ -65,6 +68,11 @@ export interface ExpenseResponseDto {
   total_amount: number;
   can_generate_receipt: boolean;
   is_archived: boolean;
+
+  // NUEVO
+  origin_type?: string | null;
+  provider_display_name?: string | null;
+
   supplier: Supplier | null;
   status: ExpenseStatus;
   cfdi_uuid?: string | null;
@@ -96,7 +104,7 @@ export interface CreateExpenseItem {
   base_amount?: number | null;
   discount_amount?: number | null;
   tax_amount?: number | null;
-  withheld_amount?: number | null; // NUEVO
+  withheld_amount?: number | null;
 
   project_id?: number | null;
   product_id?: number | null;
@@ -127,7 +135,7 @@ export interface ExpenseItemDetail {
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
-  withheld_amount: number; // NUEVO
+  withheld_amount: number;
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -140,6 +148,9 @@ export interface ExpenseItemDetail {
     id: number;
     name: string;
   } | null;
+
+  // NUEVO: display para Mano de Obra
+  product_display_name?: string | null;
 }
 
 export interface ExpenseDetail {
@@ -149,14 +160,21 @@ export interface ExpenseDetail {
   total_amount: number;
   remaining_amount: number;
   cfdi_uuid?: string | null;
+
+  // NUEVO
+  origin_type?: string | null;
+  provider_display_name?: string | null;
+
   supplier: {
     id: number;
     company_name: string;
   } | null;
+
   status: {
     id: number;
     name: string;
   };
+
   items: ExpenseItemDetail[];
 }
 
@@ -171,7 +189,7 @@ export interface ExpenseItemForm {
   base_amount: number | null;
   discount_amount: number | null;
   tax_amount: number | null;
-  withheld_amount: number | null; // NUEVO
+  withheld_amount: number | null;
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -205,7 +223,7 @@ export interface XmlExpenseItemDraftDto {
   base_amount: number;
   discount_amount: number;
   tax_amount: number;
-  withheld_amount: number; // NUEVO
+  withheld_amount: number;
 
   payment_amount: number | null;
   payment_date: string | null;

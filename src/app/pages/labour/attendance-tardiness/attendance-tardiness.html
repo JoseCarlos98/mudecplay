@@ -3,18 +3,19 @@
   </app-module-header>
 
   <form [formGroup]="formFilters">
-    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
       <app-input-date formControlName="workDate" label="Fecha de asistencia" mode="single" [showClear]="false">
       </app-input-date>
 
-      <app-input-field formControlName="employeeQuery" label="Empleado" type="text" [isFilter]="true">
+      <app-input-field formControlName="employeeName" label="Empleado" type="text" [isFilter]="true">
       </app-input-field>
 
-      <app-input-select formControlName="areaName" label="Área" [options]="areaOptions">
+      <app-input-select formControlName="employeeAreaId" label="Área" [options]="areaOptions">
       </app-input-select>
 
       <app-input-select formControlName="status" label="Estatus llegada" [options]="statusOptions">
       </app-input-select>
+
       <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
       </app-btns-section>
     </div>
@@ -24,9 +25,8 @@
 @if (attendanceTableData?.data) {
 <div class="c-module-table">
   <app-data-table [data]="attendanceTableData.data" [columnsConfig]="columnsConfig"
-    [displayedColumns]="displayedColumns" [extraActions]="extraActions" [actionPermissions]="{
-    showEdit: false,
-  }" (action)="onTableAction($event)">
+    [displayedColumns]="displayedColumns" [extraActions]="extraActions" [actionPermissions]="{ showEdit: false }"
+    (action)="onTableAction($event)">
   </app-data-table>
 
   <mat-paginator [length]="attendanceTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"

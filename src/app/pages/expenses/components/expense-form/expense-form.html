@@ -39,23 +39,48 @@
   </div>
   }
 
+  @if (isLaborAuto) {
+  <div class="xml-status">
+    <div class="xml-status__top-row">
+      <span class="xml-status__tag">
+        <mat-icon class="xml-status__tag-icon">engineering</mat-icon>
+        Mano de obra
+      </span>
+    </div>
+
+    <p class="text-info">
+      Este gasto fue generado automáticamente desde asistencia. El
+      <strong>proveedor</strong> corresponde al empleado y el
+      <strong>producto</strong> corresponde al área del empleado, por lo que
+      no pueden modificarse aquí.
+    </p>
+  </div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
+
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
       <!-- Fecha -->
       <div class="md:col-span-1">
-        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true"></app-input-date>
+        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
+        </app-input-date>
       </div>
 
       <!-- Proveedor -->
       <div class="md:col-span-1">
+        @if (isLaborAuto) {
+        <app-input-field formControlName="supplier_display" label="Proveedor" type="text">
+        </app-input-field>
+        } @else {
         <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
           [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
         </app-autocomplete>
+        }
       </div>
 
       <!-- Bloque dinámico de items -->
       <div class="form-dinamic md:col-span-3" formArrayName="items">
-        <!-- Header de la sección -->
+        <!-- Header -->
         <div class="form-dinamic-header">
           <div class="flex items-center gap-2">
             <span class="form-dinamic-title">Productos del gasto</span>
@@ -65,8 +90,7 @@
             </span>
           </div>
 
-          <!-- Botón para agregar nueva fila -->
-          @if (!this.cfdiUuidFromXml) {
+          @if (!cfdiUuidFromXml && !isLaborAuto) {
           <button type="button" class="btn-add-row" (click)="addItem()">
             <mat-icon>add</mat-icon>
             <span>Agregar</span>
@@ -74,7 +98,7 @@
           }
         </div>
 
-        <!-- Barra de acciones masivas -->
+        <!-- Barra masiva -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
           <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
             (change)="onToggleSelectAll($event.checked)">
@@ -87,7 +111,6 @@
             </app-autocomplete>
           </div>
 
-          <!--  cambiamos el disabled para que dependa del objeto seleccionado -->
           <button type="button" class="btn-primary" [disabled]="!hasAnySelected || !bulkProjectSelected"
             (click)="applyBulkProject()">
             <mat-icon>done_all</mat-icon>
@@ -95,7 +118,7 @@
           </button>
         </div>
 
-        <!-- Lista de filas dinámicas -->
+        <!-- Lista -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
           <div class="forms-controls" [formGroupName]="i">
@@ -104,16 +127,22 @@
               <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <div class="project-cell-header">
-                    <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
+                    <mat-checkbox color="primary" formControlName="selected">
+                    </mat-checkbox>
                   </div>
 
+                  @if (isLaborAuto) {
+                  <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
+                  </app-input-field>
+                  } @else {
                   <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
                     catalogType="product">
                   </app-autocomplete>
+                  }
                 </div>
               </div>
 
-              <!-- Monto total -->
+              <!-- Monto -->
               <div class="discount_amount">
                 @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
                 <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
@@ -121,6 +150,7 @@
                   -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
                 </span>
                 }
+
                 @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
                 <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
                   Retenciones CFDI:
@@ -139,9 +169,9 @@
               </div>
             </div>
 
-            <!-- Fila 2: 2 inputs + restante + botón eliminar -->
+            <!-- Fila 2 -->
             <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
-              <!-- Abono / Pago -->
+              <!-- Abono -->
               <div>
                 <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
                       'field-invalid':
@@ -162,7 +192,7 @@
               </div>
               }
 
-              <!-- Restante + botón borrar -->
+              <!-- Restante + delete -->
               <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
                 @if (itemCtrl.get('amount')?.value) {
                 <small class="text-mb text-gray-500" [ngClass]="{
@@ -179,7 +209,7 @@
                 </small>
                 }
 
-                @if (itemsFA.length > 1 && !this.cfdiUuidFromXml) {
+                @if (itemsFA.length > 1 && !cfdiUuidFromXml && !isLaborAuto) {
                 <button type="button" mat-icon-button class="delete-btn self-end md:self-auto" (click)="removeItem(i)">
                   <mat-icon>delete</mat-icon>
                 </button>

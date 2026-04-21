@@ -76,18 +76,20 @@ export class ExpenseForm implements OnInit {
   readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  // Config del header
   readonly headerConfig = HEADER_CONFIG;
 
-  // bandera para saber si viene de XML (o si el gasto está ligado a un CFDI)
+  // bandera XML
   isXmlImport: boolean = false;
 
-  // uuid del CFDI cuando viene de XML
+  // bandera Mano de Obra
+  isLaborAuto: boolean = false;
+
+  // uuid CFDI cuando viene de XML
   cfdiUuidFromXml: string | null = null;
 
   // contador visual de la cola de XML
-  xmlQueueTotal: number = 0; // total de CFDI en la cola
-  xmlQueuePending: number = 0; // pendientes después del actual
+  xmlQueueTotal: number = 0;
+  xmlQueuePending: number = 0;
 
   // Formulario reactivo principal
   form: FormGroup = this.fb.group({
@@ -95,22 +97,16 @@ export class ExpenseForm implements OnInit {
       validators: Validators.required,
     }),
     supplier_id: this.fb.control<Catalog | null>(null),
+    supplier_display: this.fb.control<string>({ value: '', disabled: true }),
     items: this.fb.array([this.createItemGroup()]),
   });
 
-  // Control para el proyecto masivo (su value será id/number por tu CVA)
   bulkProjectCtrl = this.fb.control<any>(null);
-
-  // guardamos el objeto seleccionado para aplicar y para que se vea el nombre
   bulkProjectSelected: Catalog | null = null;
 
-  // Si es 0 => creación; si tiene valor => edición
   expenseId: number = 0;
-
-  // Detalle completo del gasto cuando es edición
   formData!: entity.ExpenseDetail;
 
-  // índice actual calculado (para mostrar "CFDI 1 de N")
   get currentXmlIndex(): number {
     if (!this.xmlQueueTotal) return 1;
     return this.xmlQueueTotal - this.xmlQueuePending;
@@ -120,17 +116,14 @@ export class ExpenseForm implements OnInit {
     const idParam = this.activatedroute.snapshot.paramMap.get('id');
 
     if (idParam) {
-      // Modo edición
       this.expenseId = +idParam;
       this.loadExpense(this.expenseId);
     } else {
-      // Modo creación y revisar si hay cola de XML
       if (this.expenseService.hasMoreXmlDrafts()) {
-        this.loadNextXmlFromQueueOrExit(); // carga el primer CFDI de la cola
+        this.loadNextXmlFromQueueOrExit();
       }
     }
 
-    // si limpian el autocomplete masivo (X), limpiamos también el objeto guardado
     this.bulkProjectCtrl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => {
@@ -141,11 +134,32 @@ export class ExpenseForm implements OnInit {
   }
 
   // ==========================
-  //  HELPER FECHA HOY
+  //  HELPERS
   // ==========================
-  /** Devuelve fecha actual en formato 'YYYY-MM-DD' */
   private getTodayIsoDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  get itemsFA(): FormArray {
+    return this.form.get('items') as FormArray;
+  }
+
+  get hasAnySelected(): boolean {
+    return this.itemsFA.controls.some((ctrl) => !!ctrl.get('selected')?.value);
+  }
+
+  get allSelected(): boolean {
+    if (!this.itemsFA.length) return false;
+    return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
+  }
+
+  get isSpecialReadonlyExpense(): boolean {
+    return this.isXmlImport || this.isLaborAuto;
   }
 
   // ==========================
@@ -156,10 +170,12 @@ export class ExpenseForm implements OnInit {
       next: (response: entity.ExpenseDetail) => {
         this.formData = response;
 
-        // Si el backend manda cfdi_uuid, lo usamos como bandera
         const anyResp: any = response as any;
+
         this.isXmlImport = !!anyResp.cfdi_uuid;
         this.cfdiUuidFromXml = anyResp.cfdi_uuid ?? null;
+
+        this.isLaborAuto = anyResp.origin_type === 'labor_auto';
 
         this.form.patchValue({
           date: response.date,
@@ -169,6 +185,9 @@ export class ExpenseForm implements OnInit {
               response.supplier.company_name,
             )
             : null,
+          supplier_display: this.isLaborAuto
+            ? (response.provider_display_name ?? '')
+            : '',
         });
 
         const itemsFGs = response.items.map((item) =>
@@ -180,7 +199,7 @@ export class ExpenseForm implements OnInit {
             base_amount: (item as any).base_amount ?? null,
             discount_amount: (item as any).discount_amount ?? null,
             tax_amount: (item as any).tax_amount ?? null,
-            withheld_amount: (item as any).withheld_amount ?? null, // NUEVO
+            withheld_amount: (item as any).withheld_amount ?? null,
 
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
@@ -188,13 +207,19 @@ export class ExpenseForm implements OnInit {
             product_id: item.product
               ? toCatalogAutoComplete(item.product.id, item.product.name)
               : null,
+            product_display: (item as any).product_display_name ?? '',
           } as any),
         );
 
         this.form.setControl('items', this.fb.array(itemsFGs));
 
-        // si viene de XML, bloqueamos los campos "duros"
-        this.applyXmlLocking();
+        if (this.isXmlImport) {
+          this.applyXmlLocking();
+        }
+
+        if (this.isLaborAuto) {
+          this.applyLaborAutoLocking();
+        }
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
@@ -205,6 +230,7 @@ export class ExpenseForm implements OnInit {
   // ==========================
   patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
     this.isXmlImport = true;
+    this.isLaborAuto = false;
     this.cfdiUuidFromXml = draft.uuid;
 
     this.form.patchValue({
@@ -212,6 +238,7 @@ export class ExpenseForm implements OnInit {
       supplier_id: draft.supplier
         ? toCatalogAutoComplete(draft.supplier.id, draft.supplier.name)
         : null,
+      supplier_display: '',
     });
 
     const itemsFGs = draft.items.map((item) =>
@@ -223,7 +250,7 @@ export class ExpenseForm implements OnInit {
         base_amount: (item as any).base_amount ?? null,
         discount_amount: (item as any).discount_amount ?? null,
         tax_amount: (item as any).tax_amount ?? null,
-        withheld_amount: (item as any).withheld_amount ?? null, // NUEVO
+        withheld_amount: (item as any).withheld_amount ?? null,
 
         project_id: null,
         product_id: item.product
@@ -233,18 +260,12 @@ export class ExpenseForm implements OnInit {
     );
 
     this.form.setControl('items', this.fb.array(itemsFGs));
-
-    // bloquear campos que vienen del CFDI
     this.applyXmlLocking();
   }
 
-  /**
-   * Bloquea los campos que vienen "duros" del CFDI:
-   * - Fecha
-   * - Proveedor
-   * - Producto y Monto de cada item
-   * El usuario solo puede editar proyecto y abonos.
-   */
+  // ==========================
+  //  BLOQUEOS
+  // ==========================
   applyXmlLocking(): void {
     if (!this.isXmlImport) return;
 
@@ -255,14 +276,37 @@ export class ExpenseForm implements OnInit {
       ctrl.get('product_id')?.disable();
       ctrl.get('amount')?.disable();
 
-      // Estos también vienen del CFDI (solo lectura)
       ctrl.get('base_amount')?.disable();
       ctrl.get('discount_amount')?.disable();
       ctrl.get('tax_amount')?.disable();
-      ctrl.get('withheld_amount')?.disable(); // NUEVO
+      ctrl.get('withheld_amount')?.disable();
     });
   }
 
+  applyLaborAutoLocking(): void {
+    if (!this.isLaborAuto) return;
+
+    this.form.get('supplier_id')?.disable({ emitEvent: false });
+    this.form.get('supplier_display')?.disable({ emitEvent: false });
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      const productCtrl = ctrl.get('product_id');
+      const productDisplayCtrl = ctrl.get('product_display');
+      const amountCtrl = ctrl.get('amount');
+      const paymentAmountCtrl = ctrl.get('payment_amount');
+      const paymentDateCtrl = ctrl.get('payment_date');
+
+      productCtrl?.clearValidators();
+      productCtrl?.updateValueAndValidity({ emitEvent: false });
+      productCtrl?.disable({ emitEvent: false });
+
+      productDisplayCtrl?.disable({ emitEvent: false });
+
+      amountCtrl?.disable({ emitEvent: false });
+      paymentAmountCtrl?.disable({ emitEvent: false });
+      paymentDateCtrl?.disable({ emitEvent: false });
+    });
+  }
   // ==========================
   //  CREATE
   // ==========================
@@ -278,14 +322,12 @@ export class ExpenseForm implements OnInit {
       next: (response) => {
         if (!response.success) return;
 
-        // Si viene de XML y hay más CFDI en cola → cargar siguiente en el MISMO form
         if (this.isXmlImport && this.expenseService.hasMoreXmlDrafts()) {
           this.loadNextXmlFromQueueOrExit();
           return;
         }
 
-        // Fin de cola o gasto manual → volver al listado
-        this.expenseService.clearXmlQueue(); // por si era el último
+        this.expenseService.clearXmlQueue();
         this.router.navigateByUrl('/gastos');
       },
       error: (err) => console.error('Error al crear gasto:', err),
@@ -314,24 +356,6 @@ export class ExpenseForm implements OnInit {
   }
 
   // ==========================
-  //  GETTERS FORM ARRAY
-  // ==========================
-  get itemsFA(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
-
-  /** Algún item seleccionado (para habilitar botón aplicar) */
-  get hasAnySelected(): boolean {
-    return this.itemsFA.controls.some((ctrl) => !!ctrl.get('selected')?.value);
-  }
-
-  /** Todos seleccionados (para estado del checkbox "Seleccionar todos") */
-  get allSelected(): boolean {
-    if (!this.itemsFA.length) return false;
-    return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
-  }
-
-  // ==========================
   //  ITEMS FORM
   // ==========================
   createItemGroup(data?: any): FormGroup {
@@ -340,11 +364,10 @@ export class ExpenseForm implements OnInit {
     return this.fb.group({
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
 
-      // CAMPOS CFDI (se guardan; en XML se muestran bloqueados)
       base_amount: [data?.base_amount ?? null],
       discount_amount: [data?.discount_amount ?? null],
       tax_amount: [data?.tax_amount ?? null],
-      withheld_amount: [data?.withheld_amount ?? null], // NUEVO
+      withheld_amount: [data?.withheld_amount ?? null],
 
       payment_amount: [data?.payment_amount ?? null],
       payment_date: [defaultPaymentDate],
@@ -352,18 +375,21 @@ export class ExpenseForm implements OnInit {
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
       }),
+      product_display: this.fb.control<string>(
+        { value: data?.product_display ?? '', disabled: true },
+      ),
       selected: this.fb.control<boolean>(false),
     });
   }
 
   addItem() {
-    if (this.isXmlImport) return;
+    if (this.isXmlImport || this.isLaborAuto) return;
     this.itemsFA.push(this.createItemGroup());
   }
 
   removeItem(index: number) {
     if (this.itemsFA.length <= 1) return;
-    if (this.isXmlImport) return;
+    if (this.isXmlImport || this.isLaborAuto) return;
     this.itemsFA.removeAt(index);
   }
 
@@ -438,21 +464,30 @@ export class ExpenseForm implements OnInit {
         amount: Number(item.amount),
 
         base_amount:
-          item.base_amount !== null && item.base_amount !== undefined && item.base_amount !== ''
+          item.base_amount !== null &&
+            item.base_amount !== undefined &&
+            item.base_amount !== ''
             ? Number(item.base_amount)
             : null,
+
         discount_amount:
-          item.discount_amount !== null && item.discount_amount !== undefined && item.discount_amount !== ''
+          item.discount_amount !== null &&
+            item.discount_amount !== undefined &&
+            item.discount_amount !== ''
             ? Number(item.discount_amount)
             : null,
+
         tax_amount:
-          item.tax_amount !== null && item.tax_amount !== undefined && item.tax_amount !== ''
+          item.tax_amount !== null &&
+            item.tax_amount !== undefined &&
+            item.tax_amount !== ''
             ? Number(item.tax_amount)
             : null,
 
-        // NUEVO
         withheld_amount:
-          item.withheld_amount !== null && item.withheld_amount !== undefined && item.withheld_amount !== ''
+          item.withheld_amount !== null &&
+            item.withheld_amount !== undefined &&
+            item.withheld_amount !== ''
             ? Number(item.withheld_amount)
             : null,
 
@@ -461,7 +496,8 @@ export class ExpenseForm implements OnInit {
             ? Number(item.payment_amount)
             : null,
 
-        payment_date: item.amount == item.payment_amount ? item.payment_date : null,
+        payment_date:
+          item.amount == item.payment_amount ? item.payment_date : null,
 
         project_id: toIdForm(item.project_id),
         product_id: toIdForm(item.product_id),
@@ -475,6 +511,7 @@ export class ExpenseForm implements OnInit {
     if (!nextDraft) {
       this.expenseService.clearXmlQueue();
       this.isXmlImport = false;
+      this.isLaborAuto = false;
       this.cfdiUuidFromXml = null;
       this.router.navigateByUrl('/gastos');
       return;
@@ -526,7 +563,10 @@ export class ExpenseForm implements OnInit {
     const total = Number(itemCtrl.get('amount')?.value ?? 0);
 
     const money = (n: number) =>
-      `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      `$${n.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
 
     return [
       `Base: ${money(base)}`,
@@ -535,7 +575,7 @@ export class ExpenseForm implements OnInit {
       `Total: ${money(total)}`,
     ].join('\n');
   }
-  
+
   buildWithheldTooltip(itemCtrl: any): string {
     const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
     const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
@@ -544,7 +584,10 @@ export class ExpenseForm implements OnInit {
     const total = Number(itemCtrl.get('amount')?.value ?? 0);
 
     const money = (n: number) =>
-      `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      `$${n.toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
 
     return [
       `Base: ${money(base)}`,
@@ -552,7 +595,9 @@ export class ExpenseForm implements OnInit {
       `IVA: ${money(tax)}`,
       `Retención: -${money(withheld)}`,
       `Total: ${money(total)}`,
-    ].filter(Boolean).join('\n');
+    ]
+      .filter(Boolean)
+      .join('\n');
   }
 
   navigateToList() {

@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+
 import { InputDate } from '../../../shared/ui/input-date/input-date';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
 import {
@@ -13,46 +14,24 @@ import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
 import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { InputField } from '../../../shared/ui/input-field/input-field';
-import { InputSelect, SelectCatalogOption } from '../../../shared/ui/input-select/input-select';
+import {
+  InputSelect,
+  SelectCatalogOption,
+} from '../../../shared/ui/input-select/input-select';
 import { LocalStorageService } from '../../../shared/services/local-storage.service';
-import { MarkAttendanceModalData, MarkAttendanceModalResult, MarkAttendanceMode, ModalMarkAttendance } from './components/modal-mark-attendance/modal-mark-attendance';
 import { DialogService } from '../../../shared/services/dialog.service';
 
+import * as entity from './interfaces/attendance-tardiness.interfaces';
+import { AttendanceTardinessService } from './services/attendance-tardiness.service';
+import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import {
+  MarkAttendanceModalData,
+  MarkAttendanceModalResult,
+  MarkAttendanceMode,
+  ModalMarkAttendance,
+} from './components/modal-mark-attendance/modal-mark-attendance';
+
 const ATTENDANCE_TARDINESS_FILTERS_KEY = 'mp_attendance_tardiness_filters_v1';
-
-type ArrivalStatus = 'Pendiente' | 'A tiempo' | 'Retardo';
-
-interface AttendanceTardinessRow {
-  id: number;
-  employee_name: string;
-  area_name: string | null;
-  work_date: string;
-  arrival_time: string | null;
-  arrival_status: ArrivalStatus;
-  tardiness_minutes: number | null;
-  tardiness_discount: number | null;
-  tardiness_reason: string | null;
-  daily_salary?: number | null;
-}
-
-interface AttendanceTardinessUiFilters {
-  workDate: string | null;
-  employeeQuery: string;
-  areaName: string | null;
-  status: ArrivalStatus | null;
-  page: number;
-  limit: number;
-}
-
-interface PaginatedLocalResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
-}
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: false,
@@ -61,11 +40,16 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'employee_name', label: 'Empleado' },
-  { key: 'area_name', label: 'Área', type: 'chip', fallback: 'No asignado', fallbackVariant: 'chip-warning', },
+  {
+    key: 'area_name',
+    label: 'Área',
+    type: 'chip',
+    fallback: 'Sin dato',
+  },
   { key: 'work_date', label: 'Fecha asistencia', type: 'date' },
   { key: 'arrival_time', label: 'Hora llegada' },
   {
-    key: 'arrival_status',
+    key: 'arrival_status_label',
     label: 'Estatus llegada',
     type: 'chip',
     typeVariant: 'chip-neutral',
@@ -82,156 +66,12 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
 
 const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
 
-const AREA_OPTIONS: SelectCatalogOption[] = [
-  { id: 'Carpinteros', name: 'Carpinteros' },
-  { id: 'Barnizadores', name: 'Barnizadores' },
-  { id: 'Pintores', name: 'Pintores' },
-  { id: 'Jardineros', name: 'Jardineros' },
-  { id: 'Choferes', name: 'Choferes' },
-  { id: 'Arquitectos', name: 'Arquitectos' },
-  { id: 'Ingenieros', name: 'Ingenieros' },
-  { id: 'Administrativos', name: 'Administrativos' },
-  { id: 'Eléctricos', name: 'Eléctricos' },
-  { id: 'Plomeros', name: 'Plomeros' },
-  { id: 'Técnicos', name: 'Técnicos' },
-];
-
 const STATUS_OPTIONS: SelectCatalogOption[] = [
-  { id: 'Pendiente', name: 'Pendiente' },
-  { id: 'A tiempo', name: 'A tiempo' },
-  { id: 'Retardo', name: 'Retardo' },
+  { id: 'pending', name: 'Pendiente' },
+  { id: 'on_time', name: 'A tiempo' },
+  { id: 'tardy', name: 'Retardo' },
 ];
 
-// const DUMMY_DATA: AttendanceTardinessRow[] = [
-//   {
-//     id: 1,
-//     employee_name: 'Juan Pérez',
-//     area_name: null,
-//     work_date: '2026-04-19',
-//     arrival_time: null,
-//     arrival_status: 'Pendiente',
-//     tardiness_minutes: null,
-//     tardiness_discount: null,
-//     tardiness_reason: null,
-//     daily_salary: 500,
-//   },
-//   {
-//     id: 2,
-//     employee_name: 'Luis Ramos',
-//     area_name: 'Pintores',
-//     work_date: '2026-04-19',
-//     arrival_time: '08:06',
-//     arrival_status: 'A tiempo',
-//     tardiness_minutes: 0,
-//     tardiness_discount: 0,
-//     tardiness_reason: null,
-//   },
-//   {
-//     id: 3,
-//     employee_name: 'Miguel Castro',
-//     area_name: 'Eléctricos',
-//     work_date: '2026-04-19',
-//     arrival_time: '08:17',
-//     arrival_status: 'Retardo',
-//     tardiness_minutes: 17,
-//     tardiness_discount: 89.25,
-//     tardiness_reason: 'Tráfico',
-//   },
-//   {
-//     id: 4,
-//     employee_name: 'José Hernández',
-//     area_name: 'Choferes',
-//     work_date: '2026-04-19',
-//     arrival_time: null,
-//     arrival_status: 'Pendiente',
-//     tardiness_minutes: null,
-//     tardiness_discount: null,
-//     tardiness_reason: null,
-//   },
-//   {
-//     id: 5,
-//     employee_name: 'Carlos Soto',
-//     area_name: 'Plomeros',
-//     work_date: '2026-04-18',
-//     arrival_time: '08:10',
-//     arrival_status: 'A tiempo',
-//     tardiness_minutes: 0,
-//     tardiness_discount: 0,
-//     tardiness_reason: null,
-//   },
-//   {
-//     id: 6,
-//     employee_name: 'Marco Ibarra',
-//     area_name: 'Técnicos',
-//     work_date: '2026-04-18',
-//     arrival_time: '08:24',
-//     arrival_status: 'Retardo',
-//     tardiness_minutes: 24,
-//     tardiness_discount: 126.5,
-//     tardiness_reason: 'Ponchadura',
-//   },
-//   {
-//     id: 7,
-//     employee_name: 'Pedro López',
-//     area_name: 'Jardineros',
-//     work_date: '2026-04-18',
-//     arrival_time: null,
-//     arrival_status: 'Pendiente',
-//     tardiness_minutes: null,
-//     tardiness_discount: null,
-//     tardiness_reason: null,
-//   },
-// ];
-const DUMMY_DATA: AttendanceTardinessRow[] = [
-  {
-    id: 1,
-    employee_name: 'Vegeta',
-    area_name: null,
-    work_date: '2026-04-19',
-    arrival_time: null,
-    arrival_status: 'Pendiente',
-    tardiness_minutes: null,
-    tardiness_discount: null,
-    tardiness_reason: null,
-    daily_salary: 500,
-  },
-  {
-    id: 2,
-    employee_name: 'Luis Ramos',
-    area_name: 'Pintores',
-    work_date: '2026-04-19',
-    arrival_time: '08:06',
-    arrival_status: 'A tiempo',
-    tardiness_minutes: 0,
-    tardiness_discount: 0,
-    tardiness_reason: null,
-    daily_salary: 480,
-  },
-  {
-    id: 3,
-    employee_name: 'Miguel Castro',
-    area_name: 'Eléctricos',
-    work_date: '2026-04-19',
-    arrival_time: '08:17',
-    arrival_status: 'Retardo',
-    tardiness_minutes: 17,
-    tardiness_discount: 89.25,
-    tardiness_reason: 'Tráfico',
-    daily_salary: 420,
-  },
-  {
-    id: 4,
-    employee_name: 'Goku',
-    area_name: 'Choferes',
-    work_date: '2026-04-19',
-    arrival_time: '08:14',
-    arrival_status: 'Pendiente',
-    tardiness_minutes: 18,
-    tardiness_discount: null,
-    tardiness_reason: null,
-    daily_salary: 1500,
-  },
-];
 @Component({
   selector: 'app-attendance-tardiness',
   standalone: true,
@@ -252,49 +92,51 @@ const DUMMY_DATA: AttendanceTardinessRow[] = [
 export class AttendanceTardiness implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
+  private readonly attendanceTardinessService = inject(AttendanceTardinessService);
   private readonly dialogService = inject(DialogService);
 
   readonly headerConfig = HEADER_CONFIG;
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
-
-  readonly areaOptions = AREA_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;
 
-  readonly extraActions: DataTableExtraAction<AttendanceTardinessRow>[] = [
+  areaOptions: SelectCatalogOption[] = [];
+
+  readonly extraActions: DataTableExtraAction<entity.AttendanceTardinessRow>[] = [
     {
       type: 'markArrival',
       icon: 'how_to_reg',
       tooltip: 'Marcar llegada',
-      visible: (row) => row.arrival_status === 'Pendiente',
+      visible: (row) => row.arrival_status === 'pending',
     },
     {
       type: 'editArrival',
       icon: 'edit_calendar',
       tooltip: 'Editar hora de llegada',
-      visible: (row) => row.arrival_status !== 'Pendiente',
+      visible: (row) => row.arrival_status !== 'pending',
     },
   ];
 
-  filters: AttendanceTardinessUiFilters = {
+  filters: entity.AttendanceTardinessUiFilters = {
     workDate: this.getTodayApiDate(),
-    employeeQuery: '',
-    areaName: null,
+    employeeName: '',
+    employeeAreaId: null,
     status: null,
     page: 1,
     limit: 5,
   };
 
-  attendanceTableData!: PaginatedLocalResponse<AttendanceTardinessRow>;
+  attendanceTableData!: PaginatedResponse<entity.AttendanceTardinessRow>;
 
   formFilters = this.fb.group({
     workDate: this.fb.control<string | null>(this.getTodayApiDate()),
-    employeeQuery: this.fb.control<string>(''),
-    areaName: this.fb.control<string | null>(null),
-    status: this.fb.control<ArrivalStatus | null>(null),
+    employeeName: this.fb.control<string>(''),
+    employeeAreaId: this.fb.control<number | null>(null),
+    status: this.fb.control<entity.AttendanceArrivalStatus | null>(null),
   });
 
   ngOnInit(): void {
+    this.loadEmployeeAreasCatalog();
     this.restoreFiltersFromStorage();
   }
 
@@ -307,13 +149,46 @@ export class AttendanceTardiness implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  private buildBackendFiltersFromUi(
+    ui: entity.AttendanceTardinessUiFilters,
+  ): entity.AttendanceTardinessFilters {
+    return {
+      page: ui.page,
+      limit: ui.limit,
+      work_date: ui.workDate ?? null,
+      employee_name: ui.employeeName?.trim() || null,
+      employee_area_id: ui.employeeAreaId ?? null,
+      arrival_status: ui.status ?? null,
+    };
+  }
+
+  private mapRow(
+    row: entity.EmployeeAttendanceResponseDto,
+  ): entity.AttendanceTardinessRow {
+    return {
+      id: row.id,
+      employee_id: row.employee_id,
+      employee_name: row.employee_name ?? null,
+      employee_area_id: row.employee_area_id ?? null,
+      area_name: row.employee_area_name ?? null,
+      work_date: row.work_date,
+      arrival_time: row.arrival_time ?? null,
+      arrival_status: row.arrival_status,
+      arrival_status_label: row.arrival_status_label,
+      tardiness_minutes: row.tardiness_minutes ?? null,
+      tardiness_discount: row.tardiness_discount ?? null,
+      tardiness_reason: row.tardiness_reason ?? null,
+      daily_salary: Number(row.daily_salary_snapshot ?? 0),
+    };
+  }
+
   searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    const uiState: AttendanceTardinessUiFilters = {
+    const uiState: entity.AttendanceTardinessUiFilters = {
       workDate: value.workDate ?? this.getTodayApiDate(),
-      employeeQuery: value.employeeQuery ?? '',
-      areaName: value.areaName ?? null,
+      employeeName: value.employeeName ?? '',
+      employeeAreaId: value.employeeAreaId ?? null,
       status: value.status ?? null,
       page: 1,
       limit: this.filters.limit,
@@ -325,45 +200,35 @@ export class AttendanceTardiness implements OnInit {
   }
 
   loadAttendanceTardiness(): void {
-    let filtered = [...DUMMY_DATA];
+    const backendFilters = this.buildBackendFiltersFromUi(this.filters);
 
-    const workDate = this.filters.workDate;
-    const employeeQuery = this.filters.employeeQuery.trim().toLowerCase();
-    const areaName = this.filters.areaName;
-    const status = this.filters.status;
+    this.attendanceTardinessService.getAttendances(backendFilters).subscribe({
+      next: (response) => {
+        const data = (response.data ?? []).map((row) => this.mapRow(row));
 
-    if (workDate) {
-      filtered = filtered.filter((row) => row.work_date === workDate);
-    }
-
-    if (employeeQuery) {
-      filtered = filtered.filter((row) =>
-        row.employee_name.toLowerCase().includes(employeeQuery),
-      );
-    }
-
-    if (areaName) {
-      filtered = filtered.filter((row) => row.area_name === areaName);
-    }
-
-    if (status) {
-      filtered = filtered.filter((row) => row.arrival_status === status);
-    }
-
-    const total = filtered.length;
-    const start = (this.filters.page - 1) * this.filters.limit;
-    const end = start + this.filters.limit;
-    const paginatedData = filtered.slice(start, end);
-
-    this.attendanceTableData = {
-      data: paginatedData,
-      meta: {
-        total,
-        page: this.filters.page,
-        limit: this.filters.limit,
-        totalPages: Math.max(Math.ceil(total / this.filters.limit), 1),
+        this.attendanceTableData = {
+          ...response,
+          data,
+        };
       },
-    };
+      error: (err) => {
+        console.error('Error al cargar llegadas y retardos:', err);
+      },
+    });
+  }
+
+  private loadEmployeeAreasCatalog(): void {
+    this.attendanceTardinessService.getEmployeeAreasCatalog().subscribe({
+      next: (rows) => {
+        this.areaOptions = (rows ?? []).map((row) => ({
+          id: row.id,
+          name: row.name,
+        }));
+      },
+      error: (err) => {
+        console.error('Error al cargar catálogo de áreas:', err);
+      },
+    });
   }
 
   onPageChange(event: PageEvent): void {
@@ -383,20 +248,21 @@ export class AttendanceTardiness implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<AttendanceTardinessRow>): void {
+  onTableAction(ev: DataTableActionEvent<entity.AttendanceTardinessRow>): void {
     switch (ev.type) {
       case 'markArrival':
-        this.openMarkAttendanceModal(ev.row, 'mark');
+        this.openAttendanceModal(ev.row, 'mark');
         break;
 
       case 'editArrival':
-        this.openMarkAttendanceModal(ev.row, 'edit');
+        this.openAttendanceModal(ev.row, 'edit');
         break;
 
       case 'delete':
@@ -405,14 +271,14 @@ export class AttendanceTardiness implements OnInit {
     }
   }
 
-  private openMarkAttendanceModal(
-    row: AttendanceTardinessRow,
+  private openAttendanceModal(
+    row: entity.AttendanceTardinessRow,
     mode: MarkAttendanceMode,
   ): void {
     const modalData: MarkAttendanceModalData = {
       mode,
       id: row.id,
-      employee_name: row.employee_name,
+      employee_name: row.employee_name ?? 'Sin nombre',
       area_name: row.area_name,
       work_date: row.work_date,
       arrival_time: row.arrival_time,
@@ -426,22 +292,46 @@ export class AttendanceTardiness implements OnInit {
       .subscribe((result: MarkAttendanceModalResult | null) => {
         if (!result || result.action !== 'saved') return;
 
-        console.log('Resultado modal:', result.payload);
+        this.saveArrival(row.id, result.payload);
+      });
+  }
 
-        // Aquí luego va tu llamada real al servicio.
-        // Por ahora, si quieres reflejarlo en dummy visualmente,
-        // puedes actualizar localmente y recargar tabla.
+  private saveArrival(
+    attendanceId: number,
+    payload: MarkAttendanceModalResult['payload'],
+  ): void {
+    this.attendanceTardinessService
+      .upsertArrival(attendanceId, {
+        arrival_time: payload.arrival_time,
+        tardiness_reason: payload.tardiness_reason,
+      })
+      .subscribe({
+        next: () => {
+          this.loadAttendanceTardiness();
+        },
+        error: (err) => {
+          console.error('Error al guardar llegada:', err);
+
+          this.dialogService
+            .confirm({
+              title: 'Error',
+              message: 'No se pudo guardar la hora de llegada.',
+              confirmText: 'OK',
+              cancelText: '',
+            })
+            .subscribe();
+        },
       });
   }
 
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasEmployeeQuery = !!form.employeeQuery?.trim();
-    const hasArea = !!form.areaName;
+    const hasEmployeeName = !!form.employeeName?.trim();
+    const hasArea = form.employeeAreaId !== null && form.employeeAreaId !== undefined;
     const hasStatus = !!form.status;
 
-    return hasEmployeeQuery || hasArea || hasStatus;
+    return hasEmployeeName || hasArea || hasStatus;
   }
 
   clearAllAndSearch(): void {
@@ -450,8 +340,8 @@ export class AttendanceTardiness implements OnInit {
     this.formFilters.reset(
       {
         workDate: today,
-        employeeQuery: '',
-        areaName: null,
+        employeeName: '',
+        employeeAreaId: null,
         status: null,
       },
       { emitEvent: false },
@@ -459,8 +349,8 @@ export class AttendanceTardiness implements OnInit {
 
     this.filters = {
       workDate: today,
-      employeeQuery: '',
-      areaName: null,
+      employeeName: '',
+      employeeAreaId: null,
       status: null,
       page: 1,
       limit: this.filters.limit,
@@ -474,7 +364,7 @@ export class AttendanceTardiness implements OnInit {
   private restoreFiltersFromStorage(): void {
     const today = this.getTodayApiDate();
 
-    const saved = this.storage.getItem<AttendanceTardinessUiFilters>(
+    const saved = this.storage.getItem<entity.AttendanceTardinessUiFilters>(
       ATTENDANCE_TARDINESS_FILTERS_KEY,
     );
 
@@ -482,8 +372,8 @@ export class AttendanceTardiness implements OnInit {
       this.formFilters.patchValue(
         {
           workDate: today,
-          employeeQuery: '',
-          areaName: null,
+          employeeName: '',
+          employeeAreaId: null,
           status: null,
         },
         { emitEvent: false },
@@ -491,8 +381,8 @@ export class AttendanceTardiness implements OnInit {
 
       this.filters = {
         workDate: today,
-        employeeQuery: '',
-        areaName: null,
+        employeeName: '',
+        employeeAreaId: null,
         status: null,
         page: 1,
         limit: this.filters.limit,
@@ -506,8 +396,8 @@ export class AttendanceTardiness implements OnInit {
     this.formFilters.patchValue(
       {
         workDate: saved.workDate ?? today,
-        employeeQuery: saved.employeeQuery,
-        areaName: saved.areaName,
+        employeeName: saved.employeeName,
+        employeeAreaId: saved.employeeAreaId,
         status: saved.status,
       },
       { emitEvent: false },
@@ -521,14 +411,14 @@ export class AttendanceTardiness implements OnInit {
     this.loadAttendanceTardiness();
   }
 
-  private saveFiltersToStorage(state?: AttendanceTardinessUiFilters): void {
+  private saveFiltersToStorage(state?: entity.AttendanceTardinessUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
       state = {
         workDate: value.workDate ?? this.getTodayApiDate(),
-        employeeQuery: value.employeeQuery ?? '',
-        areaName: value.areaName ?? null,
+        employeeName: value.employeeName ?? '',
+        employeeAreaId: value.employeeAreaId ?? null,
         status: value.status ?? null,
         page: this.filters.page,
         limit: this.filters.limit,

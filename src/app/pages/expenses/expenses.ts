@@ -234,6 +234,24 @@ export class Expenses implements OnInit {
     };
   }
 
+  private mapExpenseRow(row: entity.ExpenseResponseDto): entity.ExpenseResponseDto {
+    if (
+      row.origin_type === 'labor_auto' &&
+      !row.supplier &&
+      row.provider_display_name?.trim()
+    ) {
+      return {
+        ...row,
+        supplier: {
+          id: 0,
+          company_name: row.provider_display_name.trim(),
+        },
+      };
+    }
+
+    return row;
+  }
+
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
@@ -258,12 +276,16 @@ export class Expenses implements OnInit {
   loadExpenses(): void {
     this.expenseService.getExpenses(this.filters).subscribe({
       next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
-        this.expensesTableData = response;
+        const data = (response.data ?? []).map((row) => this.mapExpenseRow(row));
+
+        this.expensesTableData = {
+          ...response,
+          data,
+        };
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
-
   // ==========================
   //  PAGINACIÓN
   // ==========================
