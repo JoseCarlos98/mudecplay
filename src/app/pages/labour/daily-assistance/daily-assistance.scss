@@ -5,40 +5,51 @@
   margin-top: 12px;
 }
 
+.btn-section-fix {
+  width: 20%;
+  display: flex;
+  align-items: center;
+}
+
+.daily-two {
+  display: flex;
+  flex-direction: row !important;
+  gap: 10px;
+}
+.date-picker {
+  width: 80%;
+}
 .daily-top-card {
   position: relative;
   min-height: 52px;
-  padding: 10px 14px 12px;
+  padding: 10px 14px 0px;
   border-radius: 12px;
   background: #fff;
+  // width: 200px;
   border: 1px solid rgba(39, 170, 225, 0.14);
   display: flex;
+  // margin: auto;
   flex-direction: column;
   justify-content: center;
   gap: 6px;
-  overflow: hidden;
-  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
 
   &--date {
-    background: linear-gradient(
-      180deg,
-      rgba(39, 170, 225, 0.06) 0%,
-      rgba(39, 170, 225, 0.03) 100%
-    );
+    background: linear-gradient(180deg, rgba(39, 170, 225, 0.06) 0%, rgba(39, 170, 225, 0.03) 100%);
 
     &::before {
-      background: linear-gradient(
-        90deg,
-        var(--color-primary) 0%,
-        var(--color-primary-strong) 100%
-      );
+      background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-strong) 100%);
     }
   }
 
   &__label {
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1;
     color: #6b7280;
+    margin-bottom: 5px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.7px;
@@ -192,7 +203,7 @@
 .daily-project-card {
   width: 100%;
   background: #fff;
-  border: 1px solid rgba(35, 31, 32, 0.10);
+  border: 1px solid rgba(35, 31, 32, 0.1);
   border-radius: 14px;
   padding: 13px 14px;
   cursor: pointer;
@@ -220,11 +231,7 @@
   }
 
   &--selected {
-    background: linear-gradient(
-      180deg,
-      rgba(39, 170, 225, 0.10) 0%,
-      rgba(39, 170, 225, 0.06) 100%
-    );
+    background: linear-gradient(180deg, rgba(39, 170, 225, 0.1) 0%, rgba(39, 170, 225, 0.06) 100%);
     border-color: rgba(39, 170, 225, 0.42);
     // box-shadow:
     //   0 14px 24px rgba(39, 170, 225, 0.10),
@@ -251,16 +258,12 @@
   width: 44px;
   height: 44px;
   border-radius: 9999px;
-  background: linear-gradient(
-    180deg,
-    rgba(39, 170, 225, 0.12) 0%,
-    rgba(39, 170, 225, 0.08) 100%
-  );
+  background: linear-gradient(180deg, rgba(39, 170, 225, 0.12) 0%, rgba(39, 170, 225, 0.08) 100%);
   color: var(--color-primary-strong);
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  box-shadow: inset 0 0 0 1px rgba(39, 170, 225, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(39, 170, 225, 0.1);
 
   mat-icon {
     font-size: 22px;
@@ -296,7 +299,6 @@
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.1px;
-  
 }
 
 .daily-check-indicator {
@@ -318,19 +320,15 @@
 }
 
 .daily-attendance-card {
-  border: 1px solid rgba(35, 31, 32, 0.10);
+  border: 1px solid rgba(35, 31, 32, 0.1);
   border-radius: 14px;
   padding: 14px;
   background: #fff;
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
 
   &--cancelled {
-    background: linear-gradient(
-      180deg,
-      rgba(229, 56, 53, 0.04) 0%,
-      rgba(229, 56, 53, 0.02) 100%
-    );
-    border-color: rgba(229, 56, 53, 0.20);
+    background: linear-gradient(180deg, rgba(229, 56, 53, 0.04) 0%, rgba(229, 56, 53, 0.02) 100%);
+    border-color: rgba(229, 56, 53, 0.2);
   }
 
   &__header {
@@ -417,11 +415,7 @@
   }
 
   &--selected {
-    background: linear-gradient(
-      180deg,
-      rgba(39, 170, 225, 0.10) 0%,
-      rgba(39, 170, 225, 0.06) 100%
-    );
+    background: linear-gradient(180deg, rgba(39, 170, 225, 0.1) 0%, rgba(39, 170, 225, 0.06) 100%);
     border-color: rgba(39, 170, 225, 0.42);
     // box-shadow:
     //   0 14px 24px rgba(39, 170, 225, 0.10),
@@ -493,7 +487,7 @@
   min-height: 30px;
   padding: 0 10px;
   border-radius: 9999px;
-  background: rgba(39, 170, 225, 0.10);
+  background: rgba(39, 170, 225, 0.1);
   color: var(--color-primary-strong);
   font-size: 12px;
   font-weight: 700;
@@ -512,12 +506,15 @@
   color: #111827;
   box-sizing: border-box;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
   background: rgba(255, 255, 255, 0.92);
 
   &:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.10);
+    box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
     background: #fff;
   }
 }

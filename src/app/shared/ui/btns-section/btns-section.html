@@ -15,10 +15,11 @@
     <button type="button" class="btn-primary" (click)="action.emit('search')" [disabled]=" hasActiveSearch ? !hasActiveSearch : null">
         <mat-icon>search</mat-icon>
     </button>
-
-    <button type="button" class="btn-outline" (click)="action.emit('clean')" [disabled]="!hasActiveFilters">
-        Limpiar
-    </button>
+    @if (searchDisabled) {
+        <button type="button" class="btn-outline" (click)="action.emit('clean')" [disabled]="!hasActiveFilters">
+            Limpiar
+        </button>
+    }
 </div>
 
 } @else if(type == 'continue'){

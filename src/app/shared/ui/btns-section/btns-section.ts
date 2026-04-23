@@ -45,6 +45,7 @@ export class BtnsSection {
    * - false => se puede usar normalmente
    */
   @Input() saveDisabled: boolean = false;
+  @Input() searchDisabled: boolean = true;
 
   /**
    * Indica si hay filtros activos.

@@ -1,6 +1,5 @@
 <div class="c-input-date">
   @if (mode === 'single') {
-    <!-- Modo: una sola fecha -->
     <div class="c-input">
       <p class="label">
         {{ label }}
@@ -20,6 +19,7 @@
           [placeholder]="placeholder"
           [disabled]="disabled"
           [value]="singleDate"
+          [max]="effectiveMaxDate"
           (dateChange)="onSingleDateChange($event.value)"
           (blur)="markAsTouched()"
         />
@@ -36,7 +36,7 @@
           </button>
         } @else {
           <mat-datepicker-toggle
-          [ngClass]="{'icon-opacity': disabled}"
+            [ngClass]="{'icon-opacity': disabled}"
             matIconSuffix
             [for]="pickerSingle"
           ></mat-datepicker-toggle>
@@ -50,7 +50,6 @@
       }
     </div>
   } @else {
-    <!-- Modo: rango de fechas -->
     <div class="c-input">
       <p class="label">
         {{ label }}
@@ -64,7 +63,10 @@
         class="w-100"
         [ngClass]="{ 'field-invalid': hasError }"
       >
-        <mat-date-range-input [rangePicker]="pickerRange">
+        <mat-date-range-input
+          [rangePicker]="pickerRange"
+          [max]="effectiveMaxDate"
+        >
           <input
             matStartDate
             [placeholder]="startPlaceholder"

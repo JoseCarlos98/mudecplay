@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, forkJoin, of } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { finalize, map } from 'rxjs/operators';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +12,8 @@ import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/
 import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import { CatalogsService } from '../../../shared/services/catalogs.service';
 import { InputField } from '../../../shared/ui/input-field/input-field';
+import { InputDate } from '../../../shared/ui/input-date/input-date';
+import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 
 import { DailyAssistanceService } from './services/daily-assistance.service';
 import * as entity from './interfaces/daily-assistance-interfaces';
@@ -51,15 +53,19 @@ type AttendanceCard = entity.EmployeeAttendanceRow & {
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     MatIconModule,
     ModuleHeader,
     InputField,
+    InputDate,
+    BtnsSection,
   ],
   templateUrl: './daily-assistance.html',
   styleUrl: './daily-assistance.scss',
 })
 export class DailyAssistance implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
   private readonly dailyAssistanceService = inject(DailyAssistanceService);
   private readonly catalogsService = inject(CatalogsService);
 
@@ -70,6 +76,10 @@ export class DailyAssistance implements OnInit {
 
   currentDate = this.getToday();
   currentView: entity.DailyAssistanceView = 'unassigned';
+
+  formFilters = this.fb.group({
+    workDate: this.fb.control<string | null>(this.getToday()),
+  });
 
   employeeSearchTerm = '';
   projectSearchTerm = '';
@@ -89,7 +99,7 @@ export class DailyAssistance implements OnInit {
   cancellationReason = '';
 
   ngOnInit(): void {
-    this.reloadBoard();
+    this.searchWithFilters();
   }
 
   get selectedEmployees(): EmployeeCard[] {
@@ -122,6 +132,13 @@ export class DailyAssistance implements OnInit {
 
   get hasProjectSearch(): boolean {
     return !!this.projectSearchTerm.trim();
+  }
+
+  get hasActiveFilters(): boolean {
+    const value = this.formFilters.getRawValue();
+    const today = this.getToday();
+
+    return (value.workDate ?? today) !== today;
   }
 
   get displayEmployees(): EmployeeCard[] {
@@ -175,6 +192,41 @@ export class DailyAssistance implements OnInit {
         return 'Buscar cancelado';
       default:
         return 'Buscar trabajador';
+    }
+  }
+
+  searchWithFilters(): void {
+    const value = this.formFilters.getRawValue();
+
+    this.currentDate = value.workDate ?? this.getToday();
+    this.resetActionState();
+    this.reloadBoard();
+  }
+
+  clearFilters(): void {
+    const today = this.getToday();
+
+    this.formFilters.reset(
+      {
+        workDate: today,
+      },
+      { emitEvent: false },
+    );
+
+    this.currentDate = today;
+    this.resetActionState();
+    this.reloadBoard();
+  }
+
+  onBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'search':
+        this.searchWithFilters();
+        break;
+
+      case 'clean':
+        this.clearFilters();
+        break;
     }
   }
 
@@ -469,12 +521,12 @@ export class DailyAssistance implements OnInit {
       .toLowerCase();
   }
 
-private getToday(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-  const day = String(today.getDate()).padStart(2, '0');
+  private getToday(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
 
-  return `${year}-${month}-${day}`;
-}
+    return `${year}-${month}-${day}`;
+  }
 }
