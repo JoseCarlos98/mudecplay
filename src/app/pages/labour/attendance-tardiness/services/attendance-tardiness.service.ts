@@ -14,7 +14,7 @@ export class AttendanceTardinessService {
   private readonly apiUrl = `${environment.apiUrl}/employee-attendances`;
   private readonly employeeAreasApiUrl = `${environment.apiUrl}/employee-areas`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   getAttendances(
     filters?: entity.AttendanceTardinessFilters,
@@ -44,6 +44,10 @@ export class AttendanceTardinessService {
 
       if (filters.arrival_status) {
         params = params.set('arrival_status', filters.arrival_status);
+      }
+
+      if (filters.status) {
+        params = params.set('status', filters.status);
       }
     }
 

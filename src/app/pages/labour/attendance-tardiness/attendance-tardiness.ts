@@ -158,10 +158,14 @@ export class AttendanceTardiness implements OnInit {
       work_date: ui.workDate ?? null,
       employee_name: ui.employeeName?.trim() || null,
       employee_area_id: ui.employeeAreaId ?? null,
+
+      // En llegadas y retardos solo deben aparecer jornadas presentes.
+      status: 'present',
+
+      // pending | on_time | tardy
       arrival_status: ui.status ?? null,
     };
   }
-
   private mapRow(
     row: entity.EmployeeAttendanceResponseDto,
   ): entity.AttendanceTardinessRow {

@@ -1,4 +1,5 @@
 export type AttendanceArrivalStatus = 'pending' | 'on_time' | 'tardy';
+export type EmployeeAttendanceStatus = 'present' | 'absent' | 'cancelled';
 
 export interface AttendanceTardinessRow {
   id: number;
@@ -30,13 +31,17 @@ export interface AttendanceTardinessUiFilters {
   limit: number;
 }
 
+
 export interface AttendanceTardinessFilters {
-  work_date?: string | null;
-  employee_name?: string | null;
-  employee_area_id?: number | null;
-  arrival_status?: AttendanceArrivalStatus | null;
-  page?: number;
-  limit?: number;
+  page: number;
+  limit: number;
+  work_date: string | null;
+  employee_name: string | null;
+  employee_area_id: number | null;
+
+  status: EmployeeAttendanceStatus | null;
+
+  arrival_status: AttendanceArrivalStatus | null;
 }
 
 export interface EmployeeAttendanceResponseDto {
