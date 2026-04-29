@@ -78,11 +78,9 @@ export class EmployeesForm {
     }),
     address: this.fb.control<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.maxLength(255)],
+      validators: Validators.maxLength(255),
     }),
-    birth_date: this.fb.control<string | null>(null, {
-      validators: [Validators.required],
-    }),
+    birth_date: this.fb.control<string | null>(null),
     age: this.fb.control(
       { value: '', disabled: true },
       {
@@ -91,7 +89,7 @@ export class EmployeesForm {
     ),
     curp: this.fb.control<string>('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.minLength(18), Validators.maxLength(18)],
+      validators: [Validators.minLength(18), Validators.maxLength(18)],
     }),
     employee_area_id: this.fb.control<number | null>(null, {
       validators: [Validators.required],
