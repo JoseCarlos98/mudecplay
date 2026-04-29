@@ -22,6 +22,10 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     path: 'name',
   },
   {
+    key: 'concept',
+    label: 'Concepto',
+  },
+  {
     key: 'project',
     label: 'Proyecto',
     type: 'relation',

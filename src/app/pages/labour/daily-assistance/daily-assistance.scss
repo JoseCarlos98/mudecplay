@@ -619,3 +619,107 @@
     }
   }
 }
+
+.daily-top-summary {
+  grid-template-columns: 1.15fr repeat(5, minmax(0, 1fr));
+}
+
+.daily-employee-meta--hours {
+  margin-top: 3px;
+  color: var(--color-primary-strong);
+  font-weight: 700;
+}
+
+.daily-employee-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-absence-mini-btn {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 9999px;
+  border: 1px solid rgba(229, 56, 53, 0.22);
+  background: rgba(229, 56, 53, 0.08);
+  color: var(--color-remove-bold);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(229, 56, 53, 0.12);
+    border-color: rgba(229, 56, 53, 0.34);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+.daily-attendance-card--absent {
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, rgba(245, 158, 11, 0.02) 100%);
+  border-color: rgba(245, 158, 11, 0.26);
+}
+
+.daily-status-badge--absent {
+  background: rgba(245, 158, 11, 0.14);
+  color: #92400e;
+}
+
+.daily-hours-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.daily-hours-input {
+  width: 100%;
+  height: 30px;
+  border: 1px solid rgba(35, 31, 32, 0.14);
+  border-radius: 5px;
+  padding: 3px 5px 0 5px;
+  font-family: inherit;
+  font-size: 12px;
+  color: #111827;
+  outline: none;
+  background: rgba(255, 255, 255, 0.92);
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+
+}
+
+.daily-employee-side {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+@media screen and (max-width: 1180px) {
+  .daily-top-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 820px) {
+  .daily-top-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .daily-top-summary {
+    grid-template-columns: 1fr;
+  }
+}

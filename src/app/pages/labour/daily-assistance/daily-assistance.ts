@@ -17,6 +17,7 @@ import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 
 import { DailyAssistanceService } from './services/daily-assistance.service';
 import * as entity from './interfaces/daily-assistance-interfaces';
+import { MatTooltip } from "@angular/material/tooltip";
 
 const HEADER_CONFIG: ModuleHeaderConfig = {};
 
@@ -36,11 +37,25 @@ type EmployeeCard = entity.EmployeeAttendanceCatalogRow & {
   photoUrl: string | null;
   position: string;
   area_label: string;
-  daily_salary: number;
   isSelected: boolean;
 };
 
-type AttendanceCard = entity.EmployeeAttendanceRow & {
+type AssignmentCard = entity.EmployeeAttendanceAssignmentRow & {
+  employee_id: number;
+  employee_full_name: string;
+  employee_area_label: string;
+  employee_position: string;
+  employee_area_id: number | null;
+
+  work_date: string;
+  attendance_status: entity.EmployeeAttendanceStatus;
+  attendance_available_hours: number;
+  attendance_total_daily_hours: number;
+
+  daily_salary_snapshot: number;
+};
+
+type AbsenceCard = entity.EmployeeAttendanceRow & {
   employee_full_name: string;
   employee_area_label: string;
   employee_position: string;
@@ -59,7 +74,8 @@ type AttendanceCard = entity.EmployeeAttendanceRow & {
     InputField,
     InputDate,
     BtnsSection,
-  ],
+    MatTooltip
+],
   templateUrl: './daily-assistance.html',
   styleUrl: './daily-assistance.scss',
 })
@@ -86,17 +102,27 @@ export class DailyAssistance implements OnInit {
 
   projectOptions: ProjectOption[] = [];
 
+  totalEmployeesFromCatalog = 0;
+
   employees: EmployeeCard[] = [];
-  assignedAttendances: AttendanceCard[] = [];
-  cancelledAttendances: AttendanceCard[] = [];
+  assignedAttendances: AssignmentCard[] = [];
+  absentAttendances: AbsenceCard[] = [];
+  cancelledAttendances: AssignmentCard[] = [];
 
   selectedEmployeeIds = new Set<number>();
   selectedProjectId: number | null = null;
 
-  editingAttendance: AttendanceCard | null = null;
-  cancellingAttendance: AttendanceCard | null = null;
+  assignmentHours: number | null = 8;
+
+  editingAttendance: AssignmentCard | null = null;
+  editingHours: number | null = null;
+
+  cancellingAttendance: AssignmentCard | null = null;
+
+  absenceEmployee: EmployeeCard | null = null;
 
   cancellationReason = '';
+  absenceReason = '';
 
   ngOnInit(): void {
     this.searchWithFilters();
@@ -111,7 +137,7 @@ export class DailyAssistance implements OnInit {
   }
 
   get totalEmployeesCount(): number {
-    return this.employees.length + this.assignedAttendances.length + this.cancelledAttendances.length;
+    return this.totalEmployeesFromCatalog;
   }
 
   get unassignedCount(): number {
@@ -120,6 +146,10 @@ export class DailyAssistance implements OnInit {
 
   get assignedCount(): number {
     return this.assignedAttendances.length;
+  }
+
+  get absentCount(): number {
+    return this.absentAttendances.length;
   }
 
   get cancelledCount(): number {
@@ -159,12 +189,16 @@ export class DailyAssistance implements OnInit {
     });
   }
 
-  get displayAssignedAttendances(): AttendanceCard[] {
-    return this.filterAttendances(this.assignedAttendances);
+  get displayAssignedAttendances(): AssignmentCard[] {
+    return this.filterAssignments(this.assignedAttendances);
   }
 
-  get displayCancelledAttendances(): AttendanceCard[] {
-    return this.filterAttendances(this.cancelledAttendances);
+  get displayAbsentAttendances(): AbsenceCard[] {
+    return this.filterAbsences(this.absentAttendances);
+  }
+
+  get displayCancelledAttendances(): AssignmentCard[] {
+    return this.filterAssignments(this.cancelledAttendances);
   }
 
   get displayProjects(): ProjectOption[] {
@@ -177,10 +211,61 @@ export class DailyAssistance implements OnInit {
     );
   }
 
-  get totalSelectedDailySalary(): number {
+  get selectedMinAvailableHours(): number {
+    if (!this.selectedEmployees.length) return 0;
+
+    return Math.min(
+      ...this.selectedEmployees.map((employee) => Number(employee.available_hours ?? 0)),
+    );
+  }
+
+  get normalizedAssignmentHours(): number {
+    return Number(this.assignmentHours ?? 0);
+  }
+
+  get canAssignSelected(): boolean {
+    const hours = this.normalizedAssignmentHours;
+
+    return (
+      this.selectedEmployees.length > 0 &&
+      !!this.selectedProjectId &&
+      hours > 0 &&
+      hours <= this.selectedMinAvailableHours &&
+      !this.isSaving
+    );
+  }
+
+  get estimatedSelectedAmount(): number {
+    const hours = this.normalizedAssignmentHours;
+
+    if (hours <= 0) return 0;
+
     return this.selectedEmployees.reduce(
-      (sum, employee) => sum + Number(employee.daily_salary ?? 0),
+      (sum, employee) => sum + Number(employee.hourly_salary ?? 0) * hours,
       0,
+    );
+  }
+
+  get maxEditingHours(): number {
+    if (!this.editingAttendance) return 0;
+
+    return Number(
+      (
+        Number(this.editingAttendance.attendance_available_hours ?? 0) +
+        Number(this.editingAttendance.assigned_hours ?? 0)
+      ).toFixed(2),
+    );
+  }
+
+  get canApplyReassign(): boolean {
+    const hours = Number(this.editingHours ?? 0);
+
+    return (
+      !!this.editingAttendance &&
+      !!this.selectedProjectId &&
+      hours > 0 &&
+      hours <= this.maxEditingHours &&
+      !this.isSaving
     );
   }
 
@@ -188,6 +273,8 @@ export class DailyAssistance implements OnInit {
     switch (this.currentView) {
       case 'assigned':
         return 'Buscar asignado';
+      case 'absent':
+        return 'Buscar falta';
       case 'cancelled':
         return 'Buscar cancelado';
       default:
@@ -238,6 +325,10 @@ export class DailyAssistance implements OnInit {
   }
 
   toggleEmployeeSelection(employeeId: number): void {
+    const employee = this.employees.find((row) => row.id === employeeId);
+
+    if (!employee?.can_assign) return;
+
     if (this.selectedEmployeeIds.has(employeeId)) {
       this.selectedEmployeeIds.delete(employeeId);
     } else {
@@ -247,26 +338,48 @@ export class DailyAssistance implements OnInit {
     this.syncEmployeeSelection();
     this.editingAttendance = null;
     this.cancellingAttendance = null;
+    this.absenceEmployee = null;
   }
 
   selectProject(projectId: number): void {
     this.selectedProjectId = projectId;
   }
 
-  startReassign(attendance: AttendanceCard): void {
+  startReassign(attendance: AssignmentCard): void {
     this.editingAttendance = attendance;
+    this.editingHours = Number(attendance.assigned_hours ?? 0);
     this.cancellingAttendance = null;
+    this.absenceEmployee = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = attendance.project_id;
+    this.cancellationReason = '';
+    this.absenceReason = '';
     this.syncEmployeeSelection();
   }
 
-  startCancel(attendance: AttendanceCard): void {
+  startCancel(attendance: AssignmentCard): void {
     this.cancellingAttendance = attendance;
     this.editingAttendance = null;
+    this.absenceEmployee = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
     this.cancellationReason = '';
+    this.absenceReason = '';
+    this.syncEmployeeSelection();
+  }
+
+  startAbsence(employee: EmployeeCard, event?: Event): void {
+    event?.stopPropagation();
+
+    if (!employee.can_mark_absent || this.isSaving) return;
+
+    this.absenceEmployee = employee;
+    this.editingAttendance = null;
+    this.cancellingAttendance = null;
+    this.selectedEmployeeIds.clear();
+    this.selectedProjectId = null;
+    this.cancellationReason = '';
+    this.absenceReason = 'No asistió';
     this.syncEmployeeSelection();
   }
 
@@ -275,15 +388,18 @@ export class DailyAssistance implements OnInit {
   }
 
   assignSelected(): void {
-    if (!this.currentDate || !this.selectedProjectId || this.selectedEmployeeIds.size === 0 || this.isSaving) {
+    if (!this.currentDate || !this.canAssignSelected) {
       return;
     }
 
-    const requests = Array.from(this.selectedEmployeeIds).map((employeeId) =>
+    const assignedHours = Number(this.assignmentHours ?? 0);
+
+    const requests = this.selectedEmployees.map((employee) =>
       this.dailyAssistanceService.create({
-        employee_id: employeeId,
+        employee_id: employee.id,
         project_id: Number(this.selectedProjectId),
         work_date: this.currentDate,
+        assigned_hours: assignedHours,
       }),
     );
 
@@ -302,21 +418,22 @@ export class DailyAssistance implements OnInit {
           this.reloadBoard();
         },
         error: (err) => {
-          console.error('Error asignando asistencias:', err);
+          console.error('Error asignando horas:', err);
         },
       });
   }
 
   applyReassign(): void {
-    if (!this.editingAttendance || !this.selectedProjectId || this.isSaving) {
+    if (!this.canApplyReassign || !this.editingAttendance) {
       return;
     }
 
     this.isSaving = true;
 
     this.dailyAssistanceService
-      .update(this.editingAttendance.id, {
+      .updateAssignment(this.editingAttendance.id, {
         project_id: Number(this.selectedProjectId),
+        assigned_hours: Number(this.editingHours),
       })
       .pipe(
         finalize(() => {
@@ -330,7 +447,7 @@ export class DailyAssistance implements OnInit {
           this.reloadBoard();
         },
         error: (err) => {
-          console.error('Error actualizando proyecto de asistencia:', err);
+          console.error('Error actualizando asignación:', err);
         },
       });
   }
@@ -343,7 +460,7 @@ export class DailyAssistance implements OnInit {
     this.isSaving = true;
 
     this.dailyAssistanceService
-      .cancel(this.cancellingAttendance.id, {
+      .cancelAssignment(this.cancellingAttendance.id, {
         cancellation_reason: this.cancellationReason.trim(),
       })
       .pipe(
@@ -358,7 +475,37 @@ export class DailyAssistance implements OnInit {
           this.reloadBoard();
         },
         error: (err) => {
-          console.error('Error cancelando asistencia:', err);
+          console.error('Error cancelando asignación:', err);
+        },
+      });
+  }
+
+  confirmAbsence(): void {
+    if (!this.absenceEmployee || !this.absenceReason.trim() || this.isSaving || !this.currentDate) {
+      return;
+    }
+
+    this.isSaving = true;
+
+    this.dailyAssistanceService
+      .markAbsence({
+        employee_id: this.absenceEmployee.id,
+        work_date: this.currentDate,
+        absence_reason: this.absenceReason.trim(),
+      })
+      .pipe(
+        finalize(() => {
+          this.isSaving = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.resetActionState();
+          this.reloadBoard();
+        },
+        error: (err) => {
+          console.error('Error registrando falta:', err);
         },
       });
   }
@@ -376,7 +523,7 @@ export class DailyAssistance implements OnInit {
         limit: 500,
       }) as Observable<PaginatedResponse<entity.EmployeeAttendanceRow>>,
 
-      employees: this.dailyAssistanceService.getAttendanceEmployees() as Observable<
+      employees: this.dailyAssistanceService.getAttendanceEmployees(this.currentDate) as Observable<
         entity.EmployeeAttendanceCatalogRow[]
       >,
 
@@ -406,26 +553,35 @@ export class DailyAssistance implements OnInit {
     const attendances = attendancesResponse.data ?? [];
     const allEmployees = employeesResponse ?? [];
 
+    this.totalEmployeesFromCatalog = allEmployees.length;
+
     const employeeMap = new Map<number, entity.EmployeeAttendanceCatalogRow>(
       allEmployees.map((employee) => [employee.id, employee]),
     );
 
-    const attendanceEmployeeIds = new Set<number>(
-      attendances.map((attendance) => attendance.employee_id),
-    );
-
     this.assignedAttendances = attendances
-      .filter((attendance) => attendance.status === 'assigned')
-      .map((attendance) => this.mapAttendanceCard(attendance, employeeMap))
+      .flatMap((attendance) =>
+        (attendance.assignments ?? [])
+          .filter((assignment) => assignment.status === 'active')
+          .map((assignment) => this.mapAssignmentCard(attendance, assignment, employeeMap)),
+      )
       .sort((a, b) => a.employee_full_name.localeCompare(b.employee_full_name));
 
     this.cancelledAttendances = attendances
-      .filter((attendance) => attendance.status === 'cancelled')
-      .map((attendance) => this.mapAttendanceCard(attendance, employeeMap))
+      .flatMap((attendance) =>
+        (attendance.assignments ?? [])
+          .filter((assignment) => assignment.status === 'cancelled')
+          .map((assignment) => this.mapAssignmentCard(attendance, assignment, employeeMap)),
+      )
+      .sort((a, b) => a.employee_full_name.localeCompare(b.employee_full_name));
+
+    this.absentAttendances = attendances
+      .filter((attendance) => attendance.status === 'absent')
+      .map((attendance) => this.mapAbsenceCard(attendance, employeeMap))
       .sort((a, b) => a.employee_full_name.localeCompare(b.employee_full_name));
 
     this.employees = allEmployees
-      .filter((employee) => !attendanceEmployeeIds.has(employee.id))
+      .filter((employee) => employee.can_assign)
       .map((employee): EmployeeCard => ({
         ...employee,
         curp: '',
@@ -438,7 +594,6 @@ export class DailyAssistance implements OnInit {
         photoUrl: null,
         position: employee.position ?? 'Sin puesto',
         area_label: employee.employee_area_name ?? 'Sin área',
-        daily_salary: Number(employee.weekly_salary ?? 0) / 7,
         isSelected: this.selectedEmployeeIds.has(employee.id),
       }))
       .sort((a, b) => a.full_name.localeCompare(b.full_name));
@@ -446,10 +601,41 @@ export class DailyAssistance implements OnInit {
     this.syncEmployeeSelection();
   }
 
-  private mapAttendanceCard(
+  private mapAssignmentCard(
+    attendance: entity.EmployeeAttendanceRow,
+    assignment: entity.EmployeeAttendanceAssignmentRow,
+    employeeMap: Map<number, entity.EmployeeAttendanceCatalogRow>,
+  ): AssignmentCard {
+    const employee = employeeMap.get(attendance.employee_id);
+
+    return {
+      ...assignment,
+      employee_id: attendance.employee_id,
+      employee_full_name:
+        attendance.employee_name ??
+        employee?.full_name ??
+        'Empleado sin nombre',
+      employee_area_label:
+        attendance.employee_area_name ??
+        employee?.employee_area_name ??
+        'Sin área',
+      employee_position: employee?.position ?? 'Sin puesto',
+      employee_area_id:
+        attendance.employee_area_id ??
+        employee?.employee_area_id ??
+        null,
+      work_date: attendance.work_date,
+      attendance_status: attendance.status,
+      attendance_available_hours: Number(attendance.available_hours ?? 0),
+      attendance_total_daily_hours: Number(attendance.total_daily_hours ?? 8),
+      daily_salary_snapshot: Number(attendance.daily_salary_snapshot ?? 0),
+    };
+  }
+
+  private mapAbsenceCard(
     attendance: entity.EmployeeAttendanceRow,
     employeeMap: Map<number, entity.EmployeeAttendanceCatalogRow>,
-  ): AttendanceCard {
+  ): AbsenceCard {
     const employee = employeeMap.get(attendance.employee_id);
 
     return {
@@ -458,13 +644,19 @@ export class DailyAssistance implements OnInit {
         attendance.employee_name ??
         employee?.full_name ??
         'Empleado sin nombre',
-      employee_area_label: employee?.employee_area_name ?? 'Sin área',
+      employee_area_label:
+        attendance.employee_area_name ??
+        employee?.employee_area_name ??
+        'Sin área',
       employee_position: employee?.position ?? 'Sin puesto',
-      employee_area_id: employee?.employee_area_id ?? null,
+      employee_area_id:
+        attendance.employee_area_id ??
+        employee?.employee_area_id ??
+        null,
     };
   }
 
-  private filterAttendances(rows: AttendanceCard[]): AttendanceCard[] {
+  private filterAssignments(rows: AssignmentCard[]): AssignmentCard[] {
     const term = this.normalizeText(this.employeeSearchTerm);
 
     if (!term) return rows;
@@ -484,12 +676,40 @@ export class DailyAssistance implements OnInit {
     });
   }
 
+  private filterAbsences(rows: AbsenceCard[]): AbsenceCard[] {
+    const term = this.normalizeText(this.employeeSearchTerm);
+
+    if (!term) return rows;
+
+    return rows.filter((row) => {
+      const haystack = [
+        row.employee_full_name,
+        row.employee_area_label,
+        row.employee_position,
+        row.absence_reason ?? '',
+      ]
+        .map((value) => this.normalizeText(value))
+        .join(' ');
+
+      return haystack.includes(term);
+    });
+  }
+
   private resetActionState(): void {
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
+
+    this.assignmentHours = 8;
+
     this.editingAttendance = null;
+    this.editingHours = null;
+
     this.cancellingAttendance = null;
+    this.absenceEmployee = null;
+
     this.cancellationReason = '';
+    this.absenceReason = '';
+
     this.syncEmployeeSelection();
   }
 

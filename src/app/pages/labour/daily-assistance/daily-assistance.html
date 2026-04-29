@@ -29,6 +29,11 @@
       </div>
 
       <div class="daily-top-card">
+        <span class="daily-top-card__label">Faltas</span>
+        <strong class="daily-top-card__value">{{ absentCount }}</strong>
+      </div>
+
+      <div class="daily-top-card">
         <span class="daily-top-card__label">Cancelados</span>
         <strong class="daily-top-card__value">{{ cancelledCount }}</strong>
       </div>
@@ -46,6 +51,11 @@
     <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'assigned'"
       (click)="changeView('assigned')">
       Asignados
+    </button>
+
+    <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'absent'"
+      (click)="changeView('absent')">
+      Faltas
     </button>
 
     <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'cancelled'"
@@ -67,16 +77,18 @@
       <div class="daily-board-column__header">
         <h3 class="daily-board-column__title">
           @switch (currentView) {
-          @case ('unassigned') { Trabajadores sin asignar }
-          @case ('assigned') { Trabajadores asignados }
-          @case ('cancelled') { Trabajadores cancelados }
+          @case ('unassigned') { Trabajadores con horas disponibles }
+          @case ('assigned') { Asignaciones activas }
+          @case ('absent') { Trabajadores con falta }
+          @case ('cancelled') { Asignaciones canceladas }
           }
         </h3>
         <p class="daily-board-column__desc">
           @switch (currentView) {
-          @case ('unassigned') { Selecciona uno o varios colaboradores para asignarlos a un proyecto. }
-          @case ('assigned') { Revisa y corrige las asignaciones de la fecha seleccionada si es necesario. }
-          @case ('cancelled') { Consulta las asistencias canceladas y su motivo. }
+          @case ('unassigned') { Selecciona colaboradores con horas disponibles para asignarlos a un proyecto. }
+          @case ('assigned') { Revisa las horas asignadas por trabajador y proyecto. }
+          @case ('absent') { Consulta los trabajadores marcados como falta en la fecha seleccionada. }
+          @case ('cancelled') { Consulta asignaciones canceladas y su motivo. }
           }
         </p>
       </div>
@@ -90,8 +102,9 @@
       @if (currentView === 'unassigned') {
       <div class="daily-cards-list">
         @for (employee of displayEmployees; track employee.id) {
-        <button type="button" class="daily-employee-card"
-          [class.daily-employee-card--selected]="employee.isSelected" (click)="toggleEmployeeSelection(employee.id)">
+        <article class="daily-employee-card"
+          [class.daily-employee-card--selected]="employee.isSelected"
+          (click)="toggleEmployeeSelection(employee.id)">
           <div class="daily-employee-card__main">
             <div class="daily-employee-avatar">
               <mat-icon>person</mat-icon>
@@ -102,26 +115,38 @@
               <span class="daily-employee-meta">
                 {{ employee.area_label }} · {{ employee.position || 'Sin puesto' }}
               </span>
+              <span class="daily-employee-meta daily-employee-meta--hours">
+                Disponible: {{ employee.available_hours }} / {{ employee.total_daily_hours }} hrs ·
+                Hora: {{ employee.hourly_salary | currency:'$ ':'symbol':'1.2-2' }}
+              </span>
             </div>
           </div>
 
           <div class="daily-employee-side">
-            <span class="daily-money-chip">
+            <span class="daily-money-chip" matTooltip="Semanal">
               {{ employee.daily_salary | currency:'$ ':'symbol':'1.2-2' }}
             </span>
 
-            <div class="daily-check-indicator" [class.daily-check-indicator--active]="employee.isSelected">
-              <mat-icon>{{ employee.isSelected ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+            <div class="daily-employee-actions">
+              <button type="button" class="daily-absence-mini-btn"
+                [disabled]="!employee.can_mark_absent || isSaving"
+                (click)="startAbsence(employee, $event)">
+                Falta
+              </button>
+
+              <div class="daily-check-indicator" [class.daily-check-indicator--active]="employee.isSelected">
+                <mat-icon>{{ employee.isSelected ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              </div>
             </div>
           </div>
-        </button>
+        </article>
         } @empty {
         <div class="daily-empty-state">
           <mat-icon>groups</mat-icon>
           <span>
             {{ hasEmployeeSearch
             ? 'No hay trabajadores que coincidan con la búsqueda.'
-            : 'No hay trabajadores disponibles para la fecha seleccionada.' }}
+            : 'No hay trabajadores con horas disponibles para la fecha seleccionada.' }}
           </span>
         </div>
         }
@@ -141,7 +166,7 @@
             </div>
 
             <span class="daily-status-badge daily-status-badge--assigned">
-              Asignado
+              {{ attendance.assigned_hours }} hrs
             </span>
           </div>
 
@@ -152,14 +177,22 @@
             </div>
 
             <div class="daily-attendance-detail">
+              <mat-icon>schedule</mat-icon>
+              <span>
+                Asignado: {{ attendance.assigned_hours }} hrs ·
+                Disponible: {{ attendance.attendance_available_hours }} hrs
+              </span>
+            </div>
+
+            <div class="daily-attendance-detail">
               <mat-icon>attach_money</mat-icon>
-              <span>{{ attendance.daily_salary_snapshot | currency:'$ ':'symbol':'1.2-2' }}</span>
+              <span>{{ attendance.amount_snapshot | currency:'$ ':'symbol':'1.2-2' }}</span>
             </div>
           </div>
 
           <div class="daily-attendance-card__actions">
             <button type="button" class="btn-outline" (click)="startReassign(attendance)">
-              Cambiar proyecto
+              Editar
             </button>
 
             <button type="button" class="btn-danger" (click)="startCancel(attendance)">
@@ -172,8 +205,52 @@
           <mat-icon>fact_check</mat-icon>
           <span>
             {{ hasEmployeeSearch
-            ? 'No hay asignados que coincidan con la búsqueda.'
-            : 'No hay asistencias asignadas para la fecha seleccionada.' }}
+            ? 'No hay asignaciones que coincidan con la búsqueda.'
+            : 'No hay asignaciones activas para la fecha seleccionada.' }}
+          </span>
+        </div>
+        }
+      </div>
+      }
+
+      @if (currentView === 'absent') {
+      <div class="daily-cards-list">
+        @for (attendance of displayAbsentAttendances; track attendance.id) {
+        <article class="daily-attendance-card daily-attendance-card--absent">
+          <div class="daily-attendance-card__header">
+            <div>
+              <strong class="daily-employee-name">{{ attendance.employee_full_name }}</strong>
+              <span class="daily-employee-meta">
+                {{ attendance.employee_area_label }} · {{ attendance.employee_position }}
+              </span>
+            </div>
+
+            <span class="daily-status-badge daily-status-badge--absent">
+              Falta
+            </span>
+          </div>
+
+          <div class="daily-attendance-card__body">
+            <div class="daily-attendance-detail">
+              <mat-icon>person_off</mat-icon>
+              <span>{{ attendance.absence_reason || 'Sin motivo' }}</span>
+            </div>
+
+            <div class="daily-attendance-detail">
+              <mat-icon>schedule</mat-icon>
+              <span>
+                {{ attendance.absent_at ? (attendance.absent_at | date:'short') : 'Sin fecha' }}
+              </span>
+            </div>
+          </div>
+        </article>
+        } @empty {
+        <div class="daily-empty-state">
+          <mat-icon>person_off</mat-icon>
+          <span>
+            {{ hasEmployeeSearch
+            ? 'No hay faltas que coincidan con la búsqueda.'
+            : 'No hay faltas registradas para la fecha seleccionada.' }}
           </span>
         </div>
         }
@@ -199,6 +276,11 @@
 
           <div class="daily-attendance-card__body">
             <div class="daily-attendance-detail">
+              <mat-icon>work_off</mat-icon>
+              <span>{{ attendance.project_name || 'Proyecto sin nombre' }}</span>
+            </div>
+
+            <div class="daily-attendance-detail">
               <mat-icon>event_busy</mat-icon>
               <span>{{ attendance.cancellation_reason || 'Sin motivo' }}</span>
             </div>
@@ -217,7 +299,7 @@
           <span>
             {{ hasEmployeeSearch
             ? 'No hay cancelados que coincidan con la búsqueda.'
-            : 'No hay asistencias canceladas para la fecha seleccionada.' }}
+            : 'No hay asignaciones canceladas para la fecha seleccionada.' }}
           </span>
         </div>
         }
@@ -229,7 +311,7 @@
       <div class="daily-board-column__header">
         <h3 class="daily-board-column__title">Proyectos</h3>
         <p class="daily-board-column__desc">
-          Selecciona el proyecto al que se asignará el trabajador.
+          Selecciona el proyecto al que se asignarán las horas del trabajador.
         </p>
       </div>
 
@@ -269,11 +351,12 @@
 
       @if (editingAttendance) {
       <div class="daily-action-card">
-        <span class="daily-action-title">Cambiar proyecto</span>
+        <span class="daily-action-title">Editar asignación</span>
 
         <div class="daily-action-detail">
           <strong>{{ editingAttendance.employee_full_name }}</strong>
           <span>Proyecto actual: {{ editingAttendance.project_name || 'Sin proyecto' }}</span>
+          <span>Máximo disponible para esta edición: {{ maxEditingHours }} hrs</span>
         </div>
 
         <div class="daily-action-detail">
@@ -281,8 +364,14 @@
           <strong>{{ selectedProject?.name || 'Sin seleccionar' }}</strong>
         </div>
 
+        <label class="daily-hours-field">
+          <span>Horas asignadas</span>
+          <input class="daily-hours-input" type="number" min="0.25" step="0.25"
+            [max]="maxEditingHours" [(ngModel)]="editingHours" [ngModelOptions]="{ standalone: true }">
+        </label>
+
         <div class="daily-action-buttons">
-          <button type="button" class="btn-primary" [disabled]="!selectedProjectId || isSaving"
+          <button type="button" class="btn-primary" [disabled]="!canApplyReassign"
             (click)="applyReassign()">
             Guardar cambio
           </button>
@@ -294,21 +383,47 @@
       </div>
       } @else if (cancellingAttendance) {
       <div class="daily-action-card">
-        <span class="daily-action-title">Cancelar asistencia</span>
+        <span class="daily-action-title">Cancelar asignación</span>
 
         <div class="daily-action-detail">
           <strong>{{ cancellingAttendance.employee_full_name }}</strong>
+          <span>{{ cancellingAttendance.project_name || 'Proyecto sin nombre' }} · {{ cancellingAttendance.assigned_hours }} hrs</span>
           <span>Captura el motivo de la cancelación.</span>
         </div>
 
         <textarea class="daily-textarea" [(ngModel)]="cancellationReason" [ngModelOptions]="{ standalone: true }"
-          placeholder="Ejemplo: No llegó a laborar este día.">
+          placeholder="Ejemplo: Se asignó al proyecto equivocado.">
             </textarea>
 
         <div class="daily-action-buttons">
           <button type="button" class="btn-danger" [disabled]="!cancellationReason.trim() || isSaving"
             (click)="confirmCancel()">
             Confirmar cancelación
+          </button>
+
+          <button type="button" class="btn-outline" (click)="clearActionPanel()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+      } @else if (absenceEmployee) {
+      <div class="daily-action-card">
+        <span class="daily-action-title">Registrar falta</span>
+
+        <div class="daily-action-detail">
+          <strong>{{ absenceEmployee.full_name }}</strong>
+          <span>{{ absenceEmployee.area_label }} · {{ absenceEmployee.position || 'Sin puesto' }}</span>
+          <span>Esta acción marcará al trabajador como falta en la fecha seleccionada.</span>
+        </div>
+
+        <textarea class="daily-textarea" [(ngModel)]="absenceReason" [ngModelOptions]="{ standalone: true }"
+          placeholder="Ejemplo: No asistió.">
+            </textarea>
+
+        <div class="daily-action-buttons">
+          <button type="button" class="btn-danger" [disabled]="!absenceReason.trim() || isSaving"
+            (click)="confirmAbsence()">
+            Registrar falta
           </button>
 
           <button type="button" class="btn-outline" (click)="clearActionPanel()">
@@ -335,15 +450,27 @@
           <strong>{{ selectedProject?.name || 'Sin seleccionar' }}</strong>
         </div>
 
+        <label class="daily-hours-field">
+          <span>Horas a asignar</span>
+          <input class="daily-hours-input" type="number" min="0.25" step="0.25"
+            [max]="selectedMinAvailableHours || 8"
+            [(ngModel)]="assignmentHours" [ngModelOptions]="{ standalone: true }">
+        </label>
+
         <div class="daily-action-detail">
-          <span>Total diario:</span>
-          <strong>{{ totalSelectedDailySalary | currency:'$ ':'symbol':'1.2-2' }}</strong>
+          <span>Máximo disponible:</span>
+          <strong>{{ selectedEmployees.length ? selectedMinAvailableHours + ' hrs' : 'Selecciona trabajador' }}</strong>
+        </div>
+
+        <div class="daily-action-detail">
+          <span>Total estimado:</span>
+          <strong>{{ estimatedSelectedAmount | currency:'$ ':'symbol':'1.2-2' }}</strong>
         </div>
 
         <div class="daily-selected-list">
           @for (employee of selectedEmployees; track employee.id) {
           <div class="daily-selected-chip">
-            {{ employee.full_name }}
+            {{ employee.full_name }} · disp. {{ employee.available_hours }} hrs
           </div>
           } @empty {
           <span class="daily-muted-text">Selecciona uno o más trabajadores.</span>
@@ -352,7 +479,7 @@
 
         <div class="daily-action-buttons">
           <button type="button" class="btn-primary"
-            [disabled]="selectedEmployees.length === 0 || !selectedProjectId || isSaving" (click)="assignSelected()">
+            [disabled]="!canAssignSelected" (click)="assignSelected()">
             Asignar
           </button>
 

@@ -1,29 +1,73 @@
-export type EmployeeAttendanceStatus = 'assigned' | 'cancelled';
+export type EmployeeAttendanceStatus = 'present' | 'absent' | 'cancelled';
+export type EmployeeAttendanceAssignmentStatus = 'active' | 'cancelled';
 
-/**
- * Vista UI del módulo.
- * "unassigned" no viene del backend de asistencias como status real;
- * se usa solo para la pestaña/vista del frontend.
- */
-export type DailyAssistanceView = 'unassigned' | 'assigned' | 'cancelled';
+export type DailyAssistanceView = 'unassigned' | 'assigned' | 'absent' | 'cancelled';
 
-export interface EmployeeAttendanceRow {
+export type ArrivalStatus = 'pending' | 'on_time' | 'tardy';
+
+export interface EmployeeAttendanceAssignmentRow {
   id: number;
-  employee_id: number;
-  employee_name?: string | null;
+  attendance_id: number;
 
   project_id: number;
   project_name?: string | null;
 
-  work_date: string;
-  status: EmployeeAttendanceStatus;
+  assigned_hours: number;
+  hourly_salary_snapshot: number;
+  amount_snapshot: number;
 
-  weekly_salary_snapshot: number;
-  daily_salary_snapshot: number;
+  status: EmployeeAttendanceAssignmentStatus;
+
+  generated_expense_id: number | null;
+
+  is_sunday_auto: boolean;
+  replicated_from_assignment_id: number | null;
+  replicated_from_date: string | null;
 
   cancelled_at: string | null;
   cancelled_by_user_id: number | null;
   cancellation_reason: string | null;
+
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EmployeeAttendanceRow {
+  id: number;
+
+  employee_id: number;
+  employee_name?: string | null;
+
+  employee_area_id?: number | null;
+  employee_area_name?: string | null;
+
+  work_date: string;
+  status: EmployeeAttendanceStatus;
+
+  arrival_time: string | null;
+  arrival_status: ArrivalStatus;
+  arrival_status_label: string;
+  tardiness_minutes: number | null;
+  tardiness_discount: number | null;
+  tardiness_reason: string | null;
+
+  weekly_salary_snapshot: number;
+  daily_salary_snapshot: number;
+  hourly_salary_snapshot: number;
+
+  total_daily_hours: number;
+  total_assigned_hours: number;
+  available_hours: number;
+
+  absent_at: string | null;
+  absent_by_user_id: number | null;
+  absence_reason: string | null;
+
+  cancelled_at: string | null;
+  cancelled_by_user_id: number | null;
+  cancellation_reason: string | null;
+
+  assignments: EmployeeAttendanceAssignmentRow[];
 
   created_at: string;
   updated_at: string;
@@ -38,11 +82,6 @@ export interface FiltersDailyAssistance {
   limit: number;
 }
 
-/**
- * Estado UI del módulo.
- * Esto no necesariamente coincide 1:1 con backend,
- * pero nos sirve para la pantalla principal.
- */
 export interface DailyAssistanceUiFilters {
   workDate: string | null;
   currentView: DailyAssistanceView;
@@ -56,14 +95,22 @@ export interface CreateEmployeeAttendance {
   employee_id: number;
   project_id: number;
   work_date: string;
+  assigned_hours: number;
 }
 
-export interface UpdateEmployeeAttendance {
-  project_id: number | string;
+export interface UpdateEmployeeAttendanceAssignment {
+  project_id?: number | string;
+  assigned_hours?: number;
 }
 
 export interface CancelEmployeeAttendance {
   cancellation_reason: string;
+}
+
+export interface MarkEmployeeAbsence {
+  employee_id: number;
+  work_date: string;
+  absence_reason: string;
 }
 
 export interface SuccessResponse {
@@ -75,9 +122,27 @@ export interface SuccessResponse {
 export interface EmployeeAttendanceCatalogRow {
   id: number;
   full_name: string;
+
   employee_area_id: number | null;
   employee_area_name: string | null;
+
   position: string | null;
+
   weekly_salary: number;
+  daily_salary: number;
+  hourly_salary: number;
+
   employment_status: string;
+
+  attendance_id: number | null;
+  attendance_status: EmployeeAttendanceStatus | null;
+
+  total_daily_hours: number;
+  total_assigned_hours: number;
+  available_hours: number;
+
+  can_assign: boolean;
+  can_mark_absent: boolean;
+
+  absence_reason: string | null;
 }

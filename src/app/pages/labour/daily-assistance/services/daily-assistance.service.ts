@@ -45,9 +45,10 @@ export class DailyAssistanceService {
   }
 
   getAttendanceEmployees(
+    workDate: string,
     search?: string,
   ): Observable<entity.EmployeeAttendanceCatalogRow[]> {
-    let params = new HttpParams();
+    let params = new HttpParams().set('work_date', workDate);
 
     if (search?.trim()) {
       params = params.set('search', search.trim());
@@ -65,14 +66,36 @@ export class DailyAssistanceService {
     return this.http.post<entity.SuccessResponse>(this.apiUrl, payload);
   }
 
-  update(
+  updateAssignment(
     id: number,
-    payload: entity.UpdateEmployeeAttendance,
+    payload: entity.UpdateEmployeeAttendanceAssignment,
   ): Observable<entity.SuccessResponse> {
-    return this.http.patch<entity.SuccessResponse>(`${this.apiUrl}/${id}`, payload);
+    return this.http.patch<entity.SuccessResponse>(
+      `${this.apiUrl}/assignments/${id}`,
+      payload,
+    );
   }
 
-  cancel(
+  cancelAssignment(
+    id: number,
+    payload: entity.CancelEmployeeAttendance,
+  ): Observable<entity.SuccessResponse> {
+    return this.http.patch<entity.SuccessResponse>(
+      `${this.apiUrl}/assignments/${id}/cancel`,
+      payload,
+    );
+  }
+
+  markAbsence(
+    payload: entity.MarkEmployeeAbsence,
+  ): Observable<entity.SuccessResponse> {
+    return this.http.post<entity.SuccessResponse>(
+      `${this.apiUrl}/absence`,
+      payload,
+    );
+  }
+
+  cancelAttendance(
     id: number,
     payload: entity.CancelEmployeeAttendance,
   ): Observable<entity.SuccessResponse> {
