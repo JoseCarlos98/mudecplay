@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { finalize } from 'rxjs';
 
 // UI
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
@@ -10,6 +11,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -48,6 +50,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     DataTable,
     BtnsSection,
     InputField,
+    LoadingOverlay,
     MatPaginatorModule,
     FormsModule,
     ReactiveFormsModule,
@@ -65,6 +68,8 @@ export class Users implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
+
+  readonly loadingTable = signal(false);
 
   filters: entity.FiltersUsers = { page: 1, limit: 10 };
   usersTableData!: PaginatedResponse<entity.UserResponseDto>;
@@ -114,15 +119,23 @@ export class Users implements OnInit {
   }
 
   loadUsers(): void {
-    this.usersService.getPaginated(this.filters).subscribe({
-      next: (res) => (this.usersTableData = res),
-      error: (err) => console.error('Error al cargar usuarios:', err),
-    });
+    if (this.loadingTable()) return;
+
+    this.loadingTable.set(true);
+
+    this.usersService
+      .getPaginated(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (res) => (this.usersTableData = res),
+        error: (err) => console.error('Error al cargar usuarios:', err),
+      });
   }
 
   onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
+
     this.saveFiltersToStorage();
     this.loadUsers();
   }
@@ -131,6 +144,7 @@ export class Users implements OnInit {
     const form = this.formFilters.getRawValue();
     const hasEmail = !!(form.email?.trim() !== '');
     const hasName = !!(form.name?.trim() !== '');
+
     return hasEmail || hasName;
   }
 
@@ -157,6 +171,7 @@ export class Users implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -168,6 +183,7 @@ export class Users implements OnInit {
       case 'edit':
         this.openUserModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
@@ -221,6 +237,7 @@ export class Users implements OnInit {
   private saveFiltersToStorage(state?: entity.UsersUiFilters): void {
     if (!state) {
       const v = this.formFilters.getRawValue();
+
       state = {
         name: v.name?.trim() || '',
         email: v.email?.trim() || '',
@@ -228,6 +245,7 @@ export class Users implements OnInit {
         limit: this.filters.limit,
       };
     }
+
     this.storage.setItem(USERS_FILTERS_KEY, state);
   }
 }

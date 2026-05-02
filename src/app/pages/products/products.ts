@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +24,7 @@ import {
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -59,11 +61,14 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   selector: 'app-products',
   imports: [
     CommonModule,
+
     // UI
     ModuleHeader,
     DataTable,
     BtnsSection,
     InputField,
+    LoadingOverlay,
+
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,
@@ -74,6 +79,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
@@ -81,7 +87,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   templateUrl: './products.html',
   styleUrl: './products.scss',
 })
-export class Products {
+export class Products implements OnInit {
   // ==========================
   //  INYECCIONES
   // ==========================
@@ -97,16 +103,15 @@ export class Products {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
+  readonly loadingTable = signal(false);
+
   // ==========================
   //  ESTADO / DATA
   // ==========================
-  // Filtros que van al backend
   filters: products.FiltersProducts = { page: 1, limit: 5 };
 
-  // Data de la tabla
   productsTableData!: PaginatedResponse<products.ProductResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     name: this.fb.control<string>(''),
   });
@@ -114,17 +119,13 @@ export class Products {
   // ==========================
   //  CICLO DE VIDA
   // ==========================
-  ngOnInit() {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
+  ngOnInit(): void {
+    this.restoreFiltersFromStorage();
   }
 
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  /**
-   * Recibe el estado de la UI (form + paginación)
-   * y devuelve el objeto de filtros que espera el backend.
-   */
   private buildBackendFiltersFromUi(
     ui: products.ProductsUiFilters,
   ): products.FiltersProducts {
@@ -138,43 +139,43 @@ export class Products {
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters() {
+  searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    // Estado completo de la UI (incluye página/limit)
     const uiState: products.ProductsUiFilters = {
       name: value.name?.trim() || '',
-      page: 1, // siempre que haces una nueva búsqueda, vas a la página 1
+      page: 1,
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
-
-    // Guardamos el estado de UI para persistir filtros
     this.saveFiltersToStorage(uiState);
-
-    // Disparamos la carga
     this.loadProducts();
   }
 
-  loadProducts() {
-    this.productsService.getProducts(this.filters).subscribe({
-      next: (response: PaginatedResponse<products.ProductResponseDto>) => {
-        this.productsTableData = response;
-      },
-      error: (err) => console.error('Error al cargar productos:', err),
-    });
+  loadProducts(): void {
+    if (this.loadingTable()) return;
+
+    this.loadingTable.set(true);
+
+    this.productsService
+      .getProducts(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<products.ProductResponseDto>) => {
+          this.productsTableData = response;
+        },
+        error: (err) => console.error('Error al cargar productos:', err),
+      });
   }
 
   // ==========================
   //  PAGINACIÓN
   // ==========================
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
-    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadProducts();
   }
@@ -182,11 +183,12 @@ export class Products {
   // ==========================
   //  ACCIONES HEADER
   // ==========================
-  onHeaderAction(action: string) {
+  onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
         this.productModal();
         break;
+
       case 'upload':
         // si luego quieres importar productos por archivo, aquí va
         break;
@@ -196,11 +198,12 @@ export class Products {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string) {
+  onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -210,18 +213,19 @@ export class Products {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<products.ProductResponseDto>) {
+  onTableAction(ev: DataTableActionEvent<products.ProductResponseDto>): void {
     switch (ev.type) {
       case 'edit':
         this.productModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
     }
   }
 
-  onDelete(product: products.ProductResponseDto) {
+  onDelete(product: products.ProductResponseDto): void {
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el producto:\n"${product.name.trim()}"?`,
@@ -247,8 +251,7 @@ export class Products {
     return hasName;
   }
 
-  clearAllAndSearch() {
-    // Limpia formulario de filtros
+  clearAllAndSearch(): void {
     this.formFilters.reset(
       {
         name: '',
@@ -256,14 +259,12 @@ export class Products {
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
     };
 
-    // Limpia storage para este módulo
     this.storage.removeItem(PRODUCTS_FILTERS_KEY);
     this.loadProducts();
   }
@@ -271,7 +272,7 @@ export class Products {
   // ==========================
   //  MODAL DE PRODUCTO
   // ==========================
-  productModal(product?: products.ProductResponseDto) {
+  productModal(product?: products.ProductResponseDto): void {
     this.dialogService
       .open(ProductModal, product ? product : null, 'medium')
       .afterClosed()
@@ -283,17 +284,15 @@ export class Products {
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage() {
+  private restoreFiltersFromStorage(): void {
     const saved =
       this.storage.getItem<products.ProductsUiFilters>(PRODUCTS_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         name: saved.name,
@@ -301,19 +300,11 @@ export class Products {
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
     this.loadProducts();
   }
 
-  /**
-   * Guarda el estado de filtros de la UI en localStorage.
-   * - Si recibe `state`, guarda ese.
-   * - Si no, reconstruye el estado a partir del form + this.filters.
-   */
-  private saveFiltersToStorage(state?: products.ProductsUiFilters) {
+  private saveFiltersToStorage(state?: products.ProductsUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 

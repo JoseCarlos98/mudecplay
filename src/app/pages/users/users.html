@@ -48,3 +48,9 @@
     </mat-paginator>
   </div>
 }
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando usuarios...">
+</app-loading-overlay>

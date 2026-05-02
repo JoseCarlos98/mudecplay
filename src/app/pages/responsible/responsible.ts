@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +21,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -32,7 +34,6 @@ import * as entity from '../responsible/interfaces/responsible-interfaces';
 import { ResponsibleModal } from './components/responsible-modal/responsible-modal';
 import { ResponsibleService } from './services/responsible.service';
 
-
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
@@ -42,7 +43,7 @@ const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'name', label: 'Nombre' },
   { key: 'last_name', label: 'Apellido' },
-  { key: 'phone', label: 'Telefono', type : 'phone' },
+  { key: 'phone', label: 'Telefono', type: 'phone' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -53,15 +54,19 @@ const DISPLAYED_COLUMNS: string[] = [
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
 };
+
 @Component({
   selector: 'app-responsible',
   imports: [
     CommonModule,
+
     // UI
     ModuleHeader,
     DataTable,
     BtnsSection,
     InputField,
+    LoadingOverlay,
+
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,
@@ -72,6 +77,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
@@ -79,7 +85,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   templateUrl: './responsible.html',
   styleUrl: './responsible.scss',
 })
-export class Responsible {
+export class Responsible implements OnInit {
   // ==========================
   //  INYECCIONES
   // ==========================
@@ -96,6 +102,8 @@ export class Responsible {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
+  readonly loadingTable = signal(false);
+
   catalogAreaSuppliers: Catalog[] = [];
 
   // ==========================
@@ -111,11 +119,10 @@ export class Responsible {
     name: this.fb.control<string>(''),
   });
 
-
   // ==========================
   //  CICLO DE VIDA
   // ==========================
-  ngOnInit() {
+  ngOnInit(): void {
     this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
     this.loadCatalogs();              // carga catálogos de selects
   }
@@ -123,7 +130,7 @@ export class Responsible {
   // ==========================
   //  CARGA DE CATÁLOGOS
   // ==========================
-  loadCatalogs() {
+  loadCatalogs(): void {
     this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
@@ -132,14 +139,9 @@ export class Responsible {
     });
   }
 
-
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  /**
-   * Recibe el estado de la UI (form + paginación)
-   * y devuelve el objeto de filtros que espera el backend.
-   */
   private buildBackendFiltersFromUi(ui: entity.ResponsibleUiFilters): entity.FiltersResponsible {
     return {
       page: ui.page,
@@ -152,10 +154,9 @@ export class Responsible {
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters() {
+  searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ResponsibleUiFilters = {
       name: value.name?.trim() || '',
       phone: value.phone?.trim() || '',
@@ -163,34 +164,34 @@ export class Responsible {
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
-
-    // Guardamos el estado de UI para persistir filtros
     this.saveFiltersToStorage(uiState);
-
-    // Disparamos la carga
     this.loadClients();
   }
 
+  loadClients(): void {
+    if (this.loadingTable()) return;
 
-  loadClients() {
-    this.responsibleService.getResposible(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.ResponsibleResponseDto>) => {
-        this.expensesTableData = response;
-      },
-      error: (err) => console.error('Error al cargar gastos:', err),
-    });
+    this.loadingTable.set(true);
+
+    this.responsibleService
+      .getResposible(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.ResponsibleResponseDto>) => {
+          this.expensesTableData = response;
+        },
+        error: (err) => console.error('Error al cargar responsables:', err),
+      });
   }
 
   // ==========================
   //  PAGINACIÓN
   // ==========================
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
-    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadClients();
   }
@@ -198,11 +199,12 @@ export class Responsible {
   // ==========================
   //  ACCIONES HEADER
   // ==========================
-  onHeaderAction(action: string) {
+  onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
         this.supplierModal();
         break;
+
       case 'upload':
         break;
     }
@@ -211,11 +213,12 @@ export class Responsible {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string) {
+  onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -225,24 +228,25 @@ export class Responsible {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.ResponsibleResponseDto>) {
+  onTableAction(ev: DataTableActionEvent<entity.ResponsibleResponseDto>): void {
     switch (ev.type) {
       case 'edit':
-        this.supplierModal(ev.row)
+        this.supplierModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
     }
   }
 
-  onDelete(supplier: entity.ResponsibleResponseDto) {
+  onDelete(supplier: entity.ResponsibleResponseDto): void {
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el responsable:\n"${supplier.name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
-        size: 'mini'
+        size: 'mini',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
@@ -266,8 +270,7 @@ export class Responsible {
     return hasEmail || hasPhone;
   }
 
-  clearAllAndSearch() {
-    // Limpia formulario de filtros
+  clearAllAndSearch(): void {
     this.formFilters.reset(
       {
         name: '',
@@ -276,15 +279,13 @@ export class Responsible {
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
       phone: '',
-    }
+    };
 
-    // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
     this.loadClients();
   }
@@ -292,7 +293,7 @@ export class Responsible {
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  supplierModal(supplier?: any) {
+  supplierModal(supplier?: entity.ResponsibleResponseDto): void {
     this.dialogService
       .open(ResponsibleModal, supplier ? supplier : null, 'medium')
       .afterClosed()
@@ -304,16 +305,14 @@ export class Responsible {
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage() {
+  private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.ResponsibleUiFilters>(EXPENSES_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // Parchear formulario con lo guardado
     this.formFilters.patchValue(
       {
         name: saved.name,
@@ -322,19 +321,10 @@ export class Responsible {
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
-    // this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
     this.loadClients();
   }
 
-  /**
-   * Guarda el estado de filtros de la UI en localStorage.
-   * - Si recibe `state`, guarda ese.
-   * - Si no, reconstruye el estado a partir del form + this.filters.
-   */
-  private saveFiltersToStorage(state?: entity.ResponsibleUiFilters) {
+  private saveFiltersToStorage(state?: entity.ResponsibleUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 

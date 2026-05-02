@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -23,6 +24,7 @@ import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -34,7 +36,6 @@ import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-inte
 import * as entity from '../suppliers/interfaces/supplier-interfaces';
 import { SupplierService } from './services/supplier.service';
 import { SupplierModal } from './components/supplier-modal/supplier-modal';
-
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -70,12 +71,12 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
 };
 
-
 @Component({
   selector: 'app-suppliers',
   standalone: true,
   imports: [
     CommonModule,
+
     // UI
     ModuleHeader,
     DataTable,
@@ -84,6 +85,8 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     InputField,
     InputSelect,
     SearchMultiSelect,
+    LoadingOverlay,
+
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,
@@ -94,6 +97,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
@@ -101,7 +105,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   templateUrl: './suppliers.html',
   styleUrl: './suppliers.scss',
 })
-export class Suppliers {
+export class Suppliers implements OnInit {
   // ==========================
   //  INYECCIONES
   // ==========================
@@ -118,16 +122,16 @@ export class Suppliers {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
+  readonly loadingTable = signal(false);
+
   catalogAreaSuppliers: Catalog[] = [];
 
   // ==========================
   //  ESTADO / DATA
   // ==========================
-  // Filtros que van al backend
   filters: entity.FiltersSupplier = { page: 1, limit: 5 };
   expensesTableData!: PaginatedResponse<entity.SupplierResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     areasIds: this.fb.control<number[]>([]),
     email: this.fb.control<string>(''),
@@ -135,35 +139,29 @@ export class Suppliers {
     company_name: this.fb.control<string>(''),
   });
 
-
   // ==========================
   //  CICLO DE VIDA
   // ==========================
-  ngOnInit() {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs();              // carga catálogos de selects
+  ngOnInit(): void {
+    this.restoreFiltersFromStorage();
+    this.loadCatalogs();
   }
 
   // ==========================
   //  CARGA DE CATÁLOGOS
   // ==========================
-  loadCatalogs() {
+  loadCatalogs(): void {
     this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
       },
-      error: (err) => console.error('Error al cargar estados de gasto:', err),
+      error: (err) => console.error('Error al cargar áreas de proveedores:', err),
     });
   }
-
 
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  /**
-   * Recibe el estado de la UI (form + paginación)
-   * y devuelve el objeto de filtros que espera el backend.
-   */
   private buildBackendFiltersFromUi(ui: entity.SupplierUiFilters): entity.FiltersSupplier {
     return {
       page: ui.page,
@@ -178,10 +176,9 @@ export class Suppliers {
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters() {
+  searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    // Estado completo de la UI (incluye página/limit)
     const uiState: entity.SupplierUiFilters = {
       areasIds: value.areasIds ?? [],
       email: value.email?.trim() || '',
@@ -191,34 +188,34 @@ export class Suppliers {
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
-
-    // Guardamos el estado de UI para persistir filtros
     this.saveFiltersToStorage(uiState);
-
-    // Disparamos la carga
     this.loadSupplier();
   }
 
+  loadSupplier(): void {
+    if (this.loadingTable()) return;
 
-  loadSupplier() {
-    this.supplierService.getSuppliers(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.SupplierResponseDto>) => {
-        this.expensesTableData = response;
-      },
-      error: (err) => console.error('Error al cargar gastos:', err),
-    });
+    this.loadingTable.set(true);
+
+    this.supplierService
+      .getSuppliers(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.SupplierResponseDto>) => {
+          this.expensesTableData = response;
+        },
+        error: (err) => console.error('Error al cargar proveedores:', err),
+      });
   }
 
   // ==========================
   //  PAGINACIÓN
   // ==========================
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
-    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadSupplier();
   }
@@ -226,11 +223,12 @@ export class Suppliers {
   // ==========================
   //  ACCIONES HEADER
   // ==========================
-  onHeaderAction(action: string) {
+  onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
         this.supplierModal();
         break;
+
       case 'upload':
         break;
     }
@@ -239,11 +237,12 @@ export class Suppliers {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string) {
+  onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -253,31 +252,32 @@ export class Suppliers {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.SupplierResponseDto>) {
+  onTableAction(ev: DataTableActionEvent<entity.SupplierResponseDto>): void {
     switch (ev.type) {
       case 'edit':
-        this.supplierModal(ev.row)
+        this.supplierModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
     }
   }
 
-  onDelete(supplier: entity.SupplierResponseDto) {
+  onDelete(supplier: entity.SupplierResponseDto): void {
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el proveedor:\n"${supplier?.rfc?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
-        size: 'mini'
+        size: 'mini',
       })
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
         this.supplierService.remove(supplier.id).subscribe({
           next: () => this.loadSupplier(),
-          error: (err) => console.error('Error al eliminar gasto:', err),
+          error: (err) => console.error('Error al eliminar proveedor:', err),
         });
       });
   }
@@ -291,13 +291,12 @@ export class Suppliers {
     const hasAreas = (form.areasIds?.length ?? 0) > 0;
     const hasEmail = !!(form.email && form.email.trim() !== '');
     const hasPhone = !!(form.phone !== '');
-    const hasCompany_name = !!(form.company_name !== '');
+    const hasCompanyName = !!(form.company_name !== '');
 
-    return hasCompany_name || hasAreas || hasEmail || hasPhone;
+    return hasCompanyName || hasAreas || hasEmail || hasPhone;
   }
 
-  clearAllAndSearch() {
-    // Limpia formulario de filtros
+  clearAllAndSearch(): void {
     this.formFilters.reset(
       {
         areasIds: [],
@@ -308,7 +307,6 @@ export class Suppliers {
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
@@ -316,9 +314,8 @@ export class Suppliers {
       email: '',
       phone: '',
       company_name: '',
-    }
+    };
 
-    // Limpia storage para este módulo
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
     this.loadSupplier();
   }
@@ -326,7 +323,7 @@ export class Suppliers {
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  supplierModal(supplier?: any) {
+  supplierModal(supplier?: entity.SupplierResponseDto): void {
     this.dialogService
       .open(SupplierModal, supplier ? supplier : null, 'medium')
       .afterClosed()
@@ -338,16 +335,14 @@ export class Suppliers {
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage() {
+  private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.SupplierUiFilters>(EXPENSES_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
-    
-    // Parchear formulario con lo guardado
+
     this.formFilters.patchValue(
       {
         areasIds: saved.areasIds,
@@ -358,19 +353,11 @@ export class Suppliers {
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
     this.loadSupplier();
   }
 
-  /**
-   * Guarda el estado de filtros de la UI en localStorage.
-   * - Si recibe `state`, guarda ese.
-   * - Si no, reconstruye el estado a partir del form + this.filters.
-   */
-  private saveFiltersToStorage(state?: entity.SupplierUiFilters) {
+  private saveFiltersToStorage(state?: entity.SupplierUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 

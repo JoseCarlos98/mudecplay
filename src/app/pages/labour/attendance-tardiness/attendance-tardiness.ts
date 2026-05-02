@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { finalize } from 'rxjs';
 
 import { InputDate } from '../../../shared/ui/input-date/input-date';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -18,6 +19,7 @@ import {
   InputSelect,
   SelectCatalogOption,
 } from '../../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
 import { LocalStorageService } from '../../../shared/services/local-storage.service';
 import { DialogService } from '../../../shared/services/dialog.service';
 
@@ -84,6 +86,7 @@ const STATUS_OPTIONS: SelectCatalogOption[] = [
     InputDate,
     InputField,
     InputSelect,
+    LoadingOverlay,
     MatPaginatorModule,
   ],
   templateUrl: './attendance-tardiness.html',
@@ -100,6 +103,9 @@ export class AttendanceTardiness implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly statusOptions = STATUS_OPTIONS;
 
+  readonly loadingTable = signal(false);
+  readonly savingArrival = signal(false);
+
   areaOptions: SelectCatalogOption[] = [];
 
   readonly extraActions: DataTableExtraAction<entity.AttendanceTardinessRow>[] = [
@@ -108,12 +114,14 @@ export class AttendanceTardiness implements OnInit {
       icon: 'how_to_reg',
       tooltip: 'Marcar llegada',
       visible: (row) => row.arrival_status === 'pending',
+      disabled: () => this.loadingTable() || this.savingArrival(),
     },
     {
       type: 'editArrival',
       icon: 'edit_calendar',
       tooltip: 'Editar hora de llegada',
       visible: (row) => row.arrival_status !== 'pending',
+      disabled: () => this.loadingTable() || this.savingArrival(),
     },
   ];
 
@@ -166,6 +174,7 @@ export class AttendanceTardiness implements OnInit {
       arrival_status: ui.status ?? null,
     };
   }
+
   private mapRow(
     row: entity.EmployeeAttendanceResponseDto,
   ): entity.AttendanceTardinessRow {
@@ -204,21 +213,28 @@ export class AttendanceTardiness implements OnInit {
   }
 
   loadAttendanceTardiness(): void {
+    if (this.loadingTable()) return;
+
     const backendFilters = this.buildBackendFiltersFromUi(this.filters);
 
-    this.attendanceTardinessService.getAttendances(backendFilters).subscribe({
-      next: (response) => {
-        const data = (response.data ?? []).map((row) => this.mapRow(row));
+    this.loadingTable.set(true);
 
-        this.attendanceTableData = {
-          ...response,
-          data,
-        };
-      },
-      error: (err) => {
-        console.error('Error al cargar llegadas y retardos:', err);
-      },
-    });
+    this.attendanceTardinessService
+      .getAttendances(backendFilters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response) => {
+          const data = (response.data ?? []).map((row) => this.mapRow(row));
+
+          this.attendanceTableData = {
+            ...response,
+            data,
+          };
+        },
+        error: (err) => {
+          console.error('Error al cargar llegadas y retardos:', err);
+        },
+      });
   }
 
   private loadEmployeeAreasCatalog(): void {
@@ -304,11 +320,16 @@ export class AttendanceTardiness implements OnInit {
     attendanceId: number,
     payload: MarkAttendanceModalResult['payload'],
   ): void {
+    if (this.savingArrival()) return;
+
+    this.savingArrival.set(true);
+
     this.attendanceTardinessService
       .upsertArrival(attendanceId, {
         arrival_time: payload.arrival_time,
         tardiness_reason: payload.tardiness_reason,
       })
+      .pipe(finalize(() => this.savingArrival.set(false)))
       .subscribe({
         next: () => {
           this.loadAttendanceTardiness();

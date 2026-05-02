@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +21,7 @@ import {
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -59,6 +61,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     DataTable,
     BtnsSection,
     InputField,
+    LoadingOverlay,
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
@@ -80,6 +83,8 @@ export class EmployeeAreas implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
+
+  readonly loadingTable = signal(false);
 
   filters: entity.FiltersEmployeeArea = { page: 1, limit: 5 };
   employeeAreasTableData!: PaginatedResponse<entity.EmployeeAreaResponseDto>;
@@ -117,12 +122,19 @@ export class EmployeeAreas implements OnInit {
   }
 
   loadEmployeeAreas(): void {
-    this.employeeAreasService.getEmployeeAreas(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.EmployeeAreaResponseDto>) => {
-        this.employeeAreasTableData = response;
-      },
-      error: (err) => console.error('Error al cargar áreas de empleado:', err),
-    });
+    if (this.loadingTable()) return;
+
+    this.loadingTable.set(true);
+
+    this.employeeAreasService
+      .getEmployeeAreas(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.EmployeeAreaResponseDto>) => {
+          this.employeeAreasTableData = response;
+        },
+        error: (err) => console.error('Error al cargar áreas de empleado:', err),
+      });
   }
 
   onPageChange(event: PageEvent): void {
@@ -146,6 +158,7 @@ export class EmployeeAreas implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -157,6 +170,7 @@ export class EmployeeAreas implements OnInit {
       case 'edit':
         this.employeeAreaModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;

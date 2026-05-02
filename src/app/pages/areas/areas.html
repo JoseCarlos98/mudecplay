@@ -42,3 +42,10 @@
     </mat-paginator>
   </div>
 }
+
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando áreas...">
+</app-loading-overlay>

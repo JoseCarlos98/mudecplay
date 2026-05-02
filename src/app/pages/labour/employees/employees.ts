@@ -1,7 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -16,6 +17,7 @@ import { InputSelect } from '../../../shared/ui/input-select/input-select';
 import { HasRoleDirective } from '../../../auth/directives/has-role.directive';
 import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { Catalog, PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
+import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
 
 // Service / interfaces
 import { EmployeesService } from './services/employees.service';
@@ -59,6 +61,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     BtnsSection,
     MatPaginatorModule,
     HasRoleDirective,
+    LoadingOverlay,
   ],
   templateUrl: './employees.html',
   styleUrl: './employees.scss',
@@ -68,10 +71,13 @@ export class Employees implements OnInit {
   private readonly router = inject(Router);
   private readonly employeesService = inject(EmployeesService);
   private readonly dialogService = inject(DialogService);
+
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
   readonly statusOptions = STATUS_OPTIONS;
+
+  readonly loadingTable = signal(false);
 
   areaOptions: Catalog[] = [];
 
@@ -110,6 +116,7 @@ export class Employees implements OnInit {
       case 'new':
         this.router.navigateByUrl('/mano-de-obra/empleados/nuevo');
         break;
+
       case '':
         this.router.navigateByUrl('/mano-de-obra/empleados/nuevo');
         break;
@@ -121,6 +128,7 @@ export class Employees implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -132,6 +140,7 @@ export class Employees implements OnInit {
       case 'edit':
         this.router.navigateByUrl(`/mano-de-obra/empleados/editar/${ev.row.id}`);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
@@ -223,21 +232,28 @@ export class Employees implements OnInit {
   }
 
   private loadEmployees(): void {
-    this.employeesService.getEmployees(this.filters).subscribe({
-      next: (response) => {
-        const mappedRows: entity.EmployeeRow[] = (response.data ?? []).map((row) => ({
-          ...row,
-          area_label: row.employee_area?.name ?? 'Sin área',
-        }));
+    if (this.loadingTable()) return;
 
-        this.employeesTableData = {
-          ...response,
-          data: mappedRows,
-        };
-      },
-      error: (err) => {
-        console.error('Error cargando empleados:', err);
-      },
-    });
+    this.loadingTable.set(true);
+
+    this.employeesService
+      .getEmployees(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response) => {
+          const mappedRows: entity.EmployeeRow[] = (response.data ?? []).map((row) => ({
+            ...row,
+            area_label: row.employee_area?.name ?? 'Sin área',
+          }));
+
+          this.employeesTableData = {
+            ...response,
+            data: mappedRows,
+          };
+        },
+        error: (err) => {
+          console.error('Error cargando empleados:', err);
+        },
+      });
   }
 }

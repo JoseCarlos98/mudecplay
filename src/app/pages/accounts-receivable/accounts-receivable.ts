@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -28,6 +28,7 @@ import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { AccountsReceivableService } from './services/accounts-receivable.service';
@@ -83,6 +84,8 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     InputDate,
     InputField,
     InputSelect,
+    LoadingOverlay,
+
     MatPaginatorModule,
     MatFormFieldModule,
     MatSelectModule,
@@ -92,6 +95,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     FormsModule,
     ReactiveFormsModule,
     HasRoleDirective,
@@ -113,6 +117,8 @@ export class AccountsReceivable implements OnInit {
   readonly headerConfig = HEADER_CONFIG;
   readonly statusOptions = entity.ACCOUNTS_RECEIVABLE_STATUS_OPTIONS;
   readonly companyOptions = entity.ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS;
+
+  readonly loadingTable = signal(false);
 
   readonly extraActions: DataTableExtraAction<entity.AccountReceivableRow>[] = [
     {
@@ -242,22 +248,29 @@ export class AccountsReceivable implements OnInit {
   }
 
   loadAccountsReceivable(): void {
-    this.accountsReceivableService.getAccountsReceivable(this.filters).subscribe({
-      next: (response) => {
-        const data: entity.AccountReceivableRow[] = (response.data ?? []).map((row) => ({
-          ...row,
-          invoice_display: row.series ? `${row.series}-${row.folio}` : row.folio,
-          company_label: this.resolveCompanyLabel(row.company_code),
-          status_label: row.status === 'collected' ? 'Cobrada' : 'Pendiente',
-        }));
+    if (this.loadingTable()) return;
 
-        this.accountsReceivableTableData = {
-          ...response,
-          data,
-        };
-      },
-      error: (err) => console.error('Error al cargar cuentas por cobrar:', err),
-    });
+    this.loadingTable.set(true);
+
+    this.accountsReceivableService
+      .getAccountsReceivable(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response) => {
+          const data: entity.AccountReceivableRow[] = (response.data ?? []).map((row) => ({
+            ...row,
+            invoice_display: row.series ? `${row.series}-${row.folio}` : row.folio,
+            company_label: this.resolveCompanyLabel(row.company_code),
+            status_label: row.status === 'collected' ? 'Cobrada' : 'Pendiente',
+          }));
+
+          this.accountsReceivableTableData = {
+            ...response,
+            data,
+          };
+        },
+        error: (err) => console.error('Error al cargar cuentas por cobrar:', err),
+      });
   }
 
   onPageChange(event: PageEvent): void {
@@ -281,6 +294,7 @@ export class AccountsReceivable implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -395,6 +409,7 @@ export class AccountsReceivable implements OnInit {
                 cancelText: '',
               })
               .subscribe();
+
             return;
           }
 
@@ -407,6 +422,7 @@ export class AccountsReceivable implements OnInit {
                 cancelText: '',
               })
               .subscribe();
+
             return;
           }
 
@@ -431,6 +447,7 @@ export class AccountsReceivable implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir XMLs', err);
+
           this.dialogService
             .confirm({
               title: 'Error',
@@ -447,8 +464,10 @@ export class AccountsReceivable implements OnInit {
     switch (code) {
       case 'MUDECPLAY':
         return 'MUDECPLAY';
+
       case 'CONSTRUCTORA_PELEN':
         return 'CONSTRUCTORA PELEN';
+
       default:
         return code;
     }

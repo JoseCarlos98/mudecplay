@@ -24,12 +24,14 @@ import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { ExpenseService } from './services/expense.service';
 import { DialogService } from '../../shared/services/dialog.service';
 import { CatalogsService } from '../../shared/services/catalogs.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
+import { PermissionsService } from '../../auth/services/permissions.service';
 
 // Interfaces
 import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
@@ -40,8 +42,6 @@ import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { finalize } from 'rxjs';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
-import { PermissionsService } from '../../auth/services/permissions.service';
-import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 import { ModalArchive } from './components/modal-archive/modal-archive';
 
 // ==========================
@@ -97,6 +97,7 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
   standalone: true,
   imports: [
     CommonModule,
+
     // UI
     ModuleHeader,
     DataTable,
@@ -105,6 +106,8 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
     InputField,
     InputSelect,
     SearchMultiSelect,
+    LoadingOverlay,
+
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,
@@ -115,11 +118,13 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
+
+    // Directivas
     HasRoleDirective,
-    LoadingOverlay
   ],
   templateUrl: './expenses.html',
   styleUrl: './expenses.scss',
@@ -146,6 +151,10 @@ export class Expenses implements OnInit {
   private readonly storage = inject(LocalStorageService);
   private readonly permissionsService = inject(PermissionsService);
 
+  // ==========================
+  //  LOADINGS
+  // ==========================
+  readonly loadingTable = signal(false);
   readonly downloadingReceipt = signal(false);
   readonly downloadingReceiptExpenseId = signal<number | null>(null);
 
@@ -157,6 +166,7 @@ export class Expenses implements OnInit {
     if (row.cfdi_uuid) {
       return 'No puedes eliminar gastos creados desde un CFDI.';
     }
+
     return null;
   };
 
@@ -274,18 +284,28 @@ export class Expenses implements OnInit {
   }
 
   loadExpenses(): void {
-    this.expenseService.getExpenses(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
-        const data = (response.data ?? []).map((row) => this.mapExpenseRow(row));
+    if (this.loadingTable()) return;
 
-        this.expensesTableData = {
-          ...response,
-          data,
-        };
-      },
-      error: (err) => console.error('Error al cargar gastos:', err),
-    });
+    this.loadingTable.set(true);
+
+    this.expenseService
+      .getExpenses(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.ExpenseResponseDto>) => {
+          const data = (response.data ?? []).map((row) => this.mapExpenseRow(row));
+
+          this.expensesTableData = {
+            ...response,
+            data,
+          };
+        },
+        error: (err) => {
+          console.error('Error al cargar gastos:', err);
+        },
+      });
   }
+
   // ==========================
   //  PAGINACIÓN
   // ==========================
@@ -305,6 +325,7 @@ export class Expenses implements OnInit {
       case 'new':
         this.router.navigateByUrl('/gastos/nuevo');
         break;
+
       case 'upload':
         this.xmlInput.nativeElement.click();
         break;
@@ -319,6 +340,7 @@ export class Expenses implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -545,6 +567,7 @@ export class Expenses implements OnInit {
               confirmText: 'OK',
               cancelText: '',
             }).subscribe();
+
             return;
           }
 
@@ -557,6 +580,7 @@ export class Expenses implements OnInit {
                 cancelText: '',
               })
               .subscribe();
+
             return;
           }
 
@@ -581,6 +605,7 @@ export class Expenses implements OnInit {
         },
         error: (err) => {
           console.error('Error al subir XMLs', err);
+
           this.dialogService
             .confirm({
               title: 'Error',

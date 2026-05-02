@@ -64,10 +64,10 @@
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
       [extraActions]="extraActions"
-      (action)="onTableAction($event)"
-       [actionPermissions]="{
+      [actionPermissions]="{
         editRoles: ['CUENTAS_POR_COBRAR_EDITOR']
-      }">
+      }"
+      (action)="onTableAction($event)">
     </app-data-table>
 
     <mat-paginator
@@ -80,3 +80,9 @@
     </mat-paginator>
   </div>
 }
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando cuentas por cobrar...">
+</app-loading-overlay>

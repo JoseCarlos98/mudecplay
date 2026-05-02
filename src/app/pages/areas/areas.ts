@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -20,6 +21,7 @@ import {
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -59,6 +61,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     DataTable,
     BtnsSection,
     InputField,
+    LoadingOverlay,
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
@@ -80,6 +83,8 @@ export class Areas implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
+
+  readonly loadingTable = signal(false);
 
   filters: entity.FiltersArea = { page: 1, limit: 5 };
   areasTableData!: PaginatedResponse<entity.AreaResponseDto>;
@@ -115,12 +120,19 @@ export class Areas implements OnInit {
   }
 
   loadAreas(): void {
-    this.areasService.getAreas(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.AreaResponseDto>) => {
-        this.areasTableData = response;
-      },
-      error: (err) => console.error('Error al cargar áreas:', err),
-    });
+    if (this.loadingTable()) return;
+
+    this.loadingTable.set(true);
+
+    this.areasService
+      .getAreas(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.AreaResponseDto>) => {
+          this.areasTableData = response;
+        },
+        error: (err) => console.error('Error al cargar áreas:', err),
+      });
   }
 
   onPageChange(event: PageEvent): void {
@@ -144,6 +156,7 @@ export class Areas implements OnInit {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -155,6 +168,7 @@ export class Areas implements OnInit {
       case 'edit':
         this.areaModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;

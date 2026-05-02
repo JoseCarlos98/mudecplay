@@ -61,3 +61,9 @@
     </mat-paginator>
 </div>
 }
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando proyectos...">
+</app-loading-overlay>

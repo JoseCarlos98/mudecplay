@@ -1,7 +1,8 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 
 // Angular Material
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -24,6 +25,7 @@ import { InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
+import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -64,7 +66,6 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
-
   { key: 'contact_name', label: 'Contacto' },
   { key: 'location', label: 'Ubicación' },
   { key: 'phone', label: 'Teléfono', type: 'phone' },
@@ -104,6 +105,7 @@ type ProjectStatusOrNull = ProjectStatus | null;
   standalone: true,
   imports: [
     CommonModule,
+
     // UI
     ModuleHeader,
     DataTable,
@@ -112,6 +114,8 @@ type ProjectStatusOrNull = ProjectStatus | null;
     InputField,
     InputSelect,
     SearchMultiSelect,
+    LoadingOverlay,
+
     // Angular Material
     MatPaginatorModule,
     MatFormFieldModule,
@@ -122,6 +126,7 @@ type ProjectStatusOrNull = ProjectStatus | null;
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
@@ -129,7 +134,7 @@ type ProjectStatusOrNull = ProjectStatus | null;
   templateUrl: './projects.html',
   styleUrl: './projects.scss',
 })
-export class Projects {
+export class Projects implements OnInit {
   // ==========================
   //  INYECCIONES
   // ==========================
@@ -147,17 +152,17 @@ export class Projects {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
+  readonly loadingTable = signal(false);
+
   catalogAreaSuppliers: Catalog[] = [];
   readonly statusProjectOptions = PAYMENT_STATUS_OPTIONS;
 
   // ==========================
   //  ESTADO / DATA
   // ==========================
-  // Filtros que van al backend
   filters: entity.FiltersProject = { page: 1, limit: 5 };
   expensesTableData!: PaginatedResponse<entity.ProjectResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     clientsIds: this.fb.control<number[]>([]),
     responsibleIds: this.fb.control<number[]>([]),
@@ -170,15 +175,15 @@ export class Projects {
   // ==========================
   //  CICLO DE VIDA
   // ==========================
-  ngOnInit() {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs(); // carga catálogos de selects
+  ngOnInit(): void {
+    this.restoreFiltersFromStorage();
+    this.loadCatalogs();
   }
 
   // ==========================
   //  CARGA DE CATÁLOGOS
   // ==========================
-  loadCatalogs() {
+  loadCatalogs(): void {
     this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
@@ -190,11 +195,6 @@ export class Projects {
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  /**
-   * Recibe el estado de la UI (form + paginación)
-   * y devuelve el objeto de filtros que espera el backend.
-   * OJO: si statusProject es null, NO se envía al backend.
-   */
   private buildBackendFiltersFromUi(ui: entity.ProjectUiFilters): entity.FiltersProject {
     const f: entity.FiltersProject = {
       page: ui.page,
@@ -207,7 +207,6 @@ export class Projects {
     };
 
     if (ui.statusProject) {
-      // 'open' | 'close'
       f.statusProject = ui.statusProject as any;
     }
 
@@ -217,48 +216,48 @@ export class Projects {
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
-  searchWithFilters() {
+  searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
-    // Estado completo de la UI (incluye página/limit)
     const uiState: entity.ProjectUiFilters = {
       clientsIds: value.clientsIds ?? [],
       responsibleIds: value.responsibleIds ?? [],
       email: value.email?.trim() || '',
       name: value.name?.trim() || '',
       phone: value.phone?.trim() || '',
-      statusProject: (value.statusProject ?? null) as any, // null si no seleccionó
+      statusProject: (value.statusProject ?? null) as any,
       page: 1,
       limit: this.filters.limit,
     };
 
-    // Mapeamos a filtros de backend usando el helper
     this.filters = this.buildBackendFiltersFromUi(uiState);
-
-    // Guardamos el estado de UI para persistir filtros
     this.saveFiltersToStorage(uiState);
-
-    // Disparamos la carga
     this.loadProject();
   }
 
-  loadProject() {
-    this.projectService.getProjects(this.filters).subscribe({
-      next: (response: PaginatedResponse<entity.ProjectResponseDto>) => {
-        this.expensesTableData = response;
-      },
-      error: (err) => console.error('Error al cargar gastos:', err),
-    });
+  loadProject(): void {
+    if (this.loadingTable()) return;
+
+    this.loadingTable.set(true);
+
+    this.projectService
+      .getProjects(this.filters)
+      .pipe(finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: (response: PaginatedResponse<entity.ProjectResponseDto>) => {
+          this.expensesTableData = response;
+        },
+        error: (err) => console.error('Error al cargar proyectos:', err),
+      });
   }
 
   // ==========================
   //  PAGINACIÓN
   // ==========================
-  onPageChange(event: PageEvent) {
+  onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
 
-    // Actualizamos solo page/limit en storage con el estado actual del form
     this.saveFiltersToStorage();
     this.loadProject();
   }
@@ -266,11 +265,12 @@ export class Projects {
   // ==========================
   //  ACCIONES HEADER
   // ==========================
-  onHeaderAction(action: string) {
+  onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
         this.projectModal();
         break;
+
       case 'upload':
         console.log('upload');
         break;
@@ -280,11 +280,12 @@ export class Projects {
   // ==========================
   //  ACCIONES FOOTER-FILTROS
   // ==========================
-  onBtnsSectionAction(action: string) {
+  onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
         this.searchWithFilters();
         break;
+
       case 'clean':
         this.clearAllAndSearch();
         break;
@@ -294,19 +295,19 @@ export class Projects {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>) {
+  onTableAction(ev: DataTableActionEvent<entity.ProjectResponseDto>): void {
     switch (ev.type) {
       case 'edit':
         this.projectModal(ev.row);
         break;
+
       case 'delete':
         this.onDelete(ev.row);
         break;
     }
   }
 
-  // Confirmación + delete
-  onDelete(project: entity.ProjectResponseDto) {
+  onDelete(project: entity.ProjectResponseDto): void {
     this.dialogService
       .confirm({
         message: `¿Quieres eliminar el proyecto:\n"${project.name?.trim()}"?`,
@@ -319,7 +320,7 @@ export class Projects {
 
         this.projectService.remove(project.id).subscribe({
           next: () => this.loadProject(),
-          error: (err) => console.error('Error al eliminar gasto:', err),
+          error: (err) => console.error('Error al eliminar proyecto:', err),
         });
       });
   }
@@ -340,8 +341,7 @@ export class Projects {
     return hasClients || hasResponsible || hasEmail || hasPhone || hasName || hasStatus;
   }
 
-  clearAllAndSearch() {
-    // Limpia formulario de filtros
+  clearAllAndSearch(): void {
     this.formFilters.reset(
       {
         clientsIds: [],
@@ -354,7 +354,6 @@ export class Projects {
       { emitEvent: false },
     );
 
-    // Resetea filtros de backend
     this.filters = {
       page: 1,
       limit: this.filters.limit,
@@ -363,22 +362,18 @@ export class Projects {
       email: '',
       phone: '',
       name: '',
-      // statusProject se omite a propósito
     } as any;
 
-    // Limpia storage para este módulo
     this.storage.removeItem(PROJECTS_FILTERS_KEY);
-
-    // Carga sin filtros
     this.loadProject();
   }
 
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  projectModal(expense?: any) {
+  projectModal(project?: entity.ProjectResponseDto): void {
     this.dialogService
-      .open(ProjectModal, expense ? expense : null, 'medium')
+      .open(ProjectModal, project ? project : null, 'medium')
       .afterClosed()
       .subscribe((result) => {
         if (result) this.loadProject();
@@ -388,16 +383,14 @@ export class Projects {
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage() {
+  private restoreFiltersFromStorage(): void {
     const saved = this.storage.getItem<entity.ProjectUiFilters>(PROJECTS_FILTERS_KEY);
 
     if (!saved) {
-      // Primera vez: busca con los valores por defecto del form
       this.searchWithFilters();
       return;
     }
 
-    // Parchear formulario con lo guardado (incluye statusProject)
     this.formFilters.patchValue(
       {
         clientsIds: saved.clientsIds ?? [],
@@ -410,19 +403,11 @@ export class Projects {
       { emitEvent: false },
     );
 
-    // Reconstruir filtros de backend desde el estado de UI guardado
     this.filters = this.buildBackendFiltersFromUi(saved);
-
-    // Cargar tabla con esos filtros
     this.loadProject();
   }
 
-  /**
-   * Guarda el estado de filtros de la UI en localStorage.
-   * - Si recibe `state`, guarda ese.
-   * - Si no, reconstruye el estado a partir del form + this.filters.
-   */
-  private saveFiltersToStorage(state?: entity.ProjectUiFilters) {
+  private saveFiltersToStorage(state?: entity.ProjectUiFilters): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -432,7 +417,7 @@ export class Projects {
         email: value.email?.trim() || '',
         phone: value.phone?.trim() || '',
         name: value.name?.trim() || '',
-        statusProject: (value.statusProject ?? null) as any, // NO '' ✅
+        statusProject: (value.statusProject ?? null) as any,
         page: this.filters.page,
         limit: this.filters.limit,
       };

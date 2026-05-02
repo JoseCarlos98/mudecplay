@@ -27,3 +27,9 @@
     </mat-paginator>
 </div>
 }
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando responsables...">
+</app-loading-overlay>

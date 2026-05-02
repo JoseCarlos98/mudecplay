@@ -48,10 +48,10 @@
       [data]="employeesTableData.data"
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
-      (action)="onTableAction($event)"
       [actionPermissions]="{
         editRoles: ['MANO_OBRA_EMPLEADOS_EDITOR']
-      }">
+      }"
+      (action)="onTableAction($event)">
     </app-data-table>
 
     <mat-paginator
@@ -63,4 +63,10 @@
       showFirstLastButtons>
     </mat-paginator>
   </div>
-} 
+}
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando empleados...">
+</app-loading-overlay>
