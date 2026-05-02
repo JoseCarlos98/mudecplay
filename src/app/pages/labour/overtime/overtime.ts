@@ -363,16 +363,11 @@ export class Overtime implements OnInit {
     );
   }
 
-  onHeaderAction(action: string): void {
-    if (action !== 'new') return;
+ onHeaderAction(action: string): void {
+  if (action !== 'new') return;
 
-    if (this.activeTab() === 'overtime') {
-      this.formModal();
-      return;
-    }
-
-    console.log('Pendiente modal de captura de domingo trabajado');
-  }
+  this.formModal();
+}
 
   onBtnsSectionAction(action: string): void {
     switch (action) {
@@ -435,11 +430,7 @@ export class Overtime implements OnInit {
         break;
 
       case 'edit':
-        if (event.row.kind === 'overtime') {
-          this.formModal(event.row);
-        } else {
-          console.log('Pendiente modal de edición para domingo trabajado', event.row);
-        }
+        this.formModal(event.row);
         break;
     }
   }
@@ -459,6 +450,7 @@ export class Overtime implements OnInit {
 
     const modalData = {
       mode: row ? 'edit' : 'create',
+      kind: row?.kind ?? this.activeTab(),
       defaultDate:
         this.formFilters.getRawValue().workDate ||
         (this.activeTab() === 'overtime' ? '2026-04-29' : '2026-04-26'),
@@ -475,6 +467,8 @@ export class Overtime implements OnInit {
           work_date: row.work_date,
           project_name: row.project_name,
           overtime_label: row.overtime_label ?? null,
+          worked_until: row.worked_until ?? null,
+          extra_days_label: row.extra_days_label ?? null,
           amount: row.amount ?? null,
         }
         : null,
@@ -487,6 +481,7 @@ export class Overtime implements OnInit {
         if (result) this.refreshTable();
       });
   }
+
   private openAuthorizeModal(row: OvertimeRow): void {
     if (this.savingAction()) return;
 
