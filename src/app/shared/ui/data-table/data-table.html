@@ -17,14 +17,15 @@
           <!-- RELATION -->
           @case ('relation') {
           @let rel = getRelationValue(element[col.key], col.path);
+          @let relationVariant = col.variantResolver ? col.variantResolver(element) : col.typeVariant;
 
           @if (rel) {
-          @if (col.typeVariant) {
+          @if (relationVariant) {
           <span class="table-chip" [ngClass]="{
-                        'table-chip-success': col.typeVariant === 'chip-success',
-                        'table-chip-warning': col.typeVariant === 'chip-warning',
-                        'table-chip-neutral': col.typeVariant === 'chip-neutral'
-                      }">
+        'table-chip-success': relationVariant === 'chip-success',
+        'table-chip-warning': relationVariant === 'chip-warning',
+        'table-chip-neutral': relationVariant === 'chip-neutral'
+      }">
             {{ rel }}
           </span>
           } @else {
@@ -33,10 +34,10 @@
           } @else {
           @if (col.fallbackVariant) {
           <span class="table-chip" [ngClass]="{
-                        'table-chip-success': col.fallbackVariant === 'chip-success',
-                        'table-chip-warning': col.fallbackVariant === 'chip-warning',
-                        'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
-                      }">
+        'table-chip-success': col.fallbackVariant === 'chip-success',
+        'table-chip-warning': col.fallbackVariant === 'chip-warning',
+        'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
+      }">
             {{ getEmptyLabel(col.fallback) }}
           </span>
           } @else {
@@ -110,21 +111,23 @@
 
           <!-- CHIP -->
           @case ('chip') {
+          @let chipVariant = col.variantResolver ? col.variantResolver(element) : col.typeVariant;
+
           @if (!isEmptyValue(element[col.key])) {
           <span class="table-chip" [ngClass]="{
-                      'table-chip-success': col.typeVariant === 'chip-success',
-                      'table-chip-warning': col.typeVariant === 'chip-warning',
-                      'table-chip-neutral': !col.typeVariant || col.typeVariant === 'chip-neutral'
-                    }">
+      'table-chip-success': chipVariant === 'chip-success',
+      'table-chip-warning': chipVariant === 'chip-warning',
+      'table-chip-neutral': !chipVariant || chipVariant === 'chip-neutral'
+    }">
             {{ element[col.key] }}
           </span>
           } @else {
           @if (col.fallbackVariant) {
           <span class="table-chip" [ngClass]="{
-                        'table-chip-success': col.fallbackVariant === 'chip-success',
-                        'table-chip-warning': col.fallbackVariant === 'chip-warning',
-                        'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
-                      }">
+        'table-chip-success': col.fallbackVariant === 'chip-success',
+        'table-chip-warning': col.fallbackVariant === 'chip-warning',
+        'table-chip-neutral': col.fallbackVariant === 'chip-neutral'
+      }">
             {{ getEmptyLabel(col.fallback) }}
           </span>
           } @else {
@@ -160,14 +163,13 @@
           <div>
 
             <!-- EXTRA ACTIONS: primero -->
-             <!-- {{extraActions | json}} -->
+            <!-- {{extraActions | json}} -->
             @for (extra of extraActions; track extra.type) {
             @if (canShow(extra.roles) && isExtraActionVisible(extra, element)) {
             <span [matTooltip]="getExtraActionTooltip(extra, element)"
               [matTooltipDisabled]="!getExtraActionTooltip(extra, element)">
               <button mat-icon-button [class]="extra.buttonClass || ''"
-                [disabled]="isExtraActionDisabled(extra, element)"
-                 (click)="onRowAction(extra.type, element)">
+                [disabled]="isExtraActionDisabled(extra, element)" (click)="onRowAction(extra.type, element)">
                 <mat-icon [class]="extra.iconClass || ''">
                   {{ extra.icon }}
                 </mat-icon>
@@ -189,7 +191,7 @@
             <!-- DELETE: al final -->
             @if (showDeleteEffective && canShow(deleteRolesEffective)) {
             <span [matTooltip]="deleteTooltip(element) || ''" [matTooltipDisabled]="!(deleteTooltip(element))">
-              <button  matTooltip="Eliminar" mat-icon-button class="delete-btn" [disabled]="!canDelete(element)"
+              <button matTooltip="Eliminar" mat-icon-button class="delete-btn" [disabled]="!canDelete(element)"
                 (click)="onRowAction('delete', element)">
                 <mat-icon>delete</mat-icon>
               </button>

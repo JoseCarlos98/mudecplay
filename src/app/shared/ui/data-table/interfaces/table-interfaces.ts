@@ -34,6 +34,8 @@ export interface ColumnsConfig {
   typeVariant?: ColumnVariant;
   fallbackVariant?: ColumnVariant;
   fallback?: string;
+
+  variantResolver?: (row: any) => ColumnVariant | null;
 }
 
 export interface TableActionPermissions {

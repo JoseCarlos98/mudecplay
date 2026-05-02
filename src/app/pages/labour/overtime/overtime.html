@@ -1,0 +1,151 @@
+<div class="c-loading-host">
+  <div class="card-content shadow-md">
+    <app-module-header
+      [title]="currentTitle()"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
+    </app-module-header>
+
+    <div class="overtime-tabs">
+      <button
+        type="button"
+        class="btn-outline overtime-tab-btn"
+        [class.overtime-tab-btn--active]="activeTab() === 'overtime'"
+        (click)="setActiveTab('overtime')">
+        Horas extra
+      </button>
+
+      <button
+        type="button"
+        class="btn-outline overtime-tab-btn"
+        [class.overtime-tab-btn--active]="activeTab() === 'sunday'"
+        (click)="setActiveTab('sunday')">
+        Domingo trabajado
+      </button>
+    </div>
+
+    <form [formGroup]="formFilters">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
+        <app-input-date
+          formControlName="workDate"
+          label="Fecha"
+          mode="single"
+          [showClear]="false">
+        </app-input-date>
+
+        <app-input-field
+          formControlName="employeeName"
+          label="Empleado"
+          type="text"
+          [isFilter]="true">
+        </app-input-field>
+
+        <app-input-select
+          formControlName="area"
+          label="Área"
+          [options]="areaOptions">
+        </app-input-select>
+
+        <app-input-select
+          formControlName="project"
+          label="Proyecto"
+          [options]="projectOptions">
+        </app-input-select>
+
+        <app-input-select
+          formControlName="status"
+          label="Estatus"
+          [options]="statusOptions">
+        </app-input-select>
+
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+    </form>
+  </div>
+
+  <div class="overtime-summary-grid">
+    <div class="overtime-summary-card overtime-summary-card--warning">
+      <div class="overtime-summary-card__icon">
+        <mat-icon>schedule</mat-icon>
+      </div>
+
+      <div class="overtime-summary-card__content">
+        <span class="overtime-summary-card__label">Pendientes</span>
+        <strong class="overtime-summary-card__value">{{ pendingCount() }}</strong>
+      </div>
+    </div>
+
+    <div class="overtime-summary-card overtime-summary-card--success">
+      <div class="overtime-summary-card__icon">
+        <mat-icon>verified</mat-icon>
+      </div>
+
+      <div class="overtime-summary-card__content">
+        <span class="overtime-summary-card__label">
+          {{ activeTab() === 'overtime' ? 'Autorizadas hoy' : 'Autorizados' }}
+        </span>
+        <strong class="overtime-summary-card__value">{{ authorizedCount() }}</strong>
+      </div>
+    </div>
+
+    <div class="overtime-summary-card overtime-summary-card--info">
+      <div class="overtime-summary-card__icon">
+        <mat-icon>timer</mat-icon>
+      </div>
+
+      <div class="overtime-summary-card__content">
+        <span class="overtime-summary-card__label">
+          {{ activeTab() === 'overtime' ? 'Horas registradas' : 'Domingos registrados' }}
+        </span>
+        <strong class="overtime-summary-card__value">{{ totalRegisteredLabel() }}</strong>
+      </div>
+    </div>
+
+    <div class="overtime-summary-card overtime-summary-card--purple">
+      <div class="overtime-summary-card__icon">
+        <mat-icon>payments</mat-icon>
+      </div>
+
+      <div class="overtime-summary-card__content">
+        <span class="overtime-summary-card__label">Importe estimado</span>
+        <strong class="overtime-summary-card__value">
+          {{ totalAmount() | currency:'$ ':'symbol':'1.2-2' }}
+        </strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="c-table-loading-host">
+    @if (overtimeTableData?.data) {
+      <div class="c-module-table">
+        <app-data-table
+          [data]="overtimeTableData.data"
+          [columnsConfig]="columnsConfig"
+          [displayedColumns]="displayedColumns"
+          [extraActions]="extraActions"
+          [actionPermissions]="tableActionPermissions"
+          (action)="onTableAction($event)">
+        </app-data-table>
+
+        <mat-paginator
+          [length]="overtimeTableData.meta.total"
+          [pageSize]="filters.limit"
+          [pageIndex]="filters.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    }
+
+    <app-loading-overlay
+      [visible]="loadingTable()"
+      [fullscreen]="true"
+      [text]="activeTab() === 'overtime' ? 'Cargando horas extra...' : 'Cargando domingos trabajados...'">
+    </app-loading-overlay>
+  </div>
+</div>
