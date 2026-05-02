@@ -2,30 +2,6 @@
   display: block;
 }
 
-.overtime-tabs {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-  margin-bottom: 4px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(35, 31, 32, 0.08);
-}
-
-.overtime-tab-btn {
-  height: 30px;
-  border-radius: 9999px;
-  padding-inline: 12px !important;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.1px;
-
-  &--active {
-    background: var(--color-primary-strong) !important;
-    border-color: var(--color-primary-strong) !important;
-    color: #fff !important;
-  }
-}
-
 .overtime-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

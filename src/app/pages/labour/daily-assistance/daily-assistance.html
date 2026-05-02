@@ -5,7 +5,8 @@
   <form [formGroup]="formFilters">
     <div class="daily-top-summary">
       <div class="daily-top-card daily-top-card--date daily-two">
-        <app-input-date class="date-picker" formControlName="workDate" label="Fecha de asistencia" mode="single" [showClear]="false">
+        <app-input-date class="date-picker" formControlName="workDate" label="Fecha de asistencia" mode="single"
+          [showClear]="false">
         </app-input-date>
 
         <app-btns-section class="btn-section-fix" type="search" [searchDisabled]="false"
@@ -42,27 +43,39 @@
 </div>
 
 <div class="card-content daily-assistance-board-card">
-  <div class="daily-assistance-tabs">
-    <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'unassigned'"
-      (click)="changeView('unassigned')">
-      Sin asignar
-    </button>
+<div class="c-pill-tabs">
+  <button
+    type="button"
+    class="c-pill-tab-btn"
+    [class.c-pill-tab-btn--active]="currentView === 'unassigned'"
+    (click)="changeView('unassigned')">
+    Sin asignar
+  </button>
 
-    <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'assigned'"
-      (click)="changeView('assigned')">
-      Asignados
-    </button>
+  <button
+    type="button"
+    class="c-pill-tab-btn"
+    [class.c-pill-tab-btn--active]="currentView === 'assigned'"
+    (click)="changeView('assigned')">
+    Asignados
+  </button>
 
-    <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'absent'"
-      (click)="changeView('absent')">
-      Faltas
-    </button>
+  <button
+    type="button"
+    class="c-pill-tab-btn"
+    [class.c-pill-tab-btn--active]="currentView === 'absent'"
+    (click)="changeView('absent')">
+    Faltas
+  </button>
 
-    <button type="button" class="daily-tab-btn" [class.daily-tab-btn--active]="currentView === 'cancelled'"
-      (click)="changeView('cancelled')">
-      Cancelados
-    </button>
-  </div>
+  <button
+    type="button"
+    class="c-pill-tab-btn"
+    [class.c-pill-tab-btn--active]="currentView === 'cancelled'"
+    (click)="changeView('cancelled')">
+    Cancelados
+  </button>
+</div>
 
   @if (isLoading) {
   <div class="daily-assistance-loading">
@@ -102,8 +115,7 @@
       @if (currentView === 'unassigned') {
       <div class="daily-cards-list">
         @for (employee of displayEmployees; track employee.id) {
-        <article class="daily-employee-card"
-          [class.daily-employee-card--selected]="employee.isSelected"
+        <article class="daily-employee-card" [class.daily-employee-card--selected]="employee.isSelected"
           (click)="toggleEmployeeSelection(employee.id)">
           <div class="daily-employee-card__main">
             <div class="daily-employee-avatar">
@@ -128,8 +140,7 @@
             </span>
 
             <div class="daily-employee-actions">
-              <button type="button" class="daily-absence-mini-btn"
-                [disabled]="!employee.can_mark_absent || isSaving"
+              <button type="button" class="daily-absence-mini-btn" [disabled]="!employee.can_mark_absent || isSaving"
                 (click)="startAbsence(employee, $event)">
                 Falta
               </button>
@@ -366,13 +377,12 @@
 
         <label class="daily-hours-field">
           <span>Horas asignadas</span>
-          <input class="daily-hours-input" type="number" min="0.25" step="0.25"
-            [max]="maxEditingHours" [(ngModel)]="editingHours" [ngModelOptions]="{ standalone: true }">
+          <input class="daily-hours-input" type="number" min="0.25" step="0.25" [max]="maxEditingHours"
+            [(ngModel)]="editingHours" [ngModelOptions]="{ standalone: true }">
         </label>
 
         <div class="daily-action-buttons">
-          <button type="button" class="btn-primary" [disabled]="!canApplyReassign"
-            (click)="applyReassign()">
+          <button type="button" class="btn-primary" [disabled]="!canApplyReassign" (click)="applyReassign()">
             Guardar cambio
           </button>
 
@@ -387,7 +397,8 @@
 
         <div class="daily-action-detail">
           <strong>{{ cancellingAttendance.employee_full_name }}</strong>
-          <span>{{ cancellingAttendance.project_name || 'Proyecto sin nombre' }} · {{ cancellingAttendance.assigned_hours }} hrs</span>
+          <span>{{ cancellingAttendance.project_name || 'Proyecto sin nombre' }} · {{
+            cancellingAttendance.assigned_hours }} hrs</span>
           <span>Captura el motivo de la cancelación.</span>
         </div>
 
@@ -452,8 +463,7 @@
 
         <label class="daily-hours-field">
           <span>Horas a asignar</span>
-          <input class="daily-hours-input" type="number" min="0.25" step="0.25"
-            [max]="selectedMinAvailableHours || 8"
+          <input class="daily-hours-input" type="number" min="0.25" step="0.25" [max]="selectedMinAvailableHours || 8"
             [(ngModel)]="assignmentHours" [ngModelOptions]="{ standalone: true }">
         </label>
 
@@ -478,8 +488,7 @@
         </div>
 
         <div class="daily-action-buttons">
-          <button type="button" class="btn-primary"
-            [disabled]="!canAssignSelected" (click)="assignSelected()">
+          <button type="button" class="btn-primary" [disabled]="!canAssignSelected" (click)="assignSelected()">
             Asignar
           </button>
 

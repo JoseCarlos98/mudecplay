@@ -68,30 +68,6 @@
   padding-bottom: 16px !important;
 }
 
-.daily-assistance-tabs {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  border-bottom: 1px solid rgba(35, 31, 32, 0.08);
-  padding-bottom: 14px;
-}
-
-.daily-tab-btn {
-  @extend .btn-outline;
-  height: 28px;
-  border-radius: 9999px;
-  padding-inline: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.1px;
-
-  &--active {
-    background: var(--color-primary-strong);
-    color: #fff !important;
-  }
-}
-
 .daily-assistance-loading {
   min-height: 460px;
   display: grid;
@@ -614,32 +590,6 @@
 }
 
 @media screen and (max-width: 560px) {
-  .daily-top-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .daily-top-card {
-    min-height: 66px;
-    padding: 10px 12px;
-
-    &__value {
-      font-size: 17px;
-    }
-
-    &:not(.daily-top-card--date) .daily-top-card__value {
-      font-size: 18px;
-    }
-  }
-
-  .daily-assistance-tabs {
-    gap: 8px;
-  }
-
-  .daily-tab-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   .daily-action-buttons {
     flex-direction: column;
 

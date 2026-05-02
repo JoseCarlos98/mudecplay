@@ -747,3 +747,51 @@ body {
 .c-loading-host {
   position: relative!important;
 }
+
+/* ============================
+ * Tabs tipo pill (globales)
+ * ============================ */
+
+.c-pill-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(35, 31, 32, 0.08);
+  flex-wrap: wrap;
+}
+
+.c-pill-tab-btn {
+  @extend .btn-outline;
+  height: 28px;
+  border-radius: 9999px;
+  padding-inline: 11px !important;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  line-height: 1;
+  min-width: unset;
+  box-shadow: none;
+
+  &:hover {
+    background: rgba(30, 134, 177, 0.12);
+  }
+
+  &--active {
+    background: var(--color-primary-strong) !important;
+    border-color: var(--color-primary-strong) !important;
+    color: #fff !important;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .c-pill-tabs {
+    flex-direction: column;
+  }
+
+  .c-pill-tab-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
