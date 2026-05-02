@@ -1,0 +1,80 @@
+.c-modal {
+  .overtime-form-body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .overtime-summary {
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+  }
+
+  .overtime-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.7rem 1.2rem;
+  }
+
+  .overtime-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
+
+    &__label {
+      font-size: 0.82rem;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #475467;
+    }
+
+    &__value {
+      font-size: 0.93rem;
+      line-height: 1.35;
+      color: #374151;
+      word-break: break-word;
+    }
+  }
+
+  .overtime-note {
+    padding: 0.75rem 0.9rem;
+    border-radius: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1f2937;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    margin-bottom: 12px;
+  }
+
+  .overtime-preview {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    margin-top: 6px;
+
+    div {
+      font-size: 0.92rem;
+      line-height: 1.35;
+      color: #374151;
+    }
+
+    &--info {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+  }
+
+}
+
+@media screen and (max-width: 640px) {
+  .c-modal {
+    .overtime-summary-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}

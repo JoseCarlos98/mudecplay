@@ -11,7 +11,7 @@
 
 .overtime-summary-card {
   background: #fff;
-  border: 1px solid rgba(39, 170, 225, 0.14);
+  border: 1px solid rgba(35, 31, 32, 0.08);
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   min-height: 88px;
@@ -21,18 +21,29 @@
   align-items: center;
   gap: 14px;
 
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    border-color: rgba(39, 170, 225, 0.18);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+  }
+
   &__icon {
-    width: 48px;
-    height: 48px;
+    width: 46px;
+    height: 46px;
     border-radius: 14px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
 
     mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
     }
   }
 
@@ -52,7 +63,7 @@
 
   &__value {
     color: var(--color-secundary);
-    font-size: 20px;
+    font-size: 19px;
     line-height: 1.05;
     font-weight: 800;
   }
@@ -64,7 +75,7 @@
     }
 
     .overtime-summary-card__value {
-      color: #d97706;
+      color: #c96a04;
     }
   }
 
@@ -75,7 +86,7 @@
     }
 
     .overtime-summary-card__value {
-      color: #059669;
+      color: #0b8a61;
     }
   }
 
@@ -92,12 +103,12 @@
 
   &--purple {
     .overtime-summary-card__icon {
-      background: rgba(139, 92, 246, 0.12);
-      color: #7c3aed;
+      background: rgba(99, 102, 241, 0.10);
+      color: #5b5fc7;
     }
 
     .overtime-summary-card__value {
-      color: #7c3aed;
+      color: #5b5fc7;
     }
   }
 }
@@ -113,15 +124,6 @@
 }
 
 @media screen and (max-width: 640px) {
-  .overtime-tabs {
-    flex-direction: column;
-  }
-
-  .overtime-tab-btn {
-    width: 100%;
-    justify-content: center;
-  }
-
   .overtime-summary-grid {
     grid-template-columns: 1fr;
   }

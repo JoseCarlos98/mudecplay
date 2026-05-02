@@ -83,9 +83,10 @@
     </form>
   </div>
 
-  <app-btns-section
-    type="save"
-    [saveDisabled]="form.invalid || saving"
-    (action)="onBtnsSectionAction($event)">
-  </app-btns-section>
+<app-btns-section
+  class="modal-actions-spacer"
+  type="save"
+  [saveDisabled]="form.invalid || saving"
+  (action)="onBtnsSectionAction($event)">
+</app-btns-section>
 </div>

@@ -21,7 +21,7 @@ import {
   DataTableExtraAction,
 } from './interfaces/table-interfaces';
 
-import type { TableActionPermissions } from './interfaces/table-interfaces';
+import type { ColumnVariant, TableActionPermissions } from './interfaces/table-interfaces';
 import { PermissionsService } from '../../../auth/services/permissions.service';
 import { RoleCode } from '../../../auth/interfaces/auth.interface';
 
@@ -116,8 +116,11 @@ export class DataTable<T> implements OnChanges {
     return action.tooltip;
   }
 
+  getColumnVariant(col: ColumnsConfig, row: T): ColumnVariant | undefined {
+    const resolved = col.variantResolver ? col.variantResolver(row) : null;
+    return resolved ?? col.typeVariant ?? undefined;
+  }
 
-  // --- lo demás igual ---
   getRelationValue(value: any, path?: string) {
     if (!value) return null;
     if (!path) return value['name'] ?? null;

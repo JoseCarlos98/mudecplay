@@ -7,18 +7,31 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
 import { InputDate } from '../../../shared/ui/input-date/input-date';
+import {
+  InputSelect,
+  SelectCatalogOption,
+} from '../../../shared/ui/input-select/input-select';
 import { InputField } from '../../../shared/ui/input-field/input-field';
-import { InputSelect, SelectCatalogOption } from '../../../shared/ui/input-select/input-select';
 import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
 import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 import {
   ColumnsConfig,
+  ColumnVariant,
   DataTableActionEvent,
   DataTableExtraAction,
   TableActionPermissions,
 } from '../../../shared/ui/data-table/interfaces/table-interfaces';
+
+import {
+  ModalOvertime,
+  OvertimeAuthorizeModalData,
+  OvertimeAuthorizeModalResult,
+} from './components/modal-overtime/modal-overtime';
+
+import { ModalOvertimeForm } from './components/modal-overtime-form/modal-overtime-form';
 
 type OvertimeTab = 'overtime' | 'sunday';
 type RowStatus = 'pending' | 'authorized' | 'cancelled';
@@ -73,10 +86,12 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class Overtime implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly dialogService = inject(DialogService);
 
   readonly headerConfig = HEADER_CONFIG;
   readonly activeTab = signal<OvertimeTab>('overtime');
   readonly loadingTable = signal(false);
+  readonly savingAction = signal(false);
 
   filters = {
     page: 1,
@@ -128,6 +143,7 @@ export class Overtime implements OnInit {
       icon: 'check_circle',
       tooltip: 'Autorizar',
       visible: (row) => row.status === 'pending',
+      disabled: () => this.loadingTable() || this.savingAction(),
     },
   ];
 
@@ -347,6 +363,30 @@ export class Overtime implements OnInit {
     );
   }
 
+  onHeaderAction(action: string): void {
+    if (action !== 'new') return;
+
+    if (this.activeTab() === 'overtime') {
+      this.formModal();
+      return;
+    }
+
+    console.log('Pendiente modal de captura de domingo trabajado');
+  }
+
+  onBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'search':
+        this.filters.page = 1;
+        this.refreshTable();
+        break;
+
+      case 'clean':
+        this.clearFilters();
+        break;
+    }
+  }
+
   setActiveTab(tab: OvertimeTab): void {
     if (this.activeTab() === tab) return;
 
@@ -363,29 +403,6 @@ export class Overtime implements OnInit {
 
     this.setTableConfig();
     this.refreshTable();
-  }
-
-  onHeaderAction(action: string): void {
-    if (action === 'new') {
-      console.log(
-        this.activeTab() === 'overtime'
-          ? 'Abrir modal de registrar horas extra'
-          : 'Abrir modal de registrar domingo trabajado',
-      );
-    }
-  }
-
-  onBtnsSectionAction(action: string): void {
-    switch (action) {
-      case 'search':
-        this.filters.page = 1;
-        this.refreshTable();
-        break;
-
-      case 'clean':
-        this.clearFilters();
-        break;
-    }
   }
 
   clearFilters(): void {
@@ -408,30 +425,159 @@ export class Overtime implements OnInit {
   }
 
   onTableAction(event: DataTableActionEvent<OvertimeRow>): void {
-    const targetCollection = this.activeTab() === 'overtime' ? this.overtimeRows : this.sundayRows;
-    const target = targetCollection.find((row) => row.id === event.row.id);
-
-    if (!target) return;
-
     switch (event.type) {
       case 'authorize':
-        target.status = 'authorized';
-        target.status_label = 'Autorizada';
-        target.authorized_by = 'JCUEVAS';
+        this.openAuthorizeModal(event.row);
         break;
 
       case 'delete':
-        target.status = 'cancelled';
-        target.status_label = 'Cancelada';
-        target.authorized_by = target.authorized_by || 'HCUEVAS';
+        this.confirmCancel(event.row);
         break;
 
       case 'edit':
-        console.log('Editar registro', target);
+        if (event.row.kind === 'overtime') {
+          this.formModal(event.row);
+        } else {
+          console.log('Pendiente modal de edición para domingo trabajado', event.row);
+        }
         break;
     }
+  }
 
-    this.refreshTable();
+  formModal(row?: OvertimeRow): void {
+    const employeeOptions: SelectCatalogOption[] = Array.from(
+      new Map(
+        [...this.overtimeRowsSeed, ...this.sundayRowsSeed].map((item) => [
+          item.employee_name,
+          {
+            id: item.employee_name,
+            name: item.employee_name,
+          },
+        ]),
+      ).values(),
+    );
+
+    const modalData = {
+      mode: row ? 'edit' : 'create',
+      defaultDate:
+        this.formFilters.getRawValue().workDate ||
+        (this.activeTab() === 'overtime' ? '2026-04-29' : '2026-04-26'),
+      employeeOptions,
+      areaOptions: this.areaOptions,
+      projectOptions: this.projectOptions,
+      hourly_rate: 357.14,
+      daily_salary: 2857.12,
+      row: row
+        ? {
+          id: row.id,
+          employee_name: row.employee_name,
+          area_label: row.area_label,
+          work_date: row.work_date,
+          project_name: row.project_name,
+          overtime_label: row.overtime_label ?? null,
+          amount: row.amount ?? null,
+        }
+        : null,
+    };
+
+    this.dialogService
+      .open(ModalOvertimeForm, modalData, 'medium')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.refreshTable();
+      });
+  }
+  private openAuthorizeModal(row: OvertimeRow): void {
+    if (this.savingAction()) return;
+
+    const modalData: OvertimeAuthorizeModalData = {
+      id: row.id,
+      kind: row.kind,
+      employee_name: row.employee_name,
+      area_label: row.area_label,
+      work_date: row.work_date,
+      project_name: row.project_name,
+      overtime_label: row.overtime_label ?? null,
+      worked_until: row.worked_until ?? null,
+      extra_days_label: row.extra_days_label ?? null,
+      amount: row.amount,
+      authorized_by: row.authorized_by ?? null,
+    };
+
+    this.dialogService
+      .open(ModalOvertime, modalData, 'mini')
+      .afterClosed()
+      .subscribe((result: OvertimeAuthorizeModalResult | null) => {
+        if (!result || result.action !== 'authorized') return;
+
+        this.savingAction.set(true);
+
+        // TODO backend:
+        // aquí irá la petición real para autorizar el registro
+
+        const targetCollection =
+          row.kind === 'overtime' ? this.overtimeRows : this.sundayRows;
+
+        const target = targetCollection.find((item) => item.id === result.payload.id);
+        if (target) {
+          target.status = 'authorized';
+          target.status_label = 'Autorizada';
+          target.authorized_by = 'JCUEVAS';
+        }
+
+        this.savingAction.set(false);
+        this.refreshTable();
+      });
+  }
+
+  private confirmCancel(row: OvertimeRow): void {
+    if (this.savingAction()) return;
+
+    const message =
+      row.kind === 'overtime'
+        ? `¿Quieres cancelar las horas extra de "${row.employee_name}"?`
+        : `¿Quieres cancelar el domingo trabajado de "${row.employee_name}"?`;
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        message,
+        confirmText: 'Cancelar registro',
+        cancelText: 'Volver',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.savingAction.set(true);
+
+        // TODO backend:
+        // aquí irá la petición real para cancelar el registro
+
+        const targetCollection =
+          row.kind === 'overtime' ? this.overtimeRows : this.sundayRows;
+
+        const target = targetCollection.find((item) => item.id === row.id);
+        if (target) {
+          target.status = 'cancelled';
+          target.status_label = 'Cancelada';
+          target.authorized_by = target.authorized_by || 'HCUEVAS';
+        }
+
+        this.savingAction.set(false);
+        this.refreshTable();
+      });
+  }
+
+  private resolveStatusVariant(row: OvertimeRow): ColumnVariant {
+    switch (row.status) {
+      case 'pending':
+        return 'chip-warning';
+      case 'authorized':
+        return 'chip-success';
+      case 'cancelled':
+      default:
+        return 'chip-neutral';
+    }
   }
 
   private setTableConfig(): void {
@@ -455,7 +601,12 @@ export class Overtime implements OnInit {
         { key: 'project_name', label: 'Proyecto' },
         { key: 'overtime_label', label: 'Horas extra' },
         { key: 'amount', label: 'Importe', type: 'money', align: 'right' },
-        { key: 'status_label', label: 'Estatus' },
+        {
+          key: 'status_label',
+          label: 'Estatus',
+          type: 'chip',
+          variantResolver: (row: OvertimeRow) => this.resolveStatusVariant(row),
+        },
         { key: 'authorized_by', label: 'Autorizó', fallback: '—' },
       ];
     } else {
@@ -480,7 +631,12 @@ export class Overtime implements OnInit {
         { key: 'worked_until', label: 'Trabajó hasta' },
         { key: 'extra_days_label', label: 'Días extra' },
         { key: 'amount', label: 'Importe', type: 'money', align: 'right' },
-        { key: 'status_label', label: 'Estatus' },
+        {
+          key: 'status_label',
+          label: 'Estatus',
+          type: 'chip',
+          variantResolver: (row: OvertimeRow) => this.resolveStatusVariant(row),
+        },
         { key: 'authorized_by', label: 'Autorizó', fallback: '—' },
       ];
     }

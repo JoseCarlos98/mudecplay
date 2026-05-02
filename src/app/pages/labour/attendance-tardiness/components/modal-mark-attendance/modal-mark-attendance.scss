@@ -21,6 +21,10 @@
 
   .attendance-form {
     display: grid;
+
+    ::ng-deep .c-input-field {
+      margin-bottom: 0;
+    }
   }
 
   .attendance-note {
@@ -40,7 +44,7 @@
     padding: 0.9rem 1rem;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
-    margin-bottom: 21px;
+    margin: 16px 0 22px 0;
     
     div {
       font-size: 0.92rem;

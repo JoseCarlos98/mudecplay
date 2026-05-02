@@ -17,7 +17,7 @@
           <!-- RELATION -->
           @case ('relation') {
           @let rel = getRelationValue(element[col.key], col.path);
-          @let relationVariant = col.variantResolver ? col.variantResolver(element) : col.typeVariant;
+          @let relationVariant = getColumnVariant(col, element);
 
           @if (rel) {
           @if (relationVariant) {
@@ -111,7 +111,7 @@
 
           <!-- CHIP -->
           @case ('chip') {
-          @let chipVariant = col.variantResolver ? col.variantResolver(element) : col.typeVariant;
+          @let chipVariant = getColumnVariant(col, element);
 
           @if (!isEmptyValue(element[col.key])) {
           <span class="table-chip" [ngClass]="{

@@ -35,6 +35,7 @@ export interface ColumnsConfig {
   fallbackVariant?: ColumnVariant;
   fallback?: string;
 
+  // NUEVO: permite resolver la variante por fila
   variantResolver?: (row: any) => ColumnVariant | null;
 }
 

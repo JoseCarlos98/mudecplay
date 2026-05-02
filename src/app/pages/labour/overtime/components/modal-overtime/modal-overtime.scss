@@ -1,0 +1,44 @@
+.c-modal {
+  .overtime-authorize-body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .overtime-summary {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+  }
+
+  .overtime-form {
+    display: grid;
+  }
+
+  .overtime-preview {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+
+    div {
+      font-size: 0.92rem;
+      line-height: 1.35;
+      color: #374151;
+    }
+
+    &--info {
+      background: #eff6ff;
+      border-color: #bfdbfe;
+    }
+  }
+}
