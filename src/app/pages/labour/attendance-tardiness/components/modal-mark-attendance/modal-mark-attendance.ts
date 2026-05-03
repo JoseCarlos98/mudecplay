@@ -66,7 +66,6 @@ export class ModalMarkAttendance {
     }),
     tardinessReason: this.fb.control<string>(this.data.tardiness_reason ?? '', {
       nonNullable: true,
-      validators: [Validators.required],
     }),
   });
 

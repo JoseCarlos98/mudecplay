@@ -5,6 +5,8 @@ export type DailyAssistanceView = 'unassigned' | 'assigned' | 'absent' | 'cancel
 
 export type ArrivalStatus = 'pending' | 'on_time' | 'tardy';
 
+export type SundaySourceType = 'saturday' | 'friday' | null;
+
 export interface EmployeeAttendanceAssignmentRow {
   id: number;
   attendance_id: number;
@@ -145,4 +147,28 @@ export interface EmployeeAttendanceCatalogRow {
   can_mark_absent: boolean;
 
   absence_reason: string | null;
+}
+
+export interface SundayGenerationStatusResponse {
+  work_date: string;
+  is_sunday: boolean;
+  can_generate: boolean;
+  already_generated: boolean;
+  has_active_assignments: boolean;
+  has_manual_assignments: boolean;
+  has_absences: boolean;
+  source_date: string | null;
+  source_type: SundaySourceType;
+  source_assignments_count: number;
+  message: string;
+}
+
+export interface GenerateSundayAttendanceResponse {
+  work_date: string;
+  source_date: string;
+  source_type: Exclude<SundaySourceType, null>;
+  attendances_created: number;
+  assignments_created: number;
+  expenses_created: number;
+  message: string;
 }

@@ -60,6 +60,28 @@ export class DailyAssistanceService {
     );
   }
 
+  getSundayGenerationStatus(
+    workDate: string,
+  ): Observable<entity.SundayGenerationStatusResponse> {
+    const params = new HttpParams().set('work_date', workDate);
+
+    return this.http.get<entity.SundayGenerationStatusResponse>(
+      `${this.apiUrl}/sunday-generation-status`,
+      { params },
+    );
+  }
+
+  generateSundayAttendance(
+    workDate: string,
+  ): Observable<entity.GenerateSundayAttendanceResponse> {
+    return this.http.post<entity.GenerateSundayAttendanceResponse>(
+      `${this.apiUrl}/generate-sunday`,
+      {
+        work_date: workDate,
+      },
+    );
+  }
+
   create(
     payload: entity.CreateEmployeeAttendance,
   ): Observable<entity.SuccessResponse> {

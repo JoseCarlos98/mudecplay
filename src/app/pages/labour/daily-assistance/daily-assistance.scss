@@ -601,3 +601,96 @@
     }
   }
 }
+
+.daily-sunday-card {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(35, 31, 32, 0.1);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  &--ready {
+    background: linear-gradient(180deg, rgba(39, 170, 225, 0.07) 0%, rgba(39, 170, 225, 0.03) 100%);
+    border-color: rgba(39, 170, 225, 0.24);
+  }
+
+  &--generated {
+    background: linear-gradient(180deg, rgba(76, 175, 80, 0.08) 0%, rgba(76, 175, 80, 0.03) 100%);
+    border-color: rgba(76, 175, 80, 0.22);
+  }
+
+  &--blocked {
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.07) 0%, rgba(245, 158, 11, 0.03) 100%);
+    border-color: rgba(245, 158, 11, 0.24);
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__title,
+  &__message,
+  &__source {
+    display: block;
+  }
+
+  &__title {
+    color: var(--color-secundary);
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  &__message {
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  &__source {
+    margin-top: 2px;
+    color: var(--color-primary-strong);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    flex-shrink: 0;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .daily-sunday-card {
+    align-items: stretch;
+    flex-direction: column;
+
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

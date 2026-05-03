@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, forkJoin } from 'rxjs';
-import { finalize, map } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { catchError, finalize, map } from 'rxjs/operators';
 
 import { MatIconModule } from '@angular/material/icon';
 
@@ -18,6 +18,8 @@ import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { DailyAssistanceService } from './services/daily-assistance.service';
 import * as entity from './interfaces/daily-assistance-interfaces';
 import { MatTooltip } from "@angular/material/tooltip";
+import { ModalSunday, ModalSundayData, ModalSundayResult } from './components/modal-sunday/modal-sunday';
+import { DialogService } from '../../../shared/services/dialog.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {};
 
@@ -75,7 +77,7 @@ type AbsenceCard = entity.EmployeeAttendanceRow & {
     InputDate,
     BtnsSection,
     MatTooltip
-],
+  ],
   templateUrl: './daily-assistance.html',
   styleUrl: './daily-assistance.scss',
 })
@@ -84,7 +86,7 @@ export class DailyAssistance implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dailyAssistanceService = inject(DailyAssistanceService);
   private readonly catalogsService = inject(CatalogsService);
-
+private readonly dialogService = inject(DialogService);
   readonly headerConfig = HEADER_CONFIG;
 
   isLoading = false;
@@ -124,8 +126,26 @@ export class DailyAssistance implements OnInit {
   cancellationReason = '';
   absenceReason = '';
 
+  sundayGenerationStatus: entity.SundayGenerationStatusResponse | null = null;
+  isGeneratingSunday = false;
+
   ngOnInit(): void {
     this.searchWithFilters();
+  }
+
+
+  get showSundayGenerationCard(): boolean {
+    return !!this.sundayGenerationStatus?.is_sunday;
+  }
+
+  get sundayGenerationSourceText(): string {
+    const status = this.sundayGenerationStatus;
+
+    if (!status?.source_date || !status.source_type) return '';
+
+    const label = status.source_type === 'saturday' ? 'sábado' : 'viernes';
+
+    return `Fuente: ${label} ${status.source_date} · ${status.source_assignments_count} asignación(es)`;
   }
 
   get selectedEmployees(): EmployeeCard[] {
@@ -510,6 +530,67 @@ export class DailyAssistance implements OnInit {
       });
   }
 
+generateSundayAttendance(): void {
+  const status = this.sundayGenerationStatus;
+
+  if (
+    !this.currentDate ||
+    !status?.can_generate ||
+    this.isGeneratingSunday ||
+    this.isSaving
+  ) {
+    return;
+  }
+
+  const modalData: ModalSundayData = {
+    work_date: status.work_date,
+    source_date: status.source_date,
+    source_type: status.source_type,
+    source_assignments_count: status.source_assignments_count,
+    message: status.message,
+  };
+
+  this.dialogService
+    .open(ModalSunday, modalData, 'mini')
+    .afterClosed()
+    .subscribe((result: ModalSundayResult | null) => {
+      if (!result || result.action !== 'confirmed') return;
+
+      this.confirmGenerateSundayAttendance();
+    });
+}
+
+private confirmGenerateSundayAttendance(): void {
+  if (
+    !this.currentDate ||
+    !this.sundayGenerationStatus?.can_generate ||
+    this.isGeneratingSunday ||
+    this.isSaving
+  ) {
+    return;
+  }
+
+  this.isGeneratingSunday = true;
+
+  this.dailyAssistanceService
+    .generateSundayAttendance(this.currentDate)
+    .pipe(
+      finalize(() => {
+        this.isGeneratingSunday = false;
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    )
+    .subscribe({
+      next: () => {
+        this.resetActionState();
+        this.reloadBoard();
+      },
+      error: (err) => {
+        console.error('Error generando domingo automático:', err);
+      },
+    });
+}
+
   private reloadBoard(): void {
     this.isLoading = true;
 
@@ -528,6 +609,15 @@ export class DailyAssistance implements OnInit {
       >,
 
       projects: this.getProjectsCatalog(),
+
+      sundayStatus: this.dailyAssistanceService
+        .getSundayGenerationStatus(this.currentDate)
+        .pipe(
+          catchError((err) => {
+            console.error('Error consultando estado de domingo automático:', err);
+            return of(null);
+          }),
+        ),
     })
       .pipe(
         finalize(() => {
@@ -536,8 +626,9 @@ export class DailyAssistance implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: ({ attendances, employees, projects }) => {
+        next: ({ attendances, employees, projects, sundayStatus }) => {
           this.projectOptions = projects ?? [];
+          this.sundayGenerationStatus = sundayStatus;
           this.buildBoardState(attendances, employees);
         },
         error: (err) => {
