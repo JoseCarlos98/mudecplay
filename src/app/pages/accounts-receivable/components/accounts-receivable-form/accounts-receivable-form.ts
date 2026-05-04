@@ -420,4 +420,17 @@ export class AccountsReceivableForm implements OnInit {
   navigateToList(): void {
     this.router.navigateByUrl('/cuentas-por-cobrar');
   }
+
+  get canShowStatusControl(): boolean {
+  const raw = this.form.getRawValue();
+
+  const advanceAmount = Number(raw.advance_amount ?? 0);
+  const total = Number(raw.total ?? 0);
+
+  if (this.isXmlImport && !this.accountReceivableId) {
+    return true;
+  }
+
+  return advanceAmount >= total;
+}
 }

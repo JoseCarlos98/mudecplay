@@ -100,22 +100,70 @@
 
         <!-- Barra masiva -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
-          <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
-            (change)="onToggleSelectAll($event.checked)">
-            Seleccionar todos
-          </mat-checkbox>
-
-          <div class="bulk-project">
-            <app-autocomplete [formControl]="bulkProjectCtrl" label="Asignar proyecto a selección" [remote]="true"
-              catalogType="project" (optionSelected)="onBulkProjectSelected($event)">
-            </app-autocomplete>
+          <div class="bulk-check">
+            <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
+              (change)="onToggleSelectAll($event.checked)">
+              Todos
+            </mat-checkbox>
           </div>
 
-          <button type="button" class="btn-primary" [disabled]="!hasAnySelected || !bulkProjectSelected"
-            (click)="applyBulkProject()">
-            <mat-icon>done_all</mat-icon>
-            <span>Aplicar a seleccionados</span>
-          </button>
+          <div class="bulk-group bulk-group--project">
+            <div class="bulk-field">
+              <app-autocomplete
+                [formControl]="bulkProjectCtrl"
+                label="Proyecto global"
+                [remote]="true"
+                catalogType="project"
+                (optionSelected)="onBulkProjectSelected($event)">
+              </app-autocomplete>
+            </div>
+
+            <button type="button" class="btn-primary bulk-btn"
+              [disabled]="!hasAnySelected || !bulkProjectSelected"
+              (click)="applyBulkProject()">
+              <mat-icon>done_all</mat-icon>
+              <span>Aplicar</span>
+            </button>
+          </div>
+
+          @if (!isXmlImport && !isLaborAuto) {
+          <div class="bulk-group bulk-group--amount">
+            <div class="bulk-field">
+              <app-input-field
+                [formControl]="bulkAmountCtrl"
+                label="Monto global"
+                type="money">
+              </app-input-field>
+            </div>
+
+            <button type="button" class="btn-primary bulk-btn"
+              [disabled]="!canApplyAmountToSelection"
+              (click)="applyAmountToSelected()">
+              <mat-icon>price_check</mat-icon>
+              <span>Aplicar monto</span>
+            </button>
+          </div>
+          }
+
+          @if (!isLaborAuto) {
+          <div class="bulk-group bulk-group--payment">
+            <div class="bulk-field">
+              <app-input-date
+                [formControl]="bulkPaymentDateCtrl"
+                label="Fecha de pago"
+                mode="single"
+                [showClear]="true">
+              </app-input-date>
+            </div>
+
+            <button type="button" class="btn-primary bulk-btn"
+              [disabled]="!canApplyFullPaymentToSelection"
+              (click)="applyFullPaymentToSelected()">
+              <mat-icon>payments</mat-icon>
+              <span>Pagar</span>
+            </button>
+          </div>
+          }
         </div>
 
         <!-- Lista -->

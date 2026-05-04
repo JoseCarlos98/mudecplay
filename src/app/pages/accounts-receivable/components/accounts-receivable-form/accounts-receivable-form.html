@@ -119,7 +119,7 @@
         </app-autocomplete>
       </div>
 
-      @if (formData.advance_amount >= formData.total) {
+      @if (canShowStatusControl) {
       <div class="md:col-span-1">
         <app-input-select formControlName="status" label="Estado de cobro" [options]="statusOptions">
         </app-input-select>

@@ -101,8 +101,13 @@ export class ExpenseForm implements OnInit {
     items: this.fb.array([this.createItemGroup()]),
   });
 
+  // Proyecto masivo
   bulkProjectCtrl = this.fb.control<any>(null);
   bulkProjectSelected: Catalog | null = null;
+
+  // Acciones masivas
+  bulkAmountCtrl = this.fb.control<number | null>(null);
+  bulkPaymentDateCtrl = this.fb.control<string | null>('');
 
   expenseId: number = 0;
   formData!: entity.ExpenseDetail;
@@ -145,6 +150,15 @@ export class ExpenseForm implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
+  private formatMoney(amount: number): string {
+    return amount.toLocaleString('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+
   get itemsFA(): FormArray {
     return this.form.get('items') as FormArray;
   }
@@ -160,6 +174,25 @@ export class ExpenseForm implements OnInit {
 
   get isSpecialReadonlyExpense(): boolean {
     return this.isXmlImport || this.isLaborAuto;
+  }
+
+  get canApplyAmountToSelection(): boolean {
+    const amount = Number(this.bulkAmountCtrl.value ?? 0);
+
+    return (
+      !this.isXmlImport &&
+      !this.isLaborAuto &&
+      this.hasAnySelected &&
+      amount > 0
+    );
+  }
+
+  get canApplyFullPaymentToSelection(): boolean {
+    return (
+      !this.isLaborAuto &&
+      this.hasAnySelected &&
+      !!this.bulkPaymentDateCtrl.value
+    );
   }
 
   // ==========================
@@ -181,9 +214,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-              response.supplier.id,
-              response.supplier.company_name,
-            )
+                response.supplier.id,
+                response.supplier.company_name,
+              )
             : null,
           supplier_display: this.isLaborAuto
             ? (response.provider_display_name ?? '')
@@ -307,6 +340,7 @@ export class ExpenseForm implements OnInit {
       paymentDateCtrl?.disable({ emitEvent: false });
     });
   }
+
   // ==========================
   //  CREATE
   // ==========================
@@ -419,6 +453,89 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  applyAmountToSelected(): void {
+    if (this.isXmlImport || this.isLaborAuto) return;
+
+    const amount = Number(this.bulkAmountCtrl.value ?? 0);
+
+    if (amount <= 0) {
+      this.bulkAmountCtrl.setErrors({ min: true });
+      this.bulkAmountCtrl.markAsTouched();
+      return;
+    }
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      if (!ctrl.get('selected')?.value) return;
+
+      ctrl.get('amount')?.setValue(amount);
+      ctrl.get('amount')?.markAsDirty();
+      ctrl.get('amount')?.markAsTouched();
+      ctrl.get('amount')?.updateValueAndValidity({ emitEvent: false });
+
+      const paymentAmount = Number(ctrl.get('payment_amount')?.value ?? 0);
+
+      if (paymentAmount > amount) {
+        ctrl.get('payment_amount')?.setValue(null);
+        ctrl.get('payment_date')?.setValue(this.getTodayIsoDate());
+      }
+    });
+  }
+
+  applyFullPaymentToSelected(): void {
+    if (this.isLaborAuto) return;
+
+    const paymentDate = this.bulkPaymentDateCtrl.value;
+
+    if (!paymentDate) {
+      this.bulkPaymentDateCtrl.markAsTouched();
+      return;
+    }
+
+    const invalidRows: number[] = [];
+
+    this.itemsFA.controls.forEach((ctrl, index) => {
+      if (!ctrl.get('selected')?.value) return;
+
+      const amount = Number(ctrl.get('amount')?.value ?? 0);
+
+      if (amount <= 0) {
+        invalidRows.push(index + 1);
+      }
+    });
+
+    if (invalidRows.length > 0) {
+      this.dialogService
+        .confirm({
+          size: 'small',
+          title: 'Monto requerido',
+          message:
+            'Para marcar como pagado, los productos seleccionados deben tener monto mayor a $0.00.\n\n' +
+            `Revisa los productos: ${invalidRows.join(', ')}.`,
+          confirmText: 'OK',
+          cancelText: '',
+        })
+        .subscribe();
+
+      return;
+    }
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      if (!ctrl.get('selected')?.value) return;
+
+      const amount = Number(ctrl.get('amount')?.value ?? 0);
+
+      ctrl.get('payment_amount')?.setValue(amount);
+      ctrl.get('payment_amount')?.markAsDirty();
+      ctrl.get('payment_amount')?.markAsTouched();
+      ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
+
+      ctrl.get('payment_date')?.setValue(paymentDate);
+      ctrl.get('payment_date')?.markAsDirty();
+      ctrl.get('payment_date')?.markAsTouched();
+      ctrl.get('payment_date')?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
+
   // ==========================
   //  HEADER
   // ==========================
@@ -460,48 +577,58 @@ export class ExpenseForm implements OnInit {
       supplier_id: toIdForm(raw.supplier_id),
       cfdi_uuid: this.cfdiUuidFromXml ?? null,
 
-      items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => ({
-        amount: Number(item.amount),
+      items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => {
+        const amount = Number(item.amount ?? 0);
 
-        base_amount:
-          item.base_amount !== null &&
+        const paymentAmount =
+          item.payment_amount !== null &&
+          item.payment_amount !== undefined &&
+          item.payment_amount !== ''
+            ? Number(item.payment_amount)
+            : null;
+
+        return {
+          amount,
+
+          base_amount:
+            item.base_amount !== null &&
             item.base_amount !== undefined &&
             item.base_amount !== ''
-            ? Number(item.base_amount)
-            : null,
+              ? Number(item.base_amount)
+              : null,
 
-        discount_amount:
-          item.discount_amount !== null &&
+          discount_amount:
+            item.discount_amount !== null &&
             item.discount_amount !== undefined &&
             item.discount_amount !== ''
-            ? Number(item.discount_amount)
-            : null,
+              ? Number(item.discount_amount)
+              : null,
 
-        tax_amount:
-          item.tax_amount !== null &&
+          tax_amount:
+            item.tax_amount !== null &&
             item.tax_amount !== undefined &&
             item.tax_amount !== ''
-            ? Number(item.tax_amount)
-            : null,
+              ? Number(item.tax_amount)
+              : null,
 
-        withheld_amount:
-          item.withheld_amount !== null &&
+          withheld_amount:
+            item.withheld_amount !== null &&
             item.withheld_amount !== undefined &&
             item.withheld_amount !== ''
-            ? Number(item.withheld_amount)
-            : null,
+              ? Number(item.withheld_amount)
+              : null,
 
-        payment_amount:
-          item.payment_amount !== null && item.payment_amount !== ''
-            ? Number(item.payment_amount)
-            : null,
+          payment_amount: paymentAmount,
 
-        payment_date:
-          item.amount == item.payment_amount ? item.payment_date : null,
+          payment_date:
+            paymentAmount !== null && paymentAmount > 0
+              ? item.payment_date ?? null
+              : null,
 
-        project_id: toIdForm(item.project_id),
-        product_id: toIdForm(item.product_id),
-      })),
+          project_id: toIdForm(item.project_id),
+          product_id: toIdForm(item.product_id),
+        };
+      }),
     };
   }
 
@@ -528,6 +655,9 @@ export class ExpenseForm implements OnInit {
 
     this.bulkProjectCtrl.setValue(null, { emitEvent: true });
     this.bulkProjectSelected = null;
+
+    this.bulkAmountCtrl.setValue(null, { emitEvent: false });
+    this.bulkPaymentDateCtrl.setValue(this.getTodayIsoDate(), { emitEvent: false });
   }
 
   confirmExitFromXmlFlow() {

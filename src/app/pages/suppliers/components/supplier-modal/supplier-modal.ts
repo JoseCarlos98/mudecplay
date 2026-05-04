@@ -105,6 +105,8 @@ export class SupplierModal implements OnInit {
     }
 
     const formData = this.form.value;
+    console.log(formData);
+    
 
     this.supplierService.update(this.data.id, formData).subscribe({
       next: (response) => {
