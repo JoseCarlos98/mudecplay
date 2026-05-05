@@ -21,7 +21,8 @@ export type ColumnType =
 export type ColumnVariant =
   | 'chip-success'
   | 'chip-warning'
-  | 'chip-neutral';
+  | 'chip-neutral'
+  | 'chip-danger';
 
 export interface ColumnsConfig {
   key: string;

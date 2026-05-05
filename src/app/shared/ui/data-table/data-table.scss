@@ -189,13 +189,18 @@
   }
 
   .table-chip-success {
-    background: rgba(16, 185, 129, 0.12);
-    color: #059669;
+    background: rgba(16, 185, 129, 0.13);
+    color: #047857;
   }
 
   .table-chip-warning {
-    background: rgba(245, 158, 11, 0.12);
-    color: #d97706;
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+  }
+
+  .table-chip-danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
   }
 }
 

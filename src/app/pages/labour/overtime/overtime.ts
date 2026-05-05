@@ -363,11 +363,11 @@ export class Overtime implements OnInit {
     );
   }
 
- onHeaderAction(action: string): void {
-  if (action !== 'new') return;
+  onHeaderAction(action: string): void {
+    if (action !== 'new') return;
 
-  this.formModal();
-}
+    this.formModal();
+  }
 
   onBtnsSectionAction(action: string): void {
     switch (action) {
@@ -461,16 +461,16 @@ export class Overtime implements OnInit {
       daily_salary: 2857.12,
       row: row
         ? {
-          id: row.id,
-          employee_name: row.employee_name,
-          area_label: row.area_label,
-          work_date: row.work_date,
-          project_name: row.project_name,
-          overtime_label: row.overtime_label ?? null,
-          worked_until: row.worked_until ?? null,
-          extra_days_label: row.extra_days_label ?? null,
-          amount: row.amount ?? null,
-        }
+            id: row.id,
+            employee_name: row.employee_name,
+            area_label: row.area_label,
+            work_date: row.work_date,
+            project_name: row.project_name,
+            overtime_label: row.overtime_label ?? null,
+            worked_until: row.worked_until ?? null,
+            extra_days_label: row.extra_days_label ?? null,
+            amount: row.amount ?? null,
+          }
         : null,
     };
 
@@ -567,11 +567,13 @@ export class Overtime implements OnInit {
     switch (row.status) {
       case 'pending':
         return 'chip-warning';
+
       case 'authorized':
         return 'chip-success';
+
       case 'cancelled':
       default:
-        return 'chip-neutral';
+        return 'chip-danger';
     }
   }
 

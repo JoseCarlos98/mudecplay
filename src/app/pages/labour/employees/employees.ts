@@ -8,7 +8,7 @@ import { finalize } from 'rxjs';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 // Shared UI
-import { ColumnsConfig, DataTableActionEvent } from '../../../shared/ui/data-table/interfaces/table-interfaces';
+import { ColumnsConfig, ColumnVariant, DataTableActionEvent } from '../../../shared/ui/data-table/interfaces/table-interfaces';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
@@ -30,6 +30,20 @@ const STATUS_OPTIONS: Catalog[] = [
   { id: 'reentry', name: 'Reingreso' },
 ];
 
+function resolveEmploymentStatusVariant(row: entity.EmployeeRow): ColumnVariant {
+  switch (row.employment_status) {
+    case 'active':
+      return 'chip-success';
+
+    case 'reentry':
+      return 'chip-warning';
+
+    case 'inactive':
+    default:
+      return 'chip-danger';
+  }
+}
+
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'full_name', label: 'Nombre completo' },
   { key: 'curp', label: 'CURP' },
@@ -38,7 +52,12 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'age', label: 'Edad' },
   { key: 'entry_date', label: 'Fecha ingreso', type: 'date' },
   { key: 'weekly_salary', label: 'Salario semanal', type: 'money', align: 'right' },
-  { key: 'employment_status_label', label: 'Estatus', type: 'chip', typeVariant: 'chip-neutral' },
+  {
+    key: 'employment_status_label',
+    label: 'Estatus',
+    type: 'chip',
+    variantResolver: (row: entity.EmployeeRow) => resolveEmploymentStatusVariant(row),
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
@@ -257,3 +276,4 @@ export class Employees implements OnInit {
       });
   }
 }
+

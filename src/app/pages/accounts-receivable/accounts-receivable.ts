@@ -21,6 +21,7 @@ import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/mod
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
+  ColumnVariant,
   DataTableActionEvent,
   DataTableActionPopover,
   DataTableExtraAction,
@@ -48,6 +49,19 @@ import { ModalAdvanceHistory } from './components/modal-advance-history/modal-ad
 
 const ACCOUNTS_RECEIVABLE_FILTERS_KEY = 'mp_accounts_receivable_filters_v1';
 
+function resolveReceivableStatusVariant(
+  row: entity.AccountReceivableRow,
+): ColumnVariant {
+  switch (row.status) {
+    case 'collected':
+      return 'chip-success';
+
+    case 'pending':
+    default:
+      return 'chip-warning';
+  }
+}
+
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'company_label', label: 'Empresa', type: 'chip', typeVariant: 'chip-neutral' },
   { key: 'invoice_display', label: 'Factura' },
@@ -62,7 +76,13 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'issue_date', label: 'Fecha emisión', type: 'date' },
   { key: 'total', label: 'Total', type: 'money', align: 'right' },
   { key: 'advance_amount', label: 'Total anticipos', type: 'money', align: 'right' },
-  { key: 'status_label', label: 'Estatus', type: 'chip', typeVariant: 'chip-neutral' },
+  {
+    key: 'status_label',
+    label: 'Estatus',
+    type: 'chip',
+    variantResolver: (row: entity.AccountReceivableRow) =>
+      resolveReceivableStatusVariant(row),
+  },
   { key: 'collected_at', label: 'Fecha cobro', type: 'date' },
 ];
 
