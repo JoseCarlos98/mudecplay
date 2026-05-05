@@ -86,7 +86,7 @@ export class DailyAssistance implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly dailyAssistanceService = inject(DailyAssistanceService);
   private readonly catalogsService = inject(CatalogsService);
-private readonly dialogService = inject(DialogService);
+  private readonly dialogService = inject(DialogService);
   readonly headerConfig = HEADER_CONFIG;
 
   isLoading = false;
@@ -114,7 +114,7 @@ private readonly dialogService = inject(DialogService);
   selectedEmployeeIds = new Set<number>();
   selectedProjectId: number | null = null;
 
-  assignmentHours: number | null = 8;
+  assignmentHours: number | null = this.getDefaultAssignmentHours();
 
   editingAttendance: AssignmentCard | null = null;
   editingHours: number | null = null;
@@ -239,6 +239,22 @@ private readonly dialogService = inject(DialogService);
     );
   }
 
+  get assignmentInputMax(): number {
+    if (this.selectedEmployees.length) {
+      return this.selectedMinAvailableHours;
+    }
+
+    return this.getDefaultAssignmentHours();
+  }
+
+  get assignmentHoursHelperText(): string {
+    if (this.selectedEmployees.length) {
+      return `${this.selectedMinAvailableHours} hrs`;
+    }
+
+    return `${this.getDefaultAssignmentHours()} hrs`;
+  }
+
   get normalizedAssignmentHours(): number {
     return Number(this.assignmentHours ?? 0);
   }
@@ -356,6 +372,8 @@ private readonly dialogService = inject(DialogService);
     }
 
     this.syncEmployeeSelection();
+    this.syncAssignmentHoursWithSelection();
+
     this.editingAttendance = null;
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
@@ -530,66 +548,66 @@ private readonly dialogService = inject(DialogService);
       });
   }
 
-generateSundayAttendance(): void {
-  const status = this.sundayGenerationStatus;
+  generateSundayAttendance(): void {
+    const status = this.sundayGenerationStatus;
 
-  if (
-    !this.currentDate ||
-    !status?.can_generate ||
-    this.isGeneratingSunday ||
-    this.isSaving
-  ) {
-    return;
+    if (
+      !this.currentDate ||
+      !status?.can_generate ||
+      this.isGeneratingSunday ||
+      this.isSaving
+    ) {
+      return;
+    }
+
+    const modalData: ModalSundayData = {
+      work_date: status.work_date,
+      source_date: status.source_date,
+      source_type: status.source_type,
+      source_assignments_count: status.source_assignments_count,
+      message: status.message,
+    };
+
+    this.dialogService
+      .open(ModalSunday, modalData, 'mini')
+      .afterClosed()
+      .subscribe((result: ModalSundayResult | null) => {
+        if (!result || result.action !== 'confirmed') return;
+
+        this.confirmGenerateSundayAttendance();
+      });
   }
 
-  const modalData: ModalSundayData = {
-    work_date: status.work_date,
-    source_date: status.source_date,
-    source_type: status.source_type,
-    source_assignments_count: status.source_assignments_count,
-    message: status.message,
-  };
+  private confirmGenerateSundayAttendance(): void {
+    if (
+      !this.currentDate ||
+      !this.sundayGenerationStatus?.can_generate ||
+      this.isGeneratingSunday ||
+      this.isSaving
+    ) {
+      return;
+    }
 
-  this.dialogService
-    .open(ModalSunday, modalData, 'mini')
-    .afterClosed()
-    .subscribe((result: ModalSundayResult | null) => {
-      if (!result || result.action !== 'confirmed') return;
+    this.isGeneratingSunday = true;
 
-      this.confirmGenerateSundayAttendance();
-    });
-}
-
-private confirmGenerateSundayAttendance(): void {
-  if (
-    !this.currentDate ||
-    !this.sundayGenerationStatus?.can_generate ||
-    this.isGeneratingSunday ||
-    this.isSaving
-  ) {
-    return;
+    this.dailyAssistanceService
+      .generateSundayAttendance(this.currentDate)
+      .pipe(
+        finalize(() => {
+          this.isGeneratingSunday = false;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.resetActionState();
+          this.reloadBoard();
+        },
+        error: (err) => {
+          console.error('Error generando domingo automático:', err);
+        },
+      });
   }
-
-  this.isGeneratingSunday = true;
-
-  this.dailyAssistanceService
-    .generateSundayAttendance(this.currentDate)
-    .pipe(
-      finalize(() => {
-        this.isGeneratingSunday = false;
-      }),
-      takeUntilDestroyed(this.destroyRef),
-    )
-    .subscribe({
-      next: () => {
-        this.resetActionState();
-        this.reloadBoard();
-      },
-      error: (err) => {
-        console.error('Error generando domingo automático:', err);
-      },
-    });
-}
 
   private reloadBoard(): void {
     this.isLoading = true;
@@ -718,7 +736,9 @@ private confirmGenerateSundayAttendance(): void {
       work_date: attendance.work_date,
       attendance_status: attendance.status,
       attendance_available_hours: Number(attendance.available_hours ?? 0),
-      attendance_total_daily_hours: Number(attendance.total_daily_hours ?? 8),
+      attendance_total_daily_hours: Number(
+        attendance.total_daily_hours ?? this.getDefaultAssignmentHours(attendance.work_date),
+      ),
       daily_salary_snapshot: Number(attendance.daily_salary_snapshot ?? 0),
     };
   }
@@ -790,7 +810,7 @@ private confirmGenerateSundayAttendance(): void {
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
 
-    this.assignmentHours = 8;
+    this.assignmentHours = this.getDefaultAssignmentHours();
 
     this.editingAttendance = null;
     this.editingHours = null;
@@ -839,5 +859,36 @@ private confirmGenerateSundayAttendance(): void {
     const day = String(today.getDate()).padStart(2, '0');
 
     return `${year}-${month}-${day}`;
+  }
+
+  private getDefaultAssignmentHours(dateValue = this.currentDate): number {
+    return this.isSaturday(dateValue) ? 6 : 9;
+  }
+
+  private isSaturday(dateValue: string | null | undefined): boolean {
+    if (!dateValue) return false;
+
+    const date = new Date(`${dateValue}T00:00:00`);
+
+    if (Number.isNaN(date.getTime())) {
+      return false;
+    }
+
+    return date.getDay() === 6;
+  }
+
+  private syncAssignmentHoursWithSelection(): void {
+    const maxHours = this.assignmentInputMax;
+
+    if (!maxHours || maxHours <= 0) {
+      this.assignmentHours = this.getDefaultAssignmentHours();
+      return;
+    }
+
+    const currentHours = Number(this.assignmentHours ?? 0);
+
+    if (!currentHours || currentHours <= 0 || currentHours > maxHours) {
+      this.assignmentHours = maxHours;
+    }
   }
 }
