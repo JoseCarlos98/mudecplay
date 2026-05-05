@@ -22,6 +22,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableActionPopover,
   DataTableExtraAction,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
@@ -120,22 +121,93 @@ export class AccountsReceivable implements OnInit {
 
   readonly loadingTable = signal(false);
 
+  private getAdvanceAmount(row: entity.AccountReceivableRow): number {
+    return Number(row.advance_amount ?? 0);
+  }
+
+  private getTotalAmount(row: entity.AccountReceivableRow): number {
+    return Number(row.total ?? 0);
+  }
+
+  private hasAdvanceHistory(row: entity.AccountReceivableRow): boolean {
+    return this.getAdvanceAmount(row) > 0;
+  }
+
+  private canRegisterAdvance(row: entity.AccountReceivableRow): boolean {
+    return (
+      row.status === 'pending' &&
+      this.getAdvanceAmount(row) < this.getTotalAmount(row)
+    );
+  }
+
+  getAddAdvanceTooltip = (row: entity.AccountReceivableRow): string => {
+    return this.canRegisterAdvance(row) ? 'Registrar anticipo' : '';
+  };
+
+  getAdvanceHistoryTooltip = (row: entity.AccountReceivableRow): string => {
+    return this.hasAdvanceHistory(row) ? 'Ver historial de anticipos' : '';
+  };
+
+  getAddAdvancePopover = (
+    row: entity.AccountReceivableRow,
+  ): DataTableActionPopover | null => {
+    if (this.canRegisterAdvance(row)) {
+      return null;
+    }
+
+    const reasons: string[] = [];
+
+    if (row.status === 'collected') {
+      reasons.push('Esta cuenta por cobrar ya está cobrada.');
+    } else if (row.status !== 'pending') {
+      reasons.push('La cuenta por cobrar debe estar pendiente.');
+    }
+
+    if (this.getAdvanceAmount(row) >= this.getTotalAmount(row)) {
+      reasons.push('El total de anticipos ya cubre el total de la factura.');
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: reasons.length
+        ? reasons
+        : ['No se puede registrar anticipo para esta cuenta por cobrar.'],
+      kind: 'warning',
+    };
+  };
+
+  getAdvanceHistoryPopover = (
+    row: entity.AccountReceivableRow,
+  ): DataTableActionPopover | null => {
+    if (this.hasAdvanceHistory(row)) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: ['No hay anticipos registrados.'],
+      kind: 'warning',
+    };
+  };
+
   readonly extraActions: DataTableExtraAction<entity.AccountReceivableRow>[] = [
     {
       type: 'addAdvance',
       icon: 'payments',
-      tooltip: 'Registrar anticipo',
-      visible: (row) =>
-        row.status === 'pending' &&
-        Number(row.advance_amount ?? 0) < Number(row.total ?? 0),
-      disabled: () => false,
+      tooltip: this.getAddAdvanceTooltip,
+      popoverContent: this.getAddAdvancePopover,
+      visible: () => true,
+      disabled: (row) => !this.canRegisterAdvance(row),
     },
     {
       type: 'showAdvanceHistory',
       icon: 'history',
-      tooltip: 'Ver historial de anticipos',
-      visible: (row) => Number(row.advance_amount ?? 0) > 0,
-      disabled: () => false,
+      tooltip: this.getAdvanceHistoryTooltip,
+      popoverContent: this.getAdvanceHistoryPopover,
+      visible: () => true,
+      disabled: (row) => !this.hasAdvanceHistory(row),
     },
   ];
 

@@ -92,6 +92,20 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
   { id: 'unpaid', name: 'Con saldo' },
 ];
 
+type ActionPopoverKind = 'warning' | 'info' | 'success' | 'error';
+
+interface DataTableActionPopover {
+  title: string;
+  message?: string | null;
+  items?: string[];
+  kind?: ActionPopoverKind;
+}
+
+type ExpenseTableExtraAction =
+  DataTableExtraAction<entity.ExpenseResponseDto> & {
+    popoverContent?: (row: entity.ExpenseResponseDto) => DataTableActionPopover | null;
+  };
+
 @Component({
   selector: 'app-expenses',
   standalone: true,
@@ -118,12 +132,8 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
     MatButtonModule,
     MatDatepickerModule,
     MatNativeDateModule,
-
-    // Forms
     FormsModule,
     ReactiveFormsModule,
-
-    // Directivas
     HasRoleDirective,
   ],
   templateUrl: './expenses.html',
@@ -170,20 +180,64 @@ export class Expenses implements OnInit {
     return null;
   };
 
-  readonly extraActions: DataTableExtraAction<entity.ExpenseResponseDto>[] = [
+  private isDownloadingThisReceipt(row: entity.ExpenseResponseDto): boolean {
+    return this.downloadingReceipt() && this.downloadingReceiptExpenseId() === row.id;
+  }
+  getReceiptTooltip = (row: entity.ExpenseResponseDto): string => {
+    return row.can_generate_receipt ? 'Descargar comprobante' : '';
+  };
+
+  getArchiveTooltip = (row: entity.ExpenseResponseDto): string => {
+    return row.can_generate_receipt && !row.is_archived ? 'Archivar gasto' : '';
+  };
+
+  getReceiptPopover = (
+    row: entity.ExpenseResponseDto,
+  ): DataTableActionPopover | null => {
+    if (row.can_generate_receipt) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: row.receipt_block_reasons ?? [],
+      kind: 'warning',
+    };
+  };
+
+  getArchivePopover = (
+    row: entity.ExpenseResponseDto,
+  ): DataTableActionPopover | null => {
+    if (row.can_generate_receipt) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: row.receipt_block_reasons ?? [],
+      kind: 'warning',
+    };
+  };
+
+  readonly extraActions: ExpenseTableExtraAction[] = [
     {
       type: 'downloadReceipt',
       icon: 'picture_as_pdf',
-      tooltip: 'Descargar comprobante',
-      visible: (row) => row.can_generate_receipt === true,
+      tooltip: this.getReceiptTooltip,
+      popoverContent: this.getReceiptPopover,
+      visible: () => true,
       disabled: (row) =>
-        this.downloadingReceipt() && this.downloadingReceiptExpenseId() === row.id,
+        !row.can_generate_receipt || this.isDownloadingThisReceipt(row),
     },
     {
       type: 'archiveExpense',
       icon: 'archive',
-      tooltip: 'Archivar gasto',
-      visible: (row) => row.can_generate_receipt === true && !row.is_archived,
+      tooltip: this.getArchiveTooltip,
+      popoverContent: this.getArchivePopover,
+      visible: () => true,
+      disabled: (row) => !row.can_generate_receipt || row.is_archived,
     },
   ];
 

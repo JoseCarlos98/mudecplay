@@ -66,10 +66,11 @@ export interface ExpenseResponseDto {
   internal_folio: string;
   remaining_amount: number;
   total_amount: number;
+  
+  receipt_block_reasons: string[];
   can_generate_receipt: boolean;
   is_archived: boolean;
 
-  // NUEVO
   origin_type?: string | null;
   provider_display_name?: string | null;
 

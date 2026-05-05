@@ -166,6 +166,24 @@
             <!-- {{extraActions | json}} -->
             @for (extra of extraActions; track extra.type) {
             @if (canShow(extra.roles) && isExtraActionVisible(extra, element)) {
+            @let popover = getExtraActionPopover(extra, element);
+
+            @if (popover) {
+            <app-action-popover [title]="popover.title" [message]="popover.message ?? null"
+              [items]="popover.items ?? []" [kind]="popover.kind ?? 'warning'">
+
+              <span popover-trigger class="popover-action-trigger">
+                <button mat-icon-button [class]="extra.buttonClass || ''"
+                  [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
+                  [disabled]="isExtraActionDisabled(extra, element)" (click)="onRowAction(extra.type, element)">
+                  <mat-icon [class]="extra.iconClass || ''">
+                    {{ extra.icon }}
+                  </mat-icon>
+                </button>
+              </span>
+
+            </app-action-popover>
+            } @else {
             <span [matTooltip]="getExtraActionTooltip(extra, element)"
               [matTooltipDisabled]="!getExtraActionTooltip(extra, element)">
               <button mat-icon-button [class]="extra.buttonClass || ''"
@@ -175,6 +193,7 @@
                 </mat-icon>
               </button>
             </span>
+            }
             }
             }
 

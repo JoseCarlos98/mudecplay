@@ -24,6 +24,7 @@ import {
 import type { ColumnVariant, TableActionPermissions } from './interfaces/table-interfaces';
 import { PermissionsService } from '../../../auth/services/permissions.service';
 import { RoleCode } from '../../../auth/interfaces/auth.interface';
+import { ActionPopover } from './components/action-popover/action-popover';
 
 @Component({
   selector: 'app-data-table',
@@ -34,6 +35,7 @@ import { RoleCode } from '../../../auth/interfaces/auth.interface';
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
+    ActionPopover
   ],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.scss'],
@@ -114,6 +116,11 @@ export class DataTable<T> implements OnChanges {
     }
 
     return action.tooltip;
+  }
+
+  getExtraActionPopover(action: DataTableExtraAction<T>, row: T) {
+    if (!action.popoverContent) return null;
+    return action.popoverContent(row);
   }
 
   getColumnVariant(col: ColumnsConfig, row: T): ColumnVariant | undefined {

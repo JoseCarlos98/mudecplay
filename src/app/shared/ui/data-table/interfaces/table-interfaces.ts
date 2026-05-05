@@ -1,6 +1,7 @@
 import { RoleCode } from '../../../../auth/interfaces/auth.interface';
 
 export type DataTableActionType = 'edit' | 'delete' | 'showItems' | string;
+export type ActionPopoverKind = 'warning' | 'info' | 'success' | 'error';
 
 export interface DataTableActionEvent<T> {
   type: DataTableActionType;
@@ -53,6 +54,7 @@ export interface TableActionPermissions {
   deleteRoles?: RoleCode[];
 }
 
+
 export interface DataTableExtraAction<T> {
   /** Nombre interno del evento que emitirá la tabla */
   type: string;
@@ -62,6 +64,9 @@ export interface DataTableExtraAction<T> {
 
   /** Tooltip fijo o dinámico por fila */
   tooltip?: string | ((row: T) => string | null);
+
+  /** Popover enriquecido para acciones bloqueadas o informativas */
+  popoverContent?: (row: T) => DataTableActionPopover | null;
 
   /** Define si el botón se muestra o no para esa fila */
   visible?: (row: T) => boolean;
@@ -77,4 +82,12 @@ export interface DataTableExtraAction<T> {
 
   /** Clase opcional para el ícono */
   iconClass?: string;
+}
+
+
+export interface DataTableActionPopover {
+  title: string;
+  message?: string | null;
+  items?: string[];
+  kind?: ActionPopoverKind;
 }

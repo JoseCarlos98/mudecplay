@@ -9,6 +9,7 @@ import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/
 import {
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableActionPopover,
   DataTableExtraAction,
 } from '../../../shared/ui/data-table/interfaces/table-interfaces';
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
@@ -108,20 +109,70 @@ export class AttendanceTardiness implements OnInit {
 
   areaOptions: SelectCatalogOption[] = [];
 
+  private canMarkArrival(row: entity.AttendanceTardinessRow): boolean {
+    return row.arrival_status === 'pending';
+  }
+
+  private canEditArrival(row: entity.AttendanceTardinessRow): boolean {
+    return row.arrival_status !== 'pending';
+  }
+
+  getMarkArrivalTooltip = (row: entity.AttendanceTardinessRow): string => {
+    return this.canMarkArrival(row) ? 'Marcar llegada' : '';
+  };
+
+  getEditArrivalTooltip = (row: entity.AttendanceTardinessRow): string => {
+    return this.canEditArrival(row) ? 'Editar hora de llegada' : '';
+  };
+
+  getMarkArrivalPopover = (
+    row: entity.AttendanceTardinessRow,
+  ): DataTableActionPopover | null => {
+    if (this.canMarkArrival(row)) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: ['La llegada ya fue registrada.'],
+      kind: 'warning',
+    };
+  };
+
+  getEditArrivalPopover = (
+    row: entity.AttendanceTardinessRow,
+  ): DataTableActionPopover | null => {
+    if (this.canEditArrival(row)) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: ['Primero debes marcar la llegada.'],
+      kind: 'warning',
+    };
+  };
+
   readonly extraActions: DataTableExtraAction<entity.AttendanceTardinessRow>[] = [
     {
       type: 'markArrival',
       icon: 'how_to_reg',
-      tooltip: 'Marcar llegada',
-      visible: (row) => row.arrival_status === 'pending',
-      disabled: () => this.loadingTable() || this.savingArrival(),
+      tooltip: this.getMarkArrivalTooltip,
+      popoverContent: this.getMarkArrivalPopover,
+      visible: () => true,
+      disabled: (row) =>
+        !this.canMarkArrival(row) || this.loadingTable() || this.savingArrival(),
     },
     {
       type: 'editArrival',
       icon: 'edit_calendar',
-      tooltip: 'Editar hora de llegada',
-      visible: (row) => row.arrival_status !== 'pending',
-      disabled: () => this.loadingTable() || this.savingArrival(),
+      tooltip: this.getEditArrivalTooltip,
+      popoverContent: this.getEditArrivalPopover,
+      visible: () => true,
+      disabled: (row) =>
+        !this.canEditArrival(row) || this.loadingTable() || this.savingArrival(),
     },
   ];
 
