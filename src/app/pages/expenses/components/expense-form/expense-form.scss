@@ -94,6 +94,47 @@
 }
 
 /* =======================
+   INFO ALMACÉN
+   ======================= */
+
+.warehouse-info {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  border-radius: 0.75rem;
+  border: 1px solid rgba(17, 100, 163, 0.22);
+  background: #f4fbff;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.35;
+
+  mat-icon {
+    flex: 0 0 auto;
+    width: 21px;
+    height: 21px;
+    font-size: 21px;
+    color: #1164a3;
+  }
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+.warehouse-info--warning {
+  background: #fff8ed;
+  border-color: rgba(180, 83, 9, 0.25);
+
+  mat-icon {
+    color: #b45309;
+  }
+}
+
+/* =======================
    CHIP DE PRODUCTOS
    ======================= */
 
@@ -194,6 +235,319 @@
   cursor: default;
 }
 
+/* =======================
+   ITEM CARD
+   ======================= */
+
+.expense-item-card {
+  padding: 1rem;
+  border-radius: 0.85rem;
+
+  & + .expense-item-card {
+    margin-top: 1rem;
+  }
+}
+
+.expense-item-card__top {
+  margin-bottom: 0.85rem;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.expense-item-card__left {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.item-type {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.item-type__label {
+  color: #1164a3;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.item-type__toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(17, 100, 163, 0.18);
+  background: #fff;
+  overflow: hidden;
+
+  button {
+    height: 28px;
+    min-width: 86px;
+    padding: 0 0.9rem;
+
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+
+    color: #64748b;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+
+    &.active {
+      background: #0f7eaa;
+      color: #fff;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+}
+
+.item-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  height: 28px;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.item-type-chip--warehouse {
+  background: #e5f3ff;
+  color: #1164a3;
+}
+
+.item-type-chip--direct {
+  background: #e9f7ef;
+  color: #287348;
+}
+
+/* =======================
+   DIRECTO EN 4 COLUMNAS
+   Producto | Monto | Abono/Pago | Proyecto
+   ======================= */
+
+.direct-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.35fr)
+    minmax(145px, 0.65fr)
+    minmax(190px, 0.8fr)
+    minmax(260px, 1.25fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.direct-payment-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.direct-payment-date {
+  margin-top: 0.65rem;
+}
+
+.direct-restant {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.direct-restant.error-restant {
+  color: var(--color-error);
+}
+
+/* =======================
+   ALMACÉN
+   Fila 1: Producto | Cantidad | Unidad | Precio unitario | Monto
+   Fila 2: Mensaje almacén | Existencia | Pago
+   ======================= */
+
+.warehouse-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(260px, 1.45fr)
+    minmax(135px, 0.65fr)
+    minmax(135px, 0.65fr)
+    minmax(155px, 0.75fr)
+    minmax(155px, 0.75fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.warehouse-secondary-grid {
+  margin-top: 0.8rem;
+
+  display: grid;
+  grid-template-columns:
+    minmax(320px, 1.25fr)
+    minmax(190px, 0.75fr)
+    minmax(220px, 0.85fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.warehouse-project-message {
+  min-height: 45px;
+  padding: 0.55rem 0.75rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  border-radius: 0.65rem;
+  border: 1px solid rgba(17, 100, 163, 0.16);
+  background: #f4fbff;
+  color: #334155;
+}
+
+.warehouse-project-message__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e5f3ff;
+  color: #1164a3;
+  flex: 0 0 auto;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.warehouse-project-message__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.warehouse-project-message__title {
+  color: #1164a3;
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.warehouse-project-message__desc {
+  color: #64748b;
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.warehouse-helper {
+  min-height: 45px;
+  padding: 0.55rem 0.75rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  border-radius: 0.65rem;
+  background: #f8fafc;
+  border: 1px solid rgba(100, 116, 139, 0.12);
+
+  color: #64748b;
+  font-size: 0.82rem;
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    color: #1164a3;
+  }
+
+  strong {
+    color: #475569;
+  }
+}
+
+.warehouse-payment-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.warehouse-payment-date {
+  margin-top: 0.65rem;
+}
+
+.warehouse-restant {
+  display: inline-flex;
+  margin-top: 0.45rem;
+  color: #6b7280;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.warehouse-restant.error-restant {
+  color: var(--color-error);
+}
+
+/* Oculta placeholder viejo si quedó en caché/template anterior */
+.warehouse-project-placeholder {
+  display: none;
+}
+
+/* =======================
+   PROJECT CELL / COMPAT
+   ======================= */
+
+.project-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.project-cell-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.project-cell-header-label {
+  white-space: nowrap;
+}
+
+/* =======================
+   RESPONSIVE
+   ======================= */
+
 @media (max-width: 1500px) {
   .form-dinamic-bulk {
     grid-template-columns: minmax(72px, auto) 1fr 1fr;
@@ -201,6 +555,22 @@
 
   .bulk-group--payment {
     grid-column: 2 / -1;
+  }
+
+  .direct-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .warehouse-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .warehouse-secondary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .warehouse-payment-cell {
+    grid-column: 1 / -1;
   }
 }
 
@@ -222,6 +592,15 @@
   .bulk-group--payment {
     grid-column: auto;
   }
+
+  .warehouse-grid,
+  .warehouse-secondary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .warehouse-payment-cell {
+    grid-column: auto;
+  }
 }
 
 @media (max-width: 720px) {
@@ -234,25 +613,31 @@
   .bulk-btn {
     width: 100%;
   }
+
+  .direct-grid,
+  .warehouse-grid,
+  .warehouse-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-item-card__top,
+  .expense-item-card__left {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .item-type {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .item-type__toggle {
+    width: 100%;
+
+    button {
+      flex: 1;
+      min-width: 0;
+    }
+  }
 }
 
-/* Checkbox de selección en cada fila */
-.project-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.project-cell-header {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6b7280;
-}
-
-.project-cell-header-label {
-  white-space: nowrap;
-}

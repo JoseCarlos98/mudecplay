@@ -2,6 +2,24 @@ import { Catalog } from "../../../shared/interfaces/general-interfaces";
 import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
 /* =====================================================
+ *  TIPOS BASE
+ * ===================================================== */
+
+export type ExpenseItemType = 'direct' | 'warehouse';
+
+export type WarehouseLotStatus =
+  | 'available'
+  | 'partial'
+  | 'depleted'
+  | 'cancelled';
+
+export type WarehouseMovementType =
+  | 'in'
+  | 'out'
+  | 'return'
+  | 'adjust';
+
+/* =====================================================
  *  FILTROS (LISTADO DE GASTOS)
  * ===================================================== */
 
@@ -11,7 +29,7 @@ export interface FiltersExpenses {
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
   paymentStatus?: "paid" | "unpaid" | null;
-  status_id?: number | string | null; // se sigue llamando status_id para el backend
+  status_id?: number | string | null;
   limit: number;
   page: number;
 }
@@ -42,6 +60,12 @@ export interface ProductMini {
 
 export interface ExpenseItem {
   id: number;
+
+  item_type: ExpenseItemType;
+  quantity?: number | null;
+  unit?: string | null;
+  unit_price?: number | null;
+
   amount: number;
 
   // Desglose CFDI
@@ -53,10 +77,13 @@ export interface ExpenseItem {
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
+
   project: Project | null;
   product: ProductMini | null;
 
-  // NUEVO: display para Mano de Obra
+  concept?: string | null;
+
+  // Display para Mano de Obra
   product_display_name?: string | null;
 }
 
@@ -66,7 +93,7 @@ export interface ExpenseResponseDto {
   internal_folio: string;
   remaining_amount: number;
   total_amount: number;
-  
+
   receipt_block_reasons: string[];
   can_generate_receipt: boolean;
   is_archived: boolean;
@@ -82,7 +109,6 @@ export interface ExpenseResponseDto {
 
 /**
  * Mapper opcional para vistas que necesiten aplanar datos.
- * (Si no lo usas, puedes borrarlo).
  */
 export interface ExpenseResponseDtoMapper {
   id: number;
@@ -95,20 +121,27 @@ export interface ExpenseResponseDtoMapper {
 
 /* =====================================================
  *  CREATE / UPDATE GASTO
- *  (coincide con CreateExpenseDto / UpdateExpenseDto)
  * ===================================================== */
 
 export interface CreateExpenseItem {
+  product_id?: number | null;
+
+  item_type?: ExpenseItemType;
+
+  // Almacén
+  quantity?: number | null;
+  unit?: string | null;
+  unit_price?: number | null;
+
   amount: number;
 
-  // Desglose CFDI (para mandar al guardar cuando viene de XML)
+  // Desglose CFDI
   base_amount?: number | null;
   discount_amount?: number | null;
   tax_amount?: number | null;
   withheld_amount?: number | null;
 
   project_id?: number | null;
-  product_id?: number | null;
   payment_amount?: number | null;
   payment_date?: string | null;
 }
@@ -116,13 +149,27 @@ export interface CreateExpenseItem {
 export interface CreateExpense {
   date: string;
   supplier_id: number | null;
-  cfdi_uuid?: string | null; // se usa cuando viene de XML
+  cfdi_uuid?: string | null;
   items: CreateExpenseItem[];
 }
 
-// Update en backend es PartialType(CreateExpenseDto)
-// pero en tu frontend estás mandando el objeto completo, así que:
 export type UpdateExpense = CreateExpense;
+
+/* =====================================================
+ *  UPDATE CONTROLADO PARA GASTOS CON ALMACÉN
+ * ===================================================== */
+
+export interface UpdateWarehouseExpenseSafeItem {
+  id: number;
+  payment_amount?: number | null;
+  payment_date?: string | null;
+}
+
+export interface UpdateWarehouseExpenseSafe {
+  date?: string;
+  supplier_id?: number | null;
+  items?: UpdateWarehouseExpenseSafeItem[];
+}
 
 /* =====================================================
  *  DETALLE DE GASTO (GET /expenses/:id)
@@ -130,6 +177,12 @@ export type UpdateExpense = CreateExpense;
 
 export interface ExpenseItemDetail {
   id: number;
+
+  item_type: ExpenseItemType;
+  quantity?: number | null;
+  unit?: string | null;
+  unit_price?: number | null;
+
   amount: number;
 
   // Desglose CFDI
@@ -141,16 +194,20 @@ export interface ExpenseItemDetail {
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
+
   project: {
     id: number;
     name: string;
   } | null;
+
   product: {
     id: number;
     name: string;
   } | null;
 
-  // NUEVO: display para Mano de Obra
+  concept?: string | null;
+
+  // Display para Mano de Obra
   product_display_name?: string | null;
 }
 
@@ -162,7 +219,6 @@ export interface ExpenseDetail {
   remaining_amount: number;
   cfdi_uuid?: string | null;
 
-  // NUEVO
   origin_type?: string | null;
   provider_display_name?: string | null;
 
@@ -186,7 +242,12 @@ export interface ExpenseDetail {
 export interface ExpenseItemForm {
   amount: number | null;
 
-  // Desglose CFDI (para conservar y mandar al guardar desde XML)
+  item_type: ExpenseItemType;
+  quantity: number | null;
+  unit: string | null;
+  unit_price: number | null;
+
+  // Desglose CFDI
   base_amount: number | null;
   discount_amount: number | null;
   tax_amount: number | null;
@@ -204,8 +265,8 @@ export interface ExpenseItemForm {
 
 export interface ExpensesUiFilters {
   dateRange: DateRangeValue | null;
-  suppliersIds: number[];
-  projectIds: number[];
+  suppliersIds: any[];
+  projectIds: any[];
   status_id: string | number | null;
   paymentStatus: "paid" | "unpaid" | null;
   page: number;
@@ -213,11 +274,17 @@ export interface ExpensesUiFilters {
 }
 
 /* =====================================================
- *  XML PREVIEW (nuevo diseño: drafts / duplicates / errors)
+ *  XML PREVIEW
  * ===================================================== */
 
 export interface XmlExpenseItemDraftDto {
-  concept: string; // descripción original del CFDI (para mostrar al usuario)
+  concept: string;
+
+  item_type: ExpenseItemType;
+  quantity: number | null;
+  unit: string | null;
+  unit_price: number | null;
+
   amount: number;
 
   // Desglose CFDI
@@ -229,6 +296,7 @@ export interface XmlExpenseItemDraftDto {
   payment_amount: number | null;
   payment_date: string | null;
   project_id: number | null;
+
   product: {
     id: number;
     name: string;
@@ -238,7 +306,7 @@ export interface XmlExpenseItemDraftDto {
 export interface XmlExpenseDraftDto {
   uuid: string;
   sourceFileName: string;
-  date: string; // 'YYYY-MM-DD'
+  date: string;
   subtotal: number;
   total: number;
   supplier: {
@@ -261,9 +329,6 @@ export interface XmlErrorDto {
   reason: string;
 }
 
-/**
- * Respuesta de POST /expenses/xml/preview
- */
 export interface XmlPreviewResponseDto {
   drafts: XmlExpenseDraftDto[];
   duplicates: XmlDuplicateDto[];
@@ -273,4 +338,82 @@ export interface XmlPreviewResponseDto {
 export interface XmlQueueState {
   total: number;
   currentIndex: number;
+}
+
+/* =====================================================
+ *  ALMACÉN - EXISTENCIAS
+ * ===================================================== */
+
+export interface WarehouseLotFilters {
+  productId?: number | null;
+  status?: WarehouseLotStatus | null;
+  search?: string | null;
+  page?: number;
+  limit?: number;
+}
+
+export interface WarehouseLotResponseDto {
+  id: number | string;
+
+  expense_id: number;
+  expense_item_id: number;
+  product_id: number | null;
+
+  expense_folio_snapshot: string;
+  product_name_snapshot: string | null;
+  supplier_name_snapshot: string | null;
+  purchase_date: string;
+
+  original_quantity: number;
+  available_quantity: number;
+  used_quantity: number;
+
+  unit: string;
+  unit_cost: number;
+  total_cost: number;
+  available_cost: number;
+
+  status: WarehouseLotStatus;
+}
+
+/* =====================================================
+ *  ALMACÉN - ASIGNACIÓN
+ * ===================================================== */
+
+export interface AssignWarehouseLotDto {
+  project_id: number;
+  quantity: number;
+  notes?: string | null;
+}
+
+/* =====================================================
+ *  ALMACÉN - MOVIMIENTOS
+ * ===================================================== */
+
+export interface WarehouseMovementResponseDto {
+  id: number;
+  warehouse_lot_id: number;
+
+  movement_type: WarehouseMovementType;
+
+  project_id: number | null;
+  project_name: string | null;
+
+  quantity: number;
+  unit: string;
+  unit_cost: number;
+  amount: number;
+
+  previous_available_quantity: number;
+  new_available_quantity: number;
+
+  related_movement_id: number | null;
+
+  notes: string | null;
+  is_cancelled: boolean;
+  created_at: string;
+}
+
+export interface ReturnWarehouseMovementDto {
+  notes?: string | null;
 }

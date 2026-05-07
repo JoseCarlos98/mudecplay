@@ -2,6 +2,12 @@
   display: block;
 }
 
+.c-loading-host {
+  .c-filters{
+    padding-top: 5px;
+  }
+}
+
 .overtime-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

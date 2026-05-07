@@ -1,86 +1,122 @@
 <div class="card-content-form">
   <app-module-header
     [title]="expenseId ? 'Editar gasto' : (isXmlImport ? 'Registrar gasto desde XML' : 'Registrar gasto')"
-    [config]="headerConfig" (action)="onHeaderAction($event)">
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
   </app-module-header>
 
   @if (isXmlImport) {
-  <div class="xml-status">
-    <div class="xml-status__top-row">
-      <span class="xml-status__tag">
-        <mat-icon class="xml-status__tag-icon">feed</mat-icon>
-        Desde XML
-      </span>
-
-      <div class="xml-status__counter">
-        <span class="xml-status__counter-main">
-          CFDI
-          {{
-          xmlQueueTotal > 0
-          ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
-          : 'actual'
-          }}
+    <div class="xml-status">
+      <div class="xml-status__top-row">
+        <span class="xml-status__tag">
+          <mat-icon class="xml-status__tag-icon">feed</mat-icon>
+          Desde XML
         </span>
 
-        @if (xmlQueuePending > 0) {
-        <span class="xml-status__counter-pending">
-          · Quedan {{ xmlQueuePending }} por registrar
-        </span>
-        }
+        <div class="xml-status__counter">
+          <span class="xml-status__counter-main">
+            CFDI
+            {{
+              xmlQueueTotal > 0
+                ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+                : 'actual'
+            }}
+          </span>
+
+          @if (xmlQueuePending > 0) {
+            <span class="xml-status__counter-pending">
+              · Quedan {{ xmlQueuePending }} por registrar
+            </span>
+          }
+        </div>
       </div>
-    </div>
 
-    <p class="text-info">
-      Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
-      <strong>producto</strong> y <strong>monto</strong> provienen del CFDI y
-      no pueden modificarse. Solo puedes registrar <strong>abonos</strong> y
-      asignar <strong>proyectos</strong>.
-    </p>
-  </div>
+      <p class="text-info">
+        Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
+        <strong>producto</strong> y <strong>monto</strong> provienen del CFDI.
+        Puedes registrar <strong>abonos</strong> y decidir si un concepto será
+        <strong>gasto directo</strong> o <strong>almacén</strong>.
+      </p>
+    </div>
   }
 
   @if (isLaborAuto) {
-  <div class="xml-status">
-    <div class="xml-status__top-row">
-      <span class="xml-status__tag">
-        <mat-icon class="xml-status__tag-icon">engineering</mat-icon>
-        Mano de obra
-      </span>
-    </div>
+    <div class="xml-status">
+      <div class="xml-status__top-row">
+        <span class="xml-status__tag">
+          <mat-icon class="xml-status__tag-icon">engineering</mat-icon>
+          Mano de obra
+        </span>
+      </div>
 
-    <p class="text-info">
-      Este gasto fue generado automáticamente desde asistencia. El
-      <strong>proveedor</strong> corresponde al empleado y el
-      <strong>producto</strong> corresponde al área del empleado, por lo que
-      no pueden modificarse aquí.
-    </p>
-  </div>
+      <p class="text-info">
+        Este gasto fue generado automáticamente desde asistencia. El
+        <strong>proveedor</strong> corresponde al empleado y el
+        <strong>producto</strong> corresponde al área del empleado, por lo que
+        no pueden modificarse aquí.
+      </p>
+    </div>
   }
 
-  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
+  @if (!isLaborAuto) {
+    <div class="warehouse-info">
+      <mat-icon>info</mat-icon>
+
+      <div>
+        <strong>Control de almacén:</strong>
+        los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
+        Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+      </div>
+    </div>
+  }
+
+  @if (isWarehouseSafeExpense) {
+    <div class="warehouse-info warehouse-info--warning">
+      <mat-icon>lock</mat-icon>
+
+      <div>
+        Este gasto ya generó existencias de almacén. Solo puedes modificar
+        <strong>fecha</strong>, <strong>proveedor</strong> y <strong>pagos</strong>.
+        Los productos, cantidades, unidades y montos se corrigen desde almacén.
+      </div>
+    </div>
+  }
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="expenseId ? updateData() : saveData()"
+    id="form"
+    class="c-form">
 
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
-      <!-- Fecha -->
       <div class="md:col-span-1">
-        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
+        <app-input-date
+          formControlName="date"
+          label="Fecha"
+          mode="single"
+          [showClear]="true">
         </app-input-date>
       </div>
 
-      <!-- Proveedor -->
       <div class="md:col-span-1">
         @if (isLaborAuto) {
-        <app-input-field formControlName="supplier_display" label="Proveedor" type="text">
-        </app-input-field>
+          <app-input-field
+            formControlName="supplier_display"
+            label="Proveedor"
+            type="text">
+          </app-input-field>
         } @else {
-        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
-        </app-autocomplete>
+          <app-autocomplete
+            formControlName="supplier_id"
+            label="Proveedor"
+            [remote]="true"
+            [initialDisplay]="formData?.supplier?.company_name ?? ''"
+            catalogType="supplier">
+          </app-autocomplete>
         }
       </div>
 
-      <!-- Bloque dinámico de items -->
       <div class="form-dinamic md:col-span-3" formArrayName="items">
-        <!-- Header -->
         <div class="form-dinamic-header">
           <div class="flex items-center gap-2">
             <span class="form-dinamic-title">Productos del gasto</span>
@@ -90,18 +126,20 @@
             </span>
           </div>
 
-          @if (!cfdiUuidFromXml && !isLaborAuto) {
-          <button type="button" class="btn-add-row" (click)="addItem()">
-            <mat-icon>add</mat-icon>
-            <span>Agregar</span>
-          </button>
+          @if (!cfdiUuidFromXml && !isLaborAuto && !isWarehouseSafeExpense) {
+            <button type="button" class="btn-add-row" (click)="addItem()">
+              <mat-icon>add</mat-icon>
+              <span>Agregar</span>
+            </button>
           }
         </div>
 
-        <!-- Barra masiva -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
           <div class="bulk-check">
-            <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
+            <mat-checkbox
+              color="primary"
+              class="bulk-checkbox"
+              [checked]="allSelected"
               (change)="onToggleSelectAll($event.checked)">
               Todos
             </mat-checkbox>
@@ -118,159 +156,359 @@
               </app-autocomplete>
             </div>
 
-            <button type="button" class="btn-primary bulk-btn"
-              [disabled]="!hasAnySelected || !bulkProjectSelected"
+            <button
+              type="button"
+              class="btn-primary bulk-btn"
+              [disabled]="!hasAnySelectedDirect || !bulkProjectSelected || isWarehouseSafeExpense"
               (click)="applyBulkProject()">
               <mat-icon>done_all</mat-icon>
               <span>Aplicar</span>
             </button>
           </div>
 
-          @if (!isXmlImport && !isLaborAuto) {
-          <div class="bulk-group bulk-group--amount">
-            <div class="bulk-field">
-              <app-input-field
-                [formControl]="bulkAmountCtrl"
-                label="Monto global"
-                type="money">
-              </app-input-field>
-            </div>
+          @if (!isXmlImport && !isLaborAuto && !isWarehouseSafeExpense) {
+            <div class="bulk-group bulk-group--amount">
+              <div class="bulk-field">
+                <app-input-field
+                  [formControl]="bulkAmountCtrl"
+                  label="Monto global"
+                  type="money">
+                </app-input-field>
+              </div>
 
-            <button type="button" class="btn-primary bulk-btn"
-              [disabled]="!canApplyAmountToSelection"
-              (click)="applyAmountToSelected()">
-              <mat-icon>price_check</mat-icon>
-              <span>Aplicar monto</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                class="btn-primary bulk-btn"
+                [disabled]="!canApplyAmountToSelection"
+                (click)="applyAmountToSelected()">
+                <mat-icon>price_check</mat-icon>
+                <span>Aplicar monto</span>
+              </button>
+            </div>
           }
 
           @if (!isLaborAuto) {
-          <div class="bulk-group bulk-group--payment">
-            <div class="bulk-field">
-              <app-input-date
-                [formControl]="bulkPaymentDateCtrl"
-                label="Fecha de pago"
-                mode="single"
-                [showClear]="true">
-              </app-input-date>
-            </div>
+            <div class="bulk-group bulk-group--payment">
+              <div class="bulk-field">
+                <app-input-date
+                  [formControl]="bulkPaymentDateCtrl"
+                  label="Fecha de pago"
+                  mode="single"
+                  [showClear]="true">
+                </app-input-date>
+              </div>
 
-            <button type="button" class="btn-primary bulk-btn"
-              [disabled]="!canApplyFullPaymentToSelection"
-              (click)="applyFullPaymentToSelected()">
-              <mat-icon>payments</mat-icon>
-              <span>Pagar</span>
-            </button>
-          </div>
+              <button
+                type="button"
+                class="btn-primary bulk-btn"
+                [disabled]="!canApplyFullPaymentToSelection"
+                (click)="applyFullPaymentToSelected()">
+                <mat-icon>payments</mat-icon>
+                <span>Pagar</span>
+              </button>
+            </div>
           }
         </div>
 
-        <!-- Lista -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
-          <div class="forms-controls" [formGroupName]="i">
-            <div class="grid gap-4 md:grid-cols-3 sm:grid-cols-1">
-              <!-- Producto -->
-              <div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div class="project-cell-header">
-                    <mat-checkbox color="primary" formControlName="selected">
-                    </mat-checkbox>
-                  </div>
+            <div
+              class="forms-controls expense-item-card"
+              [class.expense-item-card--warehouse]="isWarehouseItem(itemCtrl)"
+              [formGroupName]="i">
 
-                  @if (isLaborAuto) {
-                  <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
-                  </app-input-field>
-                  } @else {
-                  <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
-                    catalogType="product">
-                  </app-autocomplete>
+              <div class="expense-item-card__top">
+                <div class="expense-item-card__left">
+                  <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
+
+                  @if (!isLaborAuto) {
+                    <div class="item-type">
+                      <span class="item-type__label">Tipo</span>
+
+                      <div class="item-type__toggle">
+                        <button
+                          type="button"
+                          [disabled]="!canChangeItemType(itemCtrl)"
+                          [class.active]="!isWarehouseItem(itemCtrl)"
+                          (click)="setItemType(i, 'direct')">
+                          Directo
+                        </button>
+
+                        <button
+                          type="button"
+                          [disabled]="!canChangeItemType(itemCtrl)"
+                          [class.active]="isWarehouseItem(itemCtrl)"
+                          (click)="setItemType(i, 'warehouse')">
+                          Almacén
+                        </button>
+                      </div>
+                    </div>
+
+                    <span
+                      class="item-type-chip"
+                      [class.item-type-chip--warehouse]="isWarehouseItem(itemCtrl)"
+                      [class.item-type-chip--direct]="!isWarehouseItem(itemCtrl)">
+                      <mat-icon>{{ isWarehouseItem(itemCtrl) ? 'inventory_2' : 'receipt_long' }}</mat-icon>
+                      {{ isWarehouseItem(itemCtrl) ? 'Entra a almacén' : 'Gasto directo' }}
+                    </span>
                   }
                 </div>
-              </div>
 
-              <!-- Monto -->
-              <div class="discount_amount">
-                @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
-                <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
-                  Descuento CFDI:
-                  -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
-                </span>
+                @if (itemsFA.length > 1 && !cfdiUuidFromXml && !isLaborAuto && !isWarehouseSafeExpense) {
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="delete-btn"
+                    (click)="removeItem(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 }
-
-                @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
-                <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
-                  Retenciones CFDI:
-                  -{{ itemCtrl.get('withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
-                </span>
-                }
-
-                <app-input-field formControlName="amount" label="Monto" type="money">
-                </app-input-field>
               </div>
 
-              <!-- Proyecto -->
-              <div class="project-cell">
-                <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
-                </app-autocomplete>
-              </div>
-            </div>
+              @if (isWarehouseItem(itemCtrl)) {
+                <div class="warehouse-grid">
+                  <div>
+                    @if (isLaborAuto) {
+                      <app-input-field
+                        class="w-100"
+                        formControlName="product_display"
+                        label="Producto"
+                        type="text">
+                      </app-input-field>
+                    } @else {
+                      <app-autocomplete
+                        class="w-100"
+                        formControlName="product_id"
+                        label="Producto"
+                        [remote]="true"
+                        catalogType="product">
+                      </app-autocomplete>
+                    }
+                  </div>
 
-            <!-- Fila 2 -->
-            <div class="mt-4 grid gap-4 md:grid-cols-3 sm:grid-cols-1 items-start">
-              <!-- Abono -->
-              <div>
-                <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
-                      'field-invalid':
-                        itemCtrl.get('amount')?.value &&
-                        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                    }">
-                </app-input-field>
-              </div>
+                  <div>
+                    <app-input-field
+                      formControlName="quantity"
+                      label="Cantidad"
+                      type="number">
+                    </app-input-field>
+                  </div>
 
-              <!-- Fecha de pago -->
-              @if (
-              itemCtrl.get('amount')?.value &&
-              itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
-              ) {
-              <div>
-                <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
-                </app-input-date>
-              </div>
-              }
+                  <div>
+                    <app-input-field
+                      formControlName="unit"
+                      label="Unidad"
+                      type="text">
+                    </app-input-field>
+                  </div>
 
-              <!-- Restante + delete -->
-              <div class="restant flex flex-col md:flex-row md:items-start md:justify-between gap-2">
-                @if (itemCtrl.get('amount')?.value) {
-                <small class="text-mb text-gray-500" [ngClass]="{
-                        'error-restant':
+                  <div>
+                    <app-input-field
+                      formControlName="unit_price"
+                      label="Precio unitario"
+                      type="money">
+                    </app-input-field>
+                  </div>
+
+                  <div class="discount_amount">
+                    @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
+                      <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
+                        Descuento CFDI:
+                        -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+
+                    @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
+                      <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
+                        Retenciones CFDI:
+                        -{{ itemCtrl.get('withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+
+                    <app-input-field
+                      formControlName="amount"
+                      label="Monto"
+                      type="money">
+                    </app-input-field>
+                  </div>
+                </div>
+
+                <div class="warehouse-secondary-grid">
+                  <div class="warehouse-project-message">
+                    <div class="warehouse-project-message__icon">
+                      <mat-icon>inventory_2</mat-icon>
+                    </div>
+
+                    <div class="warehouse-project-message__content">
+                      <span class="warehouse-project-message__title">
+                        Se asignará después desde Almacén
+                      </span>
+
+                      <span class="warehouse-project-message__desc">
+                        Este concepto no requiere proyecto al registrar.
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="warehouse-helper">
+                    <mat-icon>inventory_2</mat-icon>
+                    <span>
+                      Existencia inicial:
+                      <strong>{{ getWarehouseInitialText(itemCtrl) }}</strong>
+                    </span>
+                  </div>
+
+                  <div class="warehouse-payment-cell">
+                    <app-input-field
+                      formControlName="payment_amount"
+                      label="Abono / Pago"
+                      type="money"
+                      [ngClass]="{
+                        'field-invalid':
                           itemCtrl.get('amount')?.value &&
                           itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
                       }">
-                  Restante:
-                  {{
-                  (itemCtrl.get('amount')?.value || 0) -
-                  (itemCtrl.get('payment_amount')?.value || 0)
-                  | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
-                  }}
-                </small>
-                }
+                    </app-input-field>
 
-                @if (itemsFA.length > 1 && !cfdiUuidFromXml && !isLaborAuto) {
-                <button type="button" mat-icon-button class="delete-btn self-end md:self-auto" (click)="removeItem(i)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-                }
-              </div>
+                    @if (
+                      itemCtrl.get('amount')?.value &&
+                      itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
+                    ) {
+                      <div class="warehouse-payment-date">
+                        <app-input-date
+                          formControlName="payment_date"
+                          label="Fecha de pago"
+                          mode="single"
+                          [showClear]="true">
+                        </app-input-date>
+                      </div>
+                    }
+
+                    @if (itemCtrl.get('amount')?.value) {
+                      <small
+                        class="warehouse-restant"
+                        [ngClass]="{
+                          'error-restant':
+                            itemCtrl.get('amount')?.value &&
+                            itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+                        }">
+                        Restante:
+                        {{
+                          (itemCtrl.get('amount')?.value || 0) -
+                          (itemCtrl.get('payment_amount')?.value || 0)
+                          | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
+                        }}
+                      </small>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="direct-grid">
+                  <div>
+                    @if (isLaborAuto) {
+                      <app-input-field
+                        class="w-100"
+                        formControlName="product_display"
+                        label="Producto"
+                        type="text">
+                      </app-input-field>
+                    } @else {
+                      <app-autocomplete
+                        class="w-100"
+                        formControlName="product_id"
+                        label="Producto"
+                        [remote]="true"
+                        catalogType="product">
+                      </app-autocomplete>
+                    }
+                  </div>
+
+                  <div class="discount_amount">
+                    @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
+                      <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
+                        Descuento CFDI:
+                        -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+
+                    @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
+                      <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
+                        Retenciones CFDI:
+                        -{{ itemCtrl.get('withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+
+                    <app-input-field
+                      formControlName="amount"
+                      label="Monto"
+                      type="money">
+                    </app-input-field>
+                  </div>
+
+                  <div class="direct-payment-cell">
+                    <app-input-field
+                      formControlName="payment_amount"
+                      label="Abono / Pago"
+                      type="money"
+                      [ngClass]="{
+                        'field-invalid':
+                          itemCtrl.get('amount')?.value &&
+                          itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+                      }">
+                    </app-input-field>
+
+                    @if (
+                      itemCtrl.get('amount')?.value &&
+                      itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
+                    ) {
+                      <div class="direct-payment-date">
+                        <app-input-date
+                          formControlName="payment_date"
+                          label="Fecha de pago"
+                          mode="single"
+                          [showClear]="true">
+                        </app-input-date>
+                      </div>
+                    }
+
+                    @if (itemCtrl.get('amount')?.value) {
+                      <small
+                        class="direct-restant"
+                        [ngClass]="{
+                          'error-restant':
+                            itemCtrl.get('amount')?.value &&
+                            itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+                        }">
+                        Restante:
+                        {{
+                          (itemCtrl.get('amount')?.value || 0) -
+                          (itemCtrl.get('payment_amount')?.value || 0)
+                          | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
+                        }}
+                      </small>
+                    }
+                  </div>
+
+                  <div class="project-cell">
+                    <app-autocomplete
+                      formControlName="project_id"
+                      label="Proyecto"
+                      [remote]="true"
+                      catalogType="project">
+                    </app-autocomplete>
+                  </div>
+                </div>
+              }
             </div>
-          </div>
           }
         </div>
       </div>
     </div>
   </form>
 
-  <app-btns-section form="form" [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
+  <app-btns-section
+    form="form"
+    [saveDisabled]="!form.valid"
+    (action)="onFooterAction($event)">
   </app-btns-section>
 </div>

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import {
+  AbstractControl,
   FormArray,
   FormBuilder,
   FormGroup,
@@ -66,9 +67,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './expense-form.scss',
 })
 export class ExpenseForm implements OnInit {
-  // ==========================
-  //  INYECCIONES
-  // ==========================
   private readonly activatedroute = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
   private readonly fb = inject(FormBuilder);
@@ -78,20 +76,15 @@ export class ExpenseForm implements OnInit {
 
   readonly headerConfig = HEADER_CONFIG;
 
-  // bandera XML
   isXmlImport: boolean = false;
-
-  // bandera Mano de Obra
   isLaborAuto: boolean = false;
+  hasWarehouseItems: boolean = false;
 
-  // uuid CFDI cuando viene de XML
   cfdiUuidFromXml: string | null = null;
 
-  // contador visual de la cola de XML
   xmlQueueTotal: number = 0;
   xmlQueuePending: number = 0;
 
-  // Formulario reactivo principal
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, {
       validators: Validators.required,
@@ -101,11 +94,9 @@ export class ExpenseForm implements OnInit {
     items: this.fb.array([this.createItemGroup()]),
   });
 
-  // Proyecto masivo
   bulkProjectCtrl = this.fb.control<any>(null);
   bulkProjectSelected: Catalog | null = null;
 
-  // Acciones masivas
   bulkAmountCtrl = this.fb.control<number | null>(null);
   bulkPaymentDateCtrl = this.fb.control<string | null>('');
 
@@ -115,6 +106,53 @@ export class ExpenseForm implements OnInit {
   get currentXmlIndex(): number {
     if (!this.xmlQueueTotal) return 1;
     return this.xmlQueueTotal - this.xmlQueuePending;
+  }
+
+  get itemsFA(): FormArray {
+    return this.form.get('items') as FormArray;
+  }
+
+  get hasAnySelected(): boolean {
+    return this.itemsFA.controls.some((ctrl) => !!ctrl.get('selected')?.value);
+  }
+
+  get hasAnySelectedDirect(): boolean {
+    return this.itemsFA.controls.some(
+      (ctrl) => !!ctrl.get('selected')?.value && !this.isWarehouseItem(ctrl),
+    );
+  }
+
+  get allSelected(): boolean {
+    if (!this.itemsFA.length) return false;
+    return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
+  }
+
+  get isSpecialReadonlyExpense(): boolean {
+    return this.isXmlImport || this.isLaborAuto;
+  }
+
+  get isWarehouseSafeExpense(): boolean {
+    return !!this.expenseId && this.hasWarehouseItems;
+  }
+
+  get canApplyAmountToSelection(): boolean {
+    const amount = Number(this.bulkAmountCtrl.value ?? 0);
+
+    return (
+      !this.isXmlImport &&
+      !this.isLaborAuto &&
+      !this.isWarehouseSafeExpense &&
+      this.hasAnySelectedDirect &&
+      amount > 0
+    );
+  }
+
+  get canApplyFullPaymentToSelection(): boolean {
+    return (
+      !this.isLaborAuto &&
+      this.hasAnySelected &&
+      !!this.bulkPaymentDateCtrl.value
+    );
   }
 
   ngOnInit() {
@@ -138,9 +176,6 @@ export class ExpenseForm implements OnInit {
       });
   }
 
-  // ==========================
-  //  HELPERS
-  // ==========================
   private getTodayIsoDate(): string {
     const today = new Date();
     const year = today.getFullYear();
@@ -159,44 +194,144 @@ export class ExpenseForm implements OnInit {
     });
   }
 
-  get itemsFA(): FormArray {
-    return this.form.get('items') as FormArray;
+  private toNumberOrNull(value: any): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    const num = Number(value);
+    return Number.isFinite(num) ? num : null;
   }
 
-  get hasAnySelected(): boolean {
-    return this.itemsFA.controls.some((ctrl) => !!ctrl.get('selected')?.value);
+  private round2(value: number): number {
+    return Number(Number(value ?? 0).toFixed(2));
   }
 
-  get allSelected(): boolean {
-    if (!this.itemsFA.length) return false;
-    return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
+  private round4(value: number): number {
+    return Number(Number(value ?? 0).toFixed(4));
   }
 
-  get isSpecialReadonlyExpense(): boolean {
-    return this.isXmlImport || this.isLaborAuto;
-  }
-
-  get canApplyAmountToSelection(): boolean {
-    const amount = Number(this.bulkAmountCtrl.value ?? 0);
-
-    return (
-      !this.isXmlImport &&
-      !this.isLaborAuto &&
-      this.hasAnySelected &&
-      amount > 0
-    );
-  }
-
-  get canApplyFullPaymentToSelection(): boolean {
-    return (
-      !this.isLaborAuto &&
-      this.hasAnySelected &&
-      !!this.bulkPaymentDateCtrl.value
-    );
+  private round6(value: number): number {
+    return Number(Number(value ?? 0).toFixed(6));
   }
 
   // ==========================
-  //  CARGAR GASTO (EDICIÓN)
+  //  ALMACÉN - HELPERS UI
+  // ==========================
+  isWarehouseItem(ctrl: AbstractControl): boolean {
+    return ctrl.get('item_type')?.value === 'warehouse';
+  }
+
+  canChangeItemType(ctrl: AbstractControl): boolean {
+    if (this.isLaborAuto) return false;
+    if (this.isWarehouseSafeExpense) return false;
+    return !!ctrl.get('item_type')?.enabled;
+  }
+
+  setItemType(index: number, type: entity.ExpenseItemType): void {
+    const ctrl = this.itemsFA.at(index);
+    if (!ctrl || !this.canChangeItemType(ctrl)) return;
+
+    ctrl.get('item_type')?.setValue(type);
+    ctrl.get('item_type')?.markAsDirty();
+    ctrl.get('item_type')?.markAsTouched();
+
+    this.refreshItemTypeState(ctrl);
+  }
+
+  getWarehouseInitialText(ctrl: AbstractControl): string {
+    const quantity = Number(ctrl.get('quantity')?.value ?? 0);
+    const unit = String(ctrl.get('unit')?.value ?? '').trim();
+
+    if (!quantity || quantity <= 0) return '0';
+    return `${quantity.toLocaleString('es-MX')} ${unit || ''}`.trim();
+  }
+
+  private setupWarehouseItemBehaviour(group: FormGroup): void {
+    group
+      .get('item_type')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.refreshItemTypeState(group);
+      });
+
+    group
+      .get('quantity')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.recalculateWarehouseAmount(group);
+      });
+
+    group
+      .get('unit_price')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.recalculateWarehouseAmount(group);
+      });
+
+    this.refreshItemTypeState(group, false);
+  }
+
+  private refreshItemTypeState(ctrl: AbstractControl, emitEvent = false): void {
+    const isWarehouse = this.isWarehouseItem(ctrl);
+
+    const quantityCtrl = ctrl.get('quantity');
+    const unitCtrl = ctrl.get('unit');
+    const unitPriceCtrl = ctrl.get('unit_price');
+    const amountCtrl = ctrl.get('amount');
+    const projectCtrl = ctrl.get('project_id');
+
+    if (isWarehouse) {
+      quantityCtrl?.setValidators([Validators.required, Validators.min(0.0001)]);
+      unitCtrl?.setValidators([Validators.required]);
+      unitPriceCtrl?.setValidators([Validators.required, Validators.min(0.000001)]);
+
+      projectCtrl?.setValue(null, { emitEvent: false });
+      projectCtrl?.clearValidators();
+      projectCtrl?.disable({ emitEvent: false });
+
+      amountCtrl?.disable({ emitEvent: false });
+
+      this.recalculateWarehouseAmount(ctrl);
+    } else {
+      quantityCtrl?.clearValidators();
+      unitCtrl?.clearValidators();
+      unitPriceCtrl?.clearValidators();
+
+      if (!this.isLaborAuto && !this.isWarehouseSafeExpense) {
+        projectCtrl?.enable({ emitEvent: false });
+      }
+
+      if (!this.isXmlImport && !this.isLaborAuto && !this.isWarehouseSafeExpense) {
+        amountCtrl?.enable({ emitEvent: false });
+      }
+    }
+
+    quantityCtrl?.updateValueAndValidity({ emitEvent });
+    unitCtrl?.updateValueAndValidity({ emitEvent });
+    unitPriceCtrl?.updateValueAndValidity({ emitEvent });
+    projectCtrl?.updateValueAndValidity({ emitEvent });
+    amountCtrl?.updateValueAndValidity({ emitEvent });
+  }
+
+  private recalculateWarehouseAmount(ctrl: AbstractControl): void {
+    if (!this.isWarehouseItem(ctrl)) return;
+
+    const quantity = Number(ctrl.get('quantity')?.value ?? 0);
+    const unitPrice = Number(ctrl.get('unit_price')?.value ?? 0);
+
+    if (quantity > 0 && unitPrice > 0) {
+      const amount = this.round2(quantity * unitPrice);
+      ctrl.get('amount')?.setValue(amount, { emitEvent: false });
+      ctrl.get('amount')?.updateValueAndValidity({ emitEvent: false });
+
+      const paymentAmount = Number(ctrl.get('payment_amount')?.value ?? 0);
+      if (paymentAmount > amount) {
+        ctrl.get('payment_amount')?.setValue(null, { emitEvent: false });
+        ctrl.get('payment_date')?.setValue(this.getTodayIsoDate(), { emitEvent: false });
+      }
+    }
+  }
+
+  // ==========================
+  //  CARGAR GASTO
   // ==========================
   loadExpense(id: number) {
     this.expenseService.getById(id).subscribe({
@@ -207,8 +342,11 @@ export class ExpenseForm implements OnInit {
 
         this.isXmlImport = !!anyResp.cfdi_uuid;
         this.cfdiUuidFromXml = anyResp.cfdi_uuid ?? null;
-
         this.isLaborAuto = anyResp.origin_type === 'labor_auto';
+
+        this.hasWarehouseItems = response.items.some(
+          (item) => item.item_type === 'warehouse',
+        );
 
         this.form.patchValue({
           date: response.date,
@@ -225,6 +363,13 @@ export class ExpenseForm implements OnInit {
 
         const itemsFGs = response.items.map((item) =>
           this.createItemGroup({
+            id: item.id,
+
+            item_type: item.item_type ?? 'direct',
+            quantity: item.quantity ?? null,
+            unit: item.unit ?? null,
+            unit_price: item.unit_price ?? null,
+
             amount: item.amount,
             payment_amount: item.payment_amount ?? null,
             payment_date: item.payment_date ?? null,
@@ -253,17 +398,22 @@ export class ExpenseForm implements OnInit {
         if (this.isLaborAuto) {
           this.applyLaborAutoLocking();
         }
+
+        if (this.isWarehouseSafeExpense) {
+          this.applyWarehouseSafeLocking();
+        }
       },
       error: (err) => console.error('Error al cargar gastos:', err),
     });
   }
 
   // ==========================
-  //  CARGAR DESDE XML (CREACIÓN)
+  //  CARGAR DESDE XML
   // ==========================
   patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
     this.isXmlImport = true;
     this.isLaborAuto = false;
+    this.hasWarehouseItems = false;
     this.cfdiUuidFromXml = draft.uuid;
 
     this.form.patchValue({
@@ -276,6 +426,11 @@ export class ExpenseForm implements OnInit {
 
     const itemsFGs = draft.items.map((item) =>
       this.createItemGroup({
+        item_type: item.item_type ?? 'direct',
+        quantity: item.quantity ?? null,
+        unit: item.unit ?? null,
+        unit_price: item.unit_price ?? null,
+
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
         payment_date: item.payment_date ?? null,
@@ -313,6 +468,8 @@ export class ExpenseForm implements OnInit {
       ctrl.get('discount_amount')?.disable();
       ctrl.get('tax_amount')?.disable();
       ctrl.get('withheld_amount')?.disable();
+
+      this.refreshItemTypeState(ctrl, false);
     });
   }
 
@@ -328,6 +485,10 @@ export class ExpenseForm implements OnInit {
       const amountCtrl = ctrl.get('amount');
       const paymentAmountCtrl = ctrl.get('payment_amount');
       const paymentDateCtrl = ctrl.get('payment_date');
+      const itemTypeCtrl = ctrl.get('item_type');
+      const quantityCtrl = ctrl.get('quantity');
+      const unitCtrl = ctrl.get('unit');
+      const unitPriceCtrl = ctrl.get('unit_price');
 
       productCtrl?.clearValidators();
       productCtrl?.updateValueAndValidity({ emitEvent: false });
@@ -335,9 +496,35 @@ export class ExpenseForm implements OnInit {
 
       productDisplayCtrl?.disable({ emitEvent: false });
 
+      itemTypeCtrl?.disable({ emitEvent: false });
+      quantityCtrl?.disable({ emitEvent: false });
+      unitCtrl?.disable({ emitEvent: false });
+      unitPriceCtrl?.disable({ emitEvent: false });
+
       amountCtrl?.disable({ emitEvent: false });
       paymentAmountCtrl?.disable({ emitEvent: false });
       paymentDateCtrl?.disable({ emitEvent: false });
+    });
+  }
+
+  applyWarehouseSafeLocking(): void {
+    if (!this.isWarehouseSafeExpense) return;
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      ctrl.get('item_type')?.disable({ emitEvent: false });
+      ctrl.get('product_id')?.disable({ emitEvent: false });
+      ctrl.get('project_id')?.disable({ emitEvent: false });
+
+      ctrl.get('quantity')?.disable({ emitEvent: false });
+      ctrl.get('unit')?.disable({ emitEvent: false });
+      ctrl.get('unit_price')?.disable({ emitEvent: false });
+
+      ctrl.get('amount')?.disable({ emitEvent: false });
+
+      ctrl.get('base_amount')?.disable({ emitEvent: false });
+      ctrl.get('discount_amount')?.disable({ emitEvent: false });
+      ctrl.get('tax_amount')?.disable({ emitEvent: false });
+      ctrl.get('withheld_amount')?.disable({ emitEvent: false });
     });
   }
 
@@ -377,6 +564,21 @@ export class ExpenseForm implements OnInit {
       return;
     }
 
+    if (this.isWarehouseSafeExpense) {
+      const payload = this.buildWarehouseSafePayloadFromForm();
+
+      this.expenseService.updateWarehouseExpenseSafe(this.expenseId, payload).subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.router.navigateByUrl('/gastos');
+          }
+        },
+        error: (err) => console.error('Error al actualizar gasto con almacén:', err),
+      });
+
+      return;
+    }
+
     const payload = this.buildPayloadFromForm();
 
     this.expenseService.update(this.expenseId, payload).subscribe({
@@ -395,7 +597,17 @@ export class ExpenseForm implements OnInit {
   createItemGroup(data?: any): FormGroup {
     const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
 
-    return this.fb.group({
+    const group = this.fb.group({
+      id: [data?.id ?? null],
+
+      item_type: this.fb.control<entity.ExpenseItemType>(
+        data?.item_type ?? 'direct',
+      ),
+
+      quantity: [data?.quantity ?? null],
+      unit: [data?.unit ?? null],
+      unit_price: [data?.unit_price ?? null],
+
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
 
       base_amount: [data?.base_amount ?? null],
@@ -405,25 +617,34 @@ export class ExpenseForm implements OnInit {
 
       payment_amount: [data?.payment_amount ?? null],
       payment_date: [defaultPaymentDate],
+
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
+
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
       }),
-      product_display: this.fb.control<string>(
-        { value: data?.product_display ?? '', disabled: true },
-      ),
+
+      product_display: this.fb.control<string>({
+        value: data?.product_display ?? '',
+        disabled: true,
+      }),
+
       selected: this.fb.control<boolean>(false),
     });
+
+    this.setupWarehouseItemBehaviour(group);
+
+    return group;
   }
 
   addItem() {
-    if (this.isXmlImport || this.isLaborAuto) return;
+    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
     this.itemsFA.push(this.createItemGroup());
   }
 
   removeItem(index: number) {
     if (this.itemsFA.length <= 1) return;
-    if (this.isXmlImport || this.isLaborAuto) return;
+    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
     this.itemsFA.removeAt(index);
   }
 
@@ -442,10 +663,10 @@ export class ExpenseForm implements OnInit {
 
   applyBulkProject(): void {
     const project = this.bulkProjectSelected;
-    if (!project) return;
+    if (!project || this.isWarehouseSafeExpense) return;
 
     this.itemsFA.controls.forEach((ctrl) => {
-      if (ctrl.get('selected')?.value) {
+      if (ctrl.get('selected')?.value && !this.isWarehouseItem(ctrl)) {
         ctrl.get('project_id')?.setValue(project);
         ctrl.get('project_id')?.markAsDirty();
         ctrl.get('project_id')?.markAsTouched();
@@ -454,7 +675,7 @@ export class ExpenseForm implements OnInit {
   }
 
   applyAmountToSelected(): void {
-    if (this.isXmlImport || this.isLaborAuto) return;
+    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
 
     const amount = Number(this.bulkAmountCtrl.value ?? 0);
 
@@ -466,6 +687,7 @@ export class ExpenseForm implements OnInit {
 
     this.itemsFA.controls.forEach((ctrl) => {
       if (!ctrl.get('selected')?.value) return;
+      if (this.isWarehouseItem(ctrl)) return;
 
       ctrl.get('amount')?.setValue(amount);
       ctrl.get('amount')?.markAsDirty();
@@ -578,7 +800,27 @@ export class ExpenseForm implements OnInit {
       cfdi_uuid: this.cfdiUuidFromXml ?? null,
 
       items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => {
-        const amount = Number(item.amount ?? 0);
+        const itemType: entity.ExpenseItemType = item.item_type ?? 'direct';
+
+        const quantity =
+          itemType === 'warehouse'
+            ? this.toNumberOrNull(item.quantity)
+            : null;
+
+        const unit =
+          itemType === 'warehouse'
+            ? String(item.unit ?? '').trim() || null
+            : null;
+
+        const unitPrice =
+          itemType === 'warehouse'
+            ? this.toNumberOrNull(item.unit_price)
+            : null;
+
+        const amount =
+          itemType === 'warehouse' && quantity && unitPrice
+            ? this.round2(quantity * unitPrice)
+            : Number(item.amount ?? 0);
 
         const paymentAmount =
           item.payment_amount !== null &&
@@ -588,6 +830,20 @@ export class ExpenseForm implements OnInit {
             : null;
 
         return {
+          item_type: itemType,
+
+          quantity:
+            itemType === 'warehouse' && quantity !== null
+              ? this.round4(quantity)
+              : null,
+
+          unit,
+
+          unit_price:
+            itemType === 'warehouse' && unitPrice !== null
+              ? this.round6(unitPrice)
+              : null,
+
           amount,
 
           base_amount:
@@ -625,10 +881,43 @@ export class ExpenseForm implements OnInit {
               ? item.payment_date ?? null
               : null,
 
-          project_id: toIdForm(item.project_id),
+          project_id:
+            itemType === 'warehouse'
+              ? null
+              : toIdForm(item.project_id),
+
           product_id: toIdForm(item.product_id),
         };
       }),
+    };
+  }
+
+  buildWarehouseSafePayloadFromForm(): entity.UpdateWarehouseExpenseSafe {
+    const raw = this.form.getRawValue();
+
+    return {
+      date: raw.date ?? undefined,
+      supplier_id: toIdForm(raw.supplier_id),
+
+      items: (raw.items ?? [])
+        .filter((item: any) => !!item.id)
+        .map((item: any): entity.UpdateWarehouseExpenseSafeItem => {
+          const paymentAmount =
+            item.payment_amount !== null &&
+            item.payment_amount !== undefined &&
+            item.payment_amount !== ''
+              ? Number(item.payment_amount)
+              : null;
+
+          return {
+            id: Number(item.id),
+            payment_amount: paymentAmount,
+            payment_date:
+              paymentAmount !== null && paymentAmount > 0
+                ? item.payment_date ?? null
+                : null,
+          };
+        }),
     };
   }
 
@@ -639,6 +928,7 @@ export class ExpenseForm implements OnInit {
       this.expenseService.clearXmlQueue();
       this.isXmlImport = false;
       this.isLaborAuto = false;
+      this.hasWarehouseItems = false;
       this.cfdiUuidFromXml = null;
       this.router.navigateByUrl('/gastos');
       return;
