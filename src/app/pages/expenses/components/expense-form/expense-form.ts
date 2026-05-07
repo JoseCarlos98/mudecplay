@@ -215,6 +215,9 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  ALMACÉN - HELPERS UI
   // ==========================
+  // ==========================
+  //  ALMACÉN - HELPERS UI
+  // ==========================
   isWarehouseItem(ctrl: AbstractControl): boolean {
     return ctrl.get('item_type')?.value === 'warehouse';
   }
@@ -226,14 +229,105 @@ export class ExpenseForm implements OnInit {
   }
 
   setItemType(index: number, type: entity.ExpenseItemType): void {
-    const ctrl = this.itemsFA.at(index);
+    const ctrl = this.itemsFA.at(index) as FormGroup;
+
     if (!ctrl || !this.canChangeItemType(ctrl)) return;
 
-    ctrl.get('item_type')?.setValue(type);
+    const currentType = ctrl.get('item_type')?.value as entity.ExpenseItemType;
+
+    if (currentType === type) return;
+
+    this.resetItemValuesForTypeChange(ctrl, type);
+
+    ctrl.get('item_type')?.setValue(type, { emitEvent: false });
     ctrl.get('item_type')?.markAsDirty();
     ctrl.get('item_type')?.markAsTouched();
 
-    this.refreshItemTypeState(ctrl);
+    this.refreshItemTypeState(ctrl, false);
+
+    /**
+     * Importante:
+     * Al cambiar de tipo, los nuevos campos obligatorios quedan inválidos,
+     * pero no deben mostrarse en rojo hasta que el usuario los toque
+     * o intente guardar el formulario.
+     */
+    if (type === 'warehouse') {
+      ['quantity', 'unit', 'unit_price'].forEach((controlName) => {
+        const control = ctrl.get(controlName);
+        control?.markAsPristine();
+        control?.markAsUntouched();
+      });
+    }
+
+    if (type === 'direct') {
+      ['amount'].forEach((controlName) => {
+        const control = ctrl.get(controlName);
+        control?.markAsPristine();
+        control?.markAsUntouched();
+      });
+    }
+  }
+
+  private resetItemValuesForTypeChange(
+    ctrl: AbstractControl,
+    nextType: entity.ExpenseItemType,
+  ): void {
+    /**
+     * Siempre limpiamos pago al cambiar de tipo.
+     * Pero NO marcamos los controles como touched para evitar errores rojos inmediatos.
+     */
+    this.setSilentControlValue(ctrl, 'payment_amount', null);
+    this.setSilentControlValue(ctrl, 'payment_date', null);
+
+    if (nextType === 'warehouse') {
+      /**
+       * Directo -> Almacén
+       *
+       * El proyecto ya no aplica.
+       * Cantidad/unidad/precio deben capturarse desde cero.
+       * El monto se recalcula con cantidad * precio unitario.
+       */
+      this.setSilentControlValue(ctrl, 'project_id', null);
+
+      this.setSilentControlValue(ctrl, 'quantity', null);
+      this.setSilentControlValue(ctrl, 'unit', null);
+      this.setSilentControlValue(ctrl, 'unit_price', null);
+      this.setSilentControlValue(ctrl, 'amount', null);
+
+      return;
+    }
+
+    /**
+     * Almacén -> Directo
+     *
+     * Los datos de almacén ya no aplican.
+     * También limpiamos el monto porque venía calculado desde cantidad * precio unitario.
+     */
+    this.setSilentControlValue(ctrl, 'quantity', null);
+    this.setSilentControlValue(ctrl, 'unit', null);
+    this.setSilentControlValue(ctrl, 'unit_price', null);
+    this.setSilentControlValue(ctrl, 'amount', null);
+  }
+
+  private setSilentControlValue(
+    ctrl: AbstractControl,
+    controlName: string,
+    value: any,
+  ): void {
+    const control = ctrl.get(controlName);
+
+    if (!control) return;
+
+    control.setValue(value, { emitEvent: false });
+
+    /**
+     * Lo dejamos limpio visualmente.
+     * Si el usuario guarda sin llenar, saveData() hace markAllAsTouched()
+     * y ahí sí se mostrarán las validaciones.
+     */
+    control.markAsPristine();
+    control.markAsUntouched();
+    control.updateValueAndValidity({ emitEvent: false });
   }
 
   getWarehouseInitialText(ctrl: AbstractControl): string {
@@ -241,6 +335,7 @@ export class ExpenseForm implements OnInit {
     const unit = String(ctrl.get('unit')?.value ?? '').trim();
 
     if (!quantity || quantity <= 0) return '0';
+
     return `${quantity.toLocaleString('es-MX')} ${unit || ''}`.trim();
   }
 
@@ -352,9 +447,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-                response.supplier.id,
-                response.supplier.company_name,
-              )
+              response.supplier.id,
+              response.supplier.company_name,
+            )
             : null,
           supplier_display: this.isLaborAuto
             ? (response.provider_display_name ?? '')
@@ -824,8 +919,8 @@ export class ExpenseForm implements OnInit {
 
         const paymentAmount =
           item.payment_amount !== null &&
-          item.payment_amount !== undefined &&
-          item.payment_amount !== ''
+            item.payment_amount !== undefined &&
+            item.payment_amount !== ''
             ? Number(item.payment_amount)
             : null;
 
@@ -848,29 +943,29 @@ export class ExpenseForm implements OnInit {
 
           base_amount:
             item.base_amount !== null &&
-            item.base_amount !== undefined &&
-            item.base_amount !== ''
+              item.base_amount !== undefined &&
+              item.base_amount !== ''
               ? Number(item.base_amount)
               : null,
 
           discount_amount:
             item.discount_amount !== null &&
-            item.discount_amount !== undefined &&
-            item.discount_amount !== ''
+              item.discount_amount !== undefined &&
+              item.discount_amount !== ''
               ? Number(item.discount_amount)
               : null,
 
           tax_amount:
             item.tax_amount !== null &&
-            item.tax_amount !== undefined &&
-            item.tax_amount !== ''
+              item.tax_amount !== undefined &&
+              item.tax_amount !== ''
               ? Number(item.tax_amount)
               : null,
 
           withheld_amount:
             item.withheld_amount !== null &&
-            item.withheld_amount !== undefined &&
-            item.withheld_amount !== ''
+              item.withheld_amount !== undefined &&
+              item.withheld_amount !== ''
               ? Number(item.withheld_amount)
               : null,
 
@@ -904,8 +999,8 @@ export class ExpenseForm implements OnInit {
         .map((item: any): entity.UpdateWarehouseExpenseSafeItem => {
           const paymentAmount =
             item.payment_amount !== null &&
-            item.payment_amount !== undefined &&
-            item.payment_amount !== ''
+              item.payment_amount !== undefined &&
+              item.payment_amount !== ''
               ? Number(item.payment_amount)
               : null;
 
@@ -1024,3 +1119,4 @@ export class ExpenseForm implements OnInit {
     this.router.navigateByUrl('/gastos');
   }
 }
+
