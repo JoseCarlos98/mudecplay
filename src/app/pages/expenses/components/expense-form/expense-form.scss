@@ -28,7 +28,7 @@
     border-radius: 999px;
 
     background: #fff;
-    border: 1px solid rgba(0, 0, 0, .12);
+    border: 1px solid rgba(0, 0, 0, 0.12);
 
     white-space: nowrap;
     cursor: text;
@@ -169,7 +169,7 @@
 
   border-radius: 0.85rem;
   background: #f8fbfd;
-  border: 1px solid rgba(15, 93, 130, 0.10);
+  border: 1px solid rgba(15, 93, 130, 0.1);
 }
 
 .bulk-check {
@@ -300,7 +300,9 @@
     font-size: 0.82rem;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
+    transition:
+      background 0.2s ease,
+      color 0.2s ease;
 
     &.active {
       background: #0f7eaa;
@@ -385,48 +387,45 @@
 /* =======================
    ALMACÉN
    Fila 1: Producto | Cantidad | Unidad | Precio unitario | Monto
-   Fila 2: Mensaje almacén | Existencia | Pago
+   Fila 2: Info compacta | Pago | Fecha | Restante
    ======================= */
 
 .warehouse-grid {
   display: grid;
   grid-template-columns:
-    minmax(260px, 1.45fr)
-    minmax(135px, 0.65fr)
-    minmax(135px, 0.65fr)
-    minmax(155px, 0.75fr)
-    minmax(155px, 0.75fr);
+    minmax(280px, 1.55fr)
+    minmax(130px, 0.6fr)
+    minmax(130px, 0.6fr)
+    minmax(155px, 0.72fr)
+    minmax(155px, 0.72fr);
   gap: 1rem;
   align-items: start;
 }
 
 .warehouse-secondary-grid {
-  margin-top: 0.8rem;
+  margin-top: 0.85rem;
 
   display: grid;
-  grid-template-columns:
-    minmax(320px, 1.25fr)
-    minmax(190px, 0.75fr)
-    minmax(220px, 0.85fr);
+  grid-template-columns: minmax(480px, 1fr) minmax(520px, 0.95fr);
   gap: 1rem;
-  align-items: start;
+  align-items: center;
 }
 
-.warehouse-project-message {
-  min-height: 45px;
+.warehouse-status-strip {
+  min-height: 44px;
   padding: 0.55rem 0.75rem;
 
   display: flex;
   align-items: center;
   gap: 0.65rem;
 
-  border-radius: 0.65rem;
+  border-radius: 0.75rem;
   border: 1px solid rgba(17, 100, 163, 0.16);
   background: #f4fbff;
   color: #334155;
 }
 
-.warehouse-project-message__icon {
+.warehouse-status-strip__icon {
   width: 28px;
   height: 28px;
   border-radius: 999px;
@@ -446,77 +445,79 @@
   }
 }
 
-.warehouse-project-message__content {
+.warehouse-status-strip__content {
   min-width: 0;
+
   display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.55rem;
+
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.25;
+
+  strong {
+    color: #334155;
+    font-weight: 800;
+  }
 }
 
-.warehouse-project-message__title {
+.warehouse-status-strip__strong {
+  color: #1164a3;
+  font-weight: 800;
+}
+
+.warehouse-status-strip__dot {
+  color: #94a3b8;
+}
+
+.warehouse-payment-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(190px, 1fr)
+    minmax(170px, 0.85fr)
+    minmax(110px, 0.45fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.warehouse-payment-field {
+  min-width: 0;
+}
+
+.warehouse-restant-box {
+  min-height: 31px;
+  padding-top: 1.35rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.warehouse-restant-box__label {
   color: #1164a3;
   font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.warehouse-restant-box__amount {
+  color: #475569;
+  font-size: 0.95rem;
   font-weight: 800;
   line-height: 1.2;
 }
 
-.warehouse-project-message__desc {
-  color: #64748b;
-  font-size: 0.78rem;
-  line-height: 1.2;
-}
-
-.warehouse-helper {
-  min-height: 45px;
-  padding: 0.55rem 0.75rem;
-
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-
-  border-radius: 0.65rem;
-  background: #f8fafc;
-  border: 1px solid rgba(100, 116, 139, 0.12);
-
-  color: #64748b;
-  font-size: 0.82rem;
-
-  mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    color: #1164a3;
-  }
-
-  strong {
-    color: #475569;
-  }
-}
-
-.warehouse-payment-cell {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.warehouse-payment-date {
-  margin-top: 0.65rem;
-}
-
-.warehouse-restant {
-  display: inline-flex;
-  margin-top: 0.45rem;
-  color: #6b7280;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
-
-.warehouse-restant.error-restant {
+.warehouse-restant-box__amount.error-restant {
   color: var(--color-error);
 }
 
-/* Oculta placeholder viejo si quedó en caché/template anterior */
-.warehouse-project-placeholder {
+/* Compatibilidad: ya no se usan visualmente */
+.warehouse-helper,
+.warehouse-project-placeholder,
+.warehouse-project-message,
+.warehouse-payment-cell,
+.warehouse-restant {
   display: none;
 }
 
@@ -566,11 +567,11 @@
   }
 
   .warehouse-secondary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
-  .warehouse-payment-cell {
-    grid-column: 1 / -1;
+  .warehouse-payment-grid {
+    max-width: 760px;
   }
 }
 
@@ -593,13 +594,17 @@
     grid-column: auto;
   }
 
-  .warehouse-grid,
-  .warehouse-secondary-grid {
+  .warehouse-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .warehouse-payment-cell {
-    grid-column: auto;
+  .warehouse-payment-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: none;
+  }
+
+  .warehouse-restant-box {
+    padding-top: 0;
   }
 }
 
@@ -616,7 +621,8 @@
 
   .direct-grid,
   .warehouse-grid,
-  .warehouse-secondary-grid {
+  .warehouse-secondary-grid,
+  .warehouse-payment-grid {
     grid-template-columns: 1fr;
   }
 
@@ -639,5 +645,17 @@
       min-width: 0;
     }
   }
-}
 
+  .warehouse-status-strip {
+    align-items: flex-start;
+  }
+
+  .warehouse-status-strip__content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .warehouse-status-strip__dot {
+    display: none;
+  }
+}

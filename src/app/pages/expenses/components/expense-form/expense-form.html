@@ -89,6 +89,7 @@
     class="c-form">
 
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+      <!-- Fecha -->
       <div class="md:col-span-1">
         <app-input-date
           formControlName="date"
@@ -98,6 +99,7 @@
         </app-input-date>
       </div>
 
+      <!-- Proveedor -->
       <div class="md:col-span-1">
         @if (isLaborAuto) {
           <app-input-field
@@ -116,7 +118,9 @@
         }
       </div>
 
+      <!-- Bloque dinámico de items -->
       <div class="form-dinamic md:col-span-3" formArrayName="items">
+        <!-- Header -->
         <div class="form-dinamic-header">
           <div class="flex items-center gap-2">
             <span class="form-dinamic-title">Productos del gasto</span>
@@ -134,6 +138,7 @@
           }
         </div>
 
+        <!-- Barra masiva -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
           <div class="bulk-check">
             <mat-checkbox
@@ -210,6 +215,7 @@
           }
         </div>
 
+        <!-- Lista -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
             <div
@@ -217,6 +223,7 @@
               [class.expense-item-card--warehouse]="isWarehouseItem(itemCtrl)"
               [formGroupName]="i">
 
+              <!-- Header del item -->
               <div class="expense-item-card__top">
                 <div class="expense-item-card__left">
                   <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
@@ -266,6 +273,7 @@
               </div>
 
               @if (isWarehouseItem(itemCtrl)) {
+                <!-- Almacén: fila principal -->
                 <div class="warehouse-grid">
                   <div>
                     @if (isLaborAuto) {
@@ -333,48 +341,46 @@
                   </div>
                 </div>
 
+                <!-- Almacén: fila secundaria compacta -->
                 <div class="warehouse-secondary-grid">
-                  <div class="warehouse-project-message">
-                    <div class="warehouse-project-message__icon">
+                  <div class="warehouse-status-strip">
+                    <div class="warehouse-status-strip__icon">
                       <mat-icon>inventory_2</mat-icon>
                     </div>
 
-                    <div class="warehouse-project-message__content">
-                      <span class="warehouse-project-message__title">
-                        Se asignará después desde Almacén
+                    <div class="warehouse-status-strip__content">
+                      <span class="warehouse-status-strip__strong">Entra a almacén</span>
+                      <span class="warehouse-status-strip__dot">•</span>
+
+                      <span>
+                        Existencia inicial:
+                        <strong>{{ getWarehouseInitialText(itemCtrl) }}</strong>
                       </span>
 
-                      <span class="warehouse-project-message__desc">
-                        Este concepto no requiere proyecto al registrar.
-                      </span>
+                      <span class="warehouse-status-strip__dot">•</span>
+                      <span>Se asignará después desde Almacén</span>
                     </div>
                   </div>
 
-                  <div class="warehouse-helper">
-                    <mat-icon>inventory_2</mat-icon>
-                    <span>
-                      Existencia inicial:
-                      <strong>{{ getWarehouseInitialText(itemCtrl) }}</strong>
-                    </span>
-                  </div>
-
-                  <div class="warehouse-payment-cell">
-                    <app-input-field
-                      formControlName="payment_amount"
-                      label="Abono / Pago"
-                      type="money"
-                      [ngClass]="{
-                        'field-invalid':
-                          itemCtrl.get('amount')?.value &&
-                          itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                      }">
-                    </app-input-field>
+                  <div class="warehouse-payment-grid">
+                    <div class="warehouse-payment-field">
+                      <app-input-field
+                        formControlName="payment_amount"
+                        label="Abono / Pago"
+                        type="money"
+                        [ngClass]="{
+                          'field-invalid':
+                            itemCtrl.get('amount')?.value &&
+                            itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+                        }">
+                      </app-input-field>
+                    </div>
 
                     @if (
                       itemCtrl.get('amount')?.value &&
                       itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
                     ) {
-                      <div class="warehouse-payment-date">
+                      <div class="warehouse-payment-field">
                         <app-input-date
                           formControlName="payment_date"
                           label="Fecha de pago"
@@ -385,24 +391,28 @@
                     }
 
                     @if (itemCtrl.get('amount')?.value) {
-                      <small
-                        class="warehouse-restant"
-                        [ngClass]="{
-                          'error-restant':
-                            itemCtrl.get('amount')?.value &&
-                            itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                        }">
-                        Restante:
-                        {{
-                          (itemCtrl.get('amount')?.value || 0) -
-                          (itemCtrl.get('payment_amount')?.value || 0)
-                          | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
-                        }}
-                      </small>
+                      <div class="warehouse-restant-box">
+                        <span class="warehouse-restant-box__label">Restante</span>
+
+                        <strong
+                          class="warehouse-restant-box__amount"
+                          [ngClass]="{
+                            'error-restant':
+                              itemCtrl.get('amount')?.value &&
+                              itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+                          }">
+                          {{
+                            (itemCtrl.get('amount')?.value || 0) -
+                            (itemCtrl.get('payment_amount')?.value || 0)
+                            | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
+                          }}
+                        </strong>
+                      </div>
                     }
                   </div>
                 </div>
               } @else {
+                <!-- Gasto directo -->
                 <div class="direct-grid">
                   <div>
                     @if (isLaborAuto) {
