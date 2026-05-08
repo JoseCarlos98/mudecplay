@@ -43,10 +43,9 @@
       [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns"
       [extraActions]="extraActions"
-      [canDelete]="canDeleteRow"
-      [deleteTooltip]="deleteTooltip"
       [actionPermissions]="{
-        editRoles: ['__NO_EDIT__']
+        showEdit: false,
+        showDelete: false
       }"
       (action)="onTableAction($event)">
     </app-data-table>

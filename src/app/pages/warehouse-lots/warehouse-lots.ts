@@ -146,12 +146,6 @@ export class WarehouseLots implements OnInit {
     search: this.fb.control<string>(''),
   });
 
-  canDeleteRow = () => false;
-
-  deleteTooltip = () => {
-    return 'Las existencias no se eliminan desde esta pantalla.';
-  };
-
   readonly extraActions: WarehouseTableExtraAction[] = [
     {
       type: 'assignWarehouseLot',
