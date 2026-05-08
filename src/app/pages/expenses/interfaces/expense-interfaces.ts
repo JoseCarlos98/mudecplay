@@ -130,6 +130,7 @@ export interface CreateExpenseItem {
 
   // Almacén
   quantity?: number | null;
+  unit_id?: number | null;
   unit?: string | null;
   unit_price?: number | null;
 
@@ -180,6 +181,7 @@ export interface ExpenseItemDetail {
 
   item_type: ExpenseItemType;
   quantity?: number | null;
+  unit_id?: number | null;
   unit?: string | null;
   unit_price?: number | null;
 

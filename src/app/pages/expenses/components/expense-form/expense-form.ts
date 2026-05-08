@@ -39,7 +39,8 @@ import {
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
+import { InputSelect } from '../../../../shared/ui/input-select/input-select';
+import { CatalogsService } from '../../../../shared/services/catalogs.service';
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };
@@ -62,6 +63,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,
+    InputSelect
   ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
@@ -69,12 +71,15 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 export class ExpenseForm implements OnInit {
   private readonly activatedroute = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
+  private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
   readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly headerConfig = HEADER_CONFIG;
+
+  measurementUnitsCatalog: Catalog[] = [];
 
   isXmlImport: boolean = false;
   isLaborAuto: boolean = false;
@@ -156,6 +161,8 @@ export class ExpenseForm implements OnInit {
   }
 
   ngOnInit() {
+    this.loadCatalogs();
+
     const idParam = this.activatedroute.snapshot.paramMap.get('id');
 
     if (idParam) {
@@ -174,6 +181,15 @@ export class ExpenseForm implements OnInit {
           this.bulkProjectSelected = null;
         }
       });
+  }
+
+  private loadCatalogs(): void {
+    this.catalogsService.measurementUnitsCatalog().subscribe({
+      next: (response) => {
+        this.measurementUnitsCatalog = response;
+      },
+      error: (err) => console.error('Error al cargar unidades de medida:', err),
+    });
   }
 
   private getTodayIsoDate(): string {
@@ -245,14 +261,8 @@ export class ExpenseForm implements OnInit {
 
     this.refreshItemTypeState(ctrl, false);
 
-    /**
-     * Importante:
-     * Al cambiar de tipo, los nuevos campos obligatorios quedan inválidos,
-     * pero no deben mostrarse en rojo hasta que el usuario los toque
-     * o intente guardar el formulario.
-     */
     if (type === 'warehouse') {
-      ['quantity', 'unit', 'unit_price'].forEach((controlName) => {
+      ['quantity', 'unit_id', 'unit_price'].forEach((controlName) => {
         const control = ctrl.get(controlName);
         control?.markAsPristine();
         control?.markAsUntouched();
@@ -272,39 +282,24 @@ export class ExpenseForm implements OnInit {
     ctrl: AbstractControl,
     nextType: entity.ExpenseItemType,
   ): void {
-    /**
-     * Siempre limpiamos pago al cambiar de tipo.
-     * Pero NO marcamos los controles como touched para evitar errores rojos inmediatos.
-     */
     this.setSilentControlValue(ctrl, 'payment_amount', null);
     this.setSilentControlValue(ctrl, 'payment_date', null);
 
     if (nextType === 'warehouse') {
-      /**
-       * Directo -> Almacén
-       *
-       * El proyecto ya no aplica.
-       * Cantidad/unidad/precio deben capturarse desde cero.
-       * El monto se recalcula con cantidad * precio unitario.
-       */
       this.setSilentControlValue(ctrl, 'project_id', null);
 
       this.setSilentControlValue(ctrl, 'quantity', null);
       this.setSilentControlValue(ctrl, 'unit', null);
+      this.setSilentControlValue(ctrl, 'unit_id', null);
       this.setSilentControlValue(ctrl, 'unit_price', null);
       this.setSilentControlValue(ctrl, 'amount', null);
 
       return;
     }
 
-    /**
-     * Almacén -> Directo
-     *
-     * Los datos de almacén ya no aplican.
-     * También limpiamos el monto porque venía calculado desde cantidad * precio unitario.
-     */
     this.setSilentControlValue(ctrl, 'quantity', null);
     this.setSilentControlValue(ctrl, 'unit', null);
+    this.setSilentControlValue(ctrl, 'unit_id', null);
     this.setSilentControlValue(ctrl, 'unit_price', null);
     this.setSilentControlValue(ctrl, 'amount', null);
   }
@@ -332,11 +327,14 @@ export class ExpenseForm implements OnInit {
 
   getWarehouseInitialText(ctrl: AbstractControl): string {
     const quantity = Number(ctrl.get('quantity')?.value ?? 0);
-    const unit = String(ctrl.get('unit')?.value ?? '').trim();
+    const unitId = this.toNumberOrNull(ctrl.get('unit_id')?.value);
+    const unitName =
+      this.measurementUnitsCatalog.find((unit) => Number(unit.id) === Number(unitId))?.name ??
+      String(ctrl.get('unit')?.value ?? '').trim();
 
     if (!quantity || quantity <= 0) return '0';
 
-    return `${quantity.toLocaleString('es-MX')} ${unit || ''}`.trim();
+    return `${quantity.toLocaleString('es-MX')} ${unitName || ''}`.trim();
   }
 
   private setupWarehouseItemBehaviour(group: FormGroup): void {
@@ -369,14 +367,17 @@ export class ExpenseForm implements OnInit {
 
     const quantityCtrl = ctrl.get('quantity');
     const unitCtrl = ctrl.get('unit');
+    const unitIdCtrl = ctrl.get('unit_id');
     const unitPriceCtrl = ctrl.get('unit_price');
     const amountCtrl = ctrl.get('amount');
     const projectCtrl = ctrl.get('project_id');
 
     if (isWarehouse) {
       quantityCtrl?.setValidators([Validators.required, Validators.min(0.0001)]);
-      unitCtrl?.setValidators([Validators.required]);
+      unitIdCtrl?.setValidators([Validators.required]);
       unitPriceCtrl?.setValidators([Validators.required, Validators.min(0.000001)]);
+
+      unitCtrl?.clearValidators();
 
       projectCtrl?.setValue(null, { emitEvent: false });
       projectCtrl?.clearValidators();
@@ -388,6 +389,7 @@ export class ExpenseForm implements OnInit {
     } else {
       quantityCtrl?.clearValidators();
       unitCtrl?.clearValidators();
+      unitIdCtrl?.clearValidators();
       unitPriceCtrl?.clearValidators();
 
       if (!this.isLaborAuto && !this.isWarehouseSafeExpense) {
@@ -401,6 +403,7 @@ export class ExpenseForm implements OnInit {
 
     quantityCtrl?.updateValueAndValidity({ emitEvent });
     unitCtrl?.updateValueAndValidity({ emitEvent });
+    unitIdCtrl?.updateValueAndValidity({ emitEvent });
     unitPriceCtrl?.updateValueAndValidity({ emitEvent });
     projectCtrl?.updateValueAndValidity({ emitEvent });
     amountCtrl?.updateValueAndValidity({ emitEvent });
@@ -463,6 +466,7 @@ export class ExpenseForm implements OnInit {
             item_type: item.item_type ?? 'direct',
             quantity: item.quantity ?? null,
             unit: item.unit ?? null,
+            unit_id: (item as any).unit_id ?? null,
             unit_price: item.unit_price ?? null,
 
             amount: item.amount,
@@ -522,8 +526,10 @@ export class ExpenseForm implements OnInit {
     const itemsFGs = draft.items.map((item) =>
       this.createItemGroup({
         item_type: item.item_type ?? 'direct',
+
         quantity: item.quantity ?? null,
         unit: item.unit ?? null,
+        unit_id: (item as any).unit_id ?? null,
         unit_price: item.unit_price ?? null,
 
         amount: item.amount,
@@ -583,6 +589,7 @@ export class ExpenseForm implements OnInit {
       const itemTypeCtrl = ctrl.get('item_type');
       const quantityCtrl = ctrl.get('quantity');
       const unitCtrl = ctrl.get('unit');
+      const unitIdCtrl = ctrl.get('unit_id');
       const unitPriceCtrl = ctrl.get('unit_price');
 
       productCtrl?.clearValidators();
@@ -594,6 +601,7 @@ export class ExpenseForm implements OnInit {
       itemTypeCtrl?.disable({ emitEvent: false });
       quantityCtrl?.disable({ emitEvent: false });
       unitCtrl?.disable({ emitEvent: false });
+      unitIdCtrl?.disable({ emitEvent: false });
       unitPriceCtrl?.disable({ emitEvent: false });
 
       amountCtrl?.disable({ emitEvent: false });
@@ -612,6 +620,7 @@ export class ExpenseForm implements OnInit {
 
       ctrl.get('quantity')?.disable({ emitEvent: false });
       ctrl.get('unit')?.disable({ emitEvent: false });
+      ctrl.get('unit_id')?.disable({ emitEvent: false });
       ctrl.get('unit_price')?.disable({ emitEvent: false });
 
       ctrl.get('amount')?.disable({ emitEvent: false });
@@ -701,6 +710,7 @@ export class ExpenseForm implements OnInit {
 
       quantity: [data?.quantity ?? null],
       unit: [data?.unit ?? null],
+      unit_id: [data?.unit_id ?? null],
       unit_price: [data?.unit_price ?? null],
 
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
@@ -902,9 +912,14 @@ export class ExpenseForm implements OnInit {
             ? this.toNumberOrNull(item.quantity)
             : null;
 
+        const unitId =
+          itemType === 'warehouse'
+            ? this.toNumberOrNull(item.unit_id)
+            : null;
+
         const unit =
           itemType === 'warehouse'
-            ? String(item.unit ?? '').trim() || null
+            ? null
             : null;
 
         const unitPrice =
@@ -930,6 +945,11 @@ export class ExpenseForm implements OnInit {
           quantity:
             itemType === 'warehouse' && quantity !== null
               ? this.round4(quantity)
+              : null,
+
+          unit_id:
+            itemType === 'warehouse' && unitId !== null
+              ? unitId
               : null,
 
           unit,

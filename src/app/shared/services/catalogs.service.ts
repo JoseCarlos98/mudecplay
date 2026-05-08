@@ -2,7 +2,16 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Catalog } from '../interfaces/general-interfaces';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
+
+export interface MeasurementUnitCatalogResponse {
+  id: number;
+  name: string;
+  code: string;
+  abbreviation: string | null;
+  is_active: boolean;
+  display_name: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class CatalogsService {
@@ -13,18 +22,18 @@ export class CatalogsService {
     const url = `${this.apiUrl}/suppliers/catalog`;
     let params = new HttpParams();
 
-    if (searchTerm) params = params.set('search', searchTerm)
+    if (searchTerm) params = params.set('search', searchTerm);
 
-    return this.http.get<Catalog[]>(url, { params })
+    return this.http.get<Catalog[]>(url, { params });
   }
 
   productsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/products/catalog`;
     let params = new HttpParams();
 
-    if (searchTerm) params = params.set('search', searchTerm)
+    if (searchTerm) params = params.set('search', searchTerm);
 
-    return this.http.get<Catalog[]>(url, { params })
+    return this.http.get<Catalog[]>(url, { params });
   }
 
   projectsCatalog(
@@ -34,21 +43,15 @@ export class CatalogsService {
     const url = `${this.apiUrl}/projects/catalog`;
     let params = new HttpParams();
 
-    console.log(extraParams);
-    
-
-    // search (como ya lo tienes)
     if (searchTerm?.trim()) {
       params = params.set('search', searchTerm.trim());
     }
 
-    // extras (ej: { statusProject: 'open' })
     if (extraParams) {
       for (const [key, value] of Object.entries(extraParams)) {
         if (value === undefined || value === null) continue;
         if (typeof value === 'string' && value.trim() === '') continue;
 
-        // arrays -> key=1&key=2...
         if (Array.isArray(value)) {
           for (const v of value) {
             if (v === undefined || v === null) continue;
@@ -67,18 +70,18 @@ export class CatalogsService {
     const url = `${this.apiUrl}/responsibles/catalog`;
     let params = new HttpParams();
 
-    if (searchTerm) params = params.set('search', searchTerm)
+    if (searchTerm) params = params.set('search', searchTerm);
 
-    return this.http.get<Catalog[]>(url, { params })
+    return this.http.get<Catalog[]>(url, { params });
   }
 
   clientsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
     const url = `${this.apiUrl}/clients/catalog`;
     let params = new HttpParams();
 
-    if (searchTerm) params = params.set('search', searchTerm)
+    if (searchTerm) params = params.set('search', searchTerm);
 
-    return this.http.get<Catalog[]>(url, { params })
+    return this.http.get<Catalog[]>(url, { params });
   }
 
   statusExpenseCatalog(): Observable<Catalog[]> {
@@ -93,4 +96,23 @@ export class CatalogsService {
     return this.http.get<Catalog[]>(`${this.apiUrl}/roles/catalog`);
   }
 
+  measurementUnitsCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/measurement-units`;
+    let params = new HttpParams();
+
+    if (searchTerm?.trim()) {
+      params = params.set('search', searchTerm.trim());
+    }
+
+    return this.http
+      .get<MeasurementUnitCatalogResponse[]>(url, { params })
+      .pipe(
+        map((units) =>
+          units.map((unit) => ({
+            id: unit.id,
+            name: unit.display_name || unit.name,
+          })),
+        ),
+      );
+  }
 }
