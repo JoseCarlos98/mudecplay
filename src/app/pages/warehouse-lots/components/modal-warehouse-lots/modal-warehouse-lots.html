@@ -1,0 +1,87 @@
+<div class="c-modal">
+  <app-module-header
+    title="Asignar material"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="warehouse-summary">
+    <div class="warehouse-summary__icon">
+      <mat-icon>inventory_2</mat-icon>
+    </div>
+
+    <div class="warehouse-summary__content">
+      <h3>{{ data.product_name_snapshot || 'Producto sin nombre' }}</h3>
+
+      <p>
+        Folio gasto:
+        <strong>{{ data.expense_folio_snapshot }}</strong>
+      </p>
+
+      <p>
+        Disponible:
+        <strong>{{ availableText }}</strong>
+      </p>
+
+      <p>
+        Costo unitario:
+        <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
+      </p>
+    </div>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
+      <div class="md:col-span-1">
+        <app-autocomplete
+          formControlName="project_id"
+          label="Proyecto"
+          [remote]="true"
+          catalogType="project">
+        </app-autocomplete>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="quantity"
+          label="Cantidad a asignar"
+          type="number">
+        </app-input-field>
+
+        <small class="field-helper">
+          Máximo disponible: {{ availableText }}
+        </small>
+      </div>
+
+      <div class="md:col-span-2">
+        <app-input-field
+          formControlName="notes"
+          label="Notas"
+          type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-2">
+        <div class="assignment-preview">
+          <span>Importe que se asignará al proyecto</span>
+
+          <strong>
+            {{ assignedPreviewAmount | currency:'MXN':'symbol-narrow':'1.2-2' }}
+          </strong>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <app-btns-section
+    type="save"
+    form="form"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="!form.valid">
+  </app-btns-section>
+</div>

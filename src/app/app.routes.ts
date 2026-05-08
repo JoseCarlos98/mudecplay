@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Layout } from './layout/layout/layout';
 import { authGuard } from './auth/guards/auth.guard';
 import { rolesGuard } from './auth/guards/roles.guard';
+import { WarehouseLots } from './pages/warehouse-lots/warehouse-lots';
 
 export const routes: Routes = [
   {
@@ -47,6 +48,12 @@ export const routes: Routes = [
             'NOMINA_EDITOR',
           ],
         },
+      },
+      {
+        path: 'almacen',
+        component: WarehouseLots,
+        canActivate: [rolesGuard],
+        data: { roles: ['ALMACEN_EDITOR'] },
       },
       {
         path: 'reportes',

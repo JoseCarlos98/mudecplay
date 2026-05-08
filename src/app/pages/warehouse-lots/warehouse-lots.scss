@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+.c-module-table {
+  margin-top: 1rem;
+}
+
+::ng-deep .mat-mdc-paginator {
+  border-radius: 0 0 15px 15px;
+}

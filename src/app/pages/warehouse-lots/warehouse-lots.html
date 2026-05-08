@@ -1,0 +1,69 @@
+<div class="card-content shadow-md">
+  <app-module-header
+    title="Almacén / Existencias"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+      <app-input-field
+        formControlName="search"
+        label="Buscar"
+        type="text"
+        [isFilter]="true">
+      </app-input-field>
+
+      <app-autocomplete
+        formControlName="product"
+        label="Producto"
+        [remote]="true"
+        catalogType="product">
+      </app-autocomplete>
+
+      <app-input-select
+        formControlName="status"
+        label="Estado"
+        [options]="statusOptions">
+      </app-input-select>
+
+      <app-btns-section
+        type="search"
+        [hasActiveFilters]="hasActiveFilters"
+        (action)="onBtnsSectionAction($event)">
+      </app-btns-section>
+    </div>
+  </form>
+</div>
+
+@if (warehouseLotsTableData?.data) {
+  <div class="c-module-table">
+    <app-data-table
+      [data]="warehouseLotsTableData.data"
+      [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns"
+      [extraActions]="extraActions"
+      [canDelete]="canDeleteRow"
+      [deleteTooltip]="deleteTooltip"
+      [actionPermissions]="{
+        editRoles: ['__NO_EDIT__']
+      }"
+      (action)="onTableAction($event)">
+    </app-data-table>
+
+    <mat-paginator
+      [length]="warehouseLotsTableData.meta.total"
+      [pageSize]="filters.limit"
+      [pageIndex]="filters.page - 1"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+}
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando existencias...">
+</app-loading-overlay>

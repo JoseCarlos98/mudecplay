@@ -36,6 +36,7 @@ export class Sidebar {
 
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
     { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
+      { name: 'Almacén', icon: 'inventory_2', route: '/almacen', roles: ['ALMACEN_EDITOR'] },
     { name: 'Cuentas por Cobrar', icon: 'account_balance', route: '/cuentas-por-cobrar', roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
     { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
     {
