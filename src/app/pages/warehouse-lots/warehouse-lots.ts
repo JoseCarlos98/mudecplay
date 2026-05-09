@@ -12,6 +12,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 
+import { ModalWarehouseMovements } from './components/modal-warehouse-movements/modal-warehouse-movements';
+
 // UI compartidos
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
@@ -146,19 +148,25 @@ export class WarehouseLots implements OnInit {
     search: this.fb.control<string>(''),
   });
 
-  readonly extraActions: WarehouseTableExtraAction[] = [
-    {
-      type: 'assignWarehouseLot',
-      icon: 'outbox',
-      tooltip: (row) =>
-        this.canAssignLot(row)
-          ? 'Asignar material a proyecto'
-          : 'Sin existencia disponible',
-      visible: () => true,
-      disabled: (row) => !this.canAssignLot(row),
-    },
-  ];
-
+readonly extraActions: WarehouseTableExtraAction[] = [
+  {
+    type: 'assignWarehouseLot',
+    icon: 'outbox',
+    tooltip: (row) =>
+      this.canAssignLot(row)
+        ? 'Asignar material a proyecto'
+        : 'Sin existencia disponible',
+    visible: () => true,
+    disabled: (row) => !this.canAssignLot(row),
+  },
+  {
+    type: 'viewWarehouseMovements',
+    icon: 'history',
+    tooltip: () => 'Ver movimientos',
+    visible: () => true,
+    disabled: () => false,
+  },
+];
   // ==========================
   //  CICLO DE VIDA
   // ==========================
@@ -295,20 +303,33 @@ export class WarehouseLots implements OnInit {
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.WarehouseLotResponseDto>): void {
-    switch (ev.type) {
-      case 'assignWarehouseLot':
-        this.openAssignModal(ev.row);
-        break;
+onTableAction(ev: DataTableActionEvent<entity.WarehouseLotResponseDto>): void {
+  switch (ev.type) {
+    case 'assignWarehouseLot':
+      this.openAssignModal(ev.row);
+      break;
 
-      default:
-        break;
-    }
+    case 'viewWarehouseMovements':
+      this.openMovementsModal(ev.row);
+      break;
+
+    default:
+      break;
   }
+}
+
+openMovementsModal(lot: entity.WarehouseLotResponseDto): void {
+  this.dialogService
+    .open(ModalWarehouseMovements, lot, 'medium')
+    .afterClosed()
+    .subscribe((result) => {
+      if (result) this.loadWarehouseLots();
+    });
+}
 
   openAssignModal(lot: entity.WarehouseLotResponseDto): void {
     this.dialogService
-      .open(ModalWarehouseLots, lot, 'medium')
+      .open(ModalWarehouseLots, lot, 'small')
       .afterClosed()
       .subscribe((result) => {
         if (result) this.loadWarehouseLots();

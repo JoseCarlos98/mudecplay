@@ -1,0 +1,186 @@
+<div class="c-modal warehouse-movements-modal">
+  <app-module-header
+    title="Movimientos del lote"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <section class="lot-summary">
+    <div class="lot-summary__icon">
+      <mat-icon>inventory_2</mat-icon>
+    </div>
+
+    <div class="lot-summary__content">
+      <h3>{{ data.product_name_snapshot || 'Producto sin nombre' }}</h3>
+
+      <div class="lot-summary__grid">
+        <span>
+          Folio gasto:
+          <strong>{{ data.expense_folio_snapshot }}</strong>
+        </span>
+
+        <span>
+          Estado:
+          <strong>{{ statusLabel }}</strong>
+        </span>
+
+        <span>
+          Original:
+          <strong>{{ originalText }}</strong>
+        </span>
+
+        <span>
+          Disponible:
+          <strong>{{ availableText }}</strong>
+        </span>
+
+        <span>
+          Usado:
+          <strong>{{ usedText }}</strong>
+        </span>
+
+        <span>
+          Costo unitario:
+          <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
+        </span>
+      </div>
+    </div>
+  </section>
+
+  @if (!loading() && movements.length > 0) {
+    <section class="movements-list">
+      @for (movement of movements; track movement.id) {
+        <article
+          class="movement-card"
+          [ngClass]="getMovementClass(movement.movement_type)"
+          [class.movement-card--cancelled]="movement.is_cancelled">
+
+          <div class="movement-card__accent-icon">
+            <mat-icon>{{ getMovementIcon(movement.movement_type) }}</mat-icon>
+          </div>
+
+          <div class="movement-card__body">
+            <header class="movement-card__header">
+              <div class="movement-card__title-area">
+                <h4>
+                  {{ getMovementTitle(movement) }}
+                </h4>
+
+                <p>
+                  {{ getMovementSubtitle(movement) }}
+                </p>
+              </div>
+
+              <div class="movement-card__header-actions">
+                @if (movement.is_cancelled) {
+                  <span class="movement-badge movement-badge--cancelled">
+                    Cancelado
+                  </span>
+                } @else {
+                  <span
+                    class="movement-badge"
+                    [ngClass]="'movement-badge--' + movement.movement_type">
+                    {{ getMovementLabel(movement.movement_type) }}
+                  </span>
+                }
+
+                @if (canReturnMovement(movement)) {
+                  <button
+                    type="button"
+                    class="btn-return"
+                    (click)="returnMovement(movement)">
+                    <mat-icon>undo</mat-icon>
+                    <span>Regresar material</span>
+                  </button>
+                }
+              </div>
+            </header>
+
+            <div class="movement-details">
+              <div class="movement-detail">
+                <mat-icon>inventory_2</mat-icon>
+
+                <div>
+                  <span>Cantidad</span>
+                  <strong>{{ formatQuantity(movement.quantity, movement.unit) }}</strong>
+                </div>
+              </div>
+
+              <div class="movement-detail">
+                <mat-icon>payments</mat-icon>
+
+                <div>
+                  <span>Importe</span>
+                  <strong>{{ movement.amount | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+                </div>
+              </div>
+
+              <div class="movement-detail">
+                <mat-icon>history</mat-icon>
+
+                <div>
+                  <span>Anterior</span>
+                  <strong>{{ formatQuantity(movement.previous_available_quantity, movement.unit) }}</strong>
+                </div>
+              </div>
+
+              <div class="movement-detail">
+                <mat-icon>trending_up</mat-icon>
+
+                <div>
+                  <span>Nuevo</span>
+                  <strong>{{ formatQuantity(movement.new_available_quantity, movement.unit) }}</strong>
+                </div>
+              </div>
+
+              <div class="movement-detail">
+                <mat-icon>folder</mat-icon>
+
+                <div>
+                  <span>Proyecto</span>
+                  <strong>{{ movement.project_name || 'No aplica' }}</strong>
+                </div>
+              </div>
+
+              <div class="movement-detail">
+                <mat-icon>link</mat-icon>
+
+                <div>
+                  <span>Relacionado</span>
+                  <strong>{{ getRelatedMovementText(movement) }}</strong>
+                </div>
+              </div>
+            </div>
+
+            @if (movement.notes) {
+              <p class="movement-card__notes">
+                <mat-icon>notes</mat-icon>
+                <span>{{ movement.notes }}</span>
+              </p>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+
+  @if (!loading() && movements.length === 0) {
+    <div class="empty-movements">
+      <mat-icon>history</mat-icon>
+      <strong>Sin movimientos</strong>
+      <span>Este lote todavía no tiene movimientos registrados.</span>
+    </div>
+  }
+
+  <div class="modal-footer">
+    <button type="button" class="btn-primary" (click)="closeModal()">
+      Cerrar
+    </button>
+  </div>
+
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando movimientos...">
+  </app-loading-overlay>
+</div>

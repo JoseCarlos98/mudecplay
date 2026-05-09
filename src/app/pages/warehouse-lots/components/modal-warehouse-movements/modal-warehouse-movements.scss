@@ -1,0 +1,430 @@
+:host {
+  display: block;
+}
+
+.warehouse-movements-modal {
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lot-summary {
+  margin-bottom: 0.75rem;
+  padding: 0.8rem 0.9rem;
+
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  border-radius: 0.8rem;
+  border: 1px solid rgba(17, 100, 163, 0.18);
+  background: #f4fbff;
+  flex: 0 0 auto;
+}
+
+.lot-summary__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e5f3ff;
+  color: #1164a3;
+  flex: 0 0 auto;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.lot-summary__content {
+  min-width: 0;
+  width: 100%;
+
+  h3 {
+    margin: 0 0 0.48rem;
+    color: #111827;
+    font-size: 0.95rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+}
+
+.lot-summary__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem 0.85rem;
+
+  span {
+    color: #64748b;
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+
+  strong {
+    color: #334155;
+    font-weight: 800;
+  }
+}
+
+.movements-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 390px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+
+  overflow-y: auto;
+  padding-right: 0.35rem;
+  padding-bottom: 0.15rem;
+
+  scrollbar-width: thin;
+}
+
+.movements-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.movements-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.movements-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.movement-card {
+  position: relative;
+
+  display: flex;
+  gap: 0.7rem;
+
+  padding: 0.72rem 0.8rem;
+  border-radius: 0.85rem;
+  border: 1px solid #e5edf3;
+  background: #ffffff;
+}
+
+.movement-card--in {
+  border-left: 4px solid #0f766e;
+}
+
+.movement-card--out {
+  border-left: 4px solid #0f5d82;
+}
+
+.movement-card--return {
+  border-left: 4px solid #b45309;
+}
+
+.movement-card--adjust {
+  border-left: 4px solid #6b7280;
+}
+
+.movement-card--cancelled {
+  opacity: 0.68;
+  background: #f8fafc;
+}
+
+.movement-card__accent-icon {
+  width: 31px;
+  height: 31px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef7fb;
+  color: #1164a3;
+  flex: 0 0 auto;
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.movement-card--in .movement-card__accent-icon {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.movement-card--out .movement-card__accent-icon {
+  background: #eef6ff;
+  color: #0f5d82;
+}
+
+.movement-card--return .movement-card__accent-icon {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.movement-card__body {
+  min-width: 0;
+  width: 100%;
+}
+
+.movement-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  margin-bottom: 0.75rem;
+}
+
+.movement-card__title-area {
+  min-width: 0;
+
+  h4 {
+    margin: 0;
+    color: #111827;
+    font-size: 0.92rem;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 0.18rem 0 0;
+    color: #64748b;
+    font-size: 0.76rem;
+    line-height: 1.2;
+  }
+}
+
+.movement-card__header-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  flex: 0 0 auto;
+}
+
+.movement-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.18rem 0.58rem;
+  border-radius: 999px;
+
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+
+  background: #eef6ff;
+  color: #0f5d82;
+}
+
+.movement-badge--in {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.movement-badge--out {
+  background: #eef6ff;
+  color: #0f5d82;
+}
+
+.movement-badge--return {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.movement-badge--adjust {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.movement-badge--cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.btn-return {
+  min-height: 30px;
+
+  border: 1px solid rgba(15, 93, 130, 0.22);
+  border-radius: 0.62rem;
+  padding: 0.34rem 0.68rem;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+
+  background: #ffffff;
+  color: #0f5d82;
+  font-weight: 800;
+  font-size: 0.75rem;
+  cursor: pointer;
+
+  box-shadow: 0 1px 2px rgba(15, 93, 130, 0.06);
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: #f4fbff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.movement-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem 1rem;
+}
+
+.movement-detail {
+  display: grid;
+  grid-template-columns: 23px minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: start;
+
+  mat-icon {
+    margin-top: 0.05rem;
+    color: #64748b;
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 0.08rem;
+    color: #64748b;
+    font-size: 0.75rem;
+    line-height: 1.15;
+  }
+
+  strong {
+    display: block;
+    color: #334155;
+    font-size: 0.82rem;
+    font-weight: 800;
+    line-height: 1.2;
+    word-break: break-word;
+  }
+}
+
+.movement-card__notes {
+  margin: 0.72rem 0 0;
+  padding: 0.48rem 0.6rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+
+  border-radius: 0.58rem;
+  background: #f8fafc;
+
+  color: #475569;
+  font-size: 0.78rem;
+  line-height: 1.3;
+
+  mat-icon {
+    color: #64748b;
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+  }
+
+  span {
+    min-width: 0;
+  }
+}
+
+.empty-movements {
+  min-height: 120px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+
+  color: #64748b;
+  text-align: center;
+
+  mat-icon {
+    color: #94a3b8;
+  }
+
+  strong {
+    color: #334155;
+  }
+
+  span {
+    font-size: 0.8rem;
+  }
+}
+
+.modal-footer {
+  margin-top: 0.75rem;
+
+  display: flex;
+  justify-content: flex-end;
+  flex: 0 0 auto;
+}
+
+.btn-cancel {
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0.42rem 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .movement-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lot-summary__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .warehouse-movements-modal {
+    max-height: 88vh;
+  }
+
+  .lot-summary__grid,
+  .movement-details {
+    grid-template-columns: 1fr;
+  }
+
+  .movement-card__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .movement-card__header-actions {
+    justify-content: flex-start;
+  }
+
+  .movements-list {
+    max-height: 360px;
+  }
+}

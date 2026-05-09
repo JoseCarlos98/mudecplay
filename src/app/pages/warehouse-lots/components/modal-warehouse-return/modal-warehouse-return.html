@@ -1,0 +1,63 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="modalTitle"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="warehouse-return-body">
+    <div class="return-summary">
+      <div>
+        <strong>Producto:</strong> {{ productName }}
+      </div>
+
+      <div>
+        <strong>Salida:</strong> Movimiento #{{ movement.id }}
+      </div>
+
+      <div>
+        <strong>Proyecto:</strong> {{ projectName }}
+      </div>
+
+      <div>
+        <strong>Cantidad a regresar:</strong> {{ quantityText }}
+      </div>
+
+      <div>
+        <strong>Importe:</strong>
+        {{ amountText | currency:'$ ':'symbol':'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="return-preview">
+      <div>
+        <strong>Disponible actual:</strong> {{ currentAvailableText }}
+      </div>
+
+      <div>
+        <strong>Disponible después del regreso:</strong> {{ availableAfterReturnText }}
+      </div>
+    </div>
+
+    <form [formGroup]="form" class="return-form">
+      <app-input-field
+        formControlName="notes"
+        label="Motivo del regreso"
+        type="text">
+      </app-input-field>
+    </form>
+  </div>
+
+  <app-btns-section
+    class="modal-actions-spacer"
+    type="save"
+    [saveDisabled]="form.invalid || saving()"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Regresando material...">
+  </app-loading-overlay>
+</div>
