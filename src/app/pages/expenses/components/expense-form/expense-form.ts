@@ -288,11 +288,82 @@ export class ExpenseForm implements OnInit {
     if (nextType === 'warehouse') {
       this.setSilentControlValue(ctrl, 'project_id', null);
 
+      if (this.isXmlImport) {
+        const xmlQuantity =
+          this.toNumberOrNull(ctrl.get('xml_quantity')?.value) ??
+          this.toNumberOrNull(ctrl.get('quantity')?.value);
+
+        const xmlUnit = String(
+          ctrl.get('xml_unit')?.value ??
+          ctrl.get('unit')?.value ??
+          '',
+        ).trim();
+
+        const xmlUnitPrice =
+          this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
+          this.toNumberOrNull(ctrl.get('unit_price')?.value);
+
+        const xmlAmount =
+          this.toNumberOrNull(ctrl.get('xml_amount')?.value) ??
+          this.toNumberOrNull(ctrl.get('amount')?.value);
+
+        this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
+        this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
+        this.setSilentControlValue(ctrl, 'unit_price', xmlUnitPrice ?? null);
+
+        if (xmlQuantity && xmlQuantity > 0 && xmlUnitPrice && xmlUnitPrice > 0) {
+          this.setSilentControlValue(
+            ctrl,
+            'amount',
+            this.round2(xmlQuantity * xmlUnitPrice),
+          );
+        } else {
+          this.setSilentControlValue(
+            ctrl,
+            'amount',
+            xmlAmount !== null ? this.round2(xmlAmount) : null,
+          );
+        }
+
+        const currentUnitId = toIdForm(ctrl.get('unit_id')?.value);
+
+        if (!currentUnitId) {
+          const matchedUnitId = this.resolveMeasurementUnitIdFromText(xmlUnit);
+
+          this.setSilentControlValue(
+            ctrl,
+            'unit_id',
+            matchedUnitId ?? null,
+          );
+        }
+
+        return;
+      }
+
       this.setSilentControlValue(ctrl, 'quantity', null);
       this.setSilentControlValue(ctrl, 'unit', null);
       this.setSilentControlValue(ctrl, 'unit_id', null);
       this.setSilentControlValue(ctrl, 'unit_price', null);
       this.setSilentControlValue(ctrl, 'amount', null);
+
+      return;
+    }
+
+    if (this.isXmlImport) {
+      const xmlQuantity = this.toNumberOrNull(ctrl.get('xml_quantity')?.value);
+      const xmlUnit = String(ctrl.get('xml_unit')?.value ?? '').trim();
+      const xmlUnitPrice = this.toNumberOrNull(ctrl.get('xml_unit_price')?.value);
+      const xmlAmount = this.toNumberOrNull(ctrl.get('xml_amount')?.value);
+
+      this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
+      this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
+      this.setSilentControlValue(ctrl, 'unit_id', null);
+      this.setSilentControlValue(ctrl, 'unit_price', xmlUnitPrice ?? null);
+      this.setSilentControlValue(
+        ctrl,
+        'amount',
+        xmlAmount !== null ? this.round2(xmlAmount) : null,
+      );
 
       return;
     }
@@ -325,9 +396,70 @@ export class ExpenseForm implements OnInit {
     control.updateValueAndValidity({ emitEvent: false });
   }
 
+  private normalizeCatalogText(value: any): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[().,]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  private resolveMeasurementUnitIdFromText(unitText: string | null | undefined): number | null {
+    const normalizedXmlUnit = this.normalizeCatalogText(unitText);
+
+    if (!normalizedXmlUnit) return null;
+
+    const exactMatch = this.measurementUnitsCatalog.find((unit: any) => {
+      const possibleValues = [
+        unit.name,
+        unit.label,
+        unit.display_name,
+        unit.description,
+        unit.code,
+        unit.abbreviation,
+        unit.short_name,
+      ];
+
+      return possibleValues.some(
+        (value) => this.normalizeCatalogText(value) === normalizedXmlUnit,
+      );
+    });
+
+    if (exactMatch) return Number(exactMatch.id);
+
+    const partialMatch = this.measurementUnitsCatalog.find((unit: any) => {
+      const possibleValues = [
+        unit.name,
+        unit.label,
+        unit.display_name,
+        unit.description,
+        unit.code,
+        unit.abbreviation,
+        unit.short_name,
+      ]
+        .map((value) => this.normalizeCatalogText(value))
+        .filter(Boolean);
+
+      return possibleValues.some(
+        (value) =>
+          value.includes(normalizedXmlUnit) ||
+          normalizedXmlUnit.includes(value),
+      );
+    });
+
+    return partialMatch ? Number(partialMatch.id) : null;
+  }
+
   getWarehouseInitialText(ctrl: AbstractControl): string {
     const quantity = Number(ctrl.get('quantity')?.value ?? 0);
-    const unitId = this.toNumberOrNull(ctrl.get('unit_id')?.value);
+    const rawUnitId = ctrl.get('unit_id')?.value;
+
+    const unitId =
+      toIdForm(rawUnitId) ??
+      this.toNumberOrNull(rawUnitId);
+
     const unitName =
       this.measurementUnitsCatalog.find((unit) => Number(unit.id) === Number(unitId))?.name ??
       String(ctrl.get('unit')?.value ?? '').trim();
@@ -529,8 +661,13 @@ export class ExpenseForm implements OnInit {
 
         quantity: item.quantity ?? null,
         unit: item.unit ?? null,
-        unit_id: (item as any).unit_id ?? null,
+        unit_id: null,
         unit_price: item.unit_price ?? null,
+
+        xml_quantity: item.quantity ?? null,
+        xml_unit: item.unit ?? null,
+        xml_unit_price: item.unit_price ?? null,
+        xml_amount: item.amount ?? null,
 
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
@@ -712,6 +849,11 @@ export class ExpenseForm implements OnInit {
       unit: [data?.unit ?? null],
       unit_id: [data?.unit_id ?? null],
       unit_price: [data?.unit_price ?? null],
+
+      xml_quantity: [data?.xml_quantity ?? data?.quantity ?? null],
+      xml_unit: [data?.xml_unit ?? data?.unit ?? null],
+      xml_unit_price: [data?.xml_unit_price ?? data?.unit_price ?? null],
+      xml_amount: [data?.xml_amount ?? data?.amount ?? null],
 
       amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
 
@@ -914,7 +1056,7 @@ export class ExpenseForm implements OnInit {
 
         const unitId =
           itemType === 'warehouse'
-            ? this.toNumberOrNull(item.unit_id)
+            ? toIdForm(item.unit_id) ?? this.toNumberOrNull(item.unit_id)
             : null;
 
         const unit =
@@ -1062,7 +1204,7 @@ export class ExpenseForm implements OnInit {
     this.bulkProjectSelected = null;
 
     this.bulkAmountCtrl.setValue(null, { emitEvent: false });
-    this.bulkPaymentDateCtrl.setValue(this.getTodayIsoDate(), { emitEvent: false });
+    this.bulkPaymentDateCtrl.setValue('', { emitEvent: false });
   }
 
   confirmExitFromXmlFlow() {
