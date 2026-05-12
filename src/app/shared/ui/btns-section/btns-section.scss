@@ -5,9 +5,9 @@
   gap: 1rem;
 
   button {
-    height: 31px !important;
-    min-height: 31px !important;
-    max-height: 31px !important;
+    height: 30px !important;
+    min-height: 30px !important;
+    max-height: 30px !important;
 
     display: inline-flex !important;
     align-items: center;
@@ -21,8 +21,8 @@
     transition: all 0.25s ease;
 
     // Angular Material MDC
-    --mdc-filled-button-container-height: 31px;
-    --mdc-outlined-button-container-height: 31px;
+    --mdc-filled-button-container-height: 30px;
+    --mdc-outlined-button-container-height: 30px;
     --mat-filled-button-horizontal-padding: 14px;
     --mat-outlined-button-horizontal-padding: 14px;
 
