@@ -1,22 +1,45 @@
 @if (type == 'save') {
 <div class="c-modal-actions">
-    <button mat-stroked-button type="button" (click)="action.emit('cancel')" class="btn-cancel">
-        Cancelar
+    <button
+        mat-stroked-button
+        type="button"
+        (click)="action.emit('cancel')"
+        class="btn-cancel"
+        [disabled]="cancelDisabled">
+        {{ cancelLabel }}
     </button>
 
-    <button mat-flat-button type="submit" (click)="action.emit('save')" form="form" class="btn-primary"
-        [ngClass]="{'not-cursor-pointer': saveDisabled}">
-        Guardar
+    <button
+        mat-flat-button
+        type="submit"
+        (click)="action.emit('save')"
+        [attr.form]="form"
+        class="btn-primary"
+        [disabled]="saveDisabled"
+        [ngClass]="{
+            'btn-danger': saveVariant === 'danger',
+            'not-cursor-pointer': saveDisabled
+        }">
+        {{ saveLabel }}
     </button>
 </div>
 
 } @else if(type == 'search') {
 <div class="btns-action-filters">
-    <button type="button" class="btn-primary" (click)="action.emit('search')" [disabled]=" hasActiveSearch ? !hasActiveSearch : null">
+    <button
+        type="button"
+        class="btn-primary"
+        (click)="action.emit('search')"
+        [disabled]="hasActiveSearch ? !hasActiveSearch : null">
         <mat-icon>search</mat-icon>
     </button>
+
     @if (searchDisabled) {
-        <button type="button" class="btn-outline" (click)="action.emit('clean')" [disabled]="!hasActiveFilters">
+        <button
+            type="button"
+            class="btn-outline"
+            (click)="action.emit('clean')"
+            [disabled]="!hasActiveFilters">
             Limpiar
         </button>
     }
@@ -24,13 +47,26 @@
 
 } @else if(type == 'continue'){
 <div class="c-modal-actions">
-    <button mat-stroked-button type="button" (click)="action.emit('cancel')" class="btn-cancel">
-        Cancelar
+    <button
+        mat-stroked-button
+        type="button"
+        (click)="action.emit('cancel')"
+        class="btn-cancel"
+        [disabled]="cancelDisabled">
+        {{ cancelLabel }}
     </button>
 
-    <button mat-flat-button (click)="action.emit('continue')"  class="btn-primary">
-        Continuar
+    <button
+        mat-flat-button
+        type="button"
+        (click)="action.emit('continue')"
+        class="btn-primary"
+        [disabled]="continueDisabled"
+        [ngClass]="{
+            'btn-danger': continueVariant === 'danger',
+            'not-cursor-pointer': continueDisabled
+        }">
+        {{ continueLabel }}
     </button>
 </div>
 }
-

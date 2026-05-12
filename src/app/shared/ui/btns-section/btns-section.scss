@@ -1,24 +1,44 @@
 .c-modal-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 1rem;
 
   button {
-    display: flex;
+    height: 31px !important;
+    min-height: 31px !important;
+    max-height: 31px !important;
+
+    display: inline-flex !important;
     align-items: center;
-    padding: 3px 15px;
-    font-size: 15px;
+    justify-content: center;
+
+    padding: 0 14px !important;
+    font-size: 14px;
+    line-height: 1 !important;
     border-radius: 7px;
     gap: 5px;
     transition: all 0.25s ease;
+
+    // Angular Material MDC
+    --mdc-filled-button-container-height: 31px;
+    --mdc-outlined-button-container-height: 31px;
+    --mat-filled-button-horizontal-padding: 14px;
+    --mat-outlined-button-horizontal-padding: 14px;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: unset;
+    }
   }
 
   .btn-cancel {
     color: #4b5563 !important;
     border-color: #9ca3af !important;
+    background: #ffffff !important;
 
-    &:hover {
-      background-color: rgba(156, 163, 175, 0.1);
+    &:hover:not(:disabled) {
+      background-color: rgba(156, 163, 175, 0.1) !important;
     }
   }
 
@@ -26,14 +46,21 @@
     background-color: #1e86b1 !important;
     color: white !important;
 
-    &:hover {
+    &:hover:not(:disabled) {
       background-color: #167195 !important;
     }
+  }
 
-    &:disabled {
-      opacity: 0.6;
-      cursor: unset;
+  .btn-danger {
+    background-color: #dc2626 !important;
+    color: white !important;
+
+    &:hover:not(:disabled) {
+      background-color: #b91c1c !important;
     }
   }
 }
 
+.not-cursor-pointer {
+  cursor: unset !important;
+}

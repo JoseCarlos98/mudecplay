@@ -71,4 +71,22 @@ export class WarehouseService {
 
     return this.http.post<ApiSuccess>(url, formData);
   }
+
+  getWarehouseCancelPreview(
+  expenseId: number,
+): Observable<entity.WarehouseCancelPreviewDto> {
+  return this.http.get<entity.WarehouseCancelPreviewDto>(
+    `${environment.apiUrl}/expenses/${expenseId}/warehouse-cancel-preview`,
+  );
+}
+
+cancelWarehouseExpense(
+  expenseId: number,
+  payload: entity.CancelWarehouseExpenseDto,
+): Observable<{ success: boolean; message: string }> {
+  return this.http.post<{ success: boolean; message: string }>(
+    `${environment.apiUrl}/expenses/${expenseId}/cancel-warehouse`,
+    payload,
+  );
+}
 }

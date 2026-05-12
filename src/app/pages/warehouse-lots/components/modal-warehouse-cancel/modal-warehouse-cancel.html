@@ -1,0 +1,215 @@
+<div class="c-modal warehouse-cancel-modal">
+  <app-module-header
+    title="Cancelar gasto de almacén"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="warehouse-cancel-modal__body">
+    @if (errorMessage()) {
+      <section class="alert alert--error">
+        <mat-icon>error</mat-icon>
+
+        <div>
+          <strong>No se pudo continuar</strong>
+          <p>{{ errorMessage() }}</p>
+        </div>
+      </section>
+    }
+
+    @if (!loading() && preview()) {
+      <section class="expense-summary">
+        <div class="expense-summary__icon">
+          <mat-icon>inventory_2</mat-icon>
+        </div>
+
+        <div class="expense-summary__content">
+          <span class="eyebrow">Gasto de almacén</span>
+
+          <h3>
+            {{ preview()?.expense?.internal_folio || 'Sin folio' }}
+          </h3>
+
+          <div class="expense-summary__grid">
+            <span>
+              Fecha:
+              <strong>{{ preview()?.expense?.date || '-' }}</strong>
+            </span>
+
+            <span>
+              Proveedor:
+              <strong>{{ preview()?.expense?.supplier_name || '-' }}</strong>
+            </span>
+
+            <span>
+              Total gasto:
+              <strong>{{ formatMoney(preview()?.expense?.total_amount) }}</strong>
+            </span>
+
+            <span>
+              Lotes:
+              <strong>{{ lotsCount }}</strong>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="impact-card"
+        [class.impact-card--warning]="hasProjectImpact"
+        [class.impact-card--safe]="!hasProjectImpact">
+
+        <div class="impact-card__icon">
+          <mat-icon>
+            {{ hasProjectImpact ? 'warning' : 'check_circle' }}
+          </mat-icon>
+        </div>
+
+        <div class="impact-card__content">
+          <h4>{{ impactTitle }}</h4>
+
+          <p>{{ preview()?.message }}</p>
+
+          <div
+            class="impact-total"
+            [class.impact-total--safe]="!hasProjectImpact">
+            <span>{{ impactTotalLabel }}</span>
+            <strong>{{ formatMoney(totalAmountToRemove) }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="section-block">
+        <header class="section-block__header">
+          <div>
+            <mat-icon>inventory</mat-icon>
+            <h4>Lotes que se cancelarán</h4>
+          </div>
+
+          <span>{{ preview()?.lots?.length || 0 }} lote(s)</span>
+        </header>
+
+        <div class="lots-grid">
+          @for (lot of preview()?.lots; track lot.lot_id) {
+            <article class="lot-card">
+              <div class="lot-card__header">
+                <h5>{{ lot.product_name || 'Producto sin nombre' }}</h5>
+
+                <span
+                  class="status-pill"
+                  [ngClass]="getLotStatusClass(lot.status)">
+                  {{ getLotStatusLabel(lot.status) }}
+                </span>
+              </div>
+
+              <div class="lot-card__details">
+                <div>
+                  <span>Original</span>
+                  <strong>{{ formatQuantity(lot.original_quantity, lot.unit) }}</strong>
+                </div>
+
+                <div>
+                  <span>Disponible</span>
+                  <strong>{{ formatQuantity(lot.available_quantity, lot.unit) }}</strong>
+                </div>
+
+                <div>
+                  <span>Usado</span>
+                  <strong>{{ formatQuantity(lot.used_quantity, lot.unit) }}</strong>
+                </div>
+
+                <div>
+                  <span>Costo unitario</span>
+                  <strong>{{ formatMoney(lot.unit_cost) }}</strong>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
+
+      @if (hasProjectImpact) {
+        <section class="section-block">
+          <header class="section-block__header">
+            <div>
+              <mat-icon>account_tree</mat-icon>
+              <h4>Salidas que se regresarán automáticamente</h4>
+            </div>
+
+            <span>{{ activeOutputsCount }} salida(s)</span>
+          </header>
+
+          <div class="outputs-list">
+            @for (output of preview()?.active_outputs; track output.movement_id) {
+              <article class="output-card">
+                <div class="output-card__main">
+                  <div class="output-card__icon">
+                    <mat-icon>undo</mat-icon>
+                  </div>
+
+                  <div>
+                    <h5>{{ output.project_name || 'Sin proyecto' }}</h5>
+                    <p>{{ output.product_name || 'Producto sin nombre' }}</p>
+                  </div>
+                </div>
+
+                <div class="output-card__numbers">
+                  <div>
+                    <span>Cantidad</span>
+                    <strong>{{ formatQuantity(output.quantity, output.unit) }}</strong>
+                  </div>
+
+                  <div>
+                    <span>Importe</span>
+                    <strong>{{ formatMoney(output.amount) }}</strong>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="final-warning">
+        <mat-icon>info</mat-icon>
+
+        <div>
+          <strong>Antes de confirmar</strong>
+          <p>{{ beforeConfirmText }}</p>
+        </div>
+      </section>
+
+      <form
+        [formGroup]="form"
+        (ngSubmit)="saveData()"
+        id="form"
+        class="cancel-form">
+
+        <app-input-field
+          formControlName="reason"
+          label="Motivo de cancelación"
+          type="text">
+        </app-input-field>
+
+      </form>
+    }
+  </div>
+
+<app-btns-section
+  class="warehouse-cancel-modal__footer"
+  type="save"
+  form="form"
+  cancelLabel="Cerrar"
+  saveLabel="Cancelar gasto de almacén"
+  saveVariant="danger"
+  [cancelDisabled]="saving()"
+  [saveDisabled]="loading() || saving() || form.invalid || !preview()"
+  (action)="onBtnsSectionAction($event)">
+</app-btns-section>
+
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando información...">
+  </app-loading-overlay>
+</div>

@@ -12,8 +12,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 
-import { ModalWarehouseMovements } from './components/modal-warehouse-movements/modal-warehouse-movements';
-
 // UI compartidos
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
@@ -43,6 +41,9 @@ import * as entity from './interfaces/warehouse-interfaces';
 
 // Componentes
 import { ModalWarehouseLots } from './components/modal-warehouse-lots/modal-warehouse-lots';
+import { ModalWarehouseMovements } from './components/modal-warehouse-movements/modal-warehouse-movements';
+import { ModalWarehouseCancel } from './components/modal-warehouse-cancel/modal-warehouse-cancel';
+
 import { toIdForm } from '../../shared/helpers/general-helpers';
 
 // ==========================
@@ -59,7 +60,12 @@ const STATUS_OPTIONS: Catalog[] = [
 ];
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'status_name', label: 'Estado', type: 'chip', typeVariant: 'chip-neutral' },
+  {
+    key: 'status_name',
+    label: 'Estado',
+    type: 'chip',
+    typeVariant: 'chip-neutral',
+  },
   { key: 'product_name_snapshot', label: 'Producto' },
   { key: 'expense_folio_snapshot', label: 'Folio gasto' },
   { key: 'supplier_name_snapshot', label: 'Proveedor' },
@@ -148,25 +154,33 @@ export class WarehouseLots implements OnInit {
     search: this.fb.control<string>(''),
   });
 
-readonly extraActions: WarehouseTableExtraAction[] = [
-  {
-    type: 'assignWarehouseLot',
-    icon: 'outbox',
-    tooltip: (row) =>
-      this.canAssignLot(row)
-        ? 'Asignar material a proyecto'
-        : 'Sin existencia disponible',
-    visible: () => true,
-    disabled: (row) => !this.canAssignLot(row),
-  },
-  {
-    type: 'viewWarehouseMovements',
-    icon: 'history',
-    tooltip: () => 'Ver movimientos',
-    visible: () => true,
-    disabled: () => false,
-  },
-];
+  readonly extraActions: WarehouseTableExtraAction[] = [
+    {
+      type: 'assignWarehouseLot',
+      icon: 'outbox',
+      tooltip: (row) =>
+        this.canAssignLot(row)
+          ? 'Asignar material a proyecto'
+          : 'Sin existencia disponible',
+      visible: () => true,
+      disabled: (row) => !this.canAssignLot(row),
+    },
+    {
+      type: 'viewWarehouseMovements',
+      icon: 'history',
+      tooltip: () => 'Ver movimientos',
+      visible: () => true,
+      disabled: () => false,
+    },
+    {
+      type: 'cancelWarehouseExpense',
+      icon: 'delete_forever',
+      tooltip: () => 'Cancelar gasto de almacén',
+      visible: (row) => this.canShowCancelWarehouseExpense(row),
+      disabled: (row) => !this.canCancelWarehouseExpense(row),
+    },
+  ];
+
   // ==========================
   //  CICLO DE VIDA
   // ==========================
@@ -195,8 +209,14 @@ readonly extraActions: WarehouseTableExtraAction[] = [
     return {
       ...row,
       status_name: this.getStatusLabel(row.status),
-      original_quantity_text: this.formatQuantity(row.original_quantity, row.unit),
-      available_quantity_text: this.formatQuantity(row.available_quantity, row.unit),
+      original_quantity_text: this.formatQuantity(
+        row.original_quantity,
+        row.unit,
+      ),
+      available_quantity_text: this.formatQuantity(
+        row.available_quantity,
+        row.unit,
+      ),
       used_quantity_text: this.formatQuantity(row.used_quantity, row.unit),
     };
   }
@@ -222,6 +242,17 @@ readonly extraActions: WarehouseTableExtraAction[] = [
     );
   }
 
+  private canShowCancelWarehouseExpense(
+    row: entity.WarehouseLotResponseDto,
+  ): boolean {
+    return !!row?.expense_id && row.status !== 'cancelled';
+  }
+
+  private canCancelWarehouseExpense(
+    row: entity.WarehouseLotResponseDto,
+  ): boolean {
+    return !!row?.expense_id && row.status !== 'cancelled';
+  }
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
@@ -303,29 +334,33 @@ readonly extraActions: WarehouseTableExtraAction[] = [
   // ==========================
   //  ACCIONES TABLA
   // ==========================
-onTableAction(ev: DataTableActionEvent<entity.WarehouseLotResponseDto>): void {
-  switch (ev.type) {
-    case 'assignWarehouseLot':
-      this.openAssignModal(ev.row);
-      break;
+  onTableAction(ev: DataTableActionEvent<entity.WarehouseLotResponseDto>): void {
+    switch (ev.type) {
+      case 'assignWarehouseLot':
+        this.openAssignModal(ev.row);
+        break;
 
-    case 'viewWarehouseMovements':
-      this.openMovementsModal(ev.row);
-      break;
+      case 'viewWarehouseMovements':
+        this.openMovementsModal(ev.row);
+        break;
 
-    default:
-      break;
+      case 'cancelWarehouseExpense':
+        this.openCancelWarehouseExpenseModal(ev.row);
+        break;
+
+      default:
+        break;
+    }
   }
-}
 
-openMovementsModal(lot: entity.WarehouseLotResponseDto): void {
-  this.dialogService
-    .open(ModalWarehouseMovements, lot, 'medium')
-    .afterClosed()
-    .subscribe((result) => {
-      if (result) this.loadWarehouseLots();
-    });
-}
+  openMovementsModal(lot: entity.WarehouseLotResponseDto): void {
+    this.dialogService
+      .open(ModalWarehouseMovements, lot, 'medium')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) this.loadWarehouseLots();
+      });
+  }
 
   openAssignModal(lot: entity.WarehouseLotResponseDto): void {
     this.dialogService
@@ -333,6 +368,27 @@ openMovementsModal(lot: entity.WarehouseLotResponseDto): void {
       .afterClosed()
       .subscribe((result) => {
         if (result) this.loadWarehouseLots();
+      });
+  }
+
+  openCancelWarehouseExpenseModal(
+    lot: entity.WarehouseLotResponseDto,
+  ): void {
+    if (!this.canCancelWarehouseExpense(lot)) return;
+
+    this.dialogService
+      .open(
+        ModalWarehouseCancel,
+        {
+          expenseId: Number(lot.expense_id),
+        },
+        'medium',
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadWarehouseLots();
+        }
       });
   }
 

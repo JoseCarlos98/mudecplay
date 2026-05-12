@@ -6,7 +6,9 @@ import {
   Input,
   Output,
 } from '@angular/core';
+
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
 
 /**
  * Acciones posibles que puede disparar el footer:
@@ -14,46 +16,74 @@ import { MatIconModule } from '@angular/material/icon';
  * - save: guardar formulario
  * - search: disparar búsqueda de filtros
  * - clean: limpiar filtros
+ * - continue: continuar flujo
  */
 export type ModuleFooterAction =
   | 'cancel'
   | 'save'
   | 'search'
   | 'clean'
-  | 'continue'
+  | 'continue';
+
+export type ModuleFooterButtonVariant = 'primary' | 'danger';
 
 @Component({
   selector: 'app-btns-section',
   standalone: true,
-  imports: [CommonModule, MatIconModule],
+  imports: [CommonModule, MatIconModule, MatButtonModule],
   templateUrl: './btns-section.html',
   styleUrl: './btns-section.scss',
-  // OnPush para que solo se vuelva a pintar cuando cambian @Input() o @Output()
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BtnsSection {
   /**
    * Modo del componente:
-   * - true: se comporta como footer de formulario (Cancelar / Guardar)
-   * - false: se comporta como footer de filtros (Buscar / Limpiar)
+   * - save: footer de formulario Cancelar / Guardar
+   * - search: acciones de filtros Buscar / Limpiar
+   * - continue: footer Cancelar / Continuar
    */
   @Input() type: ModuleFooterAction = 'save';
 
   /**
-   * Controla el estado del botón Guardar:
-   * - true  => se muestra como "no clickeable" (ej: form.invalid)
-   * - false => se puede usar normalmente
+   * Id del formulario al que se conecta el botón submit.
+   * Por defecto se mantiene como "form" para no romper modales existentes.
    */
-  @Input() saveDisabled: boolean = false;
-  @Input() searchDisabled: boolean = true;
+  @Input() form: string = 'form';
 
   /**
-   * Indica si hay filtros activos.
-   * - true  => se habilita el botón "Limpiar"
-   * - false => se deshabilita para evitar limpiar cuando no hay nada aplicado
+   * Textos configurables.
+   * Por defecto mantiene el comportamiento actual.
    */
+  @Input() cancelLabel: string = 'Cancelar';
+  @Input() saveLabel: string = 'Guardar';
+  @Input() continueLabel: string = 'Continuar';
+
+  /**
+   * Íconos opcionales para botones principales.
+   */
+  @Input() saveIcon: string | null = null;
+  @Input() continueIcon: string | null = null;
+
+  /**
+   * Variantes visuales.
+   * primary = azul normal.
+   * danger = rojo para acciones delicadas.
+   */
+  @Input() saveVariant: ModuleFooterButtonVariant = 'primary';
+  @Input() continueVariant: ModuleFooterButtonVariant = 'primary';
+
+  /**
+   * Estados disabled.
+   */
+  @Input() saveDisabled: boolean = false;
+  @Input() cancelDisabled: boolean = false;
+  @Input() continueDisabled: boolean = false;
+
+  /**
+   * Configuración de filtros.
+   */
+  @Input() searchDisabled: boolean = true;
   @Input() hasActiveFilters: boolean = false;
-  
   @Input() hasActiveSearch: boolean = false;
 
   /**

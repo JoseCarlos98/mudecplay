@@ -96,3 +96,54 @@ export interface WarehouseMovementResponseDto {
 export interface ReturnWarehouseMovementDto {
   notes?: string | null;
 }
+
+export interface WarehouseCancelExpenseInfoDto {
+  id: number;
+  internal_folio: string;
+  date: string;
+  supplier_name: string;
+  total_amount: number;
+}
+
+export interface WarehouseCancelSummaryDto {
+  lots_count: number;
+  active_outputs_count: number;
+  total_amount_to_remove_from_projects: number;
+  has_project_impact: boolean;
+}
+
+export interface WarehouseCancelLotDto {
+  lot_id: number | string;
+  product_name: string;
+  original_quantity: number;
+  available_quantity: number;
+  used_quantity: number;
+  unit: string | null;
+  unit_cost: number;
+  total_cost: number;
+  status: 'available' | 'partial' | 'depleted' | 'cancelled' | string;
+}
+
+export interface WarehouseCancelActiveOutputDto {
+  movement_id: number;
+  lot_id: number;
+  product_name: string;
+  project_id: number | null;
+  project_name: string;
+  quantity: number;
+  unit: string | null;
+  unit_cost: number;
+  amount: number;
+}
+
+export interface WarehouseCancelPreviewDto {
+  expense: WarehouseCancelExpenseInfoDto;
+  summary: WarehouseCancelSummaryDto;
+  lots: WarehouseCancelLotDto[];
+  active_outputs: WarehouseCancelActiveOutputDto[];
+  message: string;
+}
+
+export interface CancelWarehouseExpenseDto {
+  reason: string;
+}
