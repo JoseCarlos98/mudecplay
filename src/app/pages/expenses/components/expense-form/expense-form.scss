@@ -347,21 +347,67 @@
 }
 
 /* =======================
-   DIRECTO EN 4 COLUMNAS
-   Producto | Monto | Abono/Pago | Proyecto
+   DIRECTO
+   Fila 1: Producto | Monto | Abono/Pago | Proyecto
+   Fila 2: Fecha de pago | Restante
    ======================= */
+
+.direct-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
 
 .direct-grid {
   display: grid;
   grid-template-columns:
-    minmax(260px, 1.35fr)
-    minmax(145px, 0.65fr)
-    minmax(190px, 0.8fr)
+    minmax(280px, 1.45fr)
+    minmax(150px, 0.72fr)
+    minmax(190px, 0.9fr)
     minmax(260px, 1.25fr);
   gap: 1rem;
   align-items: start;
 }
 
+.direct-secondary-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 320px) minmax(110px, 150px);
+  gap: 1.1rem;
+  align-items: start;
+  justify-content: start;
+}
+
+.direct-payment-field {
+  min-width: 0;
+}
+
+.direct-restant-box {
+  min-height: 31px;
+  padding-top: 1.35rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.direct-restant-box__label {
+  color: #1164a3;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.direct-restant-box__amount {
+  color: #475569;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.direct-restant-box__amount.error-restant {
+  color: var(--color-error);
+}
+
+/* Compatibilidad con clases anteriores del layout directo */
 .direct-payment-cell {
   display: flex;
   flex-direction: column;
@@ -562,6 +608,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .direct-secondary-grid {
+    grid-template-columns: minmax(220px, 1fr) minmax(110px, 160px);
+    max-width: 520px;
+  }
+
   .warehouse-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -620,10 +671,17 @@
   }
 
   .direct-grid,
+  .direct-secondary-grid,
   .warehouse-grid,
   .warehouse-secondary-grid,
   .warehouse-payment-grid {
     grid-template-columns: 1fr;
+    max-width: none;
+  }
+
+  .direct-restant-box,
+  .warehouse-restant-box {
+    padding-top: 0;
   }
 
   .expense-item-card__top,

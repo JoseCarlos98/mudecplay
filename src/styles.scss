@@ -794,6 +794,16 @@ body {
     width: 100%;
     justify-content: center;
   }
+
+  .c-form {
+    padding: 0!important;
+  }
+  
+  .form-dinamic .form-dinamic-header{
+    flex-wrap: wrap;
+    justify-content: end;
+    gap: 10px;
+  }
 }
 
 .modal-actions-spacer {
