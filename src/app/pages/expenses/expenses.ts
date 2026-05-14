@@ -18,7 +18,11 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent, DataTableExtraAction } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableExtraAction,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
@@ -39,10 +43,15 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 
 // Componentes propios
 import { ExpenseModal } from './components/expense-modal/expense-modal';
-import { finalize } from 'rxjs';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
-import { HasRoleDirective } from '../../auth/directives/has-role.directive';
 import { ModalArchive } from './components/modal-archive/modal-archive';
+
+// Modal de cancelación de almacén
+// Ajusta esta ruta si tu módulo de almacén tiene otro nombre de carpeta.
+
+import { finalize } from 'rxjs';
+import { HasRoleDirective } from '../../auth/directives/has-role.directive';
+import { ModalWarehouseCancel } from '../warehouse-lots/components/modal-warehouse-cancel/modal-warehouse-cancel';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -52,7 +61,6 @@ const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
-
   { key: 'internal_folio', label: 'Folio' },
   { key: 'date', label: 'Fecha', type: 'date' },
   {
@@ -81,7 +89,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   uploadXmlRoles: ['GASTOS_XML_IMPORTADOR'],
 };
 
-// Catálogo extra de estados “virtuales”
 const STATUS_COMPLEMENTS: Catalog[] = [
   { id: 'missing_supplier', name: 'Sin proveedor' },
   { id: 'missing_project', name: 'Sin proyecto' },
@@ -168,11 +175,23 @@ export class Expenses implements OnInit {
   readonly downloadingReceipt = signal(false);
   readonly downloadingReceiptExpenseId = signal<number | null>(null);
 
+  // ==========================
+  //  ACCIONES BASE
+  // ==========================
   canDeleteRow = (row: entity.ExpenseResponseDto) => {
+    // Los gastos de almacén NO deben ir por eliminación normal.
+    // Deben ir por cancelación controlada de almacén.
+    if (this.isWarehouseExpense(row)) return false;
+
+    // Los CFDI/XML normales se siguen bloqueando como antes.
     return !row.cfdi_uuid;
   };
 
   deleteTooltip = (row: entity.ExpenseResponseDto) => {
+    if (this.isWarehouseExpense(row)) {
+      return 'Los gastos de almacén se cancelan con la acción "Cancelar gasto de almacén".';
+    }
+
     if (row.cfdi_uuid) {
       return 'No puedes eliminar gastos creados desde un CFDI.';
     }
@@ -183,6 +202,13 @@ export class Expenses implements OnInit {
   private isDownloadingThisReceipt(row: entity.ExpenseResponseDto): boolean {
     return this.downloadingReceipt() && this.downloadingReceiptExpenseId() === row.id;
   }
+
+  private isWarehouseExpense(row: entity.ExpenseResponseDto): boolean {
+    return (row.items ?? []).some(
+      (item) => (item.item_type ?? 'direct') === 'warehouse',
+    );
+  }
+
   getReceiptTooltip = (row: entity.ExpenseResponseDto): string => {
     return row.can_generate_receipt ? 'Descargar comprobante' : '';
   };
@@ -191,12 +217,20 @@ export class Expenses implements OnInit {
     return row.can_generate_receipt && !row.is_archived ? 'Archivar gasto' : '';
   };
 
+  getCancelWarehouseExpenseTooltip = (
+    row: entity.ExpenseResponseDto,
+  ): string => {
+    if (!this.isWarehouseExpense(row)) return '';
+
+    return row.cfdi_uuid
+      ? 'Cancelar gasto XML de almacén'
+      : 'Cancelar gasto de almacén';
+  };
+
   getReceiptPopover = (
     row: entity.ExpenseResponseDto,
   ): DataTableActionPopover | null => {
-    if (row.can_generate_receipt) {
-      return null;
-    }
+    if (row.can_generate_receipt) return null;
 
     return {
       title: 'No disponible',
@@ -209,14 +243,25 @@ export class Expenses implements OnInit {
   getArchivePopover = (
     row: entity.ExpenseResponseDto,
   ): DataTableActionPopover | null => {
-    if (row.can_generate_receipt) {
-      return null;
-    }
+    if (row.can_generate_receipt) return null;
 
     return {
       title: 'No disponible',
       message: null,
       items: row.receipt_block_reasons ?? [],
+      kind: 'warning',
+    };
+  };
+
+  getCancelWarehouseExpensePopover = (
+    row: entity.ExpenseResponseDto,
+  ): DataTableActionPopover | null => {
+    if (!this.isWarehouseExpense(row)) return null;
+
+    return {
+      title: 'Cancelar gasto completo de almacén',
+      message:
+        'Esta acción cancelará el gasto completo, sus existencias y, si ya tuvo salidas a proyecto, las regresará automáticamente.',
       kind: 'warning',
     };
   };
@@ -238,6 +283,14 @@ export class Expenses implements OnInit {
       popoverContent: this.getArchivePopover,
       visible: () => true,
       disabled: (row) => !row.can_generate_receipt || row.is_archived,
+    },
+    {
+      type: 'cancelWarehouseExpense',
+      icon: 'delete_forever',
+      tooltip: this.getCancelWarehouseExpenseTooltip,
+      popoverContent: this.getCancelWarehouseExpensePopover,
+      visible: (row) => this.isWarehouseExpense(row),
+      disabled: () => false,
     },
   ];
 
@@ -425,6 +478,10 @@ export class Expenses implements OnInit {
       case 'archiveExpense':
         this.openArchiveExpenseModal(ev.row);
         break;
+
+      case 'cancelWarehouseExpense':
+        this.openCancelWarehouseExpenseModal(ev.row);
+        break;
     }
   }
 
@@ -471,6 +528,11 @@ export class Expenses implements OnInit {
   }
 
   onDelete(expense: entity.ExpenseResponseDto): void {
+    if (this.isWarehouseExpense(expense)) {
+      this.openCancelWarehouseExpenseModal(expense);
+      return;
+    }
+
     this.dialogService
       .confirm({
         size: 'mini',
@@ -485,6 +547,25 @@ export class Expenses implements OnInit {
           next: () => this.loadExpenses(),
           error: (err) => console.error('Error al eliminar gasto:', err),
         });
+      });
+  }
+
+  private openCancelWarehouseExpenseModal(expense: entity.ExpenseResponseDto): void {
+    if (!this.isWarehouseExpense(expense)) return;
+
+    this.dialogService
+      .open(
+        ModalWarehouseCancel,
+        {
+          expenseId: expense.id,
+        },
+        'medium',
+      )
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadExpenses();
+        }
       });
   }
 

@@ -185,7 +185,8 @@ export class ModalWarehouseCancel implements OnInit {
       .subscribe({
         next: (response) => {
           if (response.success) {
-            this.closeModal(true);
+            // No usar closeModal(true) aquí porque closeModal bloquea cuando saving() está en true.
+            this.dialogRef.close(true);
           }
         },
         error: (err) => {
@@ -203,6 +204,10 @@ export class ModalWarehouseCancel implements OnInit {
     switch (action) {
       case 'cancel':
         this.closeModal();
+        break;
+
+      case 'save':
+        this.saveData();
         break;
 
       default:
