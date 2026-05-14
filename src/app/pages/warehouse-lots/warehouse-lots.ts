@@ -172,13 +172,13 @@ export class WarehouseLots implements OnInit {
       visible: () => true,
       disabled: () => false,
     },
-    {
-      type: 'cancelWarehouseExpense',
-      icon: 'delete_forever',
-      tooltip: () => 'Cancelar gasto de almacén',
-      visible: (row) => this.canShowCancelWarehouseExpense(row),
-      disabled: (row) => !this.canCancelWarehouseExpense(row),
-    },
+    // {
+    //   type: 'cancelWarehouseExpense',
+    //   icon: 'delete_forever',
+    //   tooltip: () => 'Cancelar gasto de almacén',
+    //   visible: (row) => this.canShowCancelWarehouseExpense(row),
+    //   disabled: (row) => !this.canCancelWarehouseExpense(row),
+    // },
   ];
 
   // ==========================
