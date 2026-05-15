@@ -228,9 +228,134 @@ export class ExpenseForm implements OnInit {
     return Number(Number(value ?? 0).toFixed(6));
   }
 
-  // ==========================
-  //  ALMACÉN - HELPERS UI
-  // ==========================
+  private isSameMoney(a: any, b: any): boolean {
+    const n1 = this.round2(Number(a ?? 0));
+    const n2 = this.round2(Number(b ?? 0));
+
+    return Math.abs(n1 - n2) <= 0.01;
+  }
+
+  private hasFiscalBreakdownFromRawItem(item: any): boolean {
+    return (
+      item?.base_amount !== null &&
+      item?.base_amount !== undefined &&
+      item?.base_amount !== ''
+    ) || (
+      item?.discount_amount !== null &&
+      item?.discount_amount !== undefined &&
+      item?.discount_amount !== ''
+    ) || (
+      item?.tax_amount !== null &&
+      item?.tax_amount !== undefined &&
+      item?.tax_amount !== ''
+    ) || (
+      item?.withheld_amount !== null &&
+      item?.withheld_amount !== undefined &&
+      item?.withheld_amount !== ''
+    );
+  }
+
+  private resolveFiscalAmountFromRawItem(item: any): number | null {
+    if (!this.hasFiscalBreakdownFromRawItem(item)) return null;
+
+    const baseAmount = this.round2(Number(item.base_amount ?? 0));
+    const discountAmount = this.round2(Number(item.discount_amount ?? 0));
+    const taxAmount = this.round2(Number(item.tax_amount ?? 0));
+    const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
+    const netBase = Math.max(0, baseAmount - discountAmount);
+
+    return this.round2(netBase + taxAmount - withheldAmount);
+  }
+
+  private resolveXmlAmountFromRawItem(item: any): number | null {
+    const fiscalAmount = this.resolveFiscalAmountFromRawItem(item);
+
+    if (fiscalAmount !== null && fiscalAmount > 0) {
+      return fiscalAmount;
+    }
+
+    const xmlAmount = this.toNumberOrNull(item?.xml_amount);
+
+    if (xmlAmount !== null && xmlAmount > 0) {
+      return this.round2(xmlAmount);
+    }
+
+    const amount = this.toNumberOrNull(item?.amount);
+
+    return amount !== null && amount > 0 ? this.round2(amount) : null;
+  }
+
+  private resolveXmlUnitPriceFromAmount(
+    amount: number | null,
+    quantity: number | null,
+  ): number | null {
+    if (!amount || amount <= 0 || !quantity || quantity <= 0) return null;
+
+    return this.round6(amount / quantity);
+  }
+
+  private resolvePayloadPaymentAmount(
+    rawPaymentAmount: any,
+    normalizedAmount: number,
+    currentFormAmount: number | null,
+  ): number | null {
+    const paymentAmount = this.toNumberOrNull(rawPaymentAmount);
+
+    if (paymentAmount === null) return null;
+
+    const roundedPaymentAmount = this.round2(paymentAmount);
+
+    if (
+      this.isXmlImport &&
+      normalizedAmount > 0 &&
+      currentFormAmount !== null &&
+      this.isSameMoney(roundedPaymentAmount, currentFormAmount) &&
+      !this.isSameMoney(roundedPaymentAmount, normalizedAmount)
+    ) {
+      return normalizedAmount;
+    }
+
+    return roundedPaymentAmount;
+  }
+
+  private syncXmlFiscalValues(ctrl: AbstractControl): void {
+    if (!this.isXmlImport) return;
+
+    const raw = ctrl.getRawValue?.() ?? {};
+    const xmlAmount = this.resolveXmlAmountFromRawItem(raw);
+
+    if (xmlAmount === null || xmlAmount <= 0) return;
+
+    const quantity =
+      this.toNumberOrNull(raw.quantity) ??
+      this.toNumberOrNull(raw.xml_quantity);
+
+    const unitPrice = this.resolveXmlUnitPriceFromAmount(
+      xmlAmount,
+      quantity,
+    );
+
+    ctrl.get('amount')?.setValue(xmlAmount, { emitEvent: false });
+    ctrl.get('amount')?.updateValueAndValidity({ emitEvent: false });
+
+    if (unitPrice !== null) {
+      ctrl.get('unit_price')?.setValue(unitPrice, { emitEvent: false });
+      ctrl.get('unit_price')?.updateValueAndValidity({ emitEvent: false });
+    }
+
+    const paymentAmount = this.toNumberOrNull(ctrl.get('payment_amount')?.value);
+
+    if (
+      paymentAmount !== null &&
+      paymentAmount > 0 &&
+      this.isSameMoney(paymentAmount, raw.amount) &&
+      !this.isSameMoney(paymentAmount, xmlAmount)
+    ) {
+      ctrl.get('payment_amount')?.setValue(xmlAmount, { emitEvent: false });
+      ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
+    }
+  }
+
   // ==========================
   //  ALMACÉN - HELPERS UI
   // ==========================
@@ -299,31 +424,22 @@ export class ExpenseForm implements OnInit {
           '',
         ).trim();
 
+        const raw = ctrl.getRawValue?.() ?? {};
+        const xmlAmount = this.resolveXmlAmountFromRawItem(raw);
         const xmlUnitPrice =
-          this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
-          this.toNumberOrNull(ctrl.get('unit_price')?.value);
-
-        const xmlAmount =
-          this.toNumberOrNull(ctrl.get('xml_amount')?.value) ??
-          this.toNumberOrNull(ctrl.get('amount')?.value);
+          xmlQuantity && xmlQuantity > 0 && xmlAmount !== null
+            ? this.resolveXmlUnitPriceFromAmount(xmlAmount, xmlQuantity)
+            : this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
+              this.toNumberOrNull(ctrl.get('unit_price')?.value);
 
         this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
         this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
         this.setSilentControlValue(ctrl, 'unit_price', xmlUnitPrice ?? null);
-
-        if (xmlQuantity && xmlQuantity > 0 && xmlUnitPrice && xmlUnitPrice > 0) {
-          this.setSilentControlValue(
-            ctrl,
-            'amount',
-            this.round2(xmlQuantity * xmlUnitPrice),
-          );
-        } else {
-          this.setSilentControlValue(
-            ctrl,
-            'amount',
-            xmlAmount !== null ? this.round2(xmlAmount) : null,
-          );
-        }
+        this.setSilentControlValue(
+          ctrl,
+          'amount',
+          xmlAmount !== null ? this.round2(xmlAmount) : null,
+        );
 
         const currentUnitId = toIdForm(ctrl.get('unit_id')?.value);
 
@@ -544,6 +660,11 @@ export class ExpenseForm implements OnInit {
   private recalculateWarehouseAmount(ctrl: AbstractControl): void {
     if (!this.isWarehouseItem(ctrl)) return;
 
+    if (this.isXmlImport) {
+      this.syncXmlFiscalValues(ctrl);
+      return;
+    }
+
     const quantity = Number(ctrl.get('quantity')?.value ?? 0);
     const unitPrice = Number(ctrl.get('unit_price')?.value ?? 0);
 
@@ -699,8 +820,14 @@ export class ExpenseForm implements OnInit {
     this.form.get('supplier_id')?.disable();
 
     this.itemsFA.controls.forEach((ctrl) => {
+      this.syncXmlFiscalValues(ctrl);
+
       ctrl.get('product_id')?.disable();
       ctrl.get('amount')?.disable();
+
+      ctrl.get('quantity')?.disable({ emitEvent: false });
+      ctrl.get('unit')?.disable({ emitEvent: false });
+      ctrl.get('unit_price')?.disable({ emitEvent: false });
 
       ctrl.get('base_amount')?.disable();
       ctrl.get('discount_amount')?.disable();
@@ -1048,56 +1175,71 @@ export class ExpenseForm implements OnInit {
 
       items: (raw.items ?? []).map((item: any): entity.CreateExpenseItem => {
         const itemType: entity.ExpenseItemType = item.item_type ?? 'direct';
+        const isWarehouse = itemType === 'warehouse';
+        const isXml = !!this.cfdiUuidFromXml;
 
-        const quantity =
-          itemType === 'warehouse'
-            ? this.toNumberOrNull(item.quantity)
+        const xmlQuantity = isXml
+          ? this.toNumberOrNull(item.quantity) ??
+            this.toNumberOrNull(item.xml_quantity)
+          : null;
+
+        const quantity = isWarehouse
+          ? this.toNumberOrNull(item.quantity)
+          : xmlQuantity;
+
+        const unitId = isWarehouse
+          ? toIdForm(item.unit_id) ?? this.toNumberOrNull(item.unit_id)
+          : null;
+
+        const xmlUnit = String(item.unit ?? item.xml_unit ?? '').trim();
+        const unit = isWarehouse ? null : isXml && xmlUnit ? xmlUnit : null;
+
+        const fiscalAmount = isXml
+          ? this.resolveXmlAmountFromRawItem(item)
+          : null;
+
+        const formAmount = this.toNumberOrNull(item.amount);
+
+        const amount = fiscalAmount !== null
+          ? fiscalAmount
+          : isWarehouse && quantity && this.toNumberOrNull(item.unit_price)
+            ? this.round2(quantity * Number(item.unit_price))
+            : this.round2(formAmount ?? 0);
+
+        const unitPrice = isWarehouse
+          ? fiscalAmount !== null
+            ? this.resolveXmlUnitPriceFromAmount(fiscalAmount, quantity)
+            : this.toNumberOrNull(item.unit_price)
+          : isXml
+            ? fiscalAmount !== null
+              ? this.resolveXmlUnitPriceFromAmount(fiscalAmount, quantity)
+              : this.toNumberOrNull(item.unit_price) ??
+                this.toNumberOrNull(item.xml_unit_price)
             : null;
 
-        const unitId =
-          itemType === 'warehouse'
-            ? toIdForm(item.unit_id) ?? this.toNumberOrNull(item.unit_id)
-            : null;
-
-        const unit =
-          itemType === 'warehouse'
-            ? null
-            : null;
-
-        const unitPrice =
-          itemType === 'warehouse'
-            ? this.toNumberOrNull(item.unit_price)
-            : null;
-
-        const amount =
-          itemType === 'warehouse' && quantity && unitPrice
-            ? this.round2(quantity * unitPrice)
-            : Number(item.amount ?? 0);
-
-        const paymentAmount =
-          item.payment_amount !== null &&
-            item.payment_amount !== undefined &&
-            item.payment_amount !== ''
-            ? Number(item.payment_amount)
-            : null;
+        const paymentAmount = this.resolvePayloadPaymentAmount(
+          item.payment_amount,
+          amount,
+          formAmount,
+        );
 
         return {
           item_type: itemType,
 
           quantity:
-            itemType === 'warehouse' && quantity !== null
+            (isWarehouse || isXml) && quantity !== null
               ? this.round4(quantity)
               : null,
 
           unit_id:
-            itemType === 'warehouse' && unitId !== null
+            isWarehouse && unitId !== null
               ? unitId
               : null,
 
           unit,
 
           unit_price:
-            itemType === 'warehouse' && unitPrice !== null
+            (isWarehouse || isXml) && unitPrice !== null
               ? this.round6(unitPrice)
               : null,
 
@@ -1107,28 +1249,28 @@ export class ExpenseForm implements OnInit {
             item.base_amount !== null &&
               item.base_amount !== undefined &&
               item.base_amount !== ''
-              ? Number(item.base_amount)
+              ? this.round2(Number(item.base_amount))
               : null,
 
           discount_amount:
             item.discount_amount !== null &&
               item.discount_amount !== undefined &&
               item.discount_amount !== ''
-              ? Number(item.discount_amount)
+              ? this.round2(Number(item.discount_amount))
               : null,
 
           tax_amount:
             item.tax_amount !== null &&
               item.tax_amount !== undefined &&
               item.tax_amount !== ''
-              ? Number(item.tax_amount)
+              ? this.round2(Number(item.tax_amount))
               : null,
 
           withheld_amount:
             item.withheld_amount !== null &&
               item.withheld_amount !== undefined &&
               item.withheld_amount !== ''
-              ? Number(item.withheld_amount)
+              ? this.round2(Number(item.withheld_amount))
               : null,
 
           payment_amount: paymentAmount,
@@ -1139,7 +1281,7 @@ export class ExpenseForm implements OnInit {
               : null,
 
           project_id:
-            itemType === 'warehouse'
+            isWarehouse
               ? null
               : toIdForm(item.project_id),
 
@@ -1281,4 +1423,3 @@ export class ExpenseForm implements OnInit {
     this.router.navigateByUrl('/gastos');
   }
 }
-

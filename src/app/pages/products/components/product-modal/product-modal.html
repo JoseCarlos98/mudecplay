@@ -5,14 +5,10 @@
     (action)="closeModal()">
   </app-module-header>
 
-  <form
-    [formGroup]="form"
-    (ngSubmit)=" data?.id ? updateData() :  saveData()"
-    id="form"
-    class="c-form"
-  >
+  <form [formGroup]="form" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1 gap-4">
-      <!-- Nombre (obligatorio) -->
+
+      <!-- Nombre obligatorio -->
       <div class="md:col-span-1">
         <app-input-field
           formControlName="name"
@@ -21,7 +17,7 @@
         </app-input-field>
       </div>
 
-      <!-- Clave prod/serv CFDI (opcional) -->
+      <!-- Clave prod/serv CFDI opcional -->
       <div class="md:col-span-1">
         <app-input-field
           formControlName="clave_prod_serv"
@@ -30,7 +26,7 @@
         </app-input-field>
       </div>
 
-      <!-- No. identificación interno (opcional) -->
+      <!-- No. identificación interno opcional -->
       <div class="md:col-span-1">
         <app-input-field
           formControlName="no_identificacion"
@@ -38,12 +34,13 @@
           type="text">
         </app-input-field>
       </div>
+
     </div>
   </form>
 
   <app-btns-section
-    form="save"
-    (action)="onBtnsSectionAction($event)"
-    [saveDisabled]="form.invalid">
+    type="save"
+    [saveDisabled]="!form.valid"
+    (action)="onBtnsSectionAction($event)">
   </app-btns-section>
 </div>

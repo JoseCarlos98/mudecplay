@@ -1,11 +1,16 @@
 <div class="c-modal">
   <app-module-header
-    [title]="this.data?.id ? 'Editar cliente' : 'Registrar cliente'"
+    [title]="data?.id ? 'Editar cliente' : 'Registrar cliente'"
     [config]="headerConfig"
     (action)="closeModal()">
   </app-module-header>
 
-  <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() : saveData()" id="form" class="c-form">
+  <form
+    [formGroup]="form"
+    (ngSubmit)="data?.id ? updateData() : saveData()"
+    id="form"
+    class="c-form">
+
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
 
       <!-- Identidad -->
@@ -91,8 +96,8 @@
   </form>
 
   <app-btns-section
-    form="save"
+    form="form"
     (action)="onBtnsSectionAction($event)"
-    [saveDisabled]="!form.valid">
+    [saveDisabled]="form.invalid">
   </app-btns-section>
 </div>
