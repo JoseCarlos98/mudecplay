@@ -1,4 +1,5 @@
 import { Catalog } from '../../../shared/interfaces/general-interfaces';
+export type WarehouseStockView = 'available' | 'depleted' | 'all';
 
 export type WarehouseLotStatus =
   | 'available'
@@ -13,19 +14,27 @@ export type WarehouseMovementType =
   | 'adjust';
 
 export interface WarehouseLotFilters {
-  productId?: number | null;
-  status?: WarehouseLotStatus | string | null;
-  search?: string;
   page: number;
   limit: number;
+
+  search?: string | null;     
+  productSearch?: string | null; 
+  supplierIds?: number[];
+
+  stockView?: WarehouseStockView | null;
+  status?: string | null;
 }
 
 export interface WarehouseLotUiFilters {
-  product: Catalog | null;
-  status: WarehouseLotStatus | string | null;
-  search: string;
   page: number;
   limit: number;
+
+  search?: string | null;
+  productSearch?: string | null;
+  suppliersIds?: Catalog[];
+
+  stockView?: WarehouseStockView | null;
+  status?: string | null;
 }
 
 export interface WarehouseLotResponseDto {

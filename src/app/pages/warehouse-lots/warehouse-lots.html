@@ -9,23 +9,37 @@
     <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
       <app-input-field
         formControlName="search"
-        label="Buscar"
+        label="Buscar folio"
         type="text"
         [isFilter]="true">
       </app-input-field>
 
-      <app-autocomplete
-        formControlName="product"
+      <app-input-field
+        formControlName="productSearch"
         label="Producto"
+        type="text"
+        [isFilter]="true">
+      </app-input-field>
+
+      <app-autocomplete-multiple
+        formControlName="suppliersIds"
+        label="Proveedor"
         [remote]="true"
-        catalogType="product">
-      </app-autocomplete>
+        catalogType="supplier"
+        valueMode="objects">
+      </app-autocomplete-multiple>
 
       <app-input-select
+        formControlName="stockView"
+        label="Existencia"
+        [options]="stockViewOptions">
+      </app-input-select>
+
+      <!-- <app-input-select
         formControlName="status"
         label="Estado"
         [options]="statusOptions">
-      </app-input-select>
+      </app-input-select> -->
 
       <app-btns-section
         type="search"

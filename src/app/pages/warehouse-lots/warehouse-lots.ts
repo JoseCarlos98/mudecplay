@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+  import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -21,11 +21,11 @@ import {
   DataTableActionEvent,
   DataTableExtraAction,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
-import { Autocomplete } from '../../shared/ui/autocomplete/autocomplete';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
 import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
+import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
@@ -44,19 +44,22 @@ import { ModalWarehouseLots } from './components/modal-warehouse-lots/modal-ware
 import { ModalWarehouseMovements } from './components/modal-warehouse-movements/modal-warehouse-movements';
 import { ModalWarehouseCancel } from './components/modal-warehouse-cancel/modal-warehouse-cancel';
 
-import { toIdForm } from '../../shared/helpers/general-helpers';
-
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
-const WAREHOUSE_FILTERS_KEY = 'mp_warehouse_lots_filters_v1';
+const WAREHOUSE_FILTERS_KEY = 'mp_warehouse_lots_filters_v2';
+
+const STOCK_VIEW_OPTIONS: Catalog[] = [
+  { id: 'available', name: 'Con existencia' },
+  { id: 'depleted', name: 'Agotados' },
+  { id: 'all', name: 'Todos' },
+];
 
 const STATUS_OPTIONS: Catalog[] = [
   { id: 'available', name: 'Disponible' },
   { id: 'partial', name: 'Parcial' },
   { id: 'depleted', name: 'Agotado' },
-  { id: 'cancelled', name: 'Cancelado' },
 ];
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
@@ -91,6 +94,7 @@ type WarehouseTableExtraAction =
 
 @Component({
   selector: 'app-warehouse-lots',
+  standalone: true,
   imports: [
     CommonModule,
 
@@ -98,9 +102,9 @@ type WarehouseTableExtraAction =
     ModuleHeader,
     DataTable,
     BtnsSection,
-    Autocomplete,
     InputField,
     InputSelect,
+    SearchMultiSelect,
     LoadingOverlay,
 
     // Angular Material
@@ -135,6 +139,7 @@ export class WarehouseLots implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
   readonly statusOptions = STATUS_OPTIONS;
+  readonly stockViewOptions = STOCK_VIEW_OPTIONS;
 
   readonly loadingTable = signal(false);
 
@@ -144,14 +149,21 @@ export class WarehouseLots implements OnInit {
   filters: entity.WarehouseLotFilters = {
     page: 1,
     limit: 5,
+    search: '',
+    productSearch: '',
+    supplierIds: [],
+    stockView: 'available',
+    status: null,
   };
 
   warehouseLotsTableData!: PaginatedResponse<entity.WarehouseLotResponseDto>;
 
   formFilters = this.fb.group({
-    product: this.fb.control<Catalog | null>(null),
-    status: this.fb.control<string | null>(''),
     search: this.fb.control<string>(''),
+    productSearch: this.fb.control<string>(''),
+    suppliersIds: this.fb.control<Catalog[]>([]),
+    stockView: this.fb.control<entity.WarehouseStockView>('available'),
+    status: this.fb.control<string | null>(''),
   });
 
   readonly extraActions: WarehouseTableExtraAction[] = [
@@ -172,6 +184,8 @@ export class WarehouseLots implements OnInit {
       visible: () => true,
       disabled: () => false,
     },
+    // Mantener oculto si no quieres cancelar desde Almacén.
+    // La cancelación ya está disponible desde Gastos.
     // {
     //   type: 'cancelWarehouseExpense',
     //   icon: 'delete_forever',
@@ -197,9 +211,13 @@ export class WarehouseLots implements OnInit {
     return {
       page: ui.page,
       limit: ui.limit,
-      productId: toIdForm(ui.product),
-      status: ui.status || null,
       search: ui.search?.trim() || '',
+      productSearch: ui.productSearch?.trim() || '',
+      supplierIds: (ui.suppliersIds ?? [])
+        .map((supplier: any) => Number(supplier.id))
+        .filter((id: number) => id > 0),
+      stockView: ui.stockView || 'available',
+      status: ui.status || null,
     };
   }
 
@@ -253,6 +271,7 @@ export class WarehouseLots implements OnInit {
   ): boolean {
     return !!row?.expense_id && row.status !== 'cancelled';
   }
+
   // ==========================
   //  FILTROS + BÚSQUEDA
   // ==========================
@@ -260,9 +279,11 @@ export class WarehouseLots implements OnInit {
     const value = this.formFilters.getRawValue();
 
     const uiState: entity.WarehouseLotUiFilters = {
-      product: value.product ?? null,
-      status: value.status ?? null,
       search: value.search?.trim() || '',
+      productSearch: value.productSearch?.trim() || '',
+      suppliersIds: value.suppliersIds ?? [],
+      stockView: value.stockView || 'available',
+      status: value.status ?? null,
       page: 1,
       limit: this.filters.limit,
     };
@@ -398,19 +419,31 @@ export class WarehouseLots implements OnInit {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasProduct = !!form.product;
-    const hasStatus = !!form.status;
     const hasSearch = !!(form.search && form.search.trim() !== '');
+    const hasProductSearch = !!(
+      form.productSearch && form.productSearch.trim() !== ''
+    );
+    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
+    const hasStatus = !!form.status;
+    const hasNonDefaultStockView = form.stockView !== 'available';
 
-    return hasProduct || hasStatus || hasSearch;
+    return (
+      hasSearch ||
+      hasProductSearch ||
+      hasSuppliers ||
+      hasStatus ||
+      hasNonDefaultStockView
+    );
   }
 
   clearAllAndSearch(): void {
     this.formFilters.reset(
       {
-        product: null,
-        status: '',
         search: '',
+        productSearch: '',
+        suppliersIds: [],
+        stockView: 'available',
+        status: '',
       },
       { emitEvent: false },
     );
@@ -418,9 +451,11 @@ export class WarehouseLots implements OnInit {
     this.filters = {
       page: 1,
       limit: this.filters.limit,
-      productId: null,
-      status: null,
       search: '',
+      productSearch: '',
+      supplierIds: [],
+      stockView: 'available',
+      status: null,
     };
 
     this.storage.removeItem(WAREHOUSE_FILTERS_KEY);
@@ -442,14 +477,22 @@ export class WarehouseLots implements OnInit {
 
     this.formFilters.patchValue(
       {
-        product: saved.product ?? null,
-        status: saved.status ?? '',
         search: saved.search ?? '',
+        productSearch: saved.productSearch ?? '',
+        suppliersIds: saved.suppliersIds ?? [],
+        stockView: saved.stockView ?? 'available',
+        status: saved.status ?? '',
       },
       { emitEvent: false },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi({
+      ...saved,
+      stockView: saved.stockView ?? 'available',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+    });
+
     this.loadWarehouseLots();
   }
 
@@ -458,9 +501,11 @@ export class WarehouseLots implements OnInit {
       const value = this.formFilters.getRawValue();
 
       state = {
-        product: value.product ?? null,
-        status: value.status ?? null,
         search: value.search?.trim() || '',
+        productSearch: value.productSearch?.trim() || '',
+        suppliersIds: value.suppliersIds ?? [],
+        stockView: value.stockView || 'available',
+        status: value.status ?? null,
         page: this.filters.page,
         limit: this.filters.limit,
       };

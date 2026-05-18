@@ -27,16 +27,24 @@ export class WarehouseService {
       params = params.set('page', String(filters.page));
       params = params.set('limit', String(filters.limit));
 
-      if (filters.productId) {
-        params = params.set('productId', String(filters.productId));
+      if (filters.search?.trim()) {
+        params = params.set('search', filters.search.trim());
+      }
+
+      if (filters.productSearch?.trim()) {
+        params = params.set('productSearch', filters.productSearch.trim());
+      }
+
+      if (filters.supplierIds?.length) {
+        params = params.set('supplierIds', filters.supplierIds.join(','));
+      }
+
+      if (filters.stockView) {
+        params = params.set('stockView', filters.stockView);
       }
 
       if (filters.status) {
         params = params.set('status', String(filters.status));
-      }
-
-      if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
       }
     }
 
@@ -73,20 +81,20 @@ export class WarehouseService {
   }
 
   getWarehouseCancelPreview(
-  expenseId: number,
-): Observable<entity.WarehouseCancelPreviewDto> {
-  return this.http.get<entity.WarehouseCancelPreviewDto>(
-    `${environment.apiUrl}/expenses/${expenseId}/warehouse-cancel-preview`,
-  );
-}
+    expenseId: number,
+  ): Observable<entity.WarehouseCancelPreviewDto> {
+    return this.http.get<entity.WarehouseCancelPreviewDto>(
+      `${environment.apiUrl}/expenses/${expenseId}/warehouse-cancel-preview`,
+    );
+  }
 
-cancelWarehouseExpense(
-  expenseId: number,
-  payload: entity.CancelWarehouseExpenseDto,
-): Observable<{ success: boolean; message: string }> {
-  return this.http.post<{ success: boolean; message: string }>(
-    `${environment.apiUrl}/expenses/${expenseId}/cancel-warehouse`,
-    payload,
-  );
-}
+  cancelWarehouseExpense(
+    expenseId: number,
+    payload: entity.CancelWarehouseExpenseDto,
+  ): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(
+      `${environment.apiUrl}/expenses/${expenseId}/cancel-warehouse`,
+      payload,
+    );
+  }
 }
