@@ -1,28 +1,65 @@
 <div class="c-modal">
-  <app-module-header [title]="'Productos del gasto'" [config]="headerConfig" (action)="closeModal()">
+  <app-module-header
+    [title]="'Productos del gasto'"
+    [config]="headerConfig"
+    (action)="closeModal()">
   </app-module-header>
 
   @if (items?.length) {
-  <div class="c-module-table">
-    <!-- Tabla con la página actual -->
-    <app-data-table [data]="paginatedItems" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns">
-    </app-data-table>
+    <div class="c-module-table">
+      <app-data-table
+        [data]="paginatedItems"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns">
+      </app-data-table>
 
-    <!-- Total de conceptos -->
-    <div class="total-aumont color-third">
-      <span>{{ items.length }} concepto{{ items.length > 1 ? 's' : '' }}</span>
-      <span>
-        Total:
-        <span class="font-semibold ml-1">
-          {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
-        </span>
-      </span>
+      <div class="expense-summary">
+        <div class="summary-item">
+          <span class="summary-label">Conceptos</span>
+          <span class="summary-value">
+            {{ items.length }}
+          </span>
+        </div>
+
+        <div class="summary-item">
+          <span class="summary-label">Total gasto</span>
+          <span class="summary-value">
+            {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
+          </span>
+        </div>
+
+        @if (isWarehouseMode) {
+          <div class="summary-item">
+            <span class="summary-label">Asignado desde almacén</span>
+            <span class="summary-value">
+              {{ totalAssignedWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+
+          <div class="summary-item">
+            <span class="summary-label">Pendiente en almacén</span>
+            <span class="summary-value">
+              {{ totalPendingWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        }
+
+        @if (isLaborMode) {
+          <div class="summary-item summary-item--soft">
+            <span class="summary-label">Tipo</span>
+            <span class="summary-value">Mano de obra</span>
+          </div>
+        }
+      </div>
+
+      <mat-paginator
+        [length]="items.length"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
-
-    <!-- Paginador local -->
-    <mat-paginator [length]="items.length" [pageSize]="pageSize" [pageIndex]="pageIndex"
-      [pageSizeOptions]="pageSizeOptions" (page)="onPageChange($event)" showFirstLastButtons>
-    </mat-paginator>
-  </div>
   }
 </div>

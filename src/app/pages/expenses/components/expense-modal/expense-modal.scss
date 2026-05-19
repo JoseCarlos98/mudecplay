@@ -1,18 +1,61 @@
-.c-module-table {
-      ::ng-deep .table-container {
-        height: auto!important;
-        max-height: calc(100vh - 350px)!important;
-      }
-      .total-aumont {
-        position: absolute;
-        display: flex;
-        justify-content: center;
-        bottom : 11px;
-        left: 18px;
+.c-modal {
+  position: relative;
 
-        span {
-          margin-left: 5px;
-          color: black;
-        }
-      }
-    }
+  .mat-mdc-paginator{
+    background: none !important;
+    margin-bottom: 5px!important;
+  }
+}
+
+.c-module-table {
+  position: relative;
+
+  ::ng-deep .table-container {
+    height: auto !important;
+    max-height: calc(100vh - 350px) !important;
+  }
+
+  ::ng-deep table {
+    min-width: 980px;
+  }
+}
+
+.expense-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 14px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.summary-item--soft {
+  background: #f0f9ff;
+  border-color: #d7efff;
+}
+
+.summary-label {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.summary-value {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+}
