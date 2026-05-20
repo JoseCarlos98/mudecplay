@@ -70,7 +70,7 @@ const PAYMENTSTATUSOPTIONS: Catalog[] = [
 
 const WAREHOUSE_ASSIGNMENT_STATUS_OPTIONS: Catalog[] = [
   { id: 'all', name: 'Todos' },
-{ id: 'with_pending', name: 'Pendientes y parciales' },
+  { id: 'with_pending', name: 'Pendientes y parciales' },
   { id: 'pending', name: 'Pendiente' },
   { id: 'partial', name: 'Parcial' },
   { id: 'completed', name: 'Completo' },
@@ -309,18 +309,23 @@ export class Expenses implements OnInit {
     };
   };
 
-  getCancelWarehouseExpensePopover = (
-    row: entity.ExpenseResponseDto,
-  ): DataTableActionPopover | null => {
-    if (!this.isWarehouseExpense(row)) return null;
+getCancelWarehouseExpensePopover = (
+  row: entity.ExpenseResponseDto,
+): DataTableActionPopover | null => {
+  if (!this.isWarehouseExpense(row)) return null;
 
-    return {
-      title: 'Cancelar gasto completo de almacén',
-      message:
-        'Esta acción cancelará el gasto completo, sus existencias y, si ya tuvo salidas a proyecto, las regresará automáticamente.',
-      kind: 'warning',
-    };
+  return {
+    title: 'Cancelar gasto completo de almacén',
+    message: null,
+    items: [
+      'Esta acción cancelará el gasto completo de almacén.',
+      'El material dejará de estar disponible en existencias.',
+      'Si el gasto ya tuvo salidas a proyecto, esas salidas se regresarán automáticamente.',
+      'Después de cancelar, el gasto dejará de aparecer en el listado principal.',
+    ],
+    kind: 'warning',
   };
+};
 
   readonly extraActions: ExpenseTableExtraAction[] = [
     {
