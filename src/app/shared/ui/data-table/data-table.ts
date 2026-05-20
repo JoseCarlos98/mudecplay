@@ -21,7 +21,11 @@ import {
   DataTableExtraAction,
 } from './interfaces/table-interfaces';
 
-import type { ColumnVariant, TableActionPermissions } from './interfaces/table-interfaces';
+import type {
+  ColumnVariant,
+  TableActionPermissions,
+} from './interfaces/table-interfaces';
+
 import { PermissionsService } from '../../../auth/services/permissions.service';
 import { RoleCode } from '../../../auth/interfaces/auth.interface';
 import { ActionPopover } from './components/action-popover/action-popover';
@@ -35,7 +39,7 @@ import { ActionPopover } from './components/action-popover/action-popover';
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,
-    ActionPopover
+    ActionPopover,
   ],
   templateUrl: './data-table.html',
   styleUrls: ['./data-table.scss'],
@@ -59,7 +63,7 @@ export class DataTable<T> implements OnChanges {
   @Input() deleteTooltip: (row: T) => string | null = () => null;
 
   /**
-   * Roles requeridos para mostrar botones base
+   * Roles requeridos para mostrar botones base.
    * Admin bypass lo maneja PermissionsService.
    */
   @Input() actionPermissions: TableActionPermissions = {};
@@ -89,17 +93,14 @@ export class DataTable<T> implements OnChanges {
   }
 
   get deleteRolesEffective(): RoleCode[] | undefined {
-    // si no mandas nada, por defecto solo admin puede ver delete
     return this.actionPermissions?.deleteRoles ?? this.DEFAULT_DELETE_ROLES;
   }
 
-  /** helper genérico de roles */
   canShow(roles?: RoleCode[]): boolean {
     if (!roles?.length) return true;
     return this.permissionsService.hasAnyRole(roles);
   }
 
-  /** ---- Extra actions helpers ---- */
   isExtraActionVisible(action: DataTableExtraAction<T>, row: T): boolean {
     return action.visible ? action.visible(row) : true;
   }
@@ -128,6 +129,11 @@ export class DataTable<T> implements OnChanges {
     return resolved ?? col.typeVariant ?? undefined;
   }
 
+  getColumnPopover(col: ColumnsConfig, row: T) {
+    if (!col.popoverContent) return null;
+    return col.popoverContent(row);
+  }
+
   getRelationValue(value: any, path?: string) {
     if (!value) return null;
     if (!path) return value['name'] ?? null;
@@ -146,6 +152,7 @@ export class DataTable<T> implements OnChanges {
 
   formatPhoneCell(value: any): string {
     if (value == null) return '';
+
     const raw = String(value).trim();
     if (!raw) return '';
 
@@ -164,6 +171,7 @@ export class DataTable<T> implements OnChanges {
     if (!digits) return country || raw;
 
     if (digits.length <= 3) return `${country} ${digits}`.trim();
+
     if (digits.length <= 6) {
       return `${country} ${digits.slice(0, 3)} ${digits.slice(3)}`.trim();
     }

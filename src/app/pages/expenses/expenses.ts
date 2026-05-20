@@ -19,8 +19,10 @@ import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
+  ColumnVariant,
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableActionPopover,
   DataTableExtraAction,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
@@ -45,19 +47,99 @@ import * as entity from '../expenses/interfaces/expense-interfaces';
 import { ExpenseModal } from './components/expense-modal/expense-modal';
 import { XmlsModal } from './components/xmls-modal/xmls-modal';
 import { ModalArchive } from './components/modal-archive/modal-archive';
-
-// Modal de cancelación de almacén
-// Ajusta esta ruta si tu módulo de almacén tiene otro nombre de carpeta.
+import { ModalWarehouseCancel } from '../warehouse-lots/components/modal-warehouse-cancel/modal-warehouse-cancel';
 
 import { finalize } from 'rxjs';
 import { HasRoleDirective } from '../../auth/directives/has-role.directive';
-import { ModalWarehouseCancel } from '../warehouse-lots/components/modal-warehouse-cancel/modal-warehouse-cancel';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
 
 const EXPENSES_FILTERS_KEY = 'mp_expenses_filters_v1';
+
+const STATUS_COMPLEMENTS: Catalog[] = [
+  { id: 'missing_supplier', name: 'Sin proveedor' },
+  { id: 'missing_project', name: 'Sin proyecto' },
+];
+
+const PAYMENTSTATUSOPTIONS: Catalog[] = [
+  { id: 'paid', name: 'Pagado' },
+  { id: 'unpaid', name: 'Con saldo' },
+];
+
+const WAREHOUSE_ASSIGNMENT_STATUS_OPTIONS: Catalog[] = [
+  { id: 'all', name: 'Todos' },
+{ id: 'with_pending', name: 'Pendientes y parciales' },
+  { id: 'pending', name: 'Pendiente' },
+  { id: 'partial', name: 'Parcial' },
+  { id: 'completed', name: 'Completo' },
+  { id: 'not_applicable', name: 'No aplica' },
+];
+
+const HEADER_CONFIG: ModuleHeaderConfig = {
+  showNew: true,
+  showUploadXml: true,
+  newRoles: ['GASTOS_EDITOR'],
+  uploadXmlRoles: ['GASTOS_XML_IMPORTADOR'],
+};
+
+type ExpenseTableExtraAction =
+  DataTableExtraAction<entity.ExpenseResponseDto> & {
+    popoverContent?: (row: entity.ExpenseResponseDto) => DataTableActionPopover | null;
+  };
+
+function getWarehouseAssignmentColumnVariant(
+  row: entity.ExpenseResponseDto,
+): ColumnVariant {
+  switch (row.warehouse_assignment_status) {
+    case 'completed':
+      return 'chip-success';
+
+    case 'partial':
+      return 'chip-warning';
+
+    case 'pending':
+      return 'chip-danger';
+
+    case 'not_applicable':
+    default:
+      return 'chip-neutral';
+  }
+}
+
+function getWarehouseAssignmentPopoverKind(
+  row: entity.ExpenseResponseDto,
+): 'warning' | 'info' | 'success' | 'error' {
+  switch (row.warehouse_assignment_status) {
+    case 'completed':
+      return 'success';
+
+    case 'partial':
+      return 'warning';
+
+    case 'pending':
+      return 'error';
+
+    case 'not_applicable':
+    default:
+      return 'info';
+  }
+}
+
+function getWarehouseAssignmentColumnPopover(
+  row: entity.ExpenseResponseDto,
+): DataTableActionPopover | null {
+  const label = row.warehouse_assignment_status_label ?? 'No aplica';
+  const lines = row.warehouse_assignment_control?.tooltip_lines ?? [];
+
+  return {
+    title: `Asignación almacén: ${label}`,
+    message: null,
+    items: lines,
+    kind: getWarehouseAssignmentPopoverKind(row),
+  };
+}
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
@@ -72,6 +154,14 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallbackVariant: 'chip-warning',
   },
   { key: 'products', label: 'Productos', type: 'showItems' },
+  {
+    key: 'warehouse_assignment_status_display',
+    label: 'Asignación almacén',
+    type: 'chip',
+    typeVariant: 'chip-neutral',
+    variantResolver: getWarehouseAssignmentColumnVariant,
+    popoverContent: getWarehouseAssignmentColumnPopover,
+  },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
   { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
@@ -81,37 +171,6 @@ const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map((c) => c.key),
   'actions',
 ];
-
-const HEADER_CONFIG: ModuleHeaderConfig = {
-  showNew: true,
-  showUploadXml: true,
-  newRoles: ['GASTOS_EDITOR'],
-  uploadXmlRoles: ['GASTOS_XML_IMPORTADOR'],
-};
-
-const STATUS_COMPLEMENTS: Catalog[] = [
-  { id: 'missing_supplier', name: 'Sin proveedor' },
-  { id: 'missing_project', name: 'Sin proyecto' },
-];
-
-const PAYMENTSTATUSOPTIONS: Catalog[] = [
-  { id: 'paid', name: 'Pagado' },
-  { id: 'unpaid', name: 'Con saldo' },
-];
-
-type ActionPopoverKind = 'warning' | 'info' | 'success' | 'error';
-
-interface DataTableActionPopover {
-  title: string;
-  message?: string | null;
-  items?: string[];
-  kind?: ActionPopoverKind;
-}
-
-type ExpenseTableExtraAction =
-  DataTableExtraAction<entity.ExpenseResponseDto> & {
-    popoverContent?: (row: entity.ExpenseResponseDto) => DataTableActionPopover | null;
-  };
 
 @Component({
   selector: 'app-expenses',
@@ -156,6 +215,7 @@ export class Expenses implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
   readonly paymentStatusOptions = PAYMENTSTATUSOPTIONS;
+  readonly warehouseAssignmentStatusOptions = WAREHOUSE_ASSIGNMENT_STATUS_OPTIONS;
 
   // ==========================
   //  INYECCIONES
@@ -179,11 +239,7 @@ export class Expenses implements OnInit {
   //  ACCIONES BASE
   // ==========================
   canDeleteRow = (row: entity.ExpenseResponseDto) => {
-    // Los gastos de almacén NO deben ir por eliminación normal.
-    // Deben ir por cancelación controlada de almacén.
     if (this.isWarehouseExpense(row)) return false;
-
-    // Los CFDI/XML normales se siguen bloqueando como antes.
     return !row.cfdi_uuid;
   };
 
@@ -299,16 +355,23 @@ export class Expenses implements OnInit {
   // ==========================
   //  ESTADO / DATA
   // ==========================
-  filters: entity.FiltersExpenses = { page: 1, limit: 5 };
+  filters: entity.FiltersExpenses = {
+    page: 1,
+    limit: 5,
+    warehouseAssignmentStatus: 'all',
+  };
+
   expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
 
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
-    suppliersIds: this.fb.control<number[]>([]),
-    projectIds: this.fb.control<number[]>([]),
+    suppliersIds: this.fb.control<any[]>([]),
+    projectIds: this.fb.control<any[]>([]),
     concept: this.fb.control<string>(''),
     status_id: this.fb.control<string | number>(1),
     paymentStatus: this.fb.control<'paid' | 'unpaid' | null>(null),
+    warehouseAssignmentStatus:
+      this.fb.control<entity.WarehouseAssignmentStatusFilter>('all'),
   });
 
   // ==========================
@@ -348,25 +411,32 @@ export class Expenses implements OnInit {
       projectIds: (ui.projectIds ?? []).map((p: any) => p.id),
       status_id: ui.status_id ?? null,
       paymentStatus: ui.paymentStatus ?? null,
+      warehouseAssignmentStatus: ui.warehouseAssignmentStatus ?? 'all',
     };
   }
 
   private mapExpenseRow(row: entity.ExpenseResponseDto): entity.ExpenseResponseDto {
+    const mapped: entity.ExpenseResponseDto = {
+      ...row,
+      warehouse_assignment_status_display:
+        row.warehouse_assignment_status_label ?? 'No aplica',
+    };
+
     if (
-      row.origin_type === 'labor_auto' &&
-      !row.supplier &&
-      row.provider_display_name?.trim()
+      mapped.origin_type === 'labor_auto' &&
+      !mapped.supplier &&
+      mapped.provider_display_name?.trim()
     ) {
       return {
-        ...row,
+        ...mapped,
         supplier: {
           id: 0,
-          company_name: row.provider_display_name.trim(),
+          company_name: mapped.provider_display_name.trim(),
         },
       };
     }
 
-    return row;
+    return mapped;
   }
 
   // ==========================
@@ -381,6 +451,7 @@ export class Expenses implements OnInit {
       projectIds: value.projectIds ?? [],
       status_id: value.status_id ?? null,
       paymentStatus: value.paymentStatus ?? null,
+      warehouseAssignmentStatus: value.warehouseAssignmentStatus ?? 'all',
       page: 1,
       limit: this.filters.limit,
     };
@@ -468,7 +539,7 @@ export class Expenses implements OnInit {
         break;
 
       case 'showItems':
-        this.expenseModal(ev.row.items);
+        this.expenseModal(ev.row);
         break;
 
       case 'downloadReceipt':
@@ -580,8 +651,20 @@ export class Expenses implements OnInit {
     const hasProjects = (form.projectIds?.length ?? 0) > 0;
     const hasStatus = form.status_id !== '';
     const hasConcept = !!(form.concept && form.concept.trim() !== '');
+    const hasPaymentStatus = !!form.paymentStatus;
+    const hasWarehouseAssignment =
+      !!form.warehouseAssignmentStatus &&
+      form.warehouseAssignmentStatus !== 'all';
 
-    return hasDates || hasSuppliers || hasProjects || hasStatus || hasConcept;
+    return (
+      hasDates ||
+      hasSuppliers ||
+      hasProjects ||
+      hasStatus ||
+      hasConcept ||
+      hasPaymentStatus ||
+      hasWarehouseAssignment
+    );
   }
 
   clearAllAndSearch(): void {
@@ -592,6 +675,7 @@ export class Expenses implements OnInit {
         projectIds: [],
         status_id: '',
         paymentStatus: null,
+        warehouseAssignmentStatus: 'all',
         concept: '',
       },
       { emitEvent: false },
@@ -606,6 +690,7 @@ export class Expenses implements OnInit {
       suppliersIds: [],
       projectIds: [],
       status_id: null,
+      warehouseAssignmentStatus: 'all',
     };
 
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
@@ -615,7 +700,7 @@ export class Expenses implements OnInit {
   // ==========================
   //  MODAL DE ITEMS
   // ==========================
-  expenseModal(expense?: entity.ExpenseItem[]): void {
+  expenseModal(expense?: entity.ExpenseResponseDto | entity.ExpenseItem[]): void {
     this.dialogService
       .open(ExpenseModal, expense ? expense : null, 'large')
       .afterClosed()
@@ -637,15 +722,21 @@ export class Expenses implements OnInit {
 
     this.formFilters.patchValue(
       {
-        dateRange: saved.dateRange,
-        suppliersIds: saved.suppliersIds,
-        projectIds: saved.projectIds,
-        status_id: saved.status_id,
+        dateRange: saved.dateRange ?? null,
+        suppliersIds: saved.suppliersIds ?? [],
+        projectIds: saved.projectIds ?? [],
+        status_id: saved.status_id ?? 1,
+        paymentStatus: saved.paymentStatus ?? null,
+        warehouseAssignmentStatus: saved.warehouseAssignmentStatus ?? 'all',
       },
       { emitEvent: false },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi({
+      ...saved,
+      warehouseAssignmentStatus: saved.warehouseAssignmentStatus ?? 'all',
+    });
+
     this.loadExpenses();
   }
 
@@ -659,6 +750,7 @@ export class Expenses implements OnInit {
         projectIds: value.projectIds ?? [],
         status_id: value.status_id ?? null,
         paymentStatus: value.paymentStatus ?? null,
+        warehouseAssignmentStatus: value.warehouseAssignmentStatus ?? 'all',
         page: this.filters.page,
         limit: this.filters.limit,
       };

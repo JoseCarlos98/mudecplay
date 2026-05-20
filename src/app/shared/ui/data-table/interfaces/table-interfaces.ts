@@ -8,6 +8,13 @@ export interface DataTableActionEvent<T> {
   row: T;
 }
 
+export interface DataTableActionPopover {
+  title: string;
+  message?: string | null;
+  items?: string[];
+  kind?: ActionPopoverKind;
+}
+
 export type ColumnType =
   | 'text'
   | 'relation'
@@ -37,8 +44,11 @@ export interface ColumnsConfig {
   fallbackVariant?: ColumnVariant;
   fallback?: string;
 
-  // NUEVO: permite resolver la variante por fila
+  // Permite resolver la variante por fila
   variantResolver?: (row: any) => ColumnVariant | null;
+
+  // Popover enriquecido para celdas, útil en chips de estado
+  popoverContent?: (row: any) => DataTableActionPopover | null;
 }
 
 export interface TableActionPermissions {
@@ -54,7 +64,6 @@ export interface TableActionPermissions {
   /** Roles requeridos para mostrar el botón de eliminar */
   deleteRoles?: RoleCode[];
 }
-
 
 export interface DataTableExtraAction<T> {
   /** Nombre interno del evento que emitirá la tabla */
@@ -83,12 +92,4 @@ export interface DataTableExtraAction<T> {
 
   /** Clase opcional para el ícono */
   iconClass?: string;
-}
-
-
-export interface DataTableActionPopover {
-  title: string;
-  message?: string | null;
-  items?: string[];
-  kind?: ActionPopoverKind;
 }

@@ -4,173 +4,196 @@
 
       <!-- Columnas dinámicas -->
       @for (col of columnsConfig; track col.key) {
-      <ng-container [matColumnDef]="col.key">
-        <th mat-header-cell *matHeaderCellDef class="text-left">
-          {{ col.label }}
-        </th>
+        <ng-container [matColumnDef]="col.key">
+          <th mat-header-cell *matHeaderCellDef class="text-left">
+            {{ col.label }}
+          </th>
 
-        <td
-          mat-cell
-          *matCellDef="let element"
-          [class.text-right]="col.align === 'right'"
-          [class.text-center]="col.align === 'center'">
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [class.text-right]="col.align === 'right'"
+            [class.text-center]="col.align === 'center'">
 
-          @switch (col.type) {
+            @switch (col.type) {
 
-          <!-- RELATION -->
-          @case ('relation') {
-          @let rel = getRelationValue(element[col.key], col.path);
-          @let relationVariant = getColumnVariant(col, element);
+              <!-- RELATION -->
+              @case ('relation') {
+                @let rel = getRelationValue(element[col.key], col.path);
+                @let relationVariant = getColumnVariant(col, element);
 
-          @if (rel) {
-          @if (relationVariant) {
-          <span
-            class="table-chip"
-            [ngClass]="{
-              'table-chip-success': relationVariant === 'chip-success',
-              'table-chip-warning': relationVariant === 'chip-warning',
-              'table-chip-neutral': relationVariant === 'chip-neutral',
-              'table-chip-danger': relationVariant === 'chip-danger'
-            }">
-            {{ rel }}
-          </span>
-          } @else {
-          {{ rel }}
-          }
-          } @else {
-          @if (col.fallbackVariant) {
-          <span
-            class="table-chip"
-            [ngClass]="{
-              'table-chip-success': col.fallbackVariant === 'chip-success',
-              'table-chip-warning': col.fallbackVariant === 'chip-warning',
-              'table-chip-neutral': col.fallbackVariant === 'chip-neutral',
-              'table-chip-danger': col.fallbackVariant === 'chip-danger'
-            }">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
-          }
+                @if (rel) {
+                  @if (relationVariant) {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': relationVariant === 'chip-success',
+                        'table-chip-warning': relationVariant === 'chip-warning',
+                        'table-chip-neutral': relationVariant === 'chip-neutral',
+                        'table-chip-danger': relationVariant === 'chip-danger'
+                      }">
+                      {{ rel }}
+                    </span>
+                  } @else {
+                    {{ rel }}
+                  }
+                } @else {
+                  @if (col.fallbackVariant) {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': col.fallbackVariant === 'chip-success',
+                        'table-chip-warning': col.fallbackVariant === 'chip-warning',
+                        'table-chip-neutral': col.fallbackVariant === 'chip-neutral',
+                        'table-chip-danger': col.fallbackVariant === 'chip-danger'
+                      }">
+                      {{ getEmptyLabel(col.fallback) }}
+                    </span>
+                  } @else {
+                    <span class="empty-cell">
+                      {{ getEmptyLabel(col.fallback) }}
+                    </span>
+                  }
+                }
+              }
 
-          <!-- MONEY -->
-          @case ('money') {
-          <span class="money-cell" [class.empty-cell]="isEmptyValue(element[col.key])">
-            {{
-              isEmptyValue(element[col.key])
-                ? getEmptyLabel(col.fallback)
-                : (element[col.key] | currency:'$':'symbol':'1.2-2')
-            }}
-          </span>
-          }
+              <!-- MONEY -->
+              @case ('money') {
+                <span class="money-cell" [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : (element[col.key] | currency:'$':'symbol':'1.2-2')
+                  }}
+                </span>
+              }
 
-          <!-- DATE -->
-          @case ('date') {
-          <span [class.empty-cell]="isEmptyValue(element[col.key])">
-            {{
-              isEmptyValue(element[col.key])
-                ? getEmptyLabel(col.fallback)
-                : (element[col.key] | date:'d MMM y':'es-MX')
-            }}
-          </span>
-          }
+              <!-- DATE -->
+              @case ('date') {
+                <span [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : (element[col.key] | date:'d MMM y':'es-MX')
+                  }}
+                </span>
+              }
 
-          <!-- SHOW ITEMS -->
-          @case ('showItems') {
-          <button
-            type="button"
-            class="btn-view-row"
-            (click)="onRowAction('showItems', element)">
-            <mat-icon>visibility</mat-icon>
-            <span>Ver</span>
-          </button>
-          }
+              <!-- SHOW ITEMS -->
+              @case ('showItems') {
+                <button
+                  type="button"
+                  class="btn-view-row"
+                  (click)="onRowAction('showItems', element)">
+                  <mat-icon>visibility</mat-icon>
+                  <span>Ver</span>
+                </button>
+              }
 
-          <!-- PHONE -->
-          @case ('phone') {
-          <span class="phone-cell" [class.empty-cell]="isEmptyValue(element[col.key])">
-            {{
-              isEmptyValue(element[col.key])
-                ? getEmptyLabel(col.fallback)
-                : formatPhoneCell(element[col.key])
-            }}
-          </span>
-          }
+              <!-- PHONE -->
+              @case ('phone') {
+                <span class="phone-cell" [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : formatPhoneCell(element[col.key])
+                  }}
+                </span>
+              }
 
-          <!-- BOOLEAN CONFIRM -->
-          @case ('booleanConfirm') {
-          @if (element[col.key] === true || element[col.key] === false) {
-          <span
-            class="confirm-pill"
-            [ngClass]="element[col.key] ? 'confirm-pill-yes' : 'confirm-pill-no'">
+              <!-- BOOLEAN CONFIRM -->
+              @case ('booleanConfirm') {
+                @if (element[col.key] === true || element[col.key] === false) {
+                  <span
+                    class="confirm-pill"
+                    [ngClass]="element[col.key] ? 'confirm-pill-yes' : 'confirm-pill-no'">
 
-            <mat-icon class="confirm-pill-icon">
-              {{ element[col.key] ? 'check_circle' : 'cancel' }}
-            </mat-icon>
+                    <mat-icon class="confirm-pill-icon">
+                      {{ element[col.key] ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
 
-            <span class="confirm-pill-label">
-              {{ element[col.key] ? 'Sí' : 'No' }}
-            </span>
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
+                    <span class="confirm-pill-label">
+                      {{ element[col.key] ? 'Sí' : 'No' }}
+                    </span>
+                  </span>
+                } @else {
+                  <span class="empty-cell">
+                    {{ getEmptyLabel(col.fallback) }}
+                  </span>
+                }
+              }
 
-          <!-- CHIP -->
-          @case ('chip') {
-          @let chipVariant = getColumnVariant(col, element);
+              <!-- CHIP -->
+              @case ('chip') {
+                @let chipVariant = getColumnVariant(col, element);
+                @let chipPopover = getColumnPopover(col, element);
 
-          @if (!isEmptyValue(element[col.key])) {
-          <span
-            class="table-chip"
-            [ngClass]="{
-              'table-chip-success': chipVariant === 'chip-success',
-              'table-chip-warning': chipVariant === 'chip-warning',
-              'table-chip-danger': chipVariant === 'chip-danger',
-              'table-chip-neutral': !chipVariant || chipVariant === 'chip-neutral'
-            }">
-            {{ element[col.key] }}
-          </span>
-          } @else {
-          @if (col.fallbackVariant) {
-          <span
-            class="table-chip"
-            [ngClass]="{
-              'table-chip-success': col.fallbackVariant === 'chip-success',
-              'table-chip-warning': col.fallbackVariant === 'chip-warning',
-              'table-chip-neutral': col.fallbackVariant === 'chip-neutral',
-              'table-chip-danger': col.fallbackVariant === 'chip-danger'
-            }">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
-          }
+                @if (!isEmptyValue(element[col.key])) {
+                  @if (chipPopover) {
+                    <app-action-popover
+                      [title]="chipPopover.title"
+                      [message]="chipPopover.message ?? null"
+                      [items]="chipPopover.items ?? []"
+                      [kind]="chipPopover.kind ?? 'info'">
 
-          <!-- DEFAULT -->
-          @default {
-          <span [class.empty-cell]="isEmptyValue(element[col.key])">
-            {{
-              isEmptyValue(element[col.key])
-                ? getEmptyLabel(col.fallback)
-                : element[col.key]
-            }}
-          </span>
-          }
-          }
-        </td>
-      </ng-container>
+                      <span popover-trigger class="cell-popover-trigger">
+                        <span
+                          class="table-chip"
+                          [ngClass]="{
+                            'table-chip-success': chipVariant === 'chip-success',
+                            'table-chip-warning': chipVariant === 'chip-warning',
+                            'table-chip-danger': chipVariant === 'chip-danger',
+                            'table-chip-neutral': !chipVariant || chipVariant === 'chip-neutral'
+                          }">
+                          {{ element[col.key] }}
+                        </span>
+                      </span>
+                    </app-action-popover>
+                  } @else {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': chipVariant === 'chip-success',
+                        'table-chip-warning': chipVariant === 'chip-warning',
+                        'table-chip-danger': chipVariant === 'chip-danger',
+                        'table-chip-neutral': !chipVariant || chipVariant === 'chip-neutral'
+                      }">
+                      {{ element[col.key] }}
+                    </span>
+                  }
+                } @else {
+                  @if (col.fallbackVariant) {
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
+                        'table-chip-success': col.fallbackVariant === 'chip-success',
+                        'table-chip-warning': col.fallbackVariant === 'chip-warning',
+                        'table-chip-neutral': col.fallbackVariant === 'chip-neutral',
+                        'table-chip-danger': col.fallbackVariant === 'chip-danger'
+                      }">
+                      {{ getEmptyLabel(col.fallback) }}
+                    </span>
+                  } @else {
+                    <span class="empty-cell">
+                      {{ getEmptyLabel(col.fallback) }}
+                    </span>
+                  }
+                }
+              }
+
+              <!-- DEFAULT -->
+              @default {
+                <span [class.empty-cell]="isEmptyValue(element[col.key])">
+                  {{
+                    isEmptyValue(element[col.key])
+                      ? getEmptyLabel(col.fallback)
+                      : element[col.key]
+                  }}
+                </span>
+              }
+            }
+          </td>
+        </ng-container>
       }
 
       <!-- Columna de acciones -->
@@ -184,79 +207,79 @@
 
             <!-- EXTRA ACTIONS: primero -->
             @for (extra of extraActions; track extra.type) {
-            @if (canShow(extra.roles) && isExtraActionVisible(extra, element)) {
-            @let popover = getExtraActionPopover(extra, element);
+              @if (canShow(extra.roles) && isExtraActionVisible(extra, element)) {
+                @let popover = getExtraActionPopover(extra, element);
 
-            @if (popover) {
-            <app-action-popover
-              [title]="popover.title"
-              [message]="popover.message ?? null"
-              [items]="popover.items ?? []"
-              [kind]="popover.kind ?? 'warning'">
+                @if (popover) {
+                  <app-action-popover
+                    [title]="popover.title"
+                    [message]="popover.message ?? null"
+                    [items]="popover.items ?? []"
+                    [kind]="popover.kind ?? 'warning'">
 
-              <span popover-trigger class="popover-action-trigger">
-                <button
-                  mat-icon-button
-                  [class]="extra.buttonClass || ''"
-                  [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
-                  [disabled]="isExtraActionDisabled(extra, element)"
-                  (click)="onRowAction(extra.type, element)">
-                  <mat-icon [class]="extra.iconClass || ''">
-                    {{ extra.icon }}
-                  </mat-icon>
-                </button>
-              </span>
+                    <span popover-trigger class="popover-action-trigger">
+                      <button
+                        mat-icon-button
+                        [class]="extra.buttonClass || ''"
+                        [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
+                        [disabled]="isExtraActionDisabled(extra, element)"
+                        (click)="onRowAction(extra.type, element)">
+                        <mat-icon [class]="extra.iconClass || ''">
+                          {{ extra.icon }}
+                        </mat-icon>
+                      </button>
+                    </span>
 
-            </app-action-popover>
-            } @else {
-            <span
-              [matTooltip]="getExtraActionTooltip(extra, element)"
-              [matTooltipDisabled]="!getExtraActionTooltip(extra, element)">
-              <button
-                mat-icon-button
-                [class]="extra.buttonClass || ''"
-                [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
-                [disabled]="isExtraActionDisabled(extra, element)"
-                (click)="onRowAction(extra.type, element)">
-                <mat-icon [class]="extra.iconClass || ''">
-                  {{ extra.icon }}
-                </mat-icon>
-              </button>
-            </span>
-            }
-            }
+                  </app-action-popover>
+                } @else {
+                  <span
+                    [matTooltip]="getExtraActionTooltip(extra, element)"
+                    [matTooltipDisabled]="!getExtraActionTooltip(extra, element)">
+                    <button
+                      mat-icon-button
+                      [class]="extra.buttonClass || ''"
+                      [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
+                      [disabled]="isExtraActionDisabled(extra, element)"
+                      (click)="onRowAction(extra.type, element)">
+                      <mat-icon [class]="extra.iconClass || ''">
+                        {{ extra.icon }}
+                      </mat-icon>
+                    </button>
+                  </span>
+                }
+              }
             }
 
             <!-- EDIT: después -->
             @if (showEditEffective && canShow(editRolesEffective)) {
-            <span
-              [matTooltip]="editTooltip(element) || ''"
-              [matTooltipDisabled]="!(editTooltip(element))">
-              <button
-                matTooltip="Editar"
-                mat-icon-button
-                class="edit-btn"
-                [disabled]="!canEdit(element)"
-                (click)="onRowAction('edit', element)">
-                <mat-icon>edit</mat-icon>
-              </button>
-            </span>
+              <span
+                [matTooltip]="editTooltip(element) || ''"
+                [matTooltipDisabled]="!(editTooltip(element))">
+                <button
+                  matTooltip="Editar"
+                  mat-icon-button
+                  class="edit-btn"
+                  [disabled]="!canEdit(element)"
+                  (click)="onRowAction('edit', element)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+              </span>
             }
 
             <!-- DELETE: al final -->
             @if (showDeleteEffective && canShow(deleteRolesEffective)) {
-            <span
-              [matTooltip]="deleteTooltip(element) || ''"
-              [matTooltipDisabled]="!(deleteTooltip(element))">
-              <button
-                matTooltip="Eliminar"
-                mat-icon-button
-                class="delete-btn"
-                [disabled]="!canDelete(element)"
-                (click)="onRowAction('delete', element)">
-                <mat-icon>delete</mat-icon>
-              </button>
-            </span>
+              <span
+                [matTooltip]="deleteTooltip(element) || ''"
+                [matTooltipDisabled]="!(deleteTooltip(element))">
+                <button
+                  matTooltip="Eliminar"
+                  mat-icon-button
+                  class="delete-btn"
+                  [disabled]="!canDelete(element)"
+                  (click)="onRowAction('delete', element)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </span>
             }
 
           </div>

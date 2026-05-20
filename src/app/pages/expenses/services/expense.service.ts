@@ -15,20 +15,12 @@ import { appendArray, setScalar } from '../../../shared/helpers/general-helpers'
 export class ExpenseService {
   private apiUrl = `${environment.apiUrl}/expenses`;
 
-  // draft viejo (por si aún lo usas en otra parte)
   private xmlDraftToImport: entity.XmlExpenseDraftDto | null = null;
 
-  // ==========================
-  //  COLA DE XML
-  // ==========================
   private xmlDraftQueue: entity.XmlExpenseDraftDto[] = [];
   private xmlDraftQueueIndex = 0;
 
   constructor(private readonly http: HttpClient) {}
-
-  // ==========================
-  // CRUD DE EXPENSES
-  // ==========================
 
   getExpenses(filters?: entity.FiltersExpenses) {
     const url = `${this.apiUrl}`;
@@ -43,6 +35,11 @@ export class ExpenseService {
       params = appendArray(params, 'projectIds', filters.projectIds ?? []);
       params = setScalar(params, 'statusId', filters.status_id);
       params = setScalar(params, 'paymentStatus', filters.paymentStatus?.trim());
+      params = setScalar(
+        params,
+        'warehouseAssignmentStatus',
+        filters.warehouseAssignmentStatus,
+      );
     }
 
     return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, {
@@ -78,10 +75,6 @@ export class ExpenseService {
     return this.http.delete<ApiSuccess>(url);
   }
 
-  // ==========================
-  // MANEJO DE XML DRAFT ÚNICO (legacy)
-  // ==========================
-
   setXmlDraftToImport(draft: entity.XmlExpenseDraftDto) {
     this.xmlDraftToImport = draft;
   }
@@ -92,10 +85,6 @@ export class ExpenseService {
     return tmp;
   }
 
-  // ==========================
-  // SUBIDA DE XML
-  // ==========================
-
   uploadXml(files: File[]): Observable<entity.XmlPreviewResponseDto> {
     const formData = new FormData();
     files.forEach((f) => formData.append('files', f));
@@ -105,10 +94,6 @@ export class ExpenseService {
       formData,
     );
   }
-
-  // ==========================
-  // COLA DE DRAFTS DESDE XML
-  // ==========================
 
   setXmlQueueToImport(drafts: entity.XmlExpenseDraftDto[]): void {
     this.xmlDraftQueue = drafts ?? [];
@@ -139,10 +124,6 @@ export class ExpenseService {
     this.xmlDraftQueueIndex = 0;
   }
 
-  // ==========================
-  // PDF / ARCHIVO
-  // ==========================
-
   downloadReceiptPdf(id: number): Observable<Blob> {
     const url = `${this.apiUrl}/${id}/receipt-pdf`;
     return this.http.get(url, { responseType: 'blob' });
@@ -152,10 +133,6 @@ export class ExpenseService {
     const url = `${this.apiUrl}/${id}/archive`;
     return this.http.patch<ApiSuccess>(url, {});
   }
-
-  // =====================================================
-  //  ALMACÉN - EXISTENCIAS
-  // =====================================================
 
   getWarehouseLots(
     filters?: entity.WarehouseLotFilters,

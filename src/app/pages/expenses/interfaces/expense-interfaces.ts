@@ -19,6 +19,20 @@ export type WarehouseMovementType =
   | 'return'
   | 'adjust';
 
+export type ExpenseWarehouseAssignmentStatus =
+  | 'not_applicable'
+  | 'pending'
+  | 'partial'
+  | 'completed';
+
+export type WarehouseAssignmentStatusFilter =
+  | 'all'
+  | 'not_applicable'
+  | 'pending'
+  | 'partial'
+  | 'completed'
+  | 'with_pending';
+
 /* =====================================================
  *  FILTROS (LISTADO DE GASTOS)
  * ===================================================== */
@@ -30,6 +44,7 @@ export interface FiltersExpenses {
   projectIds?: number[] | null;
   paymentStatus?: "paid" | "unpaid" | null;
   status_id?: number | string | null;
+  warehouseAssignmentStatus?: WarehouseAssignmentStatusFilter | null;
   limit: number;
   page: number;
 }
@@ -58,12 +73,44 @@ export interface ProductMini {
   name: string;
 }
 
+export interface WarehouseAssignmentProject {
+  project_id: number | null;
+  project_name: string;
+  quantity: number;
+  amount: number;
+}
+
+export interface WarehouseAssignmentSummary {
+  status: 'pending' | 'partial' | 'completed';
+  status_label: string;
+  original_quantity: number;
+  assigned_quantity: number;
+  pending_quantity: number;
+  unit: string | null;
+  original_amount: number;
+  assigned_amount: number;
+  pending_amount: number;
+  projects: WarehouseAssignmentProject[];
+}
+
+export interface ExpenseWarehouseAssignmentControl {
+  total_warehouse_items: number;
+  completed_items: number;
+  partial_items: number;
+  pending_items: number;
+  items_with_pending: number;
+  assigned_amount: number;
+  pending_amount: number;
+  tooltip_lines: string[];
+}
+
 export interface ExpenseItem {
   id: number;
 
   item_type: ExpenseItemType;
   quantity?: number | null;
   unit?: string | null;
+  unit_id?: number | null;
   unit_price?: number | null;
 
   amount: number;
@@ -85,12 +132,16 @@ export interface ExpenseItem {
 
   // Display para Mano de Obra
   product_display_name?: string | null;
+
+  // Resumen por concepto de almacén
+  warehouse_assignment_summary?: WarehouseAssignmentSummary | null;
 }
 
 export interface ExpenseResponseDto {
   id: number;
   date: string;
   internal_folio: string;
+  cfdi_uuid_name?: string;
   remaining_amount: number;
   total_amount: number;
 
@@ -104,6 +155,14 @@ export interface ExpenseResponseDto {
   supplier: Supplier | null;
   status: ExpenseStatus;
   cfdi_uuid?: string | null;
+
+  warehouse_assignment_status: ExpenseWarehouseAssignmentStatus;
+  warehouse_assignment_status_label: string;
+  warehouse_assignment_control: ExpenseWarehouseAssignmentControl;
+
+  // Campo calculado en frontend para la columna visual
+  warehouse_assignment_status_display?: string;
+
   items: ExpenseItem[];
 }
 
@@ -211,6 +270,8 @@ export interface ExpenseItemDetail {
 
   // Display para Mano de Obra
   product_display_name?: string | null;
+
+  warehouse_assignment_summary?: WarehouseAssignmentSummary | null;
 }
 
 export interface ExpenseDetail {
@@ -271,6 +332,7 @@ export interface ExpensesUiFilters {
   projectIds: any[];
   status_id: string | number | null;
   paymentStatus: "paid" | "unpaid" | null;
+  warehouseAssignmentStatus: WarehouseAssignmentStatusFilter | null;
   page: number;
   limit: number;
 }

@@ -16,7 +16,7 @@
     </app-module-header>
 
     <form [formGroup]="formFilters">
-      <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-7">
         <app-input-date
           formControlName="dateRange"
           label="Rango de fecha"
@@ -49,6 +49,12 @@
           formControlName="paymentStatus"
           label="Estado de pago"
           [options]="paymentStatusOptions">
+        </app-input-select>
+
+        <app-input-select
+          formControlName="warehouseAssignmentStatus"
+          label="Asignación almacén"
+          [options]="warehouseAssignmentStatusOptions">
         </app-input-select>
 
         <app-btns-section

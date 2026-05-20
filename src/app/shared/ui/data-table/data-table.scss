@@ -203,6 +203,11 @@
     color: #b91c1c;
   }
 }
+.cell-popover-trigger {
+  display: inline-flex;
+  align-items: center;
+}
+
 
 @media screen and (max-width: 875px) {
   .table-container {
