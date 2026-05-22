@@ -321,7 +321,7 @@
                     <div class="daily-attendance-detail">
                       <mat-icon>schedule</mat-icon>
                       <span>
-                        Registrada: {{ attendance.absent_at ? (attendance.absent_at | date:'short') : 'Sin fecha de registro' }}
+                        Registrada: {{ attendance.absent_at ? (attendance.absent_at | date:'dd/MM/yyyy, HH:mm') : 'Sin fecha de registro' }}
                       </span>
                     </div>
                   </div>

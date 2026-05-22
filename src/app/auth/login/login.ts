@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -19,19 +19,33 @@ import { AuthService } from '../services/auth.service';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
 
+  private readonly rememberedEmailKey = 'mp_remembered_email';
+
   form: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(5)]],
+    rememberMe: [false],
   });
 
   isSubmitting = signal(false);
   showPassword = false;
   loginError: string | null = null;
+
+  ngOnInit(): void {
+    const rememberedEmail = localStorage.getItem(this.rememberedEmailKey);
+
+    if (rememberedEmail) {
+      this.form.patchValue({
+        email: rememberedEmail,
+        rememberMe: true,
+      });
+    }
+  }
 
   submit(): void {
     if (this.form.invalid || this.isSubmitting()) {
@@ -42,14 +56,21 @@ export class LoginComponent {
     this.loginError = null;
     this.isSubmitting.set(true);
 
-    const { email, password } = this.form.value as {
+    const { email, password, rememberMe } = this.form.value as {
       email: string;
       password: string;
+      rememberMe: boolean;
     };
 
     this.authService.login(email, password).subscribe({
       next: (res: any) => {
         this.isSubmitting.set(false);
+
+        if (rememberMe) {
+          localStorage.setItem(this.rememberedEmailKey, email);
+        } else {
+          localStorage.removeItem(this.rememberedEmailKey);
+        }
 
         const roles: string[] = res?.user?.roles ?? [];
 
@@ -129,5 +150,15 @@ export class LoginComponent {
     const control = this.form.get(field);
 
     return !!control && control.invalid && (control.dirty || control.touched);
+  }
+
+  onForgotPassword(): void {
+    this.loginError =
+      'La recuperación de contraseña aún no está disponible. Contacta al administrador.';
+  }
+
+  onSsoLogin(): void {
+    this.loginError =
+      'El inicio de sesión con SSO aún no está disponible.';
   }
 }
