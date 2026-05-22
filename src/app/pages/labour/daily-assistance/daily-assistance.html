@@ -312,9 +312,16 @@
                     </div>
 
                     <div class="daily-attendance-detail">
+                      <mat-icon>calendar_today</mat-icon>
+                      <span>
+                        Fecha de falta: {{ formatWorkDate(attendance.work_date) }}
+                      </span>
+                    </div>
+
+                    <div class="daily-attendance-detail">
                       <mat-icon>schedule</mat-icon>
                       <span>
-                        {{ attendance.absent_at ? (attendance.absent_at | date:'short') : 'Sin fecha' }}
+                        Registrada: {{ attendance.absent_at ? (attendance.absent_at | date:'short') : 'Sin fecha de registro' }}
                       </span>
                     </div>
                   </div>
@@ -543,7 +550,7 @@
 
               <div class="daily-action-detail">
                 <span>Fecha:</span>
-                <strong>{{ currentDate | date:'dd/MM/yyyy' }}</strong>
+                <strong>{{ formatWorkDate(currentDate) }}</strong>
               </div>
 
               <div class="daily-action-detail">

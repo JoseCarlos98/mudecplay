@@ -891,4 +891,16 @@ export class DailyAssistance implements OnInit {
       this.assignmentHours = maxHours;
     }
   }
+
+  formatWorkDate(dateValue: string | null | undefined): string {
+    if (!dateValue) return 'Sin fecha';
+
+    const [year, month, day] = String(dateValue).split('-');
+
+    if (!year || !month || !day) {
+      return String(dateValue);
+    }
+
+    return `${day}/${month}/${year}`;
+  }
 }
