@@ -1135,3 +1135,14 @@ body {
     padding: 0 !important;
   }
 }
+
+.content:has(.c-daily-page) {
+  overflow: hidden !important;
+}
+
+@media screen and (max-width: 1280px) {
+  .content:has(.c-daily-page) {
+    overflow: auto !important;
+  }
+}
+
