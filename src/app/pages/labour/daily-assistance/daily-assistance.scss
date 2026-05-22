@@ -857,6 +857,9 @@
  * ========================================================= */
 
 @media screen and (max-width: 875px) {
+  .btn-section-fix {
+    margin-bottom: 5px!important;
+  }
   .c-daily-page {
     display: block;
   }
