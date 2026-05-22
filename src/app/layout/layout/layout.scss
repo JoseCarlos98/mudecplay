@@ -1,7 +1,10 @@
 .app-container {
+  position: relative;
   display: flex;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
+  background-color: rgb(39 170 225 / 9%);
 }
 
 .main-area {
@@ -29,8 +32,63 @@
   }
 }
 
+.sidebar-backdrop {
+  display: none;
+}
+
+/* ============================
+   MOBILE / TABLET LAYOUT
+============================ */
+
 @media screen and (max-width: 875px) {
+  .app-container {
+    display: block;
+  }
+
+  .main-area {
+    width: 100%;
+    height: 100%;
+  }
+
   .content {
-    padding-bottom: 230px;
+    padding: 12px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1090;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(2px);
+    animation: sidebarBackdropIn 160ms ease-out;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .content {
+    padding: 10px;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+}
+
+@media screen and (max-width: 380px) {
+  .content {
+    padding: 8px;
+  }
+}
+
+@keyframes sidebarBackdropIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
   }
 }

@@ -7,8 +7,116 @@
   flex-shrink: 0;
   margin-left: 1px;
   background-color: rgba(39, 170, 225, 0.09);
+  border-bottom: 1px solid rgba(39, 170, 225, 0.08);
+}
+
+.header-menu-btn,
+.header-brand {
+  display: none;
+}
+
+.header-user {
+  min-width: 0;
+
+  span {
+    display: block;
+    font-size: 15px;
+    font-weight: 400;
+    white-space: nowrap;
+  }
 }
 
 h2 {
   font-weight: 400;
+}
+
+/* ============================
+   MOBILE HEADER
+============================ */
+
+@media screen and (max-width: 875px) {
+  .header {
+    height: 54px;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 0 12px;
+    margin-left: 0;
+    background: rgba(239, 250, 255, 0.96);
+    box-shadow: 0 1px 0 rgba(39, 170, 225, 0.08);
+  }
+
+  .header-menu-btn {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary-strong) !important;
+    background: #ffffff !important;
+    border-radius: 10px !important;
+    box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+
+    mat-icon {
+      width: 22px;
+      height: 22px;
+      font-size: 22px;
+      line-height: 22px;
+    }
+  }
+
+  .header-brand {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+  }
+
+  .header-brand__title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: var(--color-primary);
+  }
+
+  .header-user {
+    max-width: 48%;
+    text-align: right;
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 13px;
+      font-weight: 500;
+    }
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .header {
+    gap: 8px;
+    padding: 0 10px;
+  }
+
+  .header-brand__title {
+    font-size: 15px;
+  }
+
+  .header-user {
+    max-width: 46%;
+
+    span {
+      font-size: 12.5px;
+    }
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .header-brand {
+    display: none;
+  }
+
+  .header-user {
+    max-width: calc(100% - 48px);
+  }
 }

@@ -3,6 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  EventEmitter,
+  Input,
+  Output,
   computed,
   inject,
   signal,
@@ -10,6 +13,7 @@ import {
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 
 import { MenuItems } from './models/siderbar-models';
 import { AuthService } from '../../auth/services/auth.service';
@@ -22,12 +26,18 @@ import { AuthService } from '../../auth/services/auth.service';
     RouterModule,
     MatIconModule,
     MatTooltipModule,
+    MatButtonModule,
   ],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
+  @Input() isMobile = false;
+  @Input() mobileOpen = false;
+
+  @Output() mobileClose = new EventEmitter<void>();
+
   private readonly auth = inject(AuthService);
   private readonly hostRef = inject(ElementRef<HTMLElement>);
 
@@ -35,10 +45,30 @@ export class Sidebar {
   readonly openSectionName = signal<string | null>(null);
 
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
-    { name: 'Gastos', icon: 'attach_money', route: '/gastos', roles: ['GASTOS_EDITOR'] },
-      { name: 'Almacén', icon: 'inventory_2', route: '/almacen', roles: ['ALMACEN_EDITOR'] },
-    { name: 'Cuentas por Cobrar', icon: 'account_balance', route: '/cuentas-por-cobrar', roles: ['CUENTAS_POR_COBRAR_EDITOR'] },
-    { name: 'Reportes', icon: 'bar_chart', route: '/reportes', roles: ['REPORTES_EMISOR'] },
+    {
+      name: 'Gastos',
+      icon: 'attach_money',
+      route: '/gastos',
+      roles: ['GASTOS_EDITOR'],
+    },
+    {
+      name: 'Almacén',
+      icon: 'inventory_2',
+      route: '/almacen',
+      roles: ['ALMACEN_EDITOR'],
+    },
+    {
+      name: 'Cuentas por Cobrar',
+      icon: 'account_balance',
+      route: '/cuentas-por-cobrar',
+      roles: ['CUENTAS_POR_COBRAR_EDITOR'],
+    },
+    {
+      name: 'Reportes',
+      icon: 'bar_chart',
+      route: '/reportes',
+      roles: ['REPORTES_EMISOR'],
+    },
     {
       name: 'Mano de obra',
       icon: 'engineering',
@@ -61,38 +91,60 @@ export class Sidebar {
           route: '/mano-de-obra/llegadas-retardos',
           roles: ['LLEGADAS_RETARDOS_EDITOR'],
         },
-        // {
-        //   name: 'Horas extras',
-        //   icon: 'more_time',
-        //   route: '/mano-de-obra/horas-extras',
-        //   roles: ['HORAS_EXTRAS_EDITOR'],
-        // },
-        // {
-        //   name: 'Préstamos',
-        //   icon: 'payments',
-        //   route: '/mano-de-obra/prestamos',
-        //   roles: ['PRESTAMOS_EDITOR'],
-        // },
-        // {
-        //   name: 'Nómina',
-        //   icon: 'receipt_long',
-        //   route: '/mano-de-obra/nomina',
-        //   roles: ['NOMINA_EDITOR'],
-        // },
       ],
     },
     {
       name: 'Catálogos',
       icon: 'folder_open',
       children: [
-        { name: 'Proveedores', icon: 'store', route: '/proveedores', roles: ['PROVEEDORES_EDITOR'] },
-        { name: 'Proyectos', icon: 'work', route: '/proyectos', roles: ['PROYECTOS_EDITOR'] },
-        { name: 'Áreas', icon: 'grid_view', route: '/areas', roles: ['AREA_EDITOR'] },
-        { name: 'Áreas de Empleados', icon: 'grid_view', route: '/areas-empleados', roles: ['AREAS_EMPLEADOS_EDITOR'] },
-        { name: 'Clientes', icon: 'groups', route: '/clientes', roles: ['CLIENTES_EDITOR'] },
-        { name: 'Responsables', icon: 'person', route: '/responsables', roles: ['RESPONSABLES_EDITOR'] },
-        { name: 'Productos', icon: 'inventory', route: '/productos', roles: ['PRODUCTOS_EDITOR'] },
-        { name: 'Usuarios', icon: 'people', route: '/usuarios', roles: ['USUARIOS_EDITOR'] },
+        {
+          name: 'Proveedores',
+          icon: 'store',
+          route: '/proveedores',
+          roles: ['PROVEEDORES_EDITOR'],
+        },
+        {
+          name: 'Proyectos',
+          icon: 'work',
+          route: '/proyectos',
+          roles: ['PROYECTOS_EDITOR'],
+        },
+        {
+          name: 'Áreas',
+          icon: 'grid_view',
+          route: '/areas',
+          roles: ['AREA_EDITOR'],
+        },
+        {
+          name: 'Áreas de Empleados',
+          icon: 'grid_view',
+          route: '/areas-empleados',
+          roles: ['AREAS_EMPLEADOS_EDITOR'],
+        },
+        {
+          name: 'Clientes',
+          icon: 'groups',
+          route: '/clientes',
+          roles: ['CLIENTES_EDITOR'],
+        },
+        {
+          name: 'Responsables',
+          icon: 'person',
+          route: '/responsables',
+          roles: ['RESPONSABLES_EDITOR'],
+        },
+        {
+          name: 'Productos',
+          icon: 'inventory',
+          route: '/productos',
+          roles: ['PRODUCTOS_EDITOR'],
+        },
+        {
+          name: 'Usuarios',
+          icon: 'people',
+          route: '/usuarios',
+          roles: ['USUARIOS_EDITOR'],
+        },
       ],
     },
   ];
@@ -106,39 +158,61 @@ export class Sidebar {
       return this.menuItemsSource as MenuItems[];
     }
 
-    const canSee = (item: any): boolean => {
+    const canSee = (item: MenuItems & { roles?: string[] }): boolean => {
       if (!item.roles?.length) return false;
-      return item.roles.some((r: string) => roles.includes(r));
+      return item.roles.some((role) => roles.includes(role));
     };
 
-    const filterTree = (items: any[]): any[] => {
+    const filterTree = (
+      items: (MenuItems & { roles?: string[] })[],
+    ): MenuItems[] => {
       return items
-        .map((it) => {
-          const children = it.children?.length ? filterTree(it.children) : undefined;
+        .map((item) => {
+          const children = item.children?.length
+            ? filterTree(item.children as (MenuItems & { roles?: string[] })[])
+            : undefined;
+
           const hasVisibleChild = !!children?.length;
-          const visibleBySelf = canSee(it);
+          const visibleBySelf = canSee(item);
 
           if (!visibleBySelf && !hasVisibleChild) return null;
 
-          if (it.children?.length) return { ...it, children };
-          return { ...it };
+          if (item.children?.length) {
+            return {
+              ...item,
+              children,
+            };
+          }
+
+          return { ...item };
         })
-        .filter(Boolean);
+        .filter(Boolean) as MenuItems[];
     };
 
-    return filterTree(this.menuItemsSource) as MenuItems[];
+    return filterTree(this.menuItemsSource);
   });
 
+  isOpen(): boolean {
+    return this.isMobile ? this.mobileOpen : this.isExpanded();
+  }
+
   expand(): void {
+    if (this.isMobile) return;
+
     this.isExpanded.set(true);
   }
 
   collapse(): void {
+    if (this.isMobile) return;
+
     this.isExpanded.set(false);
   }
 
   onFocusOut(event: FocusEvent): void {
+    if (this.isMobile) return;
+
     const next = event.relatedTarget as Node | null;
+
     if (!next || !this.hostRef.nativeElement.contains(next)) {
       this.collapse();
     }
@@ -157,7 +231,7 @@ export class Sidebar {
 
     if (!item.children?.length) return;
 
-    if (!this.isExpanded()) {
+    if (!this.isOpen()) {
       this.isExpanded.set(true);
       this.openSectionName.set(item.name);
       return;
@@ -168,7 +242,18 @@ export class Sidebar {
     );
   }
 
+  onMenuItemClick(): void {
+    if (!this.isMobile) return;
+
+    this.mobileClose.emit();
+  }
+
+  requestMobileClose(): void {
+    this.mobileClose.emit();
+  }
+
   logout(): void {
+    this.mobileClose.emit();
     this.auth.logout();
   }
 }

@@ -345,8 +345,6 @@ body {
     }
   }
 }
-
-
 /* ============================
  * 7. Filtros (barra de filtros)
  * ============================ */
@@ -354,20 +352,83 @@ body {
 .c-filters {
   padding-top: 12px;
   gap: 15px;
+  align-items: end;
+
+  > * {
+    min-width: 0;
+  }
+
+  app-input-date,
+  app-input-field,
+  app-input-select,
+  app-autocomplete-multiple,
+  app-btns-section {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  app-input-date,
+  app-input-field,
+  app-input-select,
+  app-autocomplete-multiple {
+    .c-input,
+    .mat-mdc-form-field {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin-bottom: 0 !important;
+    }
+
+    p {
+      line-height: 1.2;
+    }
+  }
+
+  /*
+   * Angular Material reserva espacio inferior para hints/errores.
+   * En filtros no lo necesitamos y rompe la alineación,
+   * sobre todo en datepicker/date range.
+   */
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .mat-mdc-form-field-bottom-align::before {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    content: none !important;
+  }
+
+  .mat-mdc-form-field {
+    width: 100% !important;
+    height: 30px !important;
+  }
+
+  .mat-mdc-text-field-wrapper {
+    min-width: 0;
+  }
 
   .btns-action-filters {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 10px;
     margin-top: 25px;
+    min-width: 0;
 
     button {
       @extend .btn;
       height: 30px;
+      white-space: nowrap;
     }
 
     .btn-primary {
       width: 36px;
+      min-width: 36px;
       padding: 0;
       justify-content: center;
       background: var(--color-primary-strong);
@@ -379,11 +440,10 @@ body {
     }
 
     .btn-outline {
-      @extend .btn-outline;
+      min-width: 86px;
     }
   }
 }
-
 
 /* ============================
  * 8. Formularios: estados de error, dinámicos, etc.
@@ -533,23 +593,24 @@ body {
  * ============================ */
 
 @media screen and (max-width: 990px) {
-  .c-sidebar {
-    position: absolute;
-    z-index: 1000;
-    left: 0;
-    right: 0;
-    background: #ffffff;
-  }
-
   .c-filters {
-    position: relative;
-    padding-bottom: 30px;
+    align-items: end;
 
-    .btn-primary {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      margin-top: 0;
+    app-btns-section {
+      grid-column: 1 / -1;
+    }
+
+    .btns-action-filters {
+      width: 100%;
+      margin-top: 4px;
+      justify-content: flex-start;
+
+      .btn-primary {
+        position: static !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin-top: 0 !important;
+      }
     }
   }
 }
@@ -810,3 +871,125 @@ body {
   display: block;
   margin-top: 20px!important;
 }
+
+/* ============================
+ * Responsive: filtros de módulos
+ * ============================ */
+
+@media screen and (max-width: 875px) {
+  .card-content {
+    padding: 14px;
+  }
+
+  .c-filters {
+    gap: 14px 12px;
+    padding-top: 14px;
+
+    app-input-date,
+    app-input-field,
+    app-input-select,
+    app-autocomplete-multiple {
+      width: 100%;
+    }
+
+    app-input-date .c-input,
+    app-input-field .c-input,
+    app-input-select .c-input,
+    app-autocomplete-multiple .c-input {
+      margin-bottom: 0 !important;
+    }
+
+    app-input-date p,
+    app-input-field p,
+    app-input-select p,
+    app-autocomplete-multiple p {
+      font-size: 13px;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+
+    input,
+    .mat-mdc-select,
+    .mat-mdc-select-min-line,
+    mat-select-trigger {
+      font-size: 12px !important;
+      letter-spacing: 0.4px !important;
+    }
+
+    app-btns-section {
+      grid-column: 1 / -1;
+    }
+
+    .btns-action-filters {
+      width: 100%;
+      display: flex;
+      gap: 10px;
+      margin-top: 2px;
+      justify-content: flex-start;
+      align-items: center;
+
+      button {
+        height: 32px;
+      }
+
+      .btn-primary {
+        width: 40px;
+        min-width: 40px;
+        border-radius: 8px;
+      }
+
+      .btn-outline {
+        min-width: 92px;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .c-filters {
+    gap: 13px 10px;
+
+    .btns-action-filters {
+      justify-content: flex-end;
+      gap: 10px;
+
+      .btn-outline {
+        min-width: 104px;
+        height: 32px;
+        justify-content: center;
+        order: 1;
+      }
+
+      .btn-primary {
+        width: 44px;
+        min-width: 44px;
+        height: 32px;
+        border-radius: 8px;
+        order: 2;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .c-filters {
+    grid-template-columns: 1fr !important;
+
+    app-btns-section {
+      grid-column: auto;
+    }
+
+    .btns-action-filters {
+      .btn-primary,
+      .btn-outline {
+        flex: 1 1 0;
+      }
+
+      .btn-primary {
+        max-width: 56px;
+      }
+    }
+  }
+}
+

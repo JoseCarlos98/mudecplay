@@ -1,8 +1,25 @@
-<div class="app-container">
-  <app-sidebar></app-sidebar>
+<div class="app-container" [class.is-mobile-sidebar-open]="mobileSidebarOpen()">
+  <app-sidebar
+    [isMobile]="isMobile()"
+    [mobileOpen]="mobileSidebarOpen()"
+    (mobileClose)="closeMobileSidebar()">
+  </app-sidebar>
+
+  @if (isMobile() && mobileSidebarOpen()) {
+    <button
+      type="button"
+      class="sidebar-backdrop"
+      aria-label="Cerrar menú lateral"
+      (click)="closeMobileSidebar()">
+    </button>
+  }
 
   <div class="main-area">
-    <app-header></app-header>
+    <app-header
+      [isMobile]="isMobile()"
+      [sidebarOpen]="mobileSidebarOpen()"
+      (toggleSidebar)="toggleMobileSidebar()">
+    </app-header>
 
     <div class="content">
       <router-outlet></router-outlet>

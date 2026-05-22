@@ -1,5 +1,20 @@
-<header class="header flex items-center justify-end h-16 px-6 shadow-sm">
-  <div class="flex items-center gap-3">
-    <span class="color-secundary">Hola, {{ currentUser?.name + ' ' + currentUser?.lastName || '' }}</span>
+<header class="header">
+  @if (isMobile) {
+    <button
+      type="button"
+      mat-icon-button
+      class="header-menu-btn"
+      [attr.aria-label]="sidebarOpen ? 'Cerrar menú' : 'Abrir menú'"
+      (click)="toggleSidebar.emit()">
+      <mat-icon>{{ sidebarOpen ? 'close' : 'menu' }}</mat-icon>
+    </button>
+
+    <div class="header-brand" aria-label="MUDECPLAY Panel">
+      <span class="header-brand__title">MUDECPLAY</span>
+    </div>
+  }
+
+  <div class="header-user">
+    <span class="color-secundary">Hola, {{ userName }}</span>
   </div>
 </header>

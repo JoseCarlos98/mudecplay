@@ -1,11 +1,12 @@
 <aside
   class="c-sidebar"
-  [class.is-expanded]="isExpanded()"
+  [class.is-expanded]="isOpen()"
+  [class.is-mobile]="isMobile"
+  [class.is-mobile-open]="isMobile && mobileOpen"
   (mouseenter)="expand()"
   (mouseleave)="collapse()"
   (focusin)="expand()"
-  (focusout)="onFocusOut($event)"
->
+  (focusout)="onFocusOut($event)">
   <div class="c-sidebar__inner">
     <div class="c-sidebar-header border-bottom-gray">
       <div class="brand-copy">
@@ -13,9 +14,20 @@
         <span class="brand-subtitle color-secundary">Panel</span>
       </div>
 
-      <div class="brand-icon">
-        <mat-icon class="color-secundary">business</mat-icon>
-      </div>
+      @if (isMobile) {
+        <button
+          type="button"
+          mat-icon-button
+          class="sidebar-close-btn"
+          aria-label="Cerrar menú"
+          (click)="requestMobileClose()">
+          <mat-icon>close</mat-icon>
+        </button>
+      } @else {
+        <div class="brand-icon">
+          <mat-icon class="color-secundary">business</mat-icon>
+        </div>
+      }
     </div>
 
     <nav class="sidebar-nav" aria-label="Menú principal">
@@ -26,9 +38,9 @@
             [routerLink]="item.route"
             routerLinkActive="menu-selected"
             [matTooltip]="item.name"
-            [matTooltipDisabled]="isExpanded()"
+            [matTooltipDisabled]="isOpen()"
             matTooltipPosition="right"
-          >
+            (click)="onMenuItemClick()">
             <span class="sidebar-link__icon">
               <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
             </span>
@@ -44,10 +56,9 @@
               class="sidebar-link sidebar-link--button sidebar-link--section"
               (click)="toggleSection(item, $event)"
               [matTooltip]="item.name"
-              [matTooltipDisabled]="isExpanded()"
+              [matTooltipDisabled]="isOpen()"
               matTooltipPosition="right"
-              [attr.aria-expanded]="isSectionOpen(item.name)"
-            >
+              [attr.aria-expanded]="isSectionOpen(item.name)">
               <span class="sidebar-link__icon">
                 <mat-icon class="color-primary">{{ item.icon || 'folder_open' }}</mat-icon>
               </span>
@@ -63,14 +74,14 @@
               </span>
             </button>
 
-            @if (isExpanded() && isSectionOpen(item.name)) {
+            @if (isOpen() && isSectionOpen(item.name)) {
               <div class="sidebar-submenu">
                 @for (child of item.children; track child.name) {
                   <a
                     class="sidebar-sublink c-card-menu"
                     [routerLink]="child.route"
                     routerLinkActive="menu-selected"
-                  >
+                    (click)="onMenuItemClick()">
                     <span class="sidebar-link__icon">
                       <mat-icon class="color-primary">{{ child.icon }}</mat-icon>
                     </span>
@@ -93,9 +104,8 @@
         class="sidebar-link sidebar-link--button c-card-menu sidebar-logout"
         (click)="logout()"
         [matTooltip]="'Salir'"
-        [matTooltipDisabled]="isExpanded()"
-        matTooltipPosition="right"
-      >
+        [matTooltipDisabled]="isOpen()"
+        matTooltipPosition="right">
         <span class="sidebar-link__icon">
           <mat-icon class="color-primary">logout</mat-icon>
         </span>
