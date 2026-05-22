@@ -1,29 +1,49 @@
-<div class="card-content shadow-md">
-    <app-module-header title="Productos" [config]="headerConfig" (action)="onHeaderAction($event)">
+<div class="c-table-page">
+  <div class="card-content shadow-md">
+    <app-module-header
+      title="Productos"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
     </app-module-header>
 
     <form [formGroup]="formFilters">
-        <div class="c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-            <app-input-field formControlName="name" label="Nombre" type="text" [isFilter]="true">
-            </app-input-field>
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <app-input-field
+          formControlName="name"
+          label="Nombre"
+          type="text"
+          [isFilter]="true">
+        </app-input-field>
 
-            <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
-            </app-btns-section>
-        </div>
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
     </form>
-</div>
+  </div>
 
-@if (productsTableData?.data) {
-<div class="c-module-table ">
-    <app-data-table [data]="productsTableData.data" [columnsConfig]="columnsConfig"
-        [displayedColumns]="displayedColumns" (action)="onTableAction($event)">
-    </app-data-table>
+  @if (productsTableData?.data) {
+    <div class="c-module-table">
+      <app-data-table
+        [data]="productsTableData.data"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns"
+        (action)="onTableAction($event)">
+      </app-data-table>
 
-    <mat-paginator [length]="productsTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-        [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
-    </mat-paginator>
+      <mat-paginator
+        [length]="productsTableData.meta.total"
+        [pageSize]="filters.limit"
+        [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  }
 </div>
-}
 
 <app-loading-overlay
   [visible]="loadingTable()"

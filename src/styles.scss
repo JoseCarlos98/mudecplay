@@ -993,3 +993,145 @@ body {
   }
 }
 
+/* =========================================================
+ * 11. Layout calculado para páginas con tabla
+ * Uso:
+ * <div class="c-table-page">
+ *   <div class="card-content">...</div>
+ *   <div class="c-module-table">...</div>
+ * </div>
+ * ========================================================= */
+
+/*
+ * Solo cuando el módulo tenga .c-table-page,
+ * el scroll general del content se apaga.
+ * El scroll pasa a vivir dentro del DataTable.
+ */
+.content:has(.c-table-page) {
+  overflow: hidden !important;
+}
+
+/* Página: filtros arriba + tabla ocupando el resto */
+.c-table-page {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 15px;
+}
+
+/* La card superior ya no debe empujar con margin extra */
+.c-table-page > .card-content {
+  min-height: unset;
+  margin-bottom: 0;
+  padding-bottom: 15px;
+}
+
+/* Tabla + paginator */
+.c-table-page > .c-module-table {
+  position: relative;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+
+  background: #ffffff;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* El componente tabla toma el alto disponible */
+.c-table-page > .c-module-table > app-data-table {
+  display: block;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/*
+ * El paginator deja de ser absolute SOLO dentro de c-table-page.
+ * No rompe otros módulos que aún usen el comportamiento anterior.
+ */
+.c-table-page > .c-module-table > .mat-mdc-paginator {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+
+  background: #ffffff;
+  border-radius: 0 0 15px 15px !important;
+  border-top: 1px solid rgba(35, 31, 32, 0.08);
+}
+
+/* Ajuste visual del paginator dentro de tabla calculada */
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-container {
+  min-height: 50px !important;
+  padding: 0 12px !important;
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-actions {
+  gap: 6px !important;
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ============================
+ * Responsive del layout calculado
+ * ============================ */
+
+@media screen and (max-width: 875px) {
+  .c-table-page {
+    gap: 10px;
+  }
+
+  .c-table-page > .card-content {
+    padding: 14px;
+  }
+
+  .c-table-page > .c-module-table {
+    border-radius: 14px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator {
+    min-height: 50px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-container {
+    min-height: 50px !important;
+    padding: 0 8px !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-page-size {
+    margin-right: 4px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-actions {
+    min-width: 0;
+    gap: 4px !important;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-label {
+    margin: 0 4px !important;
+    font-size: 12px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-icon-button {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+  }
+}

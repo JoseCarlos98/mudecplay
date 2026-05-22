@@ -1,20 +1,58 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
 .table-container {
+  height: 100%;
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 279px);
+
   background: #fff;
-  border-radius: 15px;
+  border-radius: 15px 15px 0 0;
   overflow: hidden;
   position: relative;
-  padding-bottom: 60px !important;
+
   padding: 15px;
   padding-top: 0;
+  padding-bottom: 0 !important;
 
+  /*
+   * Este wrapper existe en tu HTML:
+   * <div class="overflow-x-auto">
+   * Aquí vive el scroll horizontal y vertical interno.
+   */
+  .overflow-x-auto,
   .table-scroll {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
+    flex: 1 1 auto;
     min-height: 0;
+    width: 100%;
+
+    overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar,
+  .table-scroll::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb,
+  .table-scroll::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.55);
+    border-radius: 999px;
+    border: 3px solid #ffffff;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track,
+  .table-scroll::-webkit-scrollbar-track {
+    background: rgba(148, 163, 184, 0.12);
+    border-radius: 999px;
   }
 
   .empty-cell {
@@ -28,32 +66,37 @@
   }
 
   table {
-    width: 100%;
+    width: max-content;
+    min-width: 100%;
     border-spacing: 0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: none;
+  }
 
-    th {
-      color: #231f20;
-      font-weight: 600;
-      font-size: 15px;
-      padding: 0.75rem 1rem;
-      border-bottom: 2px solid rgba(39, 170, 225, 0.2);
-      position: sticky;
-      top: 0;
-      background: white;
-      z-index: 1;
-    }
+  th {
+    color: #231f20;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid rgba(39, 170, 225, 0.2);
 
-    td {
-      color: #333;
-      font-size: 14px;
-      padding: 0px 15px;
-      border-bottom: 1px solid #f0f0f0;
-    }
+    position: sticky;
+    top: 0;
+    z-index: 2;
 
-    tr:last-child td {
-      border-bottom: none;
-    }
+    background: #ffffff;
+    white-space: nowrap;
+  }
+
+  td {
+    color: #333;
+    font-size: 14px;
+    padding: 8px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
   }
 
   .c-actions-cells {
@@ -85,27 +128,24 @@
       display: flex;
       align-items: center;
       gap: 10px;
-    }
-
-    .popover-action-trigger {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      white-space: nowrap;
     }
 
     button {
       color: #555;
       transition: all 0.25s ease;
-      width: 40px !important;
-      height: 40px !important;
+
+      width: 36px !important;
+      height: 36px !important;
       min-height: unset !important;
       padding: 0 !important;
+
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
 
       mat-icon {
-        font-size: 22px;
+        font-size: 21px;
       }
     }
 
@@ -117,8 +157,10 @@
   .table-chip {
     display: inline-flex;
     align-items: center;
+
     padding: 5px 10px;
     border-radius: 9999px;
+
     font-size: 11px;
     font-weight: 500;
     line-height: 1;
@@ -135,6 +177,7 @@
       sans-serif;
     letter-spacing: 0.03em;
     font-size: 13px;
+    white-space: nowrap;
   }
 
   .boolean-confirm {
@@ -154,15 +197,18 @@
   .confirm-pill {
     height: 25px;
     letter-spacing: 0.7px !important;
+
     display: inline-flex;
     align-items: center;
     gap: 6px;
+
     padding: 3px 10px;
     border-radius: 9999px;
+
     font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.4px;
     vertical-align: middle;
+    white-space: nowrap;
   }
 
   .confirm-pill-icon {
@@ -203,20 +249,97 @@
     color: #b91c1c;
   }
 }
+
 .cell-popover-trigger {
   display: inline-flex;
   align-items: center;
 }
 
+/* ============================
+ * Responsive tabla
+ * Mantiene tabla completa con scroll horizontal
+ * ============================ */
 
 @media screen and (max-width: 875px) {
   .table-container {
-    height: calc(100vh - 300px);
+    padding: 12px;
+    padding-top: 0;
+    padding-bottom: 0 !important;
+    border-radius: 14px 14px 0 0;
+
+    table {
+      min-width: 900px;
+    }
+
+    th {
+      font-size: 13px;
+      padding: 10px 12px;
+    }
+
+    td {
+      font-size: 12.5px;
+      padding: 7px 12px;
+    }
+
+    .table-chip {
+      padding: 4px 8px;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .confirm-pill {
+      height: 23px;
+      padding: 3px 8px;
+      font-size: 11px;
+    }
+
+    .btn-view-row {
+      height: 24px;
+      padding-inline: 8px;
+      font-size: 12px;
+
+      mat-icon {
+        font-size: 17px;
+        width: 17px;
+        height: 17px;
+      }
+    }
+
+    .c-actions-cells {
+      > div {
+        gap: 6px;
+      }
+
+      button {
+        width: 32px !important;
+        height: 32px !important;
+
+        mat-icon {
+          font-size: 19px;
+        }
+      }
+    }
   }
 }
 
-@media screen and (max-width: 575px) {
+@media screen and (max-width: 430px) {
   .table-container {
-    height: calc(100vh - 410px);
+    padding: 10px;
+    padding-top: 0;
+    padding-bottom: 0 !important;
+
+    table {
+      min-width: 860px;
+    }
+
+    th {
+      font-size: 12.5px;
+      padding: 9px 10px;
+    }
+
+    td {
+      font-size: 12px;
+      padding: 7px 10px;
+    }
   }
 }
