@@ -1,7 +1,7 @@
 /* =========================================================
  * ASISTENCIA DIARIA
  * Desktop: alto calculado
- * Mobile/tablet: scroll normal + UI compacta
+ * Mobile/tablet: scroll normal + listas internas con scroll
  * ========================================================= */
 
 :host {
@@ -219,6 +219,8 @@
   max-height: none !important;
   overflow: auto;
   padding-right: 4px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -912,6 +914,7 @@
     height: 32px;
     display: flex;
     align-items: end;
+    margin-bottom: 0;
   }
 
   .btn-section-fix .btns-action-filters {
@@ -987,17 +990,50 @@
   .daily-cards-list,
   .daily-projects-list {
     gap: 10px;
-    padding-right: 0;
+    padding-right: 4px;
+    max-height: clamp(320px, 46vh, 460px) !important;
+    max-height: clamp(320px, 46dvh, 460px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .daily-cards-list::-webkit-scrollbar,
+  .daily-projects-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .daily-cards-list::-webkit-scrollbar-thumb,
+  .daily-projects-list::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.55);
+    border-radius: 9999px;
+  }
+
+  .daily-cards-list::-webkit-scrollbar-track,
+  .daily-projects-list::-webkit-scrollbar-track {
+    background: transparent;
   }
 
   .daily-employee-card {
     padding: 12px;
     border-radius: 13px;
     gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 8px;
   }
 
   .daily-employee-card__main {
     gap: 10px;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .daily-employee-content {
+    min-width: 0;
   }
 
   .daily-employee-avatar {
@@ -1023,28 +1059,58 @@
 
   .daily-employee-meta--hours {
     margin-top: 4px;
+    max-width: 100%;
+    line-height: 1.35;
   }
 
   .daily-employee-side {
-    width: 100%;
-    margin-top: 8px;
-    flex-direction: row;
+    width: auto;
+    min-width: 92px;
+    margin-top: 0;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: auto 26px;
+    grid-template-rows: auto auto;
     align-items: center;
-    justify-content: space-between;
+    justify-content: end;
+    column-gap: 8px;
+    row-gap: 8px;
   }
 
   .daily-money-chip {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    white-space: nowrap;
     font-size: 11px;
     padding: 5px 8px;
   }
 
+  .daily-employee-actions {
+    display: contents;
+  }
+
   .daily-absence-mini-btn {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    white-space: nowrap;
     height: 26px;
     font-size: 11px;
   }
 
   .daily-check-indicator {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: center;
     margin-top: 0;
+
+    mat-icon {
+      font-size: 23px;
+      width: 23px;
+      height: 23px;
+    }
   }
 
   .daily-attendance-card {
@@ -1202,16 +1268,46 @@
     font-size: 17px;
   }
 
+  .daily-cards-list,
+  .daily-projects-list {
+    max-height: clamp(280px, 42vh, 400px) !important;
+    max-height: clamp(280px, 42dvh, 400px) !important;
+  }
+
   .daily-employee-card {
     padding: 11px;
+    grid-template-columns: minmax(0, 1fr) 86px;
+    column-gap: 8px;
   }
 
   .daily-employee-card__main {
     align-items: flex-start;
+    gap: 9px;
+  }
+
+  .daily-employee-avatar {
+    width: 38px;
+    height: 38px;
   }
 
   .daily-employee-side {
-    padding-left: 50px;
+    min-width: 86px;
+    column-gap: 6px;
+  }
+
+  .daily-money-chip {
+    font-size: 10.5px;
+    padding: 5px 7px;
+  }
+
+  .daily-absence-mini-btn {
+    height: 25px;
+    padding: 0 8px;
+    font-size: 10.5px;
+  }
+
+  .daily-employee-meta--hours {
+    font-size: 11px;
   }
 
   .daily-action-buttons,
@@ -1247,119 +1343,10 @@
     font-size: 11px;
   }
 
-  .daily-employee-side {
-    padding-left: 0;
-  }
-}
-
-/* =========================================================
- * MOBILE: mejor acomodo de card trabajador
- * Precio + Falta arriba/derecha y check separado
- * ========================================================= */
-
-@media screen and (max-width: 875px) {
-  .daily-employee-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    column-gap: 10px;
-    row-gap: 8px;
-  }
-
-  .daily-employee-card__main {
-    min-width: 0;
-    align-items: flex-start;
-  }
-
-  .daily-employee-content {
-    min-width: 0;
-  }
-
-  .daily-employee-meta--hours {
-    max-width: 100%;
-    line-height: 1.35;
-  }
-
-  .daily-employee-side {
-    width: auto;
-    min-width: 92px;
-    margin-top: 0;
-    padding-left: 0;
-    display: grid;
-    grid-template-columns: auto 26px;
-    grid-template-rows: auto auto;
-    align-items: center;
-    justify-content: end;
-    column-gap: 8px;
-    row-gap: 8px;
-  }
-
-  .daily-money-chip {
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: end;
-    white-space: nowrap;
-  }
-
-  .daily-employee-actions {
-    display: contents;
-  }
-
-  .daily-absence-mini-btn {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: end;
-    white-space: nowrap;
-  }
-
-  .daily-check-indicator {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-    justify-self: center;
-    margin-top: 0;
-
-    mat-icon {
-      font-size: 23px;
-      width: 23px;
-      height: 23px;
-    }
-  }
-}
-
-@media screen and (max-width: 430px) {
-  .daily-employee-card {
-    grid-template-columns: minmax(0, 1fr) 86px;
-    column-gap: 8px;
-  }
-
-  .daily-employee-card__main {
-    gap: 9px;
-  }
-
-  .daily-employee-avatar {
-    width: 38px;
-    height: 38px;
-  }
-
-  .daily-employee-side {
-    min-width: 86px;
-    column-gap: 6px;
-  }
-
-  .daily-money-chip {
-    font-size: 10.5px;
-    padding: 5px 7px;
-  }
-
-  .daily-absence-mini-btn {
-    height: 25px;
-    padding: 0 8px;
-    font-size: 10.5px;
-  }
-
-  .daily-employee-meta--hours {
-    font-size: 11px;
+  .daily-cards-list,
+  .daily-projects-list {
+    max-height: clamp(260px, 40vh, 360px) !important;
+    max-height: clamp(260px, 40dvh, 360px) !important;
   }
 }
 

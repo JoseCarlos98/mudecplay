@@ -75,7 +75,7 @@
   .c-module-header {
     flex-wrap: wrap;
     align-items: flex-start;
-    gap: 8px;
+    // gap: 8px;
 
     > div:first-child {
       min-width: 0;
@@ -83,8 +83,8 @@
     }
 
     h2 {
-      font-size: clamp(27px, 8vw, 32px);
-      line-height: 1.05;
+      font-size: clamp(20px, 4vw, 22px)!important;
+      line-height: 20px!important;
       letter-spacing: 1.5px;
     }
   }

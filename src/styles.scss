@@ -878,12 +878,12 @@ body {
 
 @media screen and (max-width: 875px) {
   .card-content {
-    padding: 14px;
+    padding: 9px!important;
   }
 
   .c-filters {
-    gap: 14px 12px;
-    padding-top: 14px;
+    gap: 9px 9px;
+    padding-top: 0px;
 
     app-input-date,
     app-input-field,
@@ -1143,6 +1143,64 @@ body {
 @media screen and (max-width: 1280px) {
   .content:has(.c-daily-page) {
     overflow: auto !important;
+  }
+}
+
+
+
+/* =========================================================
+ * MOBILE REAL: tabla no debe aplastarse por Safari/Chrome móvil
+ * ========================================================= */
+
+@media screen and (max-width: 875px) {
+  .content:has(.c-table-page) {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .c-table-page {
+    height: auto;
+    min-height: 100%;
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 14px;
+  }
+
+  .c-table-page > .card-content {
+    margin-bottom: 0;
+  }
+
+  .c-table-page > .c-module-table {
+    height: auto;
+    min-height: 360px;
+    max-height: none;
+    grid-template-rows: minmax(280px, auto) auto;
+  }
+
+  .c-table-page > .c-module-table > app-data-table {
+    min-height: 280px;
+    height: auto;
+  }
+}
+
+/* iPhone / pantallas bajas: más compacto */
+@media screen and (max-width: 480px) {
+  .c-table-page {
+    gap: 12px;
+  }
+
+  .c-table-page > .card-content {
+    padding: 14px 14px 16px;
+    border-radius: 14px;
+  }
+
+  .c-table-page > .c-module-table {
+    min-height: 340px;
+    border-radius: 14px;
+  }
+
+  .c-table-page > .c-module-table > app-data-table {
+    min-height: 260px;
   }
 }
 
