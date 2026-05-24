@@ -117,77 +117,56 @@ body {
 }
 
 
-
 /* ============================
  * 5. Layouts / contenedores
  * ============================ */
 
 .card-content {
   background: #ffffff;
-  min-height: 145px;
   width: 100%;
-  padding: 15px 15px 0px 15px;
-  // padding: 15px 15px 15px 15px;
+  min-height: 145px;
+  padding: 15px 15px 0 15px;
   border-radius: 10px;
   margin-bottom: 15px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/*
+ * Formularios full page.
+ * Por default NO llenan todo el alto.
+ * Se adaptan al contenido para evitar espacios vacíos.
+ */
 .card-content-form {
   @extend .card-content;
-  padding: 15px 15px 15px 15px;
+  min-height: unset;
+  height: auto;
+  padding: 15px;
+  display: block;
 }
 
-/* =========================================================
- * FULL PAGE FORMS
- * Formularios que NO son modal
- * Ejemplo: nuevo empleado, editar empleado, etc.
- * ========================================================= */
-
-.card-content-form {
+/*
+ * Variante opcional: úsala solo si algún formulario sí debe llenar pantalla.
+ * Ejemplo:
+ * <div class="card-content-form card-content-form--fill">
+ */
+.card-content-form--fill {
   min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.card-content-form > app-module-header {
+.card-content-form--fill > app-module-header {
   flex: 0 0 auto;
 }
 
-.card-content-form > form.c-form {
+.card-content-form--fill > form.c-form {
   flex: 1 1 auto;
   min-height: 0;
 }
 
-.card-content-form > app-btns-section {
+.card-content-form--fill > app-btns-section {
   flex: 0 0 auto;
   margin-top: 16px;
-}
-
-/* Mobile */
-@media screen and (max-width: 875px) {
-  .card-content-form {
-    min-height: calc(100dvh - 92px);
-    padding: 14px !important;
-    border-radius: 14px;
-  }
-
-  .card-content-form > form.c-form {
-    padding: 0 !important;
-  }
-
-  .card-content-form > app-btns-section {
-    margin-top: 14px;
-  }
-}
-
-@media screen and (max-width: 500px) {
-  .card-content-form {
-    min-height: calc(100dvh - 84px);
-    padding: 12px !important;
-    justify-content: space-between;
-    margin-bottom: 0;
-  }
 }
 
 .c-module-table {
@@ -908,14 +887,19 @@ body {
     justify-content: center;
   }
 
+  /*
+   * Importante:
+   * No forzar scroll global en todos los forms.
+   * El scroll debe vivir en la pantalla o en un body específico,
+   * no en todos los .c-form.
+   */
   .c-form {
-    // padding: 0!important;
-    max-height: 400px;
-    overflow: scroll;
-    margin-bottom: 10px;
+    max-height: none;
+    overflow: visible;
+    margin-bottom: 0;
   }
-  
-  .form-dinamic .form-dinamic-header{
+
+  .form-dinamic .form-dinamic-header {
     flex-wrap: wrap;
     justify-content: end;
     gap: 10px;
@@ -1049,39 +1033,47 @@ body {
     }
   }
 }
-
 /* =========================================================
  * 11. Layout calculado para páginas con tabla
  * Uso:
  * <div class="c-table-page">
- *   <div class="card-content">...</div>
- *   <div class="c-module-table">...</div>
+ *   <div class="card-content"> filtros </div>
+ *   <div class="c-module-table"> tabla </div>
  * </div>
  * ========================================================= */
 
-/*
- * Solo cuando el módulo tenga .c-table-page,
- * el scroll general del content se apaga.
- * El scroll pasa a vivir dentro del DataTable.
- */
 .content:has(.c-table-page) {
   overflow: hidden !important;
 }
 
-/* Página: filtros arriba + tabla ocupando el resto */
 .c-table-page {
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: max-content minmax(0, 1fr);
   gap: 15px;
 }
 
-/* La card superior ya no debe empujar con margin extra */
+/* La card de filtros SIEMPRE mide por contenido */
 .c-table-page > .card-content {
-  min-height: unset;
-  margin-bottom: 0;
-  padding-bottom: 15px;
+  align-self: start;
+  height: auto !important;
+  min-height: 0 !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 15px !important;
+}
+
+/* Evita que el formulario/filtros estiren la card */
+.c-table-page > .card-content form {
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+}
+
+.c-table-page > .card-content .c-filters {
+  height: auto !important;
+  min-height: 0 !important;
+  align-items: end;
 }
 
 /* Tabla + paginator */
@@ -1100,13 +1092,154 @@ body {
   overflow: hidden;
 }
 
-/* El componente tabla toma el alto disponible */
 .c-table-page > .c-module-table > app-data-table {
   display: block;
   height: 100%;
   min-height: 0;
   min-width: 0;
   overflow: hidden;
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  width: 100%;
+  min-width: 0;
+  margin: 0 !important;
+
+  background: #ffffff;
+  border-radius: 0 0 15px 15px !important;
+  border-top: 1px solid rgba(35, 31, 32, 0.08);
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-container {
+  min-height: 50px !important;
+  padding: 0 12px !important;
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-actions {
+  gap: 6px !important;
+}
+
+.c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-label {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* =========================================================
+ * Mobile real: página con scroll natural
+ * La card de filtros se adapta al contenido.
+ * La tabla conserva mínimo usable.
+ * ========================================================= */
+
+@media screen and (max-width: 875px) {
+  .content:has(.c-table-page) {
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .c-table-page {
+    height: auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px !important;
+  }
+
+  .c-table-page > .card-content {
+    flex: 0 0 auto;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 0 !important;
+    border-radius: 14px;
+  }
+
+  .c-table-page > .card-content form {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .c-table-page > .card-content .c-filters {
+    height: auto !important;
+    min-height: 0 !important;
+    gap: 9px 9px;
+    padding-top: 0;
+  }
+
+  .c-table-page > .card-content app-btns-section {
+    min-height: 0 !important;
+  }
+
+  .c-table-page > .card-content .btns-action-filters {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+  }
+
+  .c-table-page > .c-module-table {
+    flex: 0 0 auto;
+    height: auto !important;
+    min-height: 340px;
+    max-height: none;
+    border-radius: 14px;
+    grid-template-rows: minmax(260px, auto) auto;
+  }
+
+  .c-table-page > .c-module-table > app-data-table {
+    height: auto;
+    min-height: 260px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator {
+    min-height: 50px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-container {
+    min-height: 50px !important;
+    padding: 0 8px !important;
+    justify-content: space-between !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-page-size {
+    margin-right: 4px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-actions {
+    min-width: 0;
+    gap: 4px !important;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-paginator-range-label {
+    margin: 0 4px !important;
+    font-size: 12px;
+  }
+
+  .c-table-page > .c-module-table > .mat-mdc-paginator .mat-mdc-icon-button {
+    width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .c-table-page > .card-content {
+    padding: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .c-table-page > .c-module-table {
+    min-height: 330px;
+  }
+
+  .c-table-page > .c-module-table > app-data-table {
+    min-height: 250px;
+  }
 }
 
 /*
