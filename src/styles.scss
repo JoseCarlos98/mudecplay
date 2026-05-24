@@ -138,6 +138,58 @@ body {
   padding: 15px 15px 15px 15px;
 }
 
+/* =========================================================
+ * FULL PAGE FORMS
+ * Formularios que NO son modal
+ * Ejemplo: nuevo empleado, editar empleado, etc.
+ * ========================================================= */
+
+.card-content-form {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-content-form > app-module-header {
+  flex: 0 0 auto;
+}
+
+.card-content-form > form.c-form {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.card-content-form > app-btns-section {
+  flex: 0 0 auto;
+  margin-top: 16px;
+}
+
+/* Mobile */
+@media screen and (max-width: 875px) {
+  .card-content-form {
+    min-height: calc(100dvh - 92px);
+    padding: 14px !important;
+    border-radius: 14px;
+  }
+
+  .card-content-form > form.c-form {
+    padding: 0 !important;
+  }
+
+  .card-content-form > app-btns-section {
+    margin-top: 14px;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .card-content-form {
+    min-height: calc(100dvh - 84px);
+    padding: 12px !important;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+}
+
 .c-module-table {
   position: relative;
 }
@@ -857,7 +909,10 @@ body {
   }
 
   .c-form {
-    padding: 0!important;
+    // padding: 0!important;
+    max-height: 400px;
+    overflow: scroll;
+    margin-bottom: 10px;
   }
   
   .form-dinamic .form-dinamic-header{
@@ -879,6 +934,8 @@ body {
 @media screen and (max-width: 875px) {
   .card-content {
     padding: 9px!important;
+    height: auto!important;
+    min-height: unset!important;
   }
 
   .c-filters {
@@ -1204,3 +1261,10 @@ body {
   }
 }
 
+
+.c-modal {
+  .c-input-field {
+    height: 65px !important;
+    margin-bottom: 15px;
+  }
+}
