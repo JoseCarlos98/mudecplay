@@ -1,4 +1,4 @@
-<div class="c-modal">
+<div class="c-modal c-modal--expense-items">
   <app-module-header
     [title]="'Productos del gasto'"
     [config]="headerConfig"
@@ -6,7 +6,7 @@
   </app-module-header>
 
   @if (items?.length) {
-    <div class="c-module-table">
+    <div class="c-module-table expense-items-table">
       <app-data-table
         [data]="paginatedItems"
         [columnsConfig]="columnsConfig"

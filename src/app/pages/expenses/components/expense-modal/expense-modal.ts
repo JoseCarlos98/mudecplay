@@ -57,7 +57,7 @@ type ExpenseItemTableRow = ExpenseItemWithWarehouseSummary & {
   concept_display: string;
   labor_area_display: string;
   item_type_label: string;
-  quantity_text: string;
+  quantity_text: string | null;
   unit_price_display: string;
   project_display: string;
   assignment_target_text: string;
@@ -504,11 +504,11 @@ export class ExpenseModal implements OnInit {
 
   private resolveDirectQuantityText(
     item: ExpenseItemWithWarehouseSummary,
-  ): string {
+  ): string | null {
     const quantity = Number(item.quantity ?? 0);
 
     if (!Number.isFinite(quantity) || quantity <= 0) {
-      return '-';
+      return null;
     }
 
     return this.formatQuantity(quantity, item.unit);
@@ -584,7 +584,7 @@ export class ExpenseModal implements OnInit {
 
   private resolveLaborQuantityText(
     item: ExpenseItemWithWarehouseSummary,
-  ): string {
+  ): string | null {
     const concept = item.concept?.trim() || '';
     const match = concept.match(/(\d+(?:\.\d+)?)\s*hrs?/i);
 
@@ -594,7 +594,7 @@ export class ExpenseModal implements OnInit {
       return this.formatQuantity(hours, 'hora');
     }
 
-    return '-';
+    return null;
   }
 
   private formatQuantity(
