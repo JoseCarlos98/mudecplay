@@ -95,12 +95,8 @@
         <app-input-field formControlName="supplier_display" label="Proveedor" type="text">
         </app-input-field>
         } @else {
-        <app-autocomplete
-          formControlName="supplier_id"
-          label="Proveedor"
-          [remote]="true"
-          [initialDisplay]="formData?.supplier?.company_name ?? ''"
-          catalogType="supplier">
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
         </app-autocomplete>
         }
       </div>
@@ -128,10 +124,7 @@
         <!-- Barra masiva -->
         <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
           <div class="bulk-check">
-            <mat-checkbox
-              color="primary"
-              class="bulk-checkbox"
-              [checked]="allSelected"
+            <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
               (change)="onToggleSelectAll($event.checked)">
               Todos
             </mat-checkbox>
@@ -139,18 +132,12 @@
 
           <div class="bulk-group bulk-group--project">
             <div class="bulk-field">
-              <app-autocomplete
-                [formControl]="bulkProjectCtrl"
-                label="Proyecto global"
-                [remote]="true"
-                catalogType="project"
-                (optionSelected)="onBulkProjectSelected($event)">
+              <app-autocomplete [formControl]="bulkProjectCtrl" label="Proyecto global" [remote]="true"
+                catalogType="project" (optionSelected)="onBulkProjectSelected($event)">
               </app-autocomplete>
             </div>
 
-            <button
-              type="button"
-              class="btn-primary bulk-btn"
+            <button type="button" class="btn-primary bulk-btn"
               [disabled]="!hasAnySelectedDirect || !bulkProjectSelected || isWarehouseSafeExpense"
               (click)="applyBulkProject()">
               <mat-icon>done_all</mat-icon>
@@ -165,10 +152,7 @@
               </app-input-field>
             </div>
 
-            <button
-              type="button"
-              class="btn-primary bulk-btn"
-              [disabled]="!canApplyAmountToSelection"
+            <button type="button" class="btn-primary bulk-btn" [disabled]="!canApplyAmountToSelection"
               (click)="applyAmountToSelected()">
               <mat-icon>price_check</mat-icon>
               <span>Aplicar monto</span>
@@ -179,18 +163,12 @@
           @if (!isLaborAuto) {
           <div class="bulk-group bulk-group--payment">
             <div class="bulk-field">
-              <app-input-date
-                [formControl]="bulkPaymentDateCtrl"
-                label="Fecha de pago"
-                mode="single"
+              <app-input-date [formControl]="bulkPaymentDateCtrl" label="Fecha de pago" mode="single"
                 [showClear]="true">
               </app-input-date>
             </div>
 
-            <button
-              type="button"
-              class="btn-primary bulk-btn"
-              [disabled]="!canApplyFullPaymentToSelection"
+            <button type="button" class="btn-primary bulk-btn" [disabled]="!canApplyFullPaymentToSelection"
               (click)="applyFullPaymentToSelected()">
               <mat-icon>payments</mat-icon>
               <span>Pagar</span>
@@ -202,9 +180,7 @@
         <!-- Lista -->
         <div class="c-content-form">
           @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
-          <div
-            class="forms-controls expense-item-card"
-            [class.expense-item-card--warehouse]="isWarehouseItem(itemCtrl)"
+          <div class="forms-controls expense-item-card" [class.expense-item-card--warehouse]="isWarehouseItem(itemCtrl)"
             [formGroupName]="i">
 
             <!-- Header del item -->
@@ -217,27 +193,19 @@
                   <span class="item-type__label">Tipo</span>
 
                   <div class="item-type__toggle">
-                    <button
-                      type="button"
-                      [disabled]="!canChangeItemType(itemCtrl)"
-                      [class.active]="!isWarehouseItem(itemCtrl)"
-                      (click)="setItemType(i, 'direct')">
+                    <button type="button" [disabled]="!canChangeItemType(itemCtrl)"
+                      [class.active]="!isWarehouseItem(itemCtrl)" (click)="setItemType(i, 'direct')">
                       Directo
                     </button>
 
-                    <button
-                      type="button"
-                      [disabled]="!canChangeItemType(itemCtrl)"
-                      [class.active]="isWarehouseItem(itemCtrl)"
-                      (click)="setItemType(i, 'warehouse')">
+                    <button type="button" [disabled]="!canChangeItemType(itemCtrl)"
+                      [class.active]="isWarehouseItem(itemCtrl)" (click)="setItemType(i, 'warehouse')">
                       Almacén
                     </button>
                   </div>
                 </div>
 
-                <span
-                  class="item-type-chip"
-                  [class.item-type-chip--warehouse]="isWarehouseItem(itemCtrl)"
+                <span class="item-type-chip" [class.item-type-chip--warehouse]="isWarehouseItem(itemCtrl)"
                   [class.item-type-chip--direct]="!isWarehouseItem(itemCtrl)">
                   <mat-icon>{{ isWarehouseItem(itemCtrl) ? 'inventory_2' : 'receipt_long' }}</mat-icon>
                   {{ isWarehouseItem(itemCtrl) ? 'Entra a almacén' : 'Gasto directo' }}
@@ -260,11 +228,7 @@
                 <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
                 </app-input-field>
                 } @else {
-                <app-autocomplete
-                  class="w-100"
-                  formControlName="product_id"
-                  label="Producto"
-                  [remote]="true"
+                <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
                   catalogType="product">
                 </app-autocomplete>
                 }
@@ -328,16 +292,21 @@
 
               <div class="warehouse-payment-grid">
                 <div class="warehouse-payment-field">
-                  <app-input-field
-                    formControlName="payment_amount"
-                    label="Abono / Pago"
-                    type="money"
-                    [ngClass]="{
-                      'field-invalid':
-                        itemCtrl.get('amount')?.value &&
-                        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                    }">
-                  </app-input-field>
+                  <div>
+                    <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
+      'field-invalid':
+        itemCtrl.get('amount')?.value &&
+        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+    }">
+                    </app-input-field>
+
+                    @if (isZeroCostXmlDiscountItem(itemCtrl)) {
+                    <div class="zero-cost-payment-note">
+                      <mat-icon>info</mat-icon>
+                      <span>Sin abono: producto con descuento total del CFDI.</span>
+                    </div>
+                    }
+                  </div>
                 </div>
 
                 @if (
@@ -354,9 +323,7 @@
                 <div class="warehouse-restant-box">
                   <span class="warehouse-restant-box__label">Restante</span>
 
-                  <strong
-                    class="warehouse-restant-box__amount"
-                    [ngClass]="{
+                  <strong class="warehouse-restant-box__amount" [ngClass]="{
                       'error-restant':
                         itemCtrl.get('amount')?.value &&
                         itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
@@ -380,11 +347,7 @@
                   <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
                   </app-input-field>
                   } @else {
-                  <app-autocomplete
-                    class="w-100"
-                    formControlName="product_id"
-                    label="Producto"
-                    [remote]="true"
+                  <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
                     catalogType="product">
                   </app-autocomplete>
                   }
@@ -410,16 +373,21 @@
                 </div>
 
                 <div>
-                  <app-input-field
-                    formControlName="payment_amount"
-                    label="Abono / Pago"
-                    type="money"
-                    [ngClass]="{
-                      'field-invalid':
-                        itemCtrl.get('amount')?.value &&
-                        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                    }">
-                  </app-input-field>
+                  <div>
+                    <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
+      'field-invalid':
+        itemCtrl.get('amount')?.value &&
+        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
+    }">
+                    </app-input-field>
+
+                    @if (isZeroCostXmlDiscountItem(itemCtrl)) {
+                    <div class="zero-cost-payment-note">
+                      <mat-icon>info</mat-icon>
+                      <span>Sin abono: producto con descuento total del CFDI.</span>
+                    </div>
+                    }
+                  </div>
                 </div>
 
                 <div class="project-cell">
@@ -443,9 +411,7 @@
                 <div class="direct-restant-box">
                   <span class="direct-restant-box__label">Restante</span>
 
-                  <strong
-                    class="direct-restant-box__amount"
-                    [ngClass]="{
+                  <strong class="direct-restant-box__amount" [ngClass]="{
                       'error-restant':
                         itemCtrl.get('amount')?.value &&
                         itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value

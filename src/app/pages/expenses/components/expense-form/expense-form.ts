@@ -235,24 +235,79 @@ export class ExpenseForm implements OnInit {
     return Math.abs(n1 - n2) <= 0.01;
   }
 
+  isZeroCostXmlDiscountItem(ctrl: AbstractControl): boolean {
+    if (!this.isXmlImport) return false;
+
+    const raw = ctrl.getRawValue?.() ?? {};
+
+    return this.isZeroCostXmlDiscountRaw(raw);
+  }
+
+  private isZeroCostXmlDiscountRaw(item: any): boolean {
+    if (!this.isXmlImport || !item) return false;
+
+    const amount = this.round2(Number(item.amount ?? item.xml_amount ?? 0));
+    const baseAmount = this.round2(Number(item.base_amount ?? 0));
+    const discountAmount = this.round2(Number(item.discount_amount ?? 0));
+    const taxAmount = this.round2(Number(item.tax_amount ?? 0));
+    const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
+
+    const fiscalAmount = this.round2(
+      Math.max(0, baseAmount - discountAmount) + taxAmount - withheldAmount,
+    );
+
+    return (
+      amount === 0 &&
+      fiscalAmount === 0 &&
+      baseAmount > 0 &&
+      discountAmount >= baseAmount &&
+      taxAmount === 0 &&
+      withheldAmount === 0
+    );
+  }
+
+  private syncZeroCostDiscountPaymentState(ctrl: AbstractControl): void {
+    const paymentAmountCtrl = ctrl.get('payment_amount');
+    const paymentDateCtrl = ctrl.get('payment_date');
+
+    if (!paymentAmountCtrl || !paymentDateCtrl) return;
+
+    if (this.isZeroCostXmlDiscountItem(ctrl)) {
+      paymentAmountCtrl.setValue(0, { emitEvent: false });
+      paymentAmountCtrl.disable({ emitEvent: false });
+      paymentAmountCtrl.updateValueAndValidity({ emitEvent: false });
+
+      paymentDateCtrl.setValue(null, { emitEvent: false });
+      paymentDateCtrl.disable({ emitEvent: false });
+      paymentDateCtrl.updateValueAndValidity({ emitEvent: false });
+
+      return;
+    }
+
+    if (!this.isLaborAuto) {
+      paymentAmountCtrl.enable({ emitEvent: false });
+      paymentDateCtrl.enable({ emitEvent: false });
+    }
+  }
+
   private hasFiscalBreakdownFromRawItem(item: any): boolean {
     return (
       item?.base_amount !== null &&
       item?.base_amount !== undefined &&
       item?.base_amount !== ''
     ) || (
-      item?.discount_amount !== null &&
-      item?.discount_amount !== undefined &&
-      item?.discount_amount !== ''
-    ) || (
-      item?.tax_amount !== null &&
-      item?.tax_amount !== undefined &&
-      item?.tax_amount !== ''
-    ) || (
-      item?.withheld_amount !== null &&
-      item?.withheld_amount !== undefined &&
-      item?.withheld_amount !== ''
-    );
+        item?.discount_amount !== null &&
+        item?.discount_amount !== undefined &&
+        item?.discount_amount !== ''
+      ) || (
+        item?.tax_amount !== null &&
+        item?.tax_amount !== undefined &&
+        item?.tax_amount !== ''
+      ) || (
+        item?.withheld_amount !== null &&
+        item?.withheld_amount !== undefined &&
+        item?.withheld_amount !== ''
+      );
   }
 
   private resolveFiscalAmountFromRawItem(item: any): number | null {
@@ -268,6 +323,10 @@ export class ExpenseForm implements OnInit {
   }
 
   private resolveXmlAmountFromRawItem(item: any): number | null {
+    if (this.isZeroCostXmlDiscountRaw(item)) {
+      return 0;
+    }
+
     const fiscalAmount = this.resolveFiscalAmountFromRawItem(item);
 
     if (fiscalAmount !== null && fiscalAmount > 0) {
@@ -289,7 +348,9 @@ export class ExpenseForm implements OnInit {
     amount: number | null,
     quantity: number | null,
   ): number | null {
-    if (!amount || amount <= 0 || !quantity || quantity <= 0) return null;
+    if (amount === null || amount < 0 || !quantity || quantity <= 0) {
+      return null;
+    }
 
     return this.round6(amount / quantity);
   }
@@ -298,7 +359,12 @@ export class ExpenseForm implements OnInit {
     rawPaymentAmount: any,
     normalizedAmount: number,
     currentFormAmount: number | null,
+    item?: any,
   ): number | null {
+    if (item && this.isZeroCostXmlDiscountRaw(item)) {
+      return 0;
+    }
+
     const paymentAmount = this.toNumberOrNull(rawPaymentAmount);
 
     if (paymentAmount === null) return null;
@@ -324,7 +390,7 @@ export class ExpenseForm implements OnInit {
     const raw = ctrl.getRawValue?.() ?? {};
     const xmlAmount = this.resolveXmlAmountFromRawItem(raw);
 
-    if (xmlAmount === null || xmlAmount <= 0) return;
+    if (xmlAmount === null) return;
 
     const quantity =
       this.toNumberOrNull(raw.quantity) ??
@@ -343,6 +409,10 @@ export class ExpenseForm implements OnInit {
       ctrl.get('unit_price')?.updateValueAndValidity({ emitEvent: false });
     }
 
+    this.syncZeroCostDiscountPaymentState(ctrl);
+
+    if (xmlAmount <= 0) return;
+
     const paymentAmount = this.toNumberOrNull(ctrl.get('payment_amount')?.value);
 
     if (
@@ -355,7 +425,6 @@ export class ExpenseForm implements OnInit {
       ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
     }
   }
-
   // ==========================
   //  ALMACÉN - HELPERS UI
   // ==========================
@@ -430,7 +499,7 @@ export class ExpenseForm implements OnInit {
           xmlQuantity && xmlQuantity > 0 && xmlAmount !== null
             ? this.resolveXmlUnitPriceFromAmount(xmlAmount, xmlQuantity)
             : this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
-              this.toNumberOrNull(ctrl.get('unit_price')?.value);
+            this.toNumberOrNull(ctrl.get('unit_price')?.value);
 
         this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
         this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
@@ -621,9 +690,13 @@ export class ExpenseForm implements OnInit {
     const projectCtrl = ctrl.get('project_id');
 
     if (isWarehouse) {
+      const isZeroCostDiscount = this.isZeroCostXmlDiscountItem(ctrl);
       quantityCtrl?.setValidators([Validators.required, Validators.min(0.0001)]);
       unitIdCtrl?.setValidators([Validators.required]);
-      unitPriceCtrl?.setValidators([Validators.required, Validators.min(0.000001)]);
+      unitPriceCtrl?.setValidators([
+        Validators.required,
+        Validators.min(isZeroCostDiscount ? 0 : 0.000001),
+      ]);
 
       unitCtrl?.clearValidators();
 
@@ -648,6 +721,8 @@ export class ExpenseForm implements OnInit {
         amountCtrl?.enable({ emitEvent: false });
       }
     }
+
+    this.syncZeroCostDiscountPaymentState(ctrl);
 
     quantityCtrl?.updateValueAndValidity({ emitEvent });
     unitCtrl?.updateValueAndValidity({ emitEvent });
@@ -964,6 +1039,8 @@ export class ExpenseForm implements OnInit {
   // ==========================
   createItemGroup(data?: any): FormGroup {
     const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
+    const isZeroCostDiscount = this.isZeroCostXmlDiscountRaw(data ?? {});
+    const amountMinValue = isZeroCostDiscount ? 0 : 0.01;
 
     const group = this.fb.group({
       id: [data?.id ?? null],
@@ -982,15 +1059,18 @@ export class ExpenseForm implements OnInit {
       xml_unit_price: [data?.xml_unit_price ?? data?.unit_price ?? null],
       xml_amount: [data?.xml_amount ?? data?.amount ?? null],
 
-      amount: [data?.amount ?? null, [Validators.required, Validators.min(0.01)]],
+      amount: [
+        data?.amount ?? null,
+        [Validators.required, Validators.min(amountMinValue)],
+      ],
 
       base_amount: [data?.base_amount ?? null],
       discount_amount: [data?.discount_amount ?? null],
       tax_amount: [data?.tax_amount ?? null],
       withheld_amount: [data?.withheld_amount ?? null],
 
-      payment_amount: [data?.payment_amount ?? null],
-      payment_date: [defaultPaymentDate],
+      payment_amount: [isZeroCostDiscount ? 0 : data?.payment_amount ?? null],
+      payment_date: [isZeroCostDiscount ? null : defaultPaymentDate],
 
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
 
@@ -1088,15 +1168,37 @@ export class ExpenseForm implements OnInit {
     }
 
     const invalidRows: number[] = [];
+    let paidRows = 0;
+    let zeroCostRows = 0;
 
     this.itemsFA.controls.forEach((ctrl, index) => {
       if (!ctrl.get('selected')?.value) return;
 
       const amount = Number(ctrl.get('amount')?.value ?? 0);
 
+      if (this.isZeroCostXmlDiscountItem(ctrl)) {
+        ctrl.get('payment_amount')?.setValue(0, { emitEvent: false });
+        ctrl.get('payment_date')?.setValue(null, { emitEvent: false });
+        zeroCostRows++;
+        return;
+      }
+
       if (amount <= 0) {
         invalidRows.push(index + 1);
+        return;
       }
+
+      ctrl.get('payment_amount')?.setValue(amount);
+      ctrl.get('payment_amount')?.markAsDirty();
+      ctrl.get('payment_amount')?.markAsTouched();
+      ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
+
+      ctrl.get('payment_date')?.setValue(paymentDate);
+      ctrl.get('payment_date')?.markAsDirty();
+      ctrl.get('payment_date')?.markAsTouched();
+      ctrl.get('payment_date')?.updateValueAndValidity({ emitEvent: false });
+
+      paidRows++;
     });
 
     if (invalidRows.length > 0) {
@@ -1115,21 +1217,18 @@ export class ExpenseForm implements OnInit {
       return;
     }
 
-    this.itemsFA.controls.forEach((ctrl) => {
-      if (!ctrl.get('selected')?.value) return;
-
-      const amount = Number(ctrl.get('amount')?.value ?? 0);
-
-      ctrl.get('payment_amount')?.setValue(amount);
-      ctrl.get('payment_amount')?.markAsDirty();
-      ctrl.get('payment_amount')?.markAsTouched();
-      ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
-
-      ctrl.get('payment_date')?.setValue(paymentDate);
-      ctrl.get('payment_date')?.markAsDirty();
-      ctrl.get('payment_date')?.markAsTouched();
-      ctrl.get('payment_date')?.updateValueAndValidity({ emitEvent: false });
-    });
+    if (paidRows === 0 && zeroCostRows > 0) {
+      this.dialogService
+        .confirm({
+          size: 'small',
+          title: 'Productos sin costo',
+          message:
+            'Los productos seleccionados tienen costo $0.00 por descuento total del CFDI, por eso no se registró abono.',
+          confirmText: 'OK',
+          cancelText: '',
+        })
+        .subscribe();
+    }
   }
 
   // ==========================
@@ -1180,7 +1279,7 @@ export class ExpenseForm implements OnInit {
 
         const xmlQuantity = isXml
           ? this.toNumberOrNull(item.quantity) ??
-            this.toNumberOrNull(item.xml_quantity)
+          this.toNumberOrNull(item.xml_quantity)
           : null;
 
         const quantity = isWarehouse
@@ -1214,13 +1313,14 @@ export class ExpenseForm implements OnInit {
             ? fiscalAmount !== null
               ? this.resolveXmlUnitPriceFromAmount(fiscalAmount, quantity)
               : this.toNumberOrNull(item.unit_price) ??
-                this.toNumberOrNull(item.xml_unit_price)
+              this.toNumberOrNull(item.xml_unit_price)
             : null;
 
         const paymentAmount = this.resolvePayloadPaymentAmount(
           item.payment_amount,
           amount,
           formAmount,
+          item,
         );
 
         return {
