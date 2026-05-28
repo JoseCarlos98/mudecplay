@@ -94,6 +94,36 @@ export class Sidebar {
       ],
     },
     {
+      name: 'Órdenes de compra',
+      icon: 'receipt_long',
+      children: [
+        {
+          name: 'Órdenes',
+          icon: 'list_alt',
+          route: '/ordenes-compra',
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+        {
+          name: 'Conciliación',
+          icon: 'compare_arrows',
+          route: '/ordenes-compra/conciliacion',
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+        {
+          name: 'Fotos sin gasto',
+          icon: 'image_search',
+          route: '/ordenes-compra/fotos-sin-gasto',
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+        {
+          name: 'Tesorería',
+          icon: 'payments',
+          route: '/ordenes-compra/tesoreria',
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+      ],
+    },
+    {
       name: 'Catálogos',
       icon: 'folder_open',
       children: [

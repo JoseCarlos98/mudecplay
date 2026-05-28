@@ -49,6 +49,17 @@ export const routes: Routes = [
           ],
         },
       },
+
+      {
+        path: 'ordenes-compra',
+        loadChildren: () =>
+          import('./pages/purchase-orders/purchase-orders.routes')
+            .then((m) => m.PURCHASE_ORDERS_ROUTES),
+        canActivate: [rolesGuard],
+        data: {
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+      },
       {
         path: 'almacen',
         component: WarehouseLots,
@@ -128,6 +139,7 @@ export const routes: Routes = [
 
     ],
   },
+
 
   { path: '**', redirectTo: 'gastos' },
 ];
