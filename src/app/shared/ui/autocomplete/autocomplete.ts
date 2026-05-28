@@ -59,8 +59,13 @@ export class Autocomplete implements ControlValueAccessor {
   @Input() label: string = 'Seleccionar';
   @Input() placeholder: string = 'Buscar';
   @Input() remote: boolean = false;
-  @Input() catalogType: 'supplier' | 'project' | 'responsible' | 'client' | 'product' =
-    'supplier';
+  @Input() catalogType:
+    | 'supplier'
+    | 'project'
+    | 'responsible'
+    | 'client'
+    | 'product'
+    | 'purchaseOrderRequesterCandidate' = 'supplier';
   @Input() data: Catalog[] = [];
 
   // cuando en editar ya tienes el nombre, lo muestras
@@ -90,8 +95,8 @@ export class Autocomplete implements ControlValueAccessor {
   disabled: boolean = false;
 
   // CVA callbacks
-  private onChange: (val: any) => void = () => {};
-  private onTouched: () => void = () => {};
+  private onChange: (val: any) => void = () => { };
+  private onTouched: () => void = () => { };
 
   // para leer estado del form y mostrar errores
   constructor(@Optional() @Self() private ngControl: NgControl) {
@@ -247,14 +252,22 @@ export class Autocomplete implements ControlValueAccessor {
     switch (this.catalogType) {
       case 'product':
         return this.catalogsService.productsCatalog(search);
+
       case 'supplier':
         return this.catalogsService.suppliersCatalog(search);
+
       case 'project':
         return this.catalogsService.projectsCatalog(search);
+
       case 'responsible':
         return this.catalogsService.responsibleCatalog(search);
+
       case 'client':
         return this.catalogsService.clientsCatalog(search);
+
+      case 'purchaseOrderRequesterCandidate':
+        return this.catalogsService.purchaseOrderRequesterCandidatesCatalog(search);
+
       default:
         return of([]);
     }

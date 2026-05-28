@@ -9,22 +9,22 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
   },
-//   {
-//     path: 'nueva',
-//     loadComponent: () =>
-//       import('./components/purchase-order-form/purchase-order-form')
-//         .then((m) => m.PurchaseOrderForm),
-//     canActivate: [rolesGuard],
-//     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
-//   },
-//   {
-//     path: 'editar/:id',
-//     loadComponent: () =>
-//       import('./components/purchase-order-form/purchase-order-form')
-//         .then((m) => m.PurchaseOrderForm),
-//     canActivate: [rolesGuard],
-//     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
-//   },
+  {
+    path: 'nueva',
+    loadComponent: () =>
+      import('./components/purchase-order-form/purchase-order-form')
+        .then((m) => m.PurchaseOrderForm),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
+  {
+    path: 'editar/:id',
+    loadComponent: () =>
+      import('./components/purchase-order-form/purchase-order-form')
+        .then((m) => m.PurchaseOrderForm),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
 //   {
 //     path: 'detalle/:id',
 //     loadComponent: () =>

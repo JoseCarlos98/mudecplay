@@ -1,1 +1,53 @@
-<p>purchase-orders works!</p>
+<div class="c-table-page">
+  <div class="card-content shadow-md">
+    <app-module-header title="Órdenes de compra" [config]="headerConfig" (action)="onHeaderAction($event)">
+    </app-module-header>
+
+    <form [formGroup]="formFilters">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+        <app-input-field formControlName="search" label="Buscar" type="text" [isFilter]="true">
+        </app-input-field>
+
+        <app-input-select formControlName="status" label="Estatus" [options]="statusOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="destination_type" label="Destino" [options]="destinationTypeOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="will_have_invoice" label="Factura" [options]="invoiceOptions">
+        </app-input-select>
+
+        <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+
+        @if (canManageRequesters) {
+        <div class="purchase-orders-requesters-action">
+          <button type="button" class="btn-outline purchase-orders-requesters-action__button"
+            (click)="openRequestersModal()">
+            <mat-icon>manage_accounts</mat-icon>
+            <span>Solicitantes</span>
+          </button>
+        </div>
+        }
+      </div>
+    </form>
+  </div>
+
+  @if (purchaseOrdersTableData?.data) {
+  <div class="c-module-table">
+    <app-data-table [data]="purchaseOrdersTableData.data" [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns" [extraActions]="extraActions" [actionPermissions]="{
+          showEdit: false,
+          showDelete: false
+        }" (action)="onTableAction($event)">
+    </app-data-table>
+
+    <mat-paginator [length]="purchaseOrdersTableData.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
+      [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+    </mat-paginator>
+  </div>
+  }
+</div>
+
+<app-loading-overlay [visible]="loadingTable()" [fullscreen]="true" text="Cargando órdenes de compra...">
+</app-loading-overlay>

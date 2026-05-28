@@ -1,0 +1,29 @@
+.purchase-orders-requesters-action {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.purchase-orders-requesters-action__button {
+  min-height: 38px;
+  padding: 0 14px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  white-space: nowrap;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .purchase-orders-requesters-action__button {
+    width: 100%;
+  }
+}
