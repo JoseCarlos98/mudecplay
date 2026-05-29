@@ -1,14 +1,11 @@
 <div class="card-content-form purchase-order-detail-page">
-  <app-module-header
-    [title]="pageTitle"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
   <div class="purchase-order-detail-layout">
     <!-- INFORMACIÓN GENERAL -->
     <section class="purchase-order-detail-card purchase-order-detail-card--main">
-      <div class="purchase-order-detail-card__header">
+      <div class="purchase-order-detail-card__header purchase-order-detail-card__header--compact">
         <div class="purchase-order-detail-card__title-wrap">
           <span class="purchase-order-detail-card__icon">
             <mat-icon>assignment</mat-icon>
@@ -21,61 +18,162 @@
         </div>
       </div>
 
-      <div class="purchase-order-main-grid">
-        <div class="purchase-order-info-grid">
-          @for (item of orderInfoItems; track item.label) {
-            <div class="purchase-order-info-item">
-              <span>{{ item.label }}</span>
+      @if (orderInfoItems.length >= 8) {
+        <!-- RESUMEN SUPERIOR -->
+        <div class="purchase-order-info-summary">
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--folio">
+              <mat-icon>description</mat-icon>
+            </span>
 
-              @if (item.chip) {
-                <strong
-                  class="purchase-order-detail-chip"
-                  [ngClass]="getChipClass(item.variant)">
-                  {{ item.value }}
-                </strong>
-              } @else {
-                <strong>{{ item.value }}</strong>
-              }
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[0].label }}</span>
+              <strong>{{ orderInfoItems[0].value }}</strong>
             </div>
-          }
+          </article>
+
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--success">
+              <mat-icon>verified_user</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[1].label }}</span>
+
+              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[1].variant)">
+                {{ orderInfoItems[1].value }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--primary">
+              <mat-icon>timeline</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[2].label }}</span>
+
+              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[2].variant)">
+                {{ orderInfoItems[2].value }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--warning">
+              <mat-icon>paid</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[3].label }}</span>
+
+              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[3].variant)">
+                {{ orderInfoItems[3].value }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item purchase-order-info-summary__item--amount">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--money">
+              <mat-icon>monetization_on</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[7].label }}</span>
+              <strong>{{ orderInfoItems[7].value }}</strong>
+            </div>
+          </article>
         </div>
 
-        <div class="purchase-order-info-grid purchase-order-info-grid--authorization">
-          @for (item of authorizationInfoItems; track item.label) {
-            <div class="purchase-order-info-item">
-              <span>{{ item.label }}</span>
+        <!-- BLOQUES INFERIORES -->
+        <div class="purchase-order-info-panels">
+          <article class="purchase-order-info-panel">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>article</mat-icon>
+              </span>
 
-              @if (item.chip) {
-                <strong
-                  class="purchase-order-detail-chip"
-                  [ngClass]="getChipClass(item.variant)">
-                  {{ item.value }}
+              <h4>Datos generales</h4>
+            </div>
+
+            <div class="purchase-order-info-panel__body">
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[4].label }}</span>
+                <strong>{{ orderInfoItems[4].value }}</strong>
+              </div>
+
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[5].label }}</span>
+
+                <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[5].variant)">
+                  {{ orderInfoItems[5].value }}
                 </strong>
-              } @else {
-                <strong>
-                  @if (item.icon) {
-                    <mat-icon class="purchase-order-inline-icon">{{ item.icon }}</mat-icon>
+              </div>
+
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[6].label }}</span>
+
+                <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[6].variant)">
+                  {{ orderInfoItems[6].value }}
+                </strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-panel purchase-order-info-panel--authorization">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>shield</mat-icon>
+              </span>
+
+              <h4>Autorización</h4>
+            </div>
+
+            <div class="purchase-order-info-panel__body">
+              @for (item of authorizationInfoItems; track item.label) {
+                <div class="purchase-order-info-item">
+                  <span>{{ item.label }}</span>
+
+                  @if (item.chip) {
+                    <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(item.variant)">
+                      {{ item.value }}
+                    </strong>
+                  } @else {
+                    <strong>
+                      @if (item.icon) {
+                        <mat-icon class="purchase-order-inline-icon">{{ item.icon }}</mat-icon>
+                      }
+
+                      {{ item.value }}
+                    </strong>
                   }
-
-                  {{ item.value }}
-                </strong>
+                </div>
               }
             </div>
-          }
-        </div>
+          </article>
 
-        <div class="purchase-order-text-summary">
-          <div>
-            <span>Concepto</span>
-            <strong>{{ order.concept }}</strong>
-          </div>
+          <article class="purchase-order-info-panel purchase-order-info-panel--text">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>notes</mat-icon>
+              </span>
 
-          <div>
-            <span>Notas</span>
-            <strong>{{ order.notes }}</strong>
-          </div>
+              <h4>Concepto y notas</h4>
+            </div>
+
+            <div class="purchase-order-text-block">
+              <span>Concepto</span>
+              <strong>{{ order.concept }}</strong>
+            </div>
+
+            <div class="purchase-order-text-block">
+              <span>Notas</span>
+              <strong>{{ order.notes || 'Sin notas registradas.' }}</strong>
+            </div>
+          </article>
         </div>
-      </div>
+      }
     </section>
 
     <!-- SEGUIMIENTO -->
@@ -95,10 +193,7 @@
 
       <div class="purchase-order-flow">
         @for (step of flowSteps; track step.label; let last = $last) {
-          <article
-            class="purchase-order-flow-step"
-            [ngClass]="getFlowStepClass(step)">
-
+          <article class="purchase-order-flow-step" [ngClass]="getFlowStepClass(step)">
             <div class="purchase-order-flow-step__circle">
               <mat-icon>{{ step.icon }}</mat-icon>
             </div>
@@ -150,9 +245,7 @@
                 <div class="purchase-order-photo-card__content">
                   <strong>{{ photo.fileName }}</strong>
 
-                  <span
-                    class="purchase-order-detail-chip"
-                    [ngClass]="getChipClass(photo.statusVariant)">
+                  <span class="purchase-order-detail-chip" [ngClass]="getChipClass(photo.statusVariant)">
                     {{ photo.statusLabel }}
                   </span>
 
@@ -214,9 +307,7 @@
                   {{ formatMoney(expense.balance) }}
                 </span>
 
-                <span
-                  class="purchase-order-detail-chip"
-                  [ngClass]="getChipClass(expense.statusVariant)">
+                <span class="purchase-order-detail-chip" [ngClass]="getChipClass(expense.statusVariant)">
                   {{ expense.statusLabel }}
                 </span>
               </div>
@@ -251,10 +342,7 @@
 
       <div class="purchase-order-history">
         @for (item of history; track item.id) {
-          <article
-            class="purchase-order-history-item"
-            [ngClass]="getHistoryIconClass(item)">
-
+          <article class="purchase-order-history-item" [ngClass]="getHistoryIconClass(item)">
             <div class="purchase-order-history-item__icon">
               <mat-icon>{{ item.icon }}</mat-icon>
             </div>
@@ -263,9 +351,7 @@
 
             <span>{{ item.user }}</span>
 
-            <span
-              class="purchase-order-detail-chip"
-              [ngClass]="getChipClass(item.tagVariant)">
+            <span class="purchase-order-detail-chip" [ngClass]="getChipClass(item.tagVariant)">
               {{ item.tag }}
             </span>
 

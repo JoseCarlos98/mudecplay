@@ -2,57 +2,9 @@
   display: block;
 }
 
-.employee-form-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  gap: 16px;
-  align-items: start;
-}
-
-.employee-form-main {
-  display: flex;
-  flex-direction: column;
-}
-
-.employee-form-section,
-.employee-photo-card {
-  background: #fff;
-  padding: 16px;
-}
-
-.employee-form-section__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.employee-form-section__title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-secundary);
-}
-
-.employee-form-section__desc {
-  margin: 4px 0 0 0;
-  font-size: 13px;
-  color: #6b7280;
-}
-
-.employee-row-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.employee-row-grid--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.employee-row-grid--two-wide {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
-}
+/* =========================================================
+ * ESPECÍFICO: FORMULARIO DE EMPLEADO
+ * ========================================================= */
 
 .employee-age-field {
   width: 100%;
@@ -67,37 +19,14 @@
   width: 100%;
 }
 
+/* Solo conserva separación propia del aviso en esta pantalla */
 .employee-salary-hint {
   margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: rgba(39, 170, 225, 0.08);
-  border: 1px solid rgba(39, 170, 225, 0.14);
-  color: var(--color-secundary);
-
-  mat-icon {
-    color: var(--color-primary-strong);
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-  }
-
-  span {
-    font-size: 13px;
-  }
-
-  strong {
-    color: var(--color-primary-strong);
-  }
 }
 
-.employee-photo-card {
-  position: sticky;
-  top: 16px;
-}
+/* =========================================================
+ * ESPECÍFICO: FOTO DE EMPLEADO
+ * ========================================================= */
 
 .employee-photo-card__header {
   margin-bottom: 14px;
@@ -132,18 +61,18 @@
   align-items: center;
   gap: 10px;
   color: #6b7280;
+}
 
-  mat-icon {
-    width: 64px;
-    height: 64px;
-    font-size: 64px;
-    color: #94a3b8;
-  }
+.employee-photo-placeholder mat-icon {
+  width: 64px;
+  height: 64px;
+  font-size: 64px;
+  color: #94a3b8;
+}
 
-  span {
-    font-size: 13px;
-    font-weight: 600;
-  }
+.employee-photo-placeholder span {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .employee-photo-actions {
@@ -158,21 +87,4 @@
   text-align: center;
   font-size: 12px;
   color: #6b7280;
-}
-
-@media screen and (max-width: 1180px) {
-  .employee-form-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .employee-photo-card {
-    position: static;
-  }
-}
-
-@media screen and (max-width: 900px) {
-  .employee-row-grid--three,
-  .employee-row-grid--two-wide {
-    grid-template-columns: 1fr;
-  }
 }

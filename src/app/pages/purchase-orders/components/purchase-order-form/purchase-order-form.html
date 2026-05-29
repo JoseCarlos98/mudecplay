@@ -1,118 +1,136 @@
 <div class="card-content-form">
-  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
   </app-module-header>
 
   <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
-
-    <div class="purchase-order-form-layout">
-      <section class="purchase-order-form-section">
-        <div class="purchase-order-form-section__header">
+    <div class="c-form-layout">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
           <div>
-            <h3 class="purchase-order-form-section__title">Datos de la orden</h3>
-            <p class="purchase-order-form-section__desc">
+            <h3 class="c-form-section__title">Datos de la orden</h3>
+            <p class="c-form-section__desc">
               Captura la información general de la orden de compra.
             </p>
           </div>
         </div>
 
-        <div class="purchase-order-row-grid purchase-order-row-grid--three">
-          <div>
-            <app-autocomplete formControlName="project_id" label="Proyecto" placeholder="Buscar proyecto"
-              [remote]="true" catalogType="project">
+        <div class="c-form-grid c-form-grid--three">
+          <div class="c-form-grid__field">
+            <app-autocomplete
+              formControlName="project_id"
+              label="Proyecto"
+              placeholder="Buscar proyecto"
+              [remote]="true"
+              catalogType="project">
             </app-autocomplete>
           </div>
 
-          <div>
-            <app-input-select formControlName="destination_type" label="Destino" [options]="destinationTypeOptions">
+          <div class="c-form-grid__field">
+            <app-input-select
+              formControlName="destination_type"
+              label="Destino"
+              [options]="destinationTypeOptions">
             </app-input-select>
           </div>
 
-          <div>
-            <app-input-select formControlName="will_have_invoice" label="¿Tendrá factura?" [options]="invoiceOptions">
+          <div class="c-form-grid__field">
+            <app-input-select
+              formControlName="will_have_invoice"
+              label="¿Tendrá factura?"
+              [options]="invoiceOptions">
             </app-input-select>
           </div>
         </div>
 
-        <div class="purchase-order-row-grid purchase-order-row-grid--amount-concept">
-          <div>
-            <app-input-field formControlName="requested_amount" label="Monto solicitado" type="money">
+        <div class="c-form-grid c-form-grid--two-wide">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="requested_amount"
+              label="Monto solicitado"
+              type="money">
             </app-input-field>
           </div>
 
-          <div>
-            <app-input-field formControlName="concept" label="Concepto" type="text">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="concept"
+              label="Concepto"
+              type="text">
             </app-input-field>
           </div>
         </div>
       </section>
 
-      <section class="purchase-order-form-section">
-        <div class="purchase-order-form-section__header">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
           <div>
-            <h3 class="purchase-order-form-section__title">Solicitud y control</h3>
-            <p class="purchase-order-form-section__desc">
+            <h3 class="c-form-section__title">Solicitud y control</h3>
+            <p class="c-form-section__desc">
               Información de la solicitud y seguimiento inicial.
             </p>
           </div>
         </div>
 
         @if (isLocked) {
-        <div class="c-form-alert c-form-alert--danger purchase-order-form-alert">
-          <mat-icon class="c-form-alert__icon">lock</mat-icon>
+          <div class="c-form-alert c-form-alert--danger">
+            <mat-icon class="c-form-alert__icon">lock</mat-icon>
 
-          <div class="c-form-alert__content">
-            Esta orden de compra ya no se puede editar porque está
-            <strong>autorizada</strong> o <strong>cancelada</strong>.
+            <div class="c-form-alert__content">
+              Esta orden de compra ya no se puede editar porque está
+              <strong>autorizada</strong> o <strong>cancelada</strong>.
+            </div>
           </div>
-        </div>
         }
 
-        <div class="purchase-order-row-grid purchase-order-row-grid--two">
-          <div>
-            <app-input-select formControlName="requested_by_employee_id" label="Solicitante"
+        <div class="c-form-grid c-form-grid--two">
+          <div class="c-form-grid__field">
+            <app-input-select
+              formControlName="requested_by_employee_id"
+              label="Solicitante"
               [options]="requesterOptions">
             </app-input-select>
           </div>
 
-          <div>
-            <app-input-field formControlName="captured_by" label="Capturado por" type="text">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="captured_by"
+              label="Capturado por"
+              type="text">
             </app-input-field>
 
-            <small class="purchase-order-field-helper">
+            <small class="c-form-field-helper">
               Se asigna automáticamente al usuario que captura la O.C.
             </small>
           </div>
         </div>
 
-        <div class="purchase-order-row-grid purchase-order-row-grid--full">
-          <div>
-            <app-input-field formControlName="notes" label="Notas" type="text">
+        <div class="c-form-grid c-form-grid--one">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="notes"
+              label="Notas"
+              type="text">
             </app-input-field>
           </div>
         </div>
 
-        <div class="c-form-alert c-form-alert--info purchase-order-form-alert">
+        <div class="c-form-alert c-form-alert--info purchase-order-form-alert mt-5 ">
           <mat-icon class="c-form-alert__icon">info</mat-icon>
 
           <div class="c-form-alert__content">
             {{ projectHelpText }}
           </div>
         </div>
-
-        @if (isLocked) {
-        <div class="c-form-alert c-form-alert--danger purchase-order-form-alert">
-          <mat-icon class="c-form-alert__icon">lock</mat-icon>
-
-          <div class="c-form-alert__content">
-            Esta orden de compra ya no se puede editar porque está
-            autorizada o cancelada.
-          </div>
-        </div>
-        }
       </section>
     </div>
   </form>
 
-  <app-btns-section form="form" [saveDisabled]="saveDisabled" (action)="onFooterAction($event)">
+  <app-btns-section
+    form="form"
+    [saveDisabled]="saveDisabled"
+    (action)="onFooterAction($event)">
   </app-btns-section>
 </div>

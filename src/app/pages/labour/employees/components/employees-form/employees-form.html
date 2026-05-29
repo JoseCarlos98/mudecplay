@@ -6,20 +6,20 @@
   </app-module-header>
 
   <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
-    <div class="employee-form-layout">
-      <div class="employee-form-main">
-        <section class="employee-form-section">
-          <div class="employee-form-section__header">
+    <div class="c-form-layout c-form-layout--with-aside">
+      <div class="c-form-main">
+        <section class="c-form-section">
+          <div class="c-form-section__header">
             <div>
-              <h3 class="employee-form-section__title">Datos personales</h3>
-              <p class="employee-form-section__desc">
+              <h3 class="c-form-section__title">Datos personales</h3>
+              <p class="c-form-section__desc">
                 Captura la información general del colaborador.
               </p>
             </div>
           </div>
 
-          <div class="employee-row-grid employee-row-grid--three">
-            <div>
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
               <app-input-field
                 formControlName="full_name"
                 label="Nombre completo"
@@ -27,7 +27,7 @@
               </app-input-field>
             </div>
 
-            <div>
+            <div class="c-form-grid__field">
               <app-input-date
                 formControlName="birth_date"
                 label="Fecha de nacimiento"
@@ -36,7 +36,7 @@
               </app-input-date>
             </div>
 
-            <div class="employee-age-field">
+            <div class="c-form-grid__field employee-age-field">
               <app-input-field
                 formControlName="age"
                 label="Edad"
@@ -45,8 +45,8 @@
             </div>
           </div>
 
-          <div class="employee-row-grid employee-row-grid--two-wide">
-            <div>
+          <div class="c-form-grid c-form-grid--two-wide">
+            <div class="c-form-grid__field">
               <app-input-field
                 formControlName="curp"
                 label="CURP"
@@ -54,7 +54,7 @@
               </app-input-field>
             </div>
 
-            <div class="employee-address-field">
+            <div class="c-form-grid__field employee-address-field">
               <app-input-field
                 formControlName="address"
                 label="Domicilio"
@@ -64,18 +64,18 @@
           </div>
         </section>
 
-        <section class="employee-form-section">
-          <div class="employee-form-section__header">
+        <section class="c-form-section">
+          <div class="c-form-section__header">
             <div>
-              <h3 class="employee-form-section__title">Datos laborales</h3>
-              <p class="employee-form-section__desc">
+              <h3 class="c-form-section__title">Datos laborales</h3>
+              <p class="c-form-section__desc">
                 Información necesaria para operación y cálculo de mano de obra.
               </p>
             </div>
           </div>
 
-          <div class="employee-row-grid employee-row-grid--three">
-            <div>
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
               <app-input-select
                 formControlName="employee_area_id"
                 label="Área"
@@ -83,7 +83,7 @@
               </app-input-select>
             </div>
 
-            <div>
+            <div class="c-form-grid__field">
               <app-input-field
                 formControlName="position"
                 label="Puesto"
@@ -91,7 +91,7 @@
               </app-input-field>
             </div>
 
-            <div>
+            <div class="c-form-grid__field">
               <app-input-field
                 formControlName="weekly_salary"
                 label="Salario semanal"
@@ -100,8 +100,8 @@
             </div>
           </div>
 
-          <div class="employee-row-grid employee-row-grid--three">
-            <div>
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
               <app-input-date
                 formControlName="entry_date"
                 label="Fecha de ingreso"
@@ -110,7 +110,7 @@
               </app-input-date>
             </div>
 
-            <div>
+            <div class="c-form-grid__field">
               <app-input-date
                 formControlName="discharge_date"
                 label="Fecha de baja"
@@ -119,7 +119,7 @@
               </app-input-date>
             </div>
 
-            <div>
+            <div class="c-form-grid__field">
               <app-input-date
                 formControlName="reentry_date"
                 label="Fecha de reingreso"
@@ -129,21 +129,22 @@
             </div>
           </div>
 
-          <div class="employee-salary-hint">
-            <mat-icon>info</mat-icon>
-            <span>
+          <div class="c-form-alert c-form-alert--info employee-salary-hint">
+            <mat-icon class="c-form-alert__icon">info</mat-icon>
+
+            <div class="c-form-alert__content">
               Sueldo diario estimado:
               <strong>{{ dailySalaryPreview | currency:'$ ':'symbol':'1.2-2' }}</strong>
-            </span>
+            </div>
           </div>
         </section>
       </div>
 
-      <aside class="employee-photo-card">
-        <div class="employee-form-section__header employee-photo-card__header">
+      <aside class="c-form-aside c-form-aside--sticky employee-photo-card">
+        <div class="c-form-section__header employee-photo-card__header">
           <div>
-            <h3 class="employee-form-section__title">Foto de perfil</h3>
-            <p class="employee-form-section__desc">
+            <h3 class="c-form-section__title">Foto de perfil</h3>
+            <p class="c-form-section__desc">
               Sube una imagen para identificar al colaborador dentro del sistema.
             </p>
           </div>
