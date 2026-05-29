@@ -108,8 +108,7 @@ export interface CreatePurchaseOrderDto {
   will_have_invoice: boolean;
   concept: string;
   requested_amount: number;
-  requested_by_user_id?: number | null;
-  requested_by_name?: string | null;
+  requested_by_employee_id: number;
   notes?: string | null;
 }
 
@@ -119,13 +118,12 @@ export interface UpdatePurchaseOrderDto {
   will_have_invoice?: boolean;
   concept?: string;
   requested_amount?: number;
-  requested_by_user_id?: number | null;
-  requested_by_name?: string | null;
+  requested_by_employee_id?: number | null;
   notes?: string | null;
 }
 
 export interface AuthorizePurchaseOrderDto {
-  authorized_by_name: string;
+  authorized_by_employee_id: number;
   notes?: string | null;
 }
 
@@ -170,4 +168,39 @@ export interface PurchaseOrderRequesterSaveResponse {
   success: boolean;
   message: string;
   data: PurchaseOrderRequesterDto;
+}
+
+export interface PurchaseOrderAuthorizerEmployeeDto {
+  id: number;
+  name: string;
+  full_name?: string;
+  position?: string | null;
+  employee_area?: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface PurchaseOrderAuthorizerDto {
+  id: number;
+  employee: PurchaseOrderAuthorizerEmployeeDto | null;
+  employee_id: number | null;
+  employee_name: string | null;
+  is_active: boolean;
+  created_by_user: {
+    id: number;
+    name: string;
+  } | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePurchaseOrderAuthorizerDto {
+  employee_id: number;
+}
+
+export interface PurchaseOrderAuthorizerSaveResponse {
+  success: boolean;
+  message: string;
+  data: PurchaseOrderAuthorizerDto;
 }

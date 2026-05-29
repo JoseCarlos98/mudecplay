@@ -1,10 +1,14 @@
-.purchase-orders-requesters-action {
+.purchase-orders-catalog-actions {
+  grid-column: 1 / -1;
+
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-start;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
 }
 
-.purchase-orders-requesters-action__button {
+.purchase-orders-catalog-actions__button {
   min-height: 38px;
   padding: 0 14px;
 
@@ -13,6 +17,8 @@
   justify-content: center;
   gap: 6px;
 
+  width: auto;
+  flex: 0 0 auto;
   white-space: nowrap;
 
   mat-icon {
@@ -23,7 +29,13 @@
 }
 
 @media screen and (max-width: 640px) {
-  .purchase-orders-requesters-action__button {
-    width: 100%;
+  .purchase-orders-catalog-actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: nowrap;
+  }
+
+  .purchase-orders-catalog-actions__button {
+    width: auto;
   }
 }

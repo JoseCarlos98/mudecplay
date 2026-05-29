@@ -1,0 +1,131 @@
+:host {
+  display: block;
+}
+
+.purchase-order-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.purchase-order-form-section {
+  background: #fff;
+  padding: 16px;
+}
+
+.purchase-order-form-section + .purchase-order-form-section {
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  padding-top: 22px;
+}
+
+.purchase-order-form-section__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.purchase-order-form-section__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-secundary);
+}
+
+.purchase-order-form-section__desc {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.purchase-order-row-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.purchase-order-row-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.purchase-order-row-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.purchase-order-row-grid--amount-concept {
+  margin-top: 16px;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.6fr);
+}
+
+.purchase-order-row-grid--full {
+  margin-top: 16px;
+  grid-template-columns: 1fr;
+}
+
+.purchase-order-field-helper {
+  display: inline-flex;
+  margin-top: 0.25rem;
+  color: #6b7280;
+  font-size: 0.78rem;
+}
+
+.purchase-order-info,
+.purchase-order-warning {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 12px 14px;
+  border-radius: 12px;
+
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.purchase-order-info {
+  background: rgba(39, 170, 225, 0.08);
+  border: 1px solid rgba(39, 170, 225, 0.14);
+  color: var(--color-secundary);
+
+  mat-icon {
+    color: var(--color-primary-strong);
+  }
+}
+
+.purchase-order-warning {
+  margin-bottom: 16px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: #92400e;
+
+  mat-icon {
+    color: #d97706;
+  }
+}
+
+.purchase-order-warning--locked {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #991b1b;
+
+  mat-icon {
+    color: #dc2626;
+  }
+}
+
+.purchase-order-info mat-icon,
+.purchase-order-warning mat-icon {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  font-size: 20px;
+}
+
+@media screen and (max-width: 980px) {
+  .purchase-order-row-grid--three,
+  .purchase-order-row-grid--two,
+  .purchase-order-row-grid--amount-concept {
+    grid-template-columns: 1fr;
+  }
+}

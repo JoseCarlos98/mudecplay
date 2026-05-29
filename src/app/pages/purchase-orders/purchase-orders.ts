@@ -30,14 +30,17 @@ import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay'
 
 // Servicios
 import { LocalStorageService } from '../../shared/services/local-storage.service';
+import { DialogService } from '../../shared/services/dialog.service';
 import { PurchaseOrdersService } from './services/purchase-orders.service';
+import { AuthService } from '../../auth/services/auth.service';
 
+// Modales
+import { ModalPurchaseOrderRequester } from './components/modal-purchase-order-requester/modal-purchase-order-requester';
+import { ModalAuthorizePurchaseOrder } from './components/modal-authorize-purchase-order/modal-authorize-purchase-order';
+import { ModalPurchaseOrderAuthorized } from './components/modal-purchase-order-authorized/modal-purchase-order-authorized';
 // Interfaces
 import { Catalog } from '../../shared/interfaces/general-interfaces';
 import * as entity from './interfaces/purchase-orders.interfaces';
-import { DialogService } from '../../shared/services/dialog.service';
-import { ModalPurchaseOrderRequester } from './components/modal-purchase-order-requester/modal-purchase-order-requester';
-import { AuthService } from '../../auth/services/auth.service';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -152,7 +155,7 @@ type PurchaseOrderTableExtraAction =
     MatIconModule,
     MatTableModule,
     MatButtonModule,
-    MatIconModule,
+
     // Forms
     FormsModule,
     ReactiveFormsModule,
@@ -208,13 +211,6 @@ export class PurchaseOrders implements OnInit {
   });
 
   readonly extraActions: PurchaseOrderTableExtraAction[] = [
-    {
-      type: 'viewDetail',
-      icon: 'visibility',
-      tooltip: () => 'Ver detalle',
-      visible: () => true,
-      disabled: () => false,
-    },
     {
       type: 'editPurchaseOrder',
       icon: 'edit',
@@ -298,7 +294,7 @@ export class PurchaseOrders implements OnInit {
       ...row,
       project_name: row.project?.name ?? 'Sin proyecto',
       requested_by_display:
-        row.requested_by_user?.name ??
+        row.requested_by_employee?.name ??
         row.requested_by_name ??
         'Sin solicitante',
       destination_name: row.destination_type_label,
@@ -306,7 +302,7 @@ export class PurchaseOrders implements OnInit {
       status_name: row.status_label,
       created_at_date: row.created_at,
       authorized_at_date: row.authorized_at ?? null,
-      authorized_by_name: row.authorized_by_name ?? 'Sin autorizar',
+      authorized_by_name: row.authorized_by_name,
     };
   }
 
@@ -419,17 +415,12 @@ export class PurchaseOrders implements OnInit {
     ev: DataTableActionEvent<entity.PurchaseOrderResponseDto>,
   ): void {
     switch (ev.type) {
-      case 'viewDetail':
-        this.router.navigate(['/ordenes-compra/detalle', ev.row.id]);
-        break;
-
       case 'editPurchaseOrder':
-        if (!this.canEdit(ev.row)) return;
-        this.router.navigate(['/ordenes-compra/editar', ev.row.id]);
+        this.editPurchaseOrder(ev.row);
         break;
 
       case 'authorizePurchaseOrder':
-        this.authorizePurchaseOrder(ev.row);
+        this.openAuthorizePurchaseOrderModal(ev.row);
         break;
 
       case 'rejectPurchaseOrder':
@@ -439,33 +430,27 @@ export class PurchaseOrders implements OnInit {
       case 'cancelPurchaseOrder':
         this.cancelPurchaseOrder(ev.row);
         break;
-
-      default:
-        break;
     }
   }
 
-  private authorizePurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
-    if (!this.canAuthorize(row)) return;
+  private editPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
+    if (!row?.id || !this.canEdit(row)) return;
 
-    const authorizedByName = window.prompt(
-      'Nombre de quien autorizó la orden:',
-      row.authorized_by_name || '',
-    );
+    this.router.navigateByUrl(`/ordenes-compra/editar/${row.id}`);
+  }
 
-    if (!authorizedByName?.trim()) return;
+  private openAuthorizePurchaseOrderModal(
+    row: entity.PurchaseOrderResponseDto,
+  ): void {
+    if (!row?.id || !this.canAuthorize(row)) return;
 
-    this.loadingTable.set(true);
-
-    this.purchaseOrdersService
-      .authorizePurchaseOrder(row.id, {
-        authorized_by_name: authorizedByName.trim(),
-        notes: 'Autorizada desde el panel.',
-      })
-      .pipe(finalize(() => this.loadingTable.set(false)))
-      .subscribe({
-        next: () => this.loadPurchaseOrders(),
-        error: (err) => console.error('Error al autorizar O.C.:', err),
+    this.dialogService
+      .open(ModalAuthorizePurchaseOrder, row, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPurchaseOrders();
+        }
       });
   }
 
@@ -549,6 +534,8 @@ export class PurchaseOrders implements OnInit {
   }
 
   openRequestersModal(): void {
+    if (!this.canManageRequesters) return;
+
     this.dialogService
       .open(ModalPurchaseOrderRequester, null, 'medium')
       .afterClosed()
@@ -559,6 +546,18 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
+  openAuthorizersModal(): void {
+  if (!this.canManageRequesters) return;
+
+  this.dialogService
+    .open(ModalPurchaseOrderAuthorized, null, 'medium')
+    .afterClosed()
+    .subscribe((result) => {
+      if (result) {
+        this.loadPurchaseOrders();
+      }
+    });
+}
   // ==========================
   //  LOCAL STORAGE
   // ==========================

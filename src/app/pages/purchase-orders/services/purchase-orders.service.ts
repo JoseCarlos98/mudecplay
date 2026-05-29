@@ -177,4 +177,26 @@ export class PurchaseOrdersService {
       {},
     );
   }
+
+  getPurchaseOrderAuthorizers(): Observable<entity.PurchaseOrderAuthorizerDto[]> {
+    return this.http.get<entity.PurchaseOrderAuthorizerDto[]>(
+      `${this.apiUrl}/authorizers`,
+    );
+  }
+
+  createPurchaseOrderAuthorizer(
+    payload: entity.CreatePurchaseOrderAuthorizerDto,
+  ): Observable<entity.PurchaseOrderAuthorizerSaveResponse> {
+    return this.http.post<entity.PurchaseOrderAuthorizerSaveResponse>(
+      `${this.apiUrl}/authorizers`,
+      payload,
+    );
+  }
+
+  deactivatePurchaseOrderAuthorizer(id: number | string): Observable<ApiSuccess> {
+    return this.http.patch<ApiSuccess>(
+      `${this.apiUrl}/authorizers/${id}/deactivate`,
+      {},
+    );
+  }
 }

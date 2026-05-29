@@ -117,26 +117,45 @@ export class CatalogsService {
   }
 
   purchaseOrderRequesterCandidatesCatalog(
-  searchTerm: string = '',
-): Observable<Catalog[]> {
-  const url = `${this.apiUrl}/purchase-orders/requesters/candidates`;
-  let params = new HttpParams();
+    searchTerm: string = '',
+  ): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/purchase-orders/requesters/candidates`;
+    let params = new HttpParams();
 
-  if (searchTerm?.trim()) {
-    params = params.set('search', searchTerm.trim());
+    if (searchTerm?.trim()) {
+      params = params.set('search', searchTerm.trim());
+    }
+
+    return this.http.get<any[]>(url, { params }).pipe(
+      map((rows) =>
+        (rows ?? []).map((row) => ({
+          id: row.id,
+          name:
+            row.name ??
+            row.full_name ??
+            row.employee_name ??
+            'Empleado sin nombre',
+        })),
+      ),
+    );
   }
 
-  return this.http.get<any[]>(url, { params }).pipe(
-    map((rows) =>
-      (rows ?? []).map((row) => ({
-        id: row.id,
-        name:
-          row.name ??
-          row.full_name ??
-          row.employee_name ??
-          'Empleado sin nombre',
-      })),
-    ),
-  );
-}
+  purchaseOrderAuthorizerCandidatesCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/purchase-orders/authorizers/candidates`;
+
+    let params = new HttpParams();
+
+    if (searchTerm?.trim()) {
+      params = params.set('search', searchTerm.trim());
+    }
+
+    return this.http.get<any[]>(url, { params }).pipe(
+      map((rows) =>
+        (rows ?? []).map((row) => ({
+          id: row.id,
+          name: row.name ?? row.full_name ?? row.employee_name ?? 'Empleado sin nombre',
+        })),
+      ),
+    );
+  }
 }

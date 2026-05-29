@@ -1,0 +1,65 @@
+<div class="c-modal">
+  <app-module-header [title]="'Autorizar O.C.'" [config]="headerConfig" (action)="closeModal()">
+  </app-module-header>
+
+  <div class="authorize-body">
+    <div class="authorize-summary">
+      <div>
+        <strong>Folio:</strong> {{ data.folio }}
+      </div>
+
+      <div>
+        <strong>Proyecto:</strong> {{ projectName }}
+      </div>
+
+      <div>
+        <strong>Solicitante:</strong> {{ requesterName }}
+      </div>
+
+      <div>
+        <strong>Capturado por:</strong> {{ capturedByName }}
+      </div>
+
+      <div>
+        <strong>Destino:</strong> {{ destinationLabel }}
+      </div>
+
+      <div>
+        <strong>Factura:</strong> {{ invoiceLabel }}
+      </div>
+
+      <div>
+        <strong>Estatus:</strong> {{ statusLabel }}
+      </div>
+
+      <div>
+        <strong>Monto solicitado:</strong>
+        {{ data.requested_amount | currency:'$ ':'symbol':'1.2-2' }}
+      </div>
+
+      <div class="authorize-summary__concept">
+        <strong>Concepto:</strong> {{ data.concept }}
+      </div>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="authorizePurchaseOrder()" id="form" class="c-form">
+
+      <div class="authorize-form-grid">
+        <div>
+          <app-autocomplete formControlName="authorized_by_employee_id" label="Autorizado por"
+            placeholder="Buscar autorizador" [data]="authorizerOptions">
+          </app-autocomplete>
+        </div>
+
+        <div>
+          <app-input-field formControlName="notes" label="Notas" type="text">
+          </app-input-field>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <app-btns-section class="modal-actions-spacer" type="save" form="form" [saveDisabled]="form.invalid || saving"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

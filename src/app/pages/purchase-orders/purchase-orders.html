@@ -5,7 +5,7 @@
 
     <form [formGroup]="formFilters">
       <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
-        <app-input-field formControlName="search" label="Buscar" type="text" [isFilter]="true">
+        <app-input-field formControlName="search" label="Folio o concepto" type="text" [isFilter]="true">
         </app-input-field>
 
         <app-input-select formControlName="status" label="Estatus" [options]="statusOptions">
@@ -21,11 +21,17 @@
         </app-btns-section>
 
         @if (canManageRequesters) {
-        <div class="purchase-orders-requesters-action">
-          <button type="button" class="btn-outline purchase-orders-requesters-action__button"
+        <div class="purchase-orders-catalog-actions">
+          <button type="button" class="btn-outline purchase-orders-catalog-actions__button"
             (click)="openRequestersModal()">
             <mat-icon>manage_accounts</mat-icon>
             <span>Solicitantes</span>
+          </button>
+
+          <button type="button" class="btn-outline purchase-orders-catalog-actions__button"
+            (click)="openAuthorizersModal()">
+            <mat-icon>verified_user</mat-icon>
+            <span>Autorizadores</span>
           </button>
         </div>
         }

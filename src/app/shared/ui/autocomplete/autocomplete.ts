@@ -65,7 +65,9 @@ export class Autocomplete implements ControlValueAccessor {
     | 'responsible'
     | 'client'
     | 'product'
-    | 'purchaseOrderRequesterCandidate' = 'supplier';
+    | 'purchaseOrderRequesterCandidate'
+    | 'purchaseOrderAuthorizerCandidate' = 'supplier';
+
   @Input() data: Catalog[] = [];
 
   // cuando en editar ya tienes el nombre, lo muestras
@@ -249,6 +251,8 @@ export class Autocomplete implements ControlValueAccessor {
   }
 
   private fetchRemote(search: string): Observable<Catalog[]> {
+    console.log(search);
+    
     switch (this.catalogType) {
       case 'product':
         return this.catalogsService.productsCatalog(search);
@@ -267,6 +271,9 @@ export class Autocomplete implements ControlValueAccessor {
 
       case 'purchaseOrderRequesterCandidate':
         return this.catalogsService.purchaseOrderRequesterCandidatesCatalog(search);
+
+      case 'purchaseOrderAuthorizerCandidate':
+        return this.catalogsService.purchaseOrderAuthorizerCandidatesCatalog(search);
 
       default:
         return of([]);

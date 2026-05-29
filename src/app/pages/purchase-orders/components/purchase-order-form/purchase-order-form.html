@@ -1,1 +1,149 @@
-<p>purchase-order-form works!</p>
+<div class="card-content-form">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form">
+
+    <div class="purchase-order-form-layout">
+      <section class="purchase-order-form-section">
+        <div class="purchase-order-form-section__header">
+          <div>
+            <h3 class="purchase-order-form-section__title">Datos de la orden</h3>
+            <p class="purchase-order-form-section__desc">
+              Captura la información general de la orden de compra.
+            </p>
+          </div>
+        </div>
+
+        <div class="purchase-order-row-grid purchase-order-row-grid--three">
+          <div>
+            <app-autocomplete
+              formControlName="project_id"
+              label="Proyecto"
+              placeholder="Buscar proyecto"
+              [remote]="true"
+              catalogType="project">
+            </app-autocomplete>
+          </div>
+
+          <div>
+            <app-input-select
+              formControlName="destination_type"
+              label="Destino"
+              [options]="destinationTypeOptions">
+            </app-input-select>
+          </div>
+
+          <div>
+            <app-input-select
+              formControlName="will_have_invoice"
+              label="¿Tendrá factura?"
+              [options]="invoiceOptions">
+            </app-input-select>
+          </div>
+        </div>
+
+        <div class="purchase-order-row-grid purchase-order-row-grid--amount-concept">
+          <div>
+            <app-input-field
+              formControlName="requested_amount"
+              label="Monto solicitado"
+              type="money">
+            </app-input-field>
+          </div>
+
+          <div>
+            <app-input-field
+              formControlName="concept"
+              label="Concepto"
+              type="text">
+            </app-input-field>
+          </div>
+        </div>
+      </section>
+
+      <section class="purchase-order-form-section">
+        <div class="purchase-order-form-section__header">
+          <div>
+            <h3 class="purchase-order-form-section__title">Solicitud y control</h3>
+            <p class="purchase-order-form-section__desc">
+              Información de la solicitud y seguimiento inicial.
+            </p>
+          </div>
+        </div>
+
+        @if (requesterOptions.length === 0 && !isLoading) {
+          <div class="purchase-order-warning">
+            <mat-icon>warning</mat-icon>
+            <span>
+              No hay solicitantes autorizados configurados. Primero agrega
+              solicitantes desde el botón de administración del listado.
+            </span>
+          </div>
+        }
+
+        <div class="purchase-order-row-grid purchase-order-row-grid--two">
+          <div>
+            <app-input-select
+              formControlName="requested_by_employee_id"
+              label="Solicitante"
+              [options]="requesterOptions">
+            </app-input-select>
+          </div>
+
+          <div>
+            <app-input-field
+              formControlName="captured_by"
+              label="Capturado por"
+              type="text">
+            </app-input-field>
+
+            <small class="purchase-order-field-helper">
+              Se asigna automáticamente al usuario que captura la O.C.
+            </small>
+          </div>
+        </div>
+
+        <div class="purchase-order-row-grid purchase-order-row-grid--full">
+          <div>
+            <app-input-field
+              formControlName="notes"
+              label="Notas"
+              type="text">
+            </app-input-field>
+          </div>
+        </div>
+
+        <div class="purchase-order-info">
+          <mat-icon>info</mat-icon>
+          <span>
+            {{ projectHelpText }}
+          </span>
+        </div>
+
+        @if (isLocked) {
+          <div class="purchase-order-warning purchase-order-warning--locked">
+            <mat-icon>lock</mat-icon>
+            <span>
+              Esta orden de compra ya no se puede editar porque está
+              autorizada o cancelada.
+            </span>
+          </div>
+        }
+      </section>
+    </div>
+  </form>
+
+  <app-btns-section
+    form="form"
+    [saveDisabled]="saveDisabled"
+    (action)="onFooterAction($event)">
+  </app-btns-section>
+</div>
