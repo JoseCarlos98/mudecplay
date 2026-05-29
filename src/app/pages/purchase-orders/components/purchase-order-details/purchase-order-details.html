@@ -213,7 +213,7 @@
 
     <!-- FOTOS / GASTOS -->
     <section class="purchase-order-detail-split">
-      <article class="purchase-order-detail-card purchase-order-detail-card--half">
+      <article class="purchase-order-detail-card purchase-order-detail-card--half purchase-order-detail-card--photos">
         <div class="purchase-order-detail-card__header">
           <div class="purchase-order-detail-card__title-wrap">
             <span class="purchase-order-detail-card__icon">
@@ -237,23 +237,53 @@
         <div class="purchase-order-photo-list">
           @for (photo of photos; track photo.id) {
           <article class="purchase-order-photo-card">
-            <div class="purchase-order-photo-card__image" [style.backgroundImage]="'url(' + photo.previewUrl + ')'">
+            <div class="purchase-order-photo-card__image-wrap">
+              <div
+                class="purchase-order-photo-card__image"
+                [style.backgroundImage]="'url(' + photo.previewUrl + ')'">
+              </div>
+
+              <span class="purchase-order-photo-card__image-badge">
+                <mat-icon>image</mat-icon>
+              </span>
             </div>
 
             <div class="purchase-order-photo-card__content">
-              <strong>{{ photo.fileName }}</strong>
+              <div class="purchase-order-photo-card__top">
+                <strong class="purchase-order-photo-card__title">{{ photo.fileName }}</strong>
 
-              <span class="purchase-order-detail-chip" [ngClass]="getChipClass(photo.statusVariant)">
-                {{ photo.statusLabel }}
-              </span>
+                <span class="purchase-order-detail-chip" [ngClass]="getChipClass(photo.statusVariant)">
+                  <mat-icon class="purchase-order-photo-card__chip-icon">check_circle</mat-icon>
+                  {{ photo.statusLabel }}
+                </span>
+              </div>
 
-              <p>Subida por: {{ photo.uploadedBy }}</p>
-              <small>{{ photo.uploadedAt }}</small>
+              <div class="purchase-order-photo-card__meta">
+                <div class="purchase-order-photo-card__meta-row">
+                  <span class="purchase-order-photo-card__meta-icon">
+                    <mat-icon>person</mat-icon>
+                  </span>
 
-              <button type="button" class="btn-outline purchase-order-photo-card__button">
-                <mat-icon>visibility</mat-icon>
-                <span>Ver foto</span>
-              </button>
+                  <span>
+                    Subida por <strong>{{ photo.uploadedBy }}</strong>
+                  </span>
+                </div>
+
+                <div class="purchase-order-photo-card__meta-row">
+                  <span class="purchase-order-photo-card__meta-icon">
+                    <mat-icon>calendar_today</mat-icon>
+                  </span>
+
+                  <span>{{ photo.uploadedAt }}</span>
+                </div>
+              </div>
+
+              <div class="purchase-order-photo-card__actions">
+                <button type="button" class="btn-outline purchase-order-photo-card__button">
+                  <mat-icon>visibility</mat-icon>
+                  <span>Ver foto</span>
+                </button>
+              </div>
             </div>
           </article>
           }
