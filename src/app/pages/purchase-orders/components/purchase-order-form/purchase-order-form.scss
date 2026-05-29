@@ -69,57 +69,9 @@
   font-size: 0.78rem;
 }
 
-.purchase-order-info,
-.purchase-order-warning {
+/* Solo conserva separación propia de esta pantalla */
+.purchase-order-form-alert {
   margin-top: 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 12px 14px;
-  border-radius: 12px;
-
-  font-size: 13px;
-  line-height: 1.35;
-}
-
-.purchase-order-info {
-  background: rgba(39, 170, 225, 0.08);
-  border: 1px solid rgba(39, 170, 225, 0.14);
-  color: var(--color-secundary);
-
-  mat-icon {
-    color: var(--color-primary-strong);
-  }
-}
-
-.purchase-order-warning {
-  margin-bottom: 16px;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  color: #92400e;
-
-  mat-icon {
-    color: #d97706;
-  }
-}
-
-.purchase-order-warning--locked {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.2);
-  color: #991b1b;
-
-  mat-icon {
-    color: #dc2626;
-  }
-}
-
-.purchase-order-info mat-icon,
-.purchase-order-warning mat-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  font-size: 20px;
 }
 
 @media screen and (max-width: 980px) {

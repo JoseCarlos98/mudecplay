@@ -5,28 +5,32 @@
     (action)="closeModal()">
   </app-module-header>
 
-  <div class="warehouse-summary">
-    <div class="warehouse-summary__icon">
+  <div class="c-info-card c-info-card--info">
+    <div class="c-info-card__icon">
       <mat-icon>inventory_2</mat-icon>
     </div>
 
-    <div class="warehouse-summary__content">
-      <h3>{{ data.product_name_snapshot || 'Producto sin nombre' }}</h3>
+    <div class="c-info-card__content">
+      <h3 class="c-info-card__title">
+        {{ data.product_name_snapshot || 'Producto sin nombre' }}
+      </h3>
 
-      <p>
-        Folio gasto:
-        <strong>{{ data.expense_folio_snapshot }}</strong>
-      </p>
+      <div class="c-info-card__grid">
+        <span class="c-info-card__item">
+          Folio gasto:
+          <strong>{{ data.expense_folio_snapshot }}</strong>
+        </span>
 
-      <p>
-        Disponible:
-        <strong>{{ availableText }}</strong>
-      </p>
+        <span class="c-info-card__item">
+          Disponible:
+          <strong>{{ availableText }}</strong>
+        </span>
 
-      <p>
-        Costo unitario:
-        <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
-      </p>
+        <span class="c-info-card__item">
+          Costo unitario:
+          <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
+        </span>
+      </div>
     </div>
   </div>
 

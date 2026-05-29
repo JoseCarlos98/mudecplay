@@ -214,40 +214,47 @@ export class PurchaseOrders implements OnInit {
     will_have_invoice: this.fb.control<'true' | 'false' | ''>(''),
   });
 
-readonly extraActions: PurchaseOrderTableExtraAction[] = [
-  {
-    type: 'editPurchaseOrder',
-    icon: 'edit',
-    tooltip: (row) => this.getEditTooltip(row),
-    popoverContent: (row) => this.getEditPopover(row),
-    visible: () => true,
-    disabled: (row) => !this.canEdit(row),
-  },
-  {
-    type: 'authorizePurchaseOrder',
-    icon: 'verified',
-    tooltip: (row) => this.getAuthorizeTooltip(row),
-    popoverContent: (row) => this.getAuthorizePopover(row),
-    visible: () => true,
-    disabled: (row) => !this.canAuthorize(row),
-  },
-  {
-    type: 'rejectPurchaseOrder',
-    icon: 'block',
-    tooltip: (row) => this.getRejectTooltip(row),
-    popoverContent: (row) => this.getRejectPopover(row),
-    visible: () => true,
-    disabled: (row) => !this.canReject(row),
-  },
-  {
-    type: 'cancelPurchaseOrder',
-    icon: 'cancel',
-    tooltip: (row) => this.getCancelTooltip(row),
-    popoverContent: (row) => this.getCancelPopover(row),
-    visible: () => true,
-    disabled: (row) => !this.canCancel(row),
-  },
-];
+  readonly extraActions: PurchaseOrderTableExtraAction[] = [
+    {
+      type: 'viewPurchaseOrderDetail',
+      icon: 'visibility',
+      tooltip: () => 'Ver detalle',
+      visible: () => true,
+      disabled: () => false,
+    },
+    {
+      type: 'editPurchaseOrder',
+      icon: 'edit',
+      tooltip: (row) => this.getEditTooltip(row),
+      popoverContent: (row) => this.getEditPopover(row),
+      visible: () => true,
+      disabled: (row) => !this.canEdit(row),
+    },
+    {
+      type: 'authorizePurchaseOrder',
+      icon: 'verified',
+      tooltip: (row) => this.getAuthorizeTooltip(row),
+      popoverContent: (row) => this.getAuthorizePopover(row),
+      visible: () => true,
+      disabled: (row) => !this.canAuthorize(row),
+    },
+    {
+      type: 'rejectPurchaseOrder',
+      icon: 'block',
+      tooltip: (row) => this.getRejectTooltip(row),
+      popoverContent: (row) => this.getRejectPopover(row),
+      visible: () => true,
+      disabled: (row) => !this.canReject(row),
+    },
+    {
+      type: 'cancelPurchaseOrder',
+      icon: 'cancel',
+      tooltip: (row) => this.getCancelTooltip(row),
+      popoverContent: (row) => this.getCancelPopover(row),
+      visible: () => true,
+      disabled: (row) => !this.canCancel(row),
+    },
+  ];
 
   private cancelPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
     if (!row?.id || !this.canCancel(row)) return;
@@ -335,135 +342,135 @@ readonly extraActions: PurchaseOrderTableExtraAction[] = [
   }
 
   private getEditTooltip(row: entity.PurchaseOrderResponseDto): string {
-  return this.canEdit(row) ? 'Editar orden' : '';
-}
-
-private getAuthorizeTooltip(row: entity.PurchaseOrderResponseDto): string {
-  return this.canAuthorize(row) ? 'Autorizar orden' : '';
-}
-
-private getRejectTooltip(row: entity.PurchaseOrderResponseDto): string {
-  return this.canReject(row) ? 'Marcar como no autorizada' : '';
-}
-
-private getCancelTooltip(row: entity.PurchaseOrderResponseDto): string {
-  return this.canCancel(row) ? 'Cancelar orden' : '';
-}
-
-private getEditPopover(
-  row: entity.PurchaseOrderResponseDto,
-): DataTableActionPopover | null {
-  if (this.canEdit(row)) return null;
-
-  return {
-    title: 'No disponible',
-    message: null,
-    items: [this.getUnavailableEditReason(row)],
-    kind: 'warning',
-  };
-}
-
-private getAuthorizePopover(
-  row: entity.PurchaseOrderResponseDto,
-): DataTableActionPopover | null {
-  if (this.canAuthorize(row)) return null;
-
-  return {
-    title: 'No disponible',
-    message: null,
-    items: [this.getUnavailableAuthorizeReason(row)],
-    kind: 'warning',
-  };
-}
-
-private getRejectPopover(
-  row: entity.PurchaseOrderResponseDto,
-): DataTableActionPopover | null {
-  if (this.canReject(row)) return null;
-
-  return {
-    title: 'No disponible',
-    message: null,
-    items: [this.getUnavailableRejectReason(row)],
-    kind: 'warning',
-  };
-}
-
-private getCancelPopover(
-  row: entity.PurchaseOrderResponseDto,
-): DataTableActionPopover | null {
-  if (this.canCancel(row)) return null;
-
-  return {
-    title: 'No disponible',
-    message: null,
-    items: [this.getUnavailableCancelReason(row)],
-    kind: 'warning',
-  };
-}
-
-private getUnavailableEditReason(
-  row: entity.PurchaseOrderResponseDto,
-): string {
-  switch (row.status) {
-    case 'authorized':
-      return 'Esta orden ya fue autorizada y no se puede editar desde este flujo.';
-
-    case 'cancelled':
-      return 'Esta orden fue cancelada y ya no se puede editar.';
-
-    default:
-      return 'Solo se puede editar una orden en revisión o no autorizada.';
+    return this.canEdit(row) ? 'Editar orden' : '';
   }
-}
 
-private getUnavailableAuthorizeReason(
-  row: entity.PurchaseOrderResponseDto,
-): string {
-  switch (row.status) {
-    case 'authorized':
-      return 'Esta orden ya fue autorizada.';
-
-    case 'cancelled':
-      return 'Esta orden fue cancelada y no puede autorizarse.';
-
-    default:
-      return 'Solo se pueden autorizar órdenes en revisión o no autorizadas.';
+  private getAuthorizeTooltip(row: entity.PurchaseOrderResponseDto): string {
+    return this.canAuthorize(row) ? 'Autorizar orden' : '';
   }
-}
 
-private getUnavailableRejectReason(
-  row: entity.PurchaseOrderResponseDto,
-): string {
-  switch (row.status) {
-    case 'not_authorized':
-      return 'Esta orden ya está marcada como no autorizada.';
-
-    case 'authorized':
-      return 'Esta orden ya fue autorizada y no puede marcarse como no autorizada.';
-
-    case 'cancelled':
-      return 'Esta orden fue cancelada y no puede marcarse como no autorizada.';
-
-    default:
-      return 'Solo se puede marcar como no autorizada una orden en revisión.';
+  private getRejectTooltip(row: entity.PurchaseOrderResponseDto): string {
+    return this.canReject(row) ? 'Marcar como no autorizada' : '';
   }
-}
 
-private getUnavailableCancelReason(
-  row: entity.PurchaseOrderResponseDto,
-): string {
-  switch (row.status) {
-    case 'authorized':
-      return 'Esta orden ya fue autorizada y no se puede cancelar.';
-
-    case 'cancelled':
-      return 'Esta orden ya está cancelada.';
-
-    default:
-      return 'Solo se pueden cancelar órdenes en revisión o no autorizadas.';
+  private getCancelTooltip(row: entity.PurchaseOrderResponseDto): string {
+    return this.canCancel(row) ? 'Cancelar orden' : '';
   }
-}
+
+  private getEditPopover(
+    row: entity.PurchaseOrderResponseDto,
+  ): DataTableActionPopover | null {
+    if (this.canEdit(row)) return null;
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: [this.getUnavailableEditReason(row)],
+      kind: 'warning',
+    };
+  }
+
+  private getAuthorizePopover(
+    row: entity.PurchaseOrderResponseDto,
+  ): DataTableActionPopover | null {
+    if (this.canAuthorize(row)) return null;
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: [this.getUnavailableAuthorizeReason(row)],
+      kind: 'warning',
+    };
+  }
+
+  private getRejectPopover(
+    row: entity.PurchaseOrderResponseDto,
+  ): DataTableActionPopover | null {
+    if (this.canReject(row)) return null;
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: [this.getUnavailableRejectReason(row)],
+      kind: 'warning',
+    };
+  }
+
+  private getCancelPopover(
+    row: entity.PurchaseOrderResponseDto,
+  ): DataTableActionPopover | null {
+    if (this.canCancel(row)) return null;
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: [this.getUnavailableCancelReason(row)],
+      kind: 'warning',
+    };
+  }
+
+  private getUnavailableEditReason(
+    row: entity.PurchaseOrderResponseDto,
+  ): string {
+    switch (row.status) {
+      case 'authorized':
+        return 'Esta orden ya fue autorizada y no se puede editar desde este flujo.';
+
+      case 'cancelled':
+        return 'Esta orden fue cancelada y ya no se puede editar.';
+
+      default:
+        return 'Solo se puede editar una orden en revisión o no autorizada.';
+    }
+  }
+
+  private getUnavailableAuthorizeReason(
+    row: entity.PurchaseOrderResponseDto,
+  ): string {
+    switch (row.status) {
+      case 'authorized':
+        return 'Esta orden ya fue autorizada.';
+
+      case 'cancelled':
+        return 'Esta orden fue cancelada y no puede autorizarse.';
+
+      default:
+        return 'Solo se pueden autorizar órdenes en revisión o no autorizadas.';
+    }
+  }
+
+  private getUnavailableRejectReason(
+    row: entity.PurchaseOrderResponseDto,
+  ): string {
+    switch (row.status) {
+      case 'not_authorized':
+        return 'Esta orden ya está marcada como no autorizada.';
+
+      case 'authorized':
+        return 'Esta orden ya fue autorizada y no puede marcarse como no autorizada.';
+
+      case 'cancelled':
+        return 'Esta orden fue cancelada y no puede marcarse como no autorizada.';
+
+      default:
+        return 'Solo se puede marcar como no autorizada una orden en revisión.';
+    }
+  }
+
+  private getUnavailableCancelReason(
+    row: entity.PurchaseOrderResponseDto,
+  ): string {
+    switch (row.status) {
+      case 'authorized':
+        return 'Esta orden ya fue autorizada y no se puede cancelar.';
+
+      case 'cancelled':
+        return 'Esta orden ya está cancelada.';
+
+      default:
+        return 'Solo se pueden cancelar órdenes en revisión o no autorizadas.';
+    }
+  }
 
   // ==========================
   //  FILTROS + BÚSQUEDA
@@ -555,6 +562,10 @@ private getUnavailableCancelReason(
     ev: DataTableActionEvent<entity.PurchaseOrderResponseDto>,
   ): void {
     switch (ev.type) {
+      case 'viewPurchaseOrderDetail':
+        this.viewPurchaseOrderDetail(ev.row);
+        break;
+
       case 'editPurchaseOrder':
         this.editPurchaseOrder(ev.row);
         break;
@@ -579,6 +590,12 @@ private getUnavailableCancelReason(
         this.cancelPurchaseOrder(ev.row);
         break;
     }
+  }
+
+  private viewPurchaseOrderDetail(row: entity.PurchaseOrderResponseDto): void {
+    if (!row?.id) return;
+
+    this.router.navigateByUrl(`/ordenes-compra/detalle/${row.id}`);
   }
 
   private editPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {

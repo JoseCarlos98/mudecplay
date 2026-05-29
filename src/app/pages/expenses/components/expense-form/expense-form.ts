@@ -41,6 +41,7 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
+
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };

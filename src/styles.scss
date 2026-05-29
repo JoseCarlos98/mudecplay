@@ -1733,3 +1733,348 @@ body {
     text-overflow: ellipsis;
   }
 }
+
+/* =========================================================
+ * GLOBAL: ESTADO / ENCABEZADO INFORMATIVO DE FORMULARIO
+ * Genérico para XML, mano de obra, importaciones, estados, etc.
+ * ========================================================= */
+
+.c-form-status {
+  width: 100%;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  color: #1f2933;
+  font-size: 0.875rem;
+}
+
+.c-form-status__top-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.c-form-status__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: #1164a3;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.c-form-status__tag-icon,
+.c-form-status__tag mat-icon {
+  flex: 0 0 auto;
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  line-height: 16px !important;
+}
+
+.c-form-status__meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  color: #111827;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.c-form-status__meta-main {
+  font-weight: 700;
+}
+
+.c-form-status__meta-muted {
+  color: #6b7280;
+  font-size: 0.8125rem;
+}
+
+.c-form-status__description {
+  margin: 0;
+  color: #374151;
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.c-form-status__description strong {
+  font-weight: 700;
+}
+
+/* Variantes */
+
+.c-form-status--info .c-form-status__tag {
+  background: #e5f3ff;
+  color: #1164a3;
+}
+
+.c-form-status--success .c-form-status__tag {
+  background: #e9f7ef;
+  color: #287348;
+}
+
+.c-form-status--warning .c-form-status__tag {
+  background: #fff8ed;
+  color: #b45309;
+}
+
+.c-form-status--danger .c-form-status__tag {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.c-form-status--neutral .c-form-status__tag {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* =========================================================
+ * GLOBAL: AVISOS / BANNERS DE FORMULARIO
+ * Genérico para reglas, advertencias, bloqueos, info, etc.
+ * ========================================================= */
+
+.c-form-alert {
+  width: 100%;
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  border-radius: 0.75rem;
+  border: 1px solid rgba(17, 100, 163, 0.22);
+  background: #f4fbff;
+  color: #334155;
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.c-form-alert__icon,
+.c-form-alert mat-icon {
+  flex: 0 0 auto;
+  width: 21px !important;
+  height: 21px !important;
+  font-size: 21px !important;
+  line-height: 21px !important;
+  color: #1164a3;
+}
+
+.c-form-alert__content {
+  min-width: 0;
+}
+
+.c-form-alert strong {
+  font-weight: 700;
+}
+
+/* Variantes */
+
+.c-form-alert--info {
+  background: #f4fbff;
+  border-color: rgba(17, 100, 163, 0.22);
+}
+
+.c-form-alert--info .c-form-alert__icon,
+.c-form-alert--info mat-icon {
+  color: #1164a3;
+}
+
+.c-form-alert--warning {
+  background: #fff8ed;
+  border-color: rgba(180, 83, 9, 0.25);
+}
+
+.c-form-alert--warning .c-form-alert__icon,
+.c-form-alert--warning mat-icon {
+  color: #b45309;
+}
+
+.c-form-alert--danger {
+  background: #fef2f2;
+  border-color: rgba(185, 28, 28, 0.22);
+}
+
+.c-form-alert--danger .c-form-alert__icon,
+.c-form-alert--danger mat-icon {
+  color: #b91c1c;
+}
+
+.c-form-alert--success {
+  background: #f0fdf4;
+  border-color: rgba(40, 115, 72, 0.22);
+}
+
+.c-form-alert--success .c-form-alert__icon,
+.c-form-alert--success mat-icon {
+  color: #287348;
+}
+
+.c-form-alert--neutral {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+}
+
+.c-form-alert--neutral .c-form-alert__icon,
+.c-form-alert--neutral mat-icon {
+  color: #64748b;
+}
+
+
+/* =========================================================
+ * GLOBAL: CARD INFORMATIVA CON ÍCONO
+ * Uso para resúmenes dentro de modales/forms:
+ * producto, empleado, factura, orden, lote, etc.
+ * ========================================================= */
+
+.c-info-card {
+  margin-bottom: 0.75rem;
+  padding: 0.8rem 0.9rem;
+
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  border-radius: 0.8rem;
+  border: 1px solid rgba(17, 100, 163, 0.18);
+  background: #f4fbff;
+
+  flex: 0 0 auto;
+}
+
+.c-info-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e5f3ff;
+  color: #1164a3;
+  flex: 0 0 auto;
+}
+
+.c-info-card__icon mat-icon {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  line-height: 18px !important;
+}
+
+.c-info-card__content {
+  min-width: 0;
+  width: 100%;
+}
+
+.c-info-card__title {
+  margin: 0 0 0.48rem;
+  color: #111827;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+/* Grid flexible:
+   - En modales anchos se ve como el de Movimientos del lote.
+   - En modales más angostos, como Asignar material, evita que se sienta apretado.
+*/
+.c-info-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+  gap: 0.3rem 0.85rem;
+}
+
+.c-info-card__item {
+  min-width: 0;
+  display: block;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.c-info-card__item strong {
+  color: #334155;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* Compatibilidad por si algún modal todavía usa párrafos */
+.c-info-card__text {
+  margin: 0.15rem 0;
+  color: #64748b;
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.c-info-card__text strong {
+  color: #334155;
+  font-weight: 800;
+}
+
+/* Variantes */
+
+.c-info-card--info {
+  background: #f4fbff;
+  border-color: rgba(17, 100, 163, 0.18);
+}
+
+.c-info-card--info .c-info-card__icon {
+  background: #e5f3ff;
+  color: #1164a3;
+}
+
+.c-info-card--warning {
+  background: #fff8ed;
+  border-color: rgba(180, 83, 9, 0.25);
+}
+
+.c-info-card--warning .c-info-card__icon {
+  background: #ffedd5;
+  color: #b45309;
+}
+
+.c-info-card--danger {
+  background: #fef2f2;
+  border-color: rgba(185, 28, 28, 0.22);
+}
+
+.c-info-card--danger .c-info-card__icon {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.c-info-card--success {
+  background: #f0fdf4;
+  border-color: rgba(40, 115, 72, 0.22);
+}
+
+.c-info-card--success .c-info-card__icon {
+  background: #dcfce7;
+  color: #287348;
+}
+
+/* Responsive */
+
+@media (max-width: 640px) {
+  .c-info-card {
+    gap: 0.65rem;
+  }
+
+  .c-info-card__grid {
+    grid-template-columns: 1fr;
+  }
+}

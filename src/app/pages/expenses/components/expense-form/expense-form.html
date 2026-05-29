@@ -5,81 +5,83 @@
   </app-module-header>
 
   @if (isXmlImport) {
-  <div class="xml-status">
-    <div class="xml-status__top-row">
-      <span class="xml-status__tag">
-        <mat-icon class="xml-status__tag-icon">feed</mat-icon>
-        Desde XML
-      </span>
-
-      <div class="xml-status__counter">
-        <span class="xml-status__counter-main">
-          CFDI
-          {{
-          xmlQueueTotal > 0
-          ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
-          : 'actual'
-          }}
+    <div class="c-form-status c-form-status--info">
+      <div class="c-form-status__top-row">
+        <span class="c-form-status__tag">
+          <mat-icon class="c-form-status__tag-icon">feed</mat-icon>
+          Desde XML
         </span>
 
-        @if (xmlQueuePending > 0) {
-        <span class="xml-status__counter-pending">
-          · Quedan {{ xmlQueuePending }} por registrar
-        </span>
-        }
+        <div class="c-form-status__meta">
+          <span class="c-form-status__meta-main">
+            CFDI
+            {{
+              xmlQueueTotal > 0
+                ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+                : 'actual'
+            }}
+          </span>
+
+          @if (xmlQueuePending > 0) {
+            <span class="c-form-status__meta-muted">
+              · Quedan {{ xmlQueuePending }} por registrar
+            </span>
+          }
+        </div>
       </div>
-    </div>
 
-    <p class="text-info">
-      Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
-      <strong>producto</strong> y <strong>monto</strong> provienen del CFDI.
-      Puedes registrar <strong>abonos</strong> y decidir si un concepto será
-      <strong>gasto directo</strong> o <strong>almacén</strong>.
-    </p>
-  </div>
+      <p class="c-form-status__description">
+        Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
+        <strong>producto</strong> y <strong>monto</strong> provienen del CFDI.
+        Puedes registrar <strong>abonos</strong> y decidir si un concepto será
+        <strong>gasto directo</strong> o <strong>almacén</strong>.
+      </p>
+    </div>
   }
 
   @if (isLaborAuto) {
-  <div class="xml-status">
-    <div class="xml-status__top-row">
-      <span class="xml-status__tag">
-        <mat-icon class="xml-status__tag-icon">engineering</mat-icon>
-        Mano de obra
-      </span>
-    </div>
+    <div class="c-form-status c-form-status--info">
+      <div class="c-form-status__top-row">
+        <span class="c-form-status__tag">
+          <mat-icon class="c-form-status__tag-icon">engineering</mat-icon>
+          Mano de obra
+        </span>
+      </div>
 
-    <p class="text-info">
-      Este gasto fue generado automáticamente desde asistencia. El
-      <strong>proveedor</strong> corresponde al empleado y el
-      <strong>producto</strong> corresponde al área del empleado, por lo que
-      no pueden modificarse aquí.
-    </p>
-  </div>
+      <p class="c-form-status__description">
+        Este gasto fue generado automáticamente desde asistencia. El
+        <strong>proveedor</strong> corresponde al empleado y el
+        <strong>producto</strong> corresponde al área del empleado, por lo que
+        no pueden modificarse aquí.
+      </p>
+    </div>
   }
 
   @if (!isLaborAuto) {
-  <div class="warehouse-info">
-    <mat-icon>info</mat-icon>
+    <div class="c-form-alert c-form-alert--info">
+      <mat-icon class="c-form-alert__icon">info</mat-icon>
 
-    <div>
-      <strong>Control de almacén:</strong>
-      los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
-      Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+      <div class="c-form-alert__content">
+        <strong>Control de almacén:</strong>
+        los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
+        Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+      </div>
     </div>
-  </div>
   }
 
   @if (isWarehouseSafeExpense) {
-  <div class="warehouse-info warehouse-info--warning">
-    <mat-icon>lock</mat-icon>
+    <div class="c-form-alert c-form-alert--warning">
+      <mat-icon class="c-form-alert__icon">lock</mat-icon>
 
-    <div>
-      Este gasto ya generó existencias de almacén. Solo puedes modificar
-      <strong>fecha</strong>, <strong>proveedor</strong> y <strong>pagos</strong>.
-      Los productos, cantidades, unidades y montos se corrigen desde almacén.
+      <div class="c-form-alert__content">
+        Este gasto ya generó existencias de almacén. Solo puedes modificar
+        <strong>fecha</strong>, <strong>proveedor</strong> y <strong>pagos</strong>.
+        Los productos, cantidades, unidades y montos se corrigen desde almacén.
+      </div>
     </div>
-  </div>
   }
+
+
 
   <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
@@ -137,7 +139,7 @@
               </app-autocomplete>
             </div>
 
-            <button type="button" class="btn-primary bulk-btn"
+            <button type="button" class="btn-primary bulk-btn mt-5"
               [disabled]="!hasAnySelectedDirect || !bulkProjectSelected || isWarehouseSafeExpense"
               (click)="applyBulkProject()">
               <mat-icon>done_all</mat-icon>
@@ -152,7 +154,7 @@
               </app-input-field>
             </div>
 
-            <button type="button" class="btn-primary bulk-btn" [disabled]="!canApplyAmountToSelection"
+            <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="!canApplyAmountToSelection"
               (click)="applyAmountToSelected()">
               <mat-icon>price_check</mat-icon>
               <span>Aplicar monto</span>
@@ -168,7 +170,7 @@
               </app-input-date>
             </div>
 
-            <button type="button" class="btn-primary bulk-btn" [disabled]="!canApplyFullPaymentToSelection"
+            <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="!canApplyFullPaymentToSelection"
               (click)="applyFullPaymentToSelected()">
               <mat-icon>payments</mat-icon>
               <span>Pagar</span>

@@ -5,47 +5,49 @@
     (action)="closeModal()">
   </app-module-header>
 
-  <section class="lot-summary">
-    <div class="lot-summary__icon">
-      <mat-icon>inventory_2</mat-icon>
+<section class="c-info-card c-info-card--info">
+  <div class="c-info-card__icon">
+    <mat-icon>inventory_2</mat-icon>
+  </div>
+
+  <div class="c-info-card__content">
+    <h3 class="c-info-card__title">
+      {{ data.product_name_snapshot || 'Producto sin nombre' }}
+    </h3>
+
+    <div class="c-info-card__grid">
+      <span class="c-info-card__item">
+        Folio gasto:
+        <strong>{{ data.expense_folio_snapshot }}</strong>
+      </span>
+
+      <span class="c-info-card__item">
+        Estado:
+        <strong>{{ statusLabel }}</strong>
+      </span>
+
+      <span class="c-info-card__item">
+        Original:
+        <strong>{{ originalText }}</strong>
+      </span>
+
+      <span class="c-info-card__item">
+        Disponible:
+        <strong>{{ availableText }}</strong>
+      </span>
+
+      <span class="c-info-card__item">
+        Usado:
+        <strong>{{ usedText }}</strong>
+      </span>
+
+      <span class="c-info-card__item">
+        Costo unitario:
+        <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
+      </span>
     </div>
-
-    <div class="lot-summary__content">
-      <h3>{{ data.product_name_snapshot || 'Producto sin nombre' }}</h3>
-
-      <div class="lot-summary__grid">
-        <span>
-          Folio gasto:
-          <strong>{{ data.expense_folio_snapshot }}</strong>
-        </span>
-
-        <span>
-          Estado:
-          <strong>{{ statusLabel }}</strong>
-        </span>
-
-        <span>
-          Original:
-          <strong>{{ originalText }}</strong>
-        </span>
-
-        <span>
-          Disponible:
-          <strong>{{ availableText }}</strong>
-        </span>
-
-        <span>
-          Usado:
-          <strong>{{ usedText }}</strong>
-        </span>
-
-        <span>
-          Costo unitario:
-          <strong>{{ data.unit_cost | currency:'MXN':'symbol-narrow':'1.2-6' }}</strong>
-        </span>
-      </div>
-    </div>
-  </section>
+  </div>
+</section>
 
   @if (!loading() && movements.length > 0) {
     <section class="movements-list">
