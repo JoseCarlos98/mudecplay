@@ -1385,3 +1385,351 @@ body {
     margin-bottom: 15px;
   }
 }
+
+
+/* =========================================================
+ * GLOBAL: MODALES CON TABLA + RESUMEN + PAGINADOR
+ * Uso:
+ * .c-modal--table-layout
+ * .c-modal-table
+ * .c-modal-table--wide
+ * .c-modal-table--compact
+ * ========================================================= */
+
+.c-modal--table-layout {
+  position: relative;
+  width: 100%;
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.c-modal--table-layout app-module-header {
+  flex: 0 0 auto;
+}
+
+.c-modal-table__content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+  overflow: hidden;
+}
+
+.c-modal-table {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, auto) auto auto;
+  gap: 10px;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.c-modal-table app-data-table {
+  display: block;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Scroll interno real de la tabla */
+.c-modal-table .table-container {
+  height: auto !important;
+  overflow: auto !important;
+  border-radius: 0 !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.c-modal-table table {
+  width: 100% !important;
+}
+
+.c-modal-table th,
+.c-modal-table td {
+  white-space: nowrap;
+}
+
+/* Scrollbar */
+.c-modal-table .table-container::-webkit-scrollbar {
+  height: 7px;
+  width: 7px;
+}
+
+.c-modal-table .table-container::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.55);
+  border-radius: 999px;
+}
+
+.c-modal-table .table-container::-webkit-scrollbar-track {
+  background: rgba(226, 232, 240, 0.55);
+  border-radius: 999px;
+}
+
+/* =========================================================
+ * VARIANTES DE TABLA
+ * ========================================================= */
+
+.c-modal-table--wide .table-container {
+  max-height: min(52dvh, 430px) !important;
+  min-height: 180px !important;
+}
+
+.c-modal-table--wide table {
+  min-width: 980px;
+}
+
+.c-modal-table--compact .table-container {
+  max-height: min(42dvh, 320px) !important;
+  min-height: 96px !important;
+}
+
+.c-modal-table--compact table {
+  min-width: 520px;
+}
+
+/* =========================================================
+ * RESUMEN TIPO CHIPS
+ * ========================================================= */
+
+.c-modal-table__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 10px;
+  margin: 0;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  min-width: 0;
+}
+
+.c-modal-table__summary-item {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  min-width: 0;
+}
+
+.c-modal-table__summary-item--soft {
+  background: #f0f9ff;
+  border-color: #d7efff;
+}
+
+.c-modal-table__summary-label {
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.c-modal-table__summary-value {
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* =========================================================
+ * EMPTY / LOADING
+ * ========================================================= */
+
+.c-modal-table__empty {
+  min-height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 1.25rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+  text-align: center;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+}
+
+/* =========================================================
+ * PAGINADOR DENTRO DEL MODAL
+ * ========================================================= */
+
+.c-modal-table .mat-mdc-paginator {
+  position: static !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px !important;
+}
+
+.c-modal-table .mat-mdc-paginator-container {
+  min-height: 50px !important;
+  padding: 0 10px !important;
+  justify-content: flex-end !important;
+  flex-wrap: nowrap !important;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.c-modal-table .mat-mdc-paginator-page-size {
+  margin-right: 4px !important;
+}
+
+.c-modal-table .mat-mdc-paginator-range-label {
+  margin: 0 6px !important;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.c-modal-table .mat-mdc-paginator-range-actions {
+  gap: 4px !important;
+}
+
+.c-modal-table .mat-mdc-icon-button {
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 875px) {
+  .c-modal--table-layout {
+    max-height: calc(100dvh - 28px);
+  }
+
+  .c-modal-table {
+    gap: 8px;
+  }
+
+  .c-modal-table--wide .table-container {
+    max-height: 38dvh !important;
+    min-height: 170px !important;
+  }
+
+  .c-modal-table--wide table {
+    min-width: 760px;
+  }
+
+  .c-modal-table--compact .table-container {
+    max-height: 38dvh !important;
+    min-height: 96px !important;
+  }
+
+  .c-modal-table--compact table {
+    min-width: 500px;
+  }
+
+  .c-modal-table__summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 9px;
+    gap: 7px;
+  }
+
+  .c-modal-table__summary-item {
+    width: 100%;
+    justify-content: space-between;
+    min-height: 32px;
+    padding: 6px 8px;
+  }
+
+  .c-modal-table__summary-label,
+  .c-modal-table__summary-value {
+    font-size: 11.5px;
+  }
+
+  .c-modal-table .mat-mdc-paginator-container {
+    justify-content: space-between !important;
+    padding: 0 8px !important;
+  }
+
+  .c-modal-table .mat-mdc-paginator-page-size-label {
+    display: none !important;
+  }
+
+  .c-modal-table .mat-mdc-paginator-range-label {
+    margin: 0 4px !important;
+    font-size: 11.5px;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .c-modal--table-layout {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .c-modal-table--wide .table-container {
+    max-height: 34dvh !important;
+    min-height: 160px !important;
+  }
+
+  .c-modal-table--wide table {
+    min-width: 700px;
+  }
+
+  .c-modal-table--compact .table-container {
+    max-height: 34dvh !important;
+    min-height: 90px !important;
+  }
+
+  .c-modal-table--compact table {
+    min-width: 460px;
+  }
+
+  .c-modal-table__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .c-modal-table__summary-item {
+    min-height: 32px;
+  }
+
+  .c-modal-table .mat-mdc-paginator {
+    min-height: 54px;
+  }
+
+  .c-modal-table .mat-mdc-paginator-container {
+    min-height: 54px !important;
+  }
+
+  .c-modal-table .mat-mdc-paginator-range-actions {
+    gap: 2px !important;
+  }
+
+  .c-modal-table .mat-mdc-icon-button {
+    width: 30px !important;
+    height: 30px !important;
+  }
+}
+
+@media screen and (max-width: 390px) {
+  .c-modal-table--wide table {
+    min-width: 660px;
+  }
+
+  .c-modal-table--compact table {
+    min-width: 430px;
+  }
+
+  .c-modal-table .mat-mdc-paginator-range-label {
+    max-width: 76px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

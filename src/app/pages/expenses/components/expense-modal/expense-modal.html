@@ -1,4 +1,4 @@
-<div class="c-modal c-modal--expense-items">
+<div class="c-modal c-modal--table-layout c-modal--expense-items">
   <app-module-header
     [title]="'Productos del gasto'"
     [config]="headerConfig"
@@ -6,48 +6,48 @@
   </app-module-header>
 
   @if (items?.length) {
-    <div class="c-module-table expense-items-table">
+    <div class="c-module-table c-modal-table c-modal-table--wide">
       <app-data-table
         [data]="paginatedItems"
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns">
       </app-data-table>
 
-      <div class="expense-summary">
-        <div class="summary-item">
-          <span class="summary-label">Conceptos</span>
-          <span class="summary-value">
+      <div class="c-modal-table__summary">
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Conceptos</span>
+          <span class="c-modal-table__summary-value">
             {{ items.length }}
           </span>
         </div>
 
-        <div class="summary-item">
-          <span class="summary-label">Total gasto</span>
-          <span class="summary-value">
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Total gasto</span>
+          <span class="c-modal-table__summary-value">
             {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
           </span>
         </div>
 
         @if (isWarehouseMode) {
-          <div class="summary-item">
-            <span class="summary-label">Asignado desde almacén</span>
-            <span class="summary-value">
+          <div class="c-modal-table__summary-item">
+            <span class="c-modal-table__summary-label">Asignado desde almacén</span>
+            <span class="c-modal-table__summary-value">
               {{ totalAssignedWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
             </span>
           </div>
 
-          <div class="summary-item">
-            <span class="summary-label">Pendiente en almacén</span>
-            <span class="summary-value">
+          <div class="c-modal-table__summary-item">
+            <span class="c-modal-table__summary-label">Pendiente en almacén</span>
+            <span class="c-modal-table__summary-value">
               {{ totalPendingWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
             </span>
           </div>
         }
 
         @if (isLaborMode) {
-          <div class="summary-item summary-item--soft">
-            <span class="summary-label">Tipo</span>
-            <span class="summary-value">Mano de obra</span>
+          <div class="c-modal-table__summary-item c-modal-table__summary-item--soft">
+            <span class="c-modal-table__summary-label">Tipo</span>
+            <span class="c-modal-table__summary-value">Mano de obra</span>
           </div>
         }
       </div>

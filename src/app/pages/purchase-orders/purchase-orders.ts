@@ -21,6 +21,7 @@ import {
   ColumnsConfig,
   ColumnVariant,
   DataTableActionEvent,
+  DataTableActionPopover,
   DataTableExtraAction,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
@@ -38,6 +39,9 @@ import { AuthService } from '../../auth/services/auth.service';
 import { ModalPurchaseOrderRequester } from './components/modal-purchase-order-requester/modal-purchase-order-requester';
 import { ModalAuthorizePurchaseOrder } from './components/modal-authorize-purchase-order/modal-authorize-purchase-order';
 import { ModalPurchaseOrderAuthorized } from './components/modal-purchase-order-authorized/modal-purchase-order-authorized';
+import { ModalPurchaseDecline } from './components/modal-purchase-decline/modal-purchase-decline';
+import { ModalPurchaseCancel } from './components/modal-purchase-cancel/modal-purchase-cancel';
+
 // Interfaces
 import { Catalog } from '../../shared/interfaces/general-interfaces';
 import * as entity from './interfaces/purchase-orders.interfaces';
@@ -210,48 +214,53 @@ export class PurchaseOrders implements OnInit {
     will_have_invoice: this.fb.control<'true' | 'false' | ''>(''),
   });
 
-  readonly extraActions: PurchaseOrderTableExtraAction[] = [
-    {
-      type: 'editPurchaseOrder',
-      icon: 'edit',
-      tooltip: (row) =>
-        this.canEdit(row)
-          ? 'Editar orden'
-          : 'Solo se puede editar antes de autorizar',
-      visible: () => true,
-      disabled: (row) => !this.canEdit(row),
-    },
-    {
-      type: 'authorizePurchaseOrder',
-      icon: 'verified',
-      tooltip: (row) =>
-        this.canAuthorize(row)
-          ? 'Autorizar orden'
-          : 'Solo se pueden autorizar órdenes en revisión',
-      visible: () => true,
-      disabled: (row) => !this.canAuthorize(row),
-    },
-    {
-      type: 'rejectPurchaseOrder',
-      icon: 'block',
-      tooltip: (row) =>
-        this.canReject(row)
-          ? 'Marcar como no autorizada'
-          : 'No se puede rechazar esta orden',
-      visible: () => true,
-      disabled: (row) => !this.canReject(row),
-    },
-    {
-      type: 'cancelPurchaseOrder',
-      icon: 'cancel',
-      tooltip: (row) =>
-        this.canCancel(row)
-          ? 'Cancelar orden'
-          : 'No se puede cancelar esta orden',
-      visible: () => true,
-      disabled: (row) => !this.canCancel(row),
-    },
-  ];
+readonly extraActions: PurchaseOrderTableExtraAction[] = [
+  {
+    type: 'editPurchaseOrder',
+    icon: 'edit',
+    tooltip: (row) => this.getEditTooltip(row),
+    popoverContent: (row) => this.getEditPopover(row),
+    visible: () => true,
+    disabled: (row) => !this.canEdit(row),
+  },
+  {
+    type: 'authorizePurchaseOrder',
+    icon: 'verified',
+    tooltip: (row) => this.getAuthorizeTooltip(row),
+    popoverContent: (row) => this.getAuthorizePopover(row),
+    visible: () => true,
+    disabled: (row) => !this.canAuthorize(row),
+  },
+  {
+    type: 'rejectPurchaseOrder',
+    icon: 'block',
+    tooltip: (row) => this.getRejectTooltip(row),
+    popoverContent: (row) => this.getRejectPopover(row),
+    visible: () => true,
+    disabled: (row) => !this.canReject(row),
+  },
+  {
+    type: 'cancelPurchaseOrder',
+    icon: 'cancel',
+    tooltip: (row) => this.getCancelTooltip(row),
+    popoverContent: (row) => this.getCancelPopover(row),
+    visible: () => true,
+    disabled: (row) => !this.canCancel(row),
+  },
+];
+
+  private cancelPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
+    if (!row?.id || !this.canCancel(row)) return;
+
+    this.dialogService
+      .open(ModalPurchaseCancel, row, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPurchaseOrders();
+        }
+      });
+  }
 
   // ==========================
   //  CICLO DE VIDA
@@ -324,6 +333,137 @@ export class PurchaseOrders implements OnInit {
   private canCancel(row: entity.PurchaseOrderResponseDto): boolean {
     return row.status === 'in_review' || row.status === 'not_authorized';
   }
+
+  private getEditTooltip(row: entity.PurchaseOrderResponseDto): string {
+  return this.canEdit(row) ? 'Editar orden' : '';
+}
+
+private getAuthorizeTooltip(row: entity.PurchaseOrderResponseDto): string {
+  return this.canAuthorize(row) ? 'Autorizar orden' : '';
+}
+
+private getRejectTooltip(row: entity.PurchaseOrderResponseDto): string {
+  return this.canReject(row) ? 'Marcar como no autorizada' : '';
+}
+
+private getCancelTooltip(row: entity.PurchaseOrderResponseDto): string {
+  return this.canCancel(row) ? 'Cancelar orden' : '';
+}
+
+private getEditPopover(
+  row: entity.PurchaseOrderResponseDto,
+): DataTableActionPopover | null {
+  if (this.canEdit(row)) return null;
+
+  return {
+    title: 'No disponible',
+    message: null,
+    items: [this.getUnavailableEditReason(row)],
+    kind: 'warning',
+  };
+}
+
+private getAuthorizePopover(
+  row: entity.PurchaseOrderResponseDto,
+): DataTableActionPopover | null {
+  if (this.canAuthorize(row)) return null;
+
+  return {
+    title: 'No disponible',
+    message: null,
+    items: [this.getUnavailableAuthorizeReason(row)],
+    kind: 'warning',
+  };
+}
+
+private getRejectPopover(
+  row: entity.PurchaseOrderResponseDto,
+): DataTableActionPopover | null {
+  if (this.canReject(row)) return null;
+
+  return {
+    title: 'No disponible',
+    message: null,
+    items: [this.getUnavailableRejectReason(row)],
+    kind: 'warning',
+  };
+}
+
+private getCancelPopover(
+  row: entity.PurchaseOrderResponseDto,
+): DataTableActionPopover | null {
+  if (this.canCancel(row)) return null;
+
+  return {
+    title: 'No disponible',
+    message: null,
+    items: [this.getUnavailableCancelReason(row)],
+    kind: 'warning',
+  };
+}
+
+private getUnavailableEditReason(
+  row: entity.PurchaseOrderResponseDto,
+): string {
+  switch (row.status) {
+    case 'authorized':
+      return 'Esta orden ya fue autorizada y no se puede editar desde este flujo.';
+
+    case 'cancelled':
+      return 'Esta orden fue cancelada y ya no se puede editar.';
+
+    default:
+      return 'Solo se puede editar una orden en revisión o no autorizada.';
+  }
+}
+
+private getUnavailableAuthorizeReason(
+  row: entity.PurchaseOrderResponseDto,
+): string {
+  switch (row.status) {
+    case 'authorized':
+      return 'Esta orden ya fue autorizada.';
+
+    case 'cancelled':
+      return 'Esta orden fue cancelada y no puede autorizarse.';
+
+    default:
+      return 'Solo se pueden autorizar órdenes en revisión o no autorizadas.';
+  }
+}
+
+private getUnavailableRejectReason(
+  row: entity.PurchaseOrderResponseDto,
+): string {
+  switch (row.status) {
+    case 'not_authorized':
+      return 'Esta orden ya está marcada como no autorizada.';
+
+    case 'authorized':
+      return 'Esta orden ya fue autorizada y no puede marcarse como no autorizada.';
+
+    case 'cancelled':
+      return 'Esta orden fue cancelada y no puede marcarse como no autorizada.';
+
+    default:
+      return 'Solo se puede marcar como no autorizada una orden en revisión.';
+  }
+}
+
+private getUnavailableCancelReason(
+  row: entity.PurchaseOrderResponseDto,
+): string {
+  switch (row.status) {
+    case 'authorized':
+      return 'Esta orden ya fue autorizada y no se puede cancelar.';
+
+    case 'cancelled':
+      return 'Esta orden ya está cancelada.';
+
+    default:
+      return 'Solo se pueden cancelar órdenes en revisión o no autorizadas.';
+  }
+}
 
   // ==========================
   //  FILTROS + BÚSQUEDA
@@ -430,6 +570,14 @@ export class PurchaseOrders implements OnInit {
       case 'cancelPurchaseOrder':
         this.cancelPurchaseOrder(ev.row);
         break;
+
+      case 'rejectPurchaseOrder':
+        this.rejectPurchaseOrder(ev.row);
+        break;
+
+      case 'cancelPurchaseOrder':
+        this.cancelPurchaseOrder(ev.row);
+        break;
     }
   }
 
@@ -454,43 +602,17 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
+
   private rejectPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
-    if (!this.canReject(row)) return;
+    if (!row?.id || !this.canReject(row)) return;
 
-    const reason = window.prompt('Motivo para marcar como no autorizada:');
-
-    if (!reason?.trim()) return;
-
-    this.loadingTable.set(true);
-
-    this.purchaseOrdersService
-      .rejectPurchaseOrder(row.id, {
-        reason: reason.trim(),
-      })
-      .pipe(finalize(() => this.loadingTable.set(false)))
-      .subscribe({
-        next: () => this.loadPurchaseOrders(),
-        error: (err) => console.error('Error al rechazar O.C.:', err),
-      });
-  }
-
-  private cancelPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
-    if (!this.canCancel(row)) return;
-
-    const reason = window.prompt('Motivo de cancelación:');
-
-    if (!reason?.trim()) return;
-
-    this.loadingTable.set(true);
-
-    this.purchaseOrdersService
-      .cancelPurchaseOrder(row.id, {
-        reason: reason.trim(),
-      })
-      .pipe(finalize(() => this.loadingTable.set(false)))
-      .subscribe({
-        next: () => this.loadPurchaseOrders(),
-        error: (err) => console.error('Error al cancelar O.C.:', err),
+    this.dialogService
+      .open(ModalPurchaseDecline, row, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPurchaseOrders();
+        }
       });
   }
 
@@ -537,7 +659,7 @@ export class PurchaseOrders implements OnInit {
     if (!this.canManageRequesters) return;
 
     this.dialogService
-      .open(ModalPurchaseOrderRequester, null, 'medium')
+      .open(ModalPurchaseOrderRequester, null, 'small')
       .afterClosed()
       .subscribe((result) => {
         if (result) {
@@ -547,17 +669,17 @@ export class PurchaseOrders implements OnInit {
   }
 
   openAuthorizersModal(): void {
-  if (!this.canManageRequesters) return;
+    if (!this.canManageRequesters) return;
 
-  this.dialogService
-    .open(ModalPurchaseOrderAuthorized, null, 'medium')
-    .afterClosed()
-    .subscribe((result) => {
-      if (result) {
-        this.loadPurchaseOrders();
-      }
-    });
-}
+    this.dialogService
+      .open(ModalPurchaseOrderAuthorized, null, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPurchaseOrders();
+        }
+      });
+  }
   // ==========================
   //  LOCAL STORAGE
   // ==========================

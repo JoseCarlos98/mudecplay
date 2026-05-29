@@ -304,7 +304,7 @@ export class AccountsReceivable implements OnInit {
     this.dialogService.open(
       ModalAdvanceHistory,
       account,
-      'small',
+      'medium',
     );
   }
 

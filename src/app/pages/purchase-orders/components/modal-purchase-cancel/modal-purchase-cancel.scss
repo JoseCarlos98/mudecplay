@@ -1,18 +1,42 @@
-.c-modal {
-  .authorize-body {
+.c-modal--purchase-cancel {
+  .cancel-body {
     display: grid;
     gap: 1.25rem;
   }
 
-  .authorize-summary {
+  .cancel-warning {
+    display: grid;
+    gap: 0.25rem;
+
+    padding: 0.9rem 1rem;
+    border-radius: 0.85rem;
+    border: 1px solid #fecaca;
+    background: #fef2f2;
+
+    strong {
+      color: #991b1b;
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    span {
+      color: #991b1b;
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+  }
+
+  .cancel-summary {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.65rem 1.25rem;
 
     padding: 1rem;
     border-radius: 0.85rem;
-    background: #f9fafb;
+    background: linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
     border: 1px solid #e5e7eb;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
 
     div {
       display: flex;
@@ -33,7 +57,7 @@
     }
   }
 
-  .authorize-summary__concept {
+  .cancel-summary__concept {
     grid-column: 1 / -1;
 
     display: block !important;
@@ -48,24 +72,13 @@
     }
   }
 
-  .authorize-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
-
-  .authorize-message {
-    color: #374151;
-    font-size: 0.95rem;
-  }
-
   @media (max-width: 640px) {
-    .authorize-summary {
+    .cancel-summary {
       grid-template-columns: 1fr;
       gap: 0.55rem;
     }
 
-    .authorize-summary__concept {
+    .cancel-summary__concept {
       grid-column: auto;
     }
   }

@@ -109,6 +109,12 @@
     border-radius: 0.8rem;
     border: 1px solid #e5e7eb;
     background: #ffffff;
+
+    button {
+      mat-icon {
+        margin-bottom: 10px!important;
+      }
+    }
   }
 
   .authorized-item__avatar {
@@ -147,6 +153,7 @@
       font-size: 0.8rem;
       line-height: 1.25;
     }
+
   }
 
   .authorized-empty {
