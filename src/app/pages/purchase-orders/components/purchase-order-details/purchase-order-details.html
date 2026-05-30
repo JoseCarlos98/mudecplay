@@ -19,7 +19,6 @@
       </div>
 
       @if (orderInfoItems.length >= 8) {
-      <!-- RESUMEN SUPERIOR -->
       <div class="purchase-order-info-summary">
         <article class="purchase-order-info-summary__item">
           <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--folio">
@@ -86,7 +85,6 @@
         </article>
       </div>
 
-      <!-- BLOQUES INFERIORES -->
       <div class="purchase-order-info-panels">
         <article class="purchase-order-info-panel">
           <div class="purchase-order-info-panel__header">
@@ -238,9 +236,7 @@
           @for (photo of photos; track photo.id) {
           <article class="purchase-order-photo-card">
             <div class="purchase-order-photo-card__image-wrap">
-              <div
-                class="purchase-order-photo-card__image"
-                [style.backgroundImage]="'url(' + photo.previewUrl + ')'">
+              <div class="purchase-order-photo-card__image" [style.backgroundImage]="'url(' + photo.previewUrl + ')'">
               </div>
 
               <span class="purchase-order-photo-card__image-badge">
@@ -302,7 +298,15 @@
               <h3>Gastos relacionados</h3>
               <p>Gastos registrados desde esta orden de compra.</p>
             </div>
+           
           </div>
+           @if (expenses.length) {
+            <div class="purchase-order-table-action">
+              <button type="button" class="btn-outline purchase-order-table-action__button">
+                Ver todos los gastos
+              </button>
+            </div>
+            }
         </div>
 
         @if (expenses.length === 0) {
@@ -312,42 +316,18 @@
           <span>Cuando se registre un gasto aparecerá aquí.</span>
         </div>
         } @else {
-        <div class="purchase-order-expenses">
-          <div class="purchase-order-expenses__header">
-            <span>Folio gasto</span>
-            <span>Tipo</span>
-            <span>Total</span>
-            <span>Pagado</span>
-            <span>Saldo</span>
-            <span>Estatus</span>
-          </div>
+        <div class="purchase-order-related-table purchase-order-related-table--expenses">
+          <app-data-table class="purchase-order-related-table__data purchase-order-related-table__data--expenses"
+            [data]="paginatedExpenses" [columnsConfig]="expenseColumnsConfig"
+            [displayedColumns]="expenseDisplayedColumns">
+          </app-data-table>
 
-          @for (expense of expenses; track expense.id) {
-          <div class="purchase-order-expenses__row">
-            <strong>{{ expense.folio }}</strong>
-            <span>{{ expense.type }}</span>
-            <span>{{ formatMoney(expense.total) }}</span>
-            <span>{{ formatMoney(expense.paid) }}</span>
-
-            <span [class.purchase-order-expenses__balance--pending]="expense.balance > 0"
-              [class.purchase-order-expenses__balance--paid]="expense.balance === 0">
-              {{ formatMoney(expense.balance) }}
-            </span>
-
-            <span class="purchase-order-detail-chip" [ngClass]="getChipClass(expense.statusVariant)">
-              {{ expense.statusLabel }}
-            </span>
-          </div>
-          }
-
-          <div class="purchase-order-expenses__footer">
-            <span>1-{{ expenses.length }} de {{ expenses.length }} registros</span>
-
-            <button type="button" class="btn-outline purchase-order-expenses__button">
-              Ver todos los gastos
-            </button>
-          </div>
+          <mat-paginator [length]="expenses.length" [pageSize]="expensesPageSize" [pageIndex]="expensesPageIndex"
+            [pageSizeOptions]="tablePageSizeOptions" (page)="onExpensesPageChange($event)" showFirstLastButtons>
+          </mat-paginator>
         </div>
+
+
         }
       </article>
     </section>
@@ -367,27 +347,23 @@
         </div>
       </div>
 
-      <div class="purchase-order-history">
-        @for (item of history; track item.id) {
-        <article class="purchase-order-history-item" [ngClass]="getHistoryIconClass(item)">
-          <div class="purchase-order-history-item__icon">
-            <mat-icon>{{ item.icon }}</mat-icon>
-          </div>
-
-          <strong>{{ item.title }}</strong>
-
-          <span>{{ item.user }}</span>
-
-          <span class="purchase-order-detail-chip" [ngClass]="getChipClass(item.tagVariant)">
-            {{ item.tag }}
-          </span>
-
-          <span>{{ item.date }}</span>
-
-          <p>{{ item.description }}</p>
-        </article>
-        }
+      @if (history.length === 0) {
+      <div class="purchase-order-empty">
+        <mat-icon>history</mat-icon>
+        <strong>No hay movimientos registrados</strong>
+        <span>Cuando exista actividad sobre esta orden aparecerá aquí.</span>
       </div>
+      } @else {
+      <div class="purchase-order-related-table purchase-order-related-table--history">
+        <app-data-table class="purchase-order-related-table__data purchase-order-related-table__data--history"
+          [data]="paginatedHistory" [columnsConfig]="historyColumnsConfig" [displayedColumns]="historyDisplayedColumns">
+        </app-data-table>
+
+        <mat-paginator [length]="history.length" [pageSize]="historyPageSize" [pageIndex]="historyPageIndex"
+          [pageSizeOptions]="tablePageSizeOptions" (page)="onHistoryPageChange($event)" showFirstLastButtons>
+        </mat-paginator>
+      </div>
+      }
     </section>
   </div>
 </div>

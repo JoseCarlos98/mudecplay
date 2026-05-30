@@ -2,9 +2,15 @@ import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 
 import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
+import { DataTable } from '../../../../shared/ui/data-table/data-table';
+import {
+  ColumnsConfig,
+  ColumnVariant,
+} from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 
 type DetailStatusVariant =
   | 'success'
@@ -48,6 +54,7 @@ interface PurchaseOrderExpense {
   total: number;
   paid: number;
   balance: number;
+  balanceDisplay: string;
   statusLabel: string;
   statusVariant: DetailStatusVariant;
 }
@@ -73,7 +80,9 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   imports: [
     CommonModule,
     MatIconModule,
+    MatPaginatorModule,
     ModuleHeader,
+    DataTable,
   ],
   templateUrl: './purchase-order-details.html',
   styleUrl: './purchase-order-details.scss',
@@ -83,6 +92,14 @@ export class PurchaseOrderDetails {
 
   readonly pageTitle = 'Detalle de orden de compra';
   readonly headerConfig = HEADER_CONFIG;
+
+  readonly tablePageSizeOptions: number[] = [5, 10, 25, 50];
+
+  expensesPageIndex = 0;
+  expensesPageSize = 5;
+
+  historyPageIndex = 0;
+  historyPageSize = 5;
 
   readonly order = {
     id: 10,
@@ -237,6 +254,7 @@ export class PurchaseOrderDetails {
       total: 1000,
       paid: 600,
       balance: 400,
+      balanceDisplay: this.formatMoney(400),
       statusLabel: 'Parcial',
       statusVariant: 'warning',
     },
@@ -247,6 +265,7 @@ export class PurchaseOrderDetails {
       total: 120,
       paid: 120,
       balance: 0,
+      balanceDisplay: this.formatMoney(0),
       statusLabel: 'Pagado',
       statusVariant: 'success',
     },
@@ -295,6 +314,102 @@ export class PurchaseOrderDetails {
     },
   ];
 
+  readonly expenseColumnsConfig: ColumnsConfig[] = [
+    {
+      key: 'folio',
+      label: 'Folio gasto',
+    },
+    {
+      key: 'type',
+      label: 'Tipo',
+    },
+    {
+      key: 'total',
+      label: 'Total',
+      type: 'money',
+      align: 'right',
+    },
+    {
+      key: 'paid',
+      label: 'Pagado',
+      type: 'money',
+      align: 'right',
+    },
+    {
+      key: 'balanceDisplay',
+      label: 'Saldo',
+      type: 'chip',
+      align: 'right',
+      variantResolver: (row: PurchaseOrderExpense) =>
+        Number(row.balance ?? 0) > 0 ? 'chip-danger' : 'chip-success',
+    },
+    {
+      key: 'statusLabel',
+      label: 'Estatus',
+      type: 'chip',
+      variantResolver: (row: PurchaseOrderExpense) =>
+        this.getTableChipVariant(row.statusVariant),
+    },
+  ];
+
+  readonly expenseDisplayedColumns: string[] = this.expenseColumnsConfig.map(
+    (column) => column.key,
+  );
+
+  readonly historyColumnsConfig: ColumnsConfig[] = [
+    {
+      key: 'title',
+      label: 'Evento',
+    },
+    {
+      key: 'user',
+      label: 'Usuario',
+    },
+    {
+      key: 'tag',
+      label: 'Tipo',
+      type: 'chip',
+      variantResolver: (row: PurchaseOrderHistoryItem) =>
+        this.getTableChipVariant(row.tagVariant),
+    },
+    {
+      key: 'date',
+      label: 'Fecha',
+    },
+    {
+      key: 'description',
+      label: 'Descripción',
+    },
+  ];
+
+  readonly historyDisplayedColumns: string[] = this.historyColumnsConfig.map(
+    (column) => column.key,
+  );
+
+  get paginatedExpenses(): PurchaseOrderExpense[] {
+    const start = this.expensesPageIndex * this.expensesPageSize;
+    const end = start + this.expensesPageSize;
+
+    return this.expenses.slice(start, end);
+  }
+
+  get paginatedHistory(): PurchaseOrderHistoryItem[] {
+    const start = this.historyPageIndex * this.historyPageSize;
+    const end = start + this.historyPageSize;
+
+    return this.history.slice(start, end);
+  }
+
+  onExpensesPageChange(event: PageEvent): void {
+    this.expensesPageIndex = event.pageIndex;
+    this.expensesPageSize = event.pageSize;
+  }
+
+  onHistoryPageChange(event: PageEvent): void {
+    this.historyPageIndex = event.pageIndex;
+    this.historyPageSize = event.pageSize;
+  }
+
   onHeaderAction(action: string): void {
     if (action === 'back') {
       this.goBack();
@@ -322,7 +437,22 @@ export class PurchaseOrderDetails {
     return `purchase-order-flow-step--${step.status}`;
   }
 
-  getHistoryIconClass(item: PurchaseOrderHistoryItem): string {
-    return `purchase-order-history-item--${item.tagVariant}`;
+  getTableChipVariant(variant?: DetailStatusVariant): ColumnVariant {
+    switch (variant) {
+      case 'success':
+        return 'chip-success';
+
+      case 'warning':
+        return 'chip-warning';
+
+      case 'danger':
+        return 'chip-danger';
+
+      case 'info':
+      case 'primary':
+      case 'neutral':
+      default:
+        return 'chip-neutral';
+    }
   }
 }

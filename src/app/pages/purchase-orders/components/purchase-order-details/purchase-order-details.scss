@@ -4,6 +4,11 @@
 
 .purchase-order-detail-page {
   min-height: unset;
+
+  ::ng-deep .table-container {
+    padding: 0 !important;
+    border-radius: 0 !important;
+  }
 }
 
 .purchase-order-detail-layout {
@@ -19,6 +24,7 @@
 .purchase-order-detail-card {
   width: 100%;
   padding: 16px;
+  padding-top: 0 !important;
   background: #ffffff;
 }
 
@@ -263,12 +269,11 @@
 
   > strong {
     min-width: 0;
-
+    color: #64748b;
     display: inline-flex;
     align-items: center;
     gap: 5px;
 
-    color: var(--color-secundary);
     font-size: 13px;
     font-weight: 600;
     line-height: 1.35;
@@ -329,6 +334,7 @@
     font-weight: 500;
     line-height: 1.5;
     word-break: break-word;
+    color: #64748b;
   }
 }
 
@@ -487,8 +493,6 @@
   }
 }
 
-/* Completado */
-
 .purchase-order-flow-step--done {
   .purchase-order-flow-step__circle {
     background: #199c49;
@@ -534,8 +538,6 @@
     }
   }
 }
-
-/* Actual */
 
 .purchase-order-flow-step--current {
   .purchase-order-flow-step__circle {
@@ -599,8 +601,6 @@
   }
 }
 
-/* Pendiente */
-
 .purchase-order-flow-step--pending {
   .purchase-order-flow-step__circle {
     background: #f1f5f9;
@@ -619,8 +619,6 @@
     }
   }
 }
-
-/* Bloqueado / rechazado */
 
 .purchase-order-flow-step--blocked {
   .purchase-order-flow-step__circle {
@@ -653,6 +651,7 @@
 
 .purchase-order-detail-card--half {
   min-width: 0;
+  padding-bottom: 0 !important;
 }
 
 .purchase-order-empty {
@@ -796,7 +795,7 @@
 
   color: var(--color-secundary);
   font-size: 14.5px;
-  font-weight: 850;
+  font-weight: 700;
   line-height: 1.25;
   word-break: break-word;
 }
@@ -875,179 +874,53 @@
   }
 }
 
-/* Gastos */
+/* ============================
+ * Tablas relacionadas
+ * ============================ */
 
-.purchase-order-expenses {
+.purchase-order-related-table {
   min-width: 0;
 
-  border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.purchase-order-related-table__data {
+  display: block;
+  width: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 
-.purchase-order-expenses__header,
-.purchase-order-expenses__row {
-  display: grid;
-  grid-template-columns:
-    minmax(105px, 1fr)
-    minmax(80px, 0.8fr)
-    minmax(90px, 0.85fr)
-    minmax(90px, 0.85fr)
-    minmax(90px, 0.85fr)
-    minmax(90px, 0.85fr);
-  gap: 10px;
-  align-items: center;
-
-  padding: 9px 12px;
+.purchase-order-related-table__data--expenses {
+  height: 150px;
 }
 
-.purchase-order-expenses__header {
-  background: #f8fafc;
-  color: #374151;
-  font-size: 12px;
-  font-weight: 800;
+.purchase-order-related-table__data--history {
+  height: 260px;
 }
 
-.purchase-order-expenses__row {
-  border-top: 1px solid rgba(148, 163, 184, 0.25);
-  color: #374151;
-  font-size: 12px;
-
-  strong {
-    color: var(--color-primary-strong);
-    font-weight: 800;
-  }
-}
-
-.purchase-order-expenses__balance--pending {
-  color: #dc2626;
-  font-weight: 800;
-}
-
-.purchase-order-expenses__balance--paid {
-  color: #16a34a;
-  font-weight: 800;
-}
-
-.purchase-order-expenses__footer {
-  min-height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  padding: 8px 12px;
-  border-top: 1px solid rgba(148, 163, 184, 0.25);
-  background: #ffffff;
-
-  span {
-    color: #6b7280;
-    font-size: 12px;
-  }
-}
-
-.purchase-order-expenses__button {
-  height: 28px;
-  padding-inline: 12px !important;
-  font-size: 12px;
-  font-weight: 700;
+.purchase-order-related-table > mat-paginator {
+  position: static !important;
+  flex: 0 0 auto;
+  width: 100%;
 }
 
 /* ============================
- * Historial
+ * Acción tabla gastos
  * ============================ */
 
-.purchase-order-history {
-  display: grid;
-  border: 1px solid rgba(148, 163, 184, 0.26);
-  border-radius: 12px;
-  padding: 20px;
-  gap: 0;
+.purchase-order-table-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
 }
 
-.purchase-order-history-item {
-  position: relative;
-
-  display: grid;
-  grid-template-columns:
-    38px
-    minmax(150px, 0.9fr)
-    minmax(120px, 0.8fr)
-    minmax(110px, 0.7fr)
-    minmax(160px, 0.9fr)
-    minmax(220px, 1.4fr);
-  gap: 12px;
-  align-items: center;
-
-  padding: 8px 0;
-
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-
-  &:last-child {
-    border-bottom: 0;
-  }
-
-  > strong {
-    color: var(--color-secundary);
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  > span {
-    color: #374151;
-    font-size: 12px;
-  }
-
-  > p {
-    margin: 0;
-    color: #374151;
-    font-size: 12px;
-    line-height: 1.35;
-  }
-}
-
-.purchase-order-history-item__icon {
-  width: 26px;
-  height: 26px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 999px;
-  background: #e5f3ff;
-  color: #1164a3;
-
-  mat-icon {
-    width: 15px;
-    height: 15px;
-    font-size: 15px;
-  }
-}
-
-.purchase-order-history-item--success .purchase-order-history-item__icon {
-  background: #e9f7ef;
-  color: #287348;
-}
-
-.purchase-order-history-item--warning .purchase-order-history-item__icon {
-  background: #fff8ed;
-  color: #b45309;
-}
-
-.purchase-order-history-item--danger .purchase-order-history-item__icon {
-  background: #fee2e2;
-  color: #b91c1c;
-}
-
-.purchase-order-history-item--primary .purchase-order-history-item__icon {
-  background: rgba(39, 170, 225, 0.14);
-  color: var(--color-primary-strong);
-}
-
-.purchase-order-history-item--neutral .purchase-order-history-item__icon {
-  background: #f1f5f9;
-  color: #475569;
+.purchase-order-table-action__button {
+  height: 30px;
+  padding-inline: 12px !important;
+  font-size: 12px;
+  font-weight: 800;
 }
 
 /* ============================
@@ -1082,14 +955,6 @@
   .purchase-order-flow-step__line {
     display: none;
   }
-
-  .purchase-order-history-item {
-    grid-template-columns: 38px minmax(140px, 0.8fr) minmax(120px, 0.7fr) minmax(110px, 0.7fr);
-  }
-
-  .purchase-order-history-item > p {
-    grid-column: 2 / -1;
-  }
 }
 
 @media screen and (max-width: 1040px) {
@@ -1110,6 +975,9 @@
   .purchase-order-detail-card {
     padding: 13px;
   }
+  .purchase-order-detail-card--half {
+    padding: 13px !important;
+  }
 
   .purchase-order-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1121,34 +989,12 @@
     grid-template-columns: 150px minmax(0, 1fr);
   }
 
-  .purchase-order-expenses {
-    overflow-x: auto;
+  .purchase-order-related-table__data--expenses {
+    height: 180px;
   }
 
-  .purchase-order-expenses__header,
-  .purchase-order-expenses__row {
-    min-width: 720px;
-  }
-
-  .purchase-order-history {
-    gap: 10px;
-  }
-
-  .purchase-order-history-item {
-    grid-template-columns: 32px 1fr;
-    gap: 8px 10px;
-
-    padding: 10px;
-    border: 1px solid rgba(148, 163, 184, 0.28);
-    border-radius: 10px;
-    background: #f9fafb;
-
-    > strong,
-    > span,
-    > p,
-    > .purchase-order-detail-chip {
-      grid-column: 2 / -1;
-    }
+  .purchase-order-related-table__data--history {
+    height: 300px;
   }
 }
 
