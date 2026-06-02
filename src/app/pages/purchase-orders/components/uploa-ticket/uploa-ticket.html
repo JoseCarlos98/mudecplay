@@ -11,41 +11,9 @@
 
             <form class="ticket-upload-form" [formGroup]="form" (ngSubmit)="save()">
                 <section class="ticket-upload-section">
-                    <label class="ticket-upload-label">
-                        Proyecto <span>*</span>
-                    </label>
-
-                    <div class="ticket-project-autocomplete">
-                        <input type="text" formControlName="project_search" placeholder="Buscar proyecto"
-                            autocomplete="off" (focus)="onProjectFocus()" (input)="onProjectSearch()"
-                            (blur)="onBlurProject()" />
-
-                        <mat-icon>search</mat-icon>
-
-                        @if (showProjectOptions) {
-                        <div class="ticket-project-options">
-                            @if (filteredProjects.length === 0) {
-                            <button type="button" class="ticket-project-options__empty" disabled>
-                                No se encontraron proyectos
-                            </button>
-                            } @else {
-                            @for (project of filteredProjects; track project.id) {
-                            <button type="button" class="ticket-project-options__item"
-                                (mousedown)="selectProject(project)">
-                                <mat-icon>folder</mat-icon>
-                                <span>{{ project.name }}</span>
-                            </button>
-                            }
-                            }
-                        </div>
-                        }
-                    </div>
-
-                    @if (form.controls.project_search.touched && form.controls.project_id.invalid) {
-                    <small class="ticket-upload-error">
-                        Selecciona un proyecto válido.
-                    </small>
-                    }
+                    <app-autocomplete formControlName="project_id" label="Proyecto" placeholder="Buscar proyecto"
+                        [remote]="true" catalogType="project">
+                    </app-autocomplete>
                 </section>
 
                 <section class="ticket-upload-card">

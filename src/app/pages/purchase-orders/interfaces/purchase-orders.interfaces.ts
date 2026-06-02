@@ -310,3 +310,44 @@ export interface PurchaseOrderAuthorizerSaveResponse {
   data: PurchaseOrderAuthorizerDto;
 }
 
+
+
+export interface GetTicketPhotoUploadUrlDto {
+  fileName: string;
+  fileType: string;
+}
+
+export interface TicketPhotoUploadUrlResponse {
+  uploadUrl: string;
+  key: string;
+  publicUrl: string;
+}
+
+export interface CreateTicketPhotoDto {
+  purchase_order_id?: number | null;
+  project_id?: number | null;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+  s3_key: string;
+  public_url: string;
+  notes?: string | null;
+}
+
+export interface CreateTicketPhotoResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    purchase_order_id: number | null;
+    project_id: number | null;
+    file_name: string | null;
+    mime_type: string | null;
+    size_bytes: number | null;
+    s3_key: string;
+    public_url: string;
+    status: string;
+    notes: string | null;
+    created_at: string;
+  };
+}

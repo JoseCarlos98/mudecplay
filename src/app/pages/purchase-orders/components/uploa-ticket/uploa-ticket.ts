@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { catchError, finalize, switchMap, throwError } from 'rxjs';
 
-interface TicketProjectOption {
-  id: number;
-  name: string;
-}
+import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { Catalog } from '../../../../shared/interfaces/general-interfaces';
+import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 
 interface TicketFilePreview {
   name: string;
@@ -17,70 +18,38 @@ interface TicketFilePreview {
 
 @Component({
   selector: 'app-uploa-ticket',
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    Autocomplete,
+  ],
   templateUrl: './uploa-ticket.html',
   styleUrl: './uploa-ticket.scss',
 })
 export class UploaTicket {
-  private readonly fb = new FormBuilder();
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly purchaseOrdersService = inject(PurchaseOrdersService);
+
+  readonly maxFileSizeMb = 10;
+  readonly maxFileSizeBytes = this.maxFileSizeMb * 1024 * 1024;
 
   readonly form = this.fb.group({
-    project_id: [null as number | null, Validators.required],
-    project_search: ['', Validators.required],
+    project_id: this.fb.control<Catalog | number | string | null>(null, {
+      validators: [Validators.required],
+    }),
   });
-
-  readonly projects: TicketProjectOption[] = [
-    { id: 15, name: 'Expansión isla' },
-    { id: 8, name: 'Urban Hub' },
-    { id: 11, name: 'Edificio Magda' },
-    { id: 22, name: 'Casa modelo norte' },
-  ];
-
-  filteredProjects: TicketProjectOption[] = [...this.projects];
 
   selectedFile: File | null = null;
   filePreview: TicketFilePreview | null = null;
 
-  showProjectOptions = false;
   isDragging = false;
   saving = false;
+  errorMessage: string | null = null;
 
   get canSave(): boolean {
     return this.form.valid && !!this.selectedFile && !this.saving;
-  }
-
-  onProjectFocus(): void {
-    this.showProjectOptions = true;
-    this.filterProjects();
-  }
-
-  onProjectSearch(): void {
-    this.form.patchValue({ project_id: null }, { emitEvent: false });
-    this.showProjectOptions = true;
-    this.filterProjects();
-  }
-
-  selectProject(project: TicketProjectOption): void {
-    this.form.patchValue({
-      project_id: project.id,
-      project_search: project.name,
-    });
-
-    this.showProjectOptions = false;
-  }
-
-  private filterProjects(): void {
-    const search = this.form.controls.project_search.value?.trim().toLowerCase() ?? '';
-
-    this.filteredProjects = this.projects.filter((project) =>
-      project.name.toLowerCase().includes(search),
-    );
-  }
-
-  onBlurProject(): void {
-    setTimeout(() => {
-      this.showProjectOptions = false;
-    }, 180);
   }
 
   onDragOver(event: DragEvent): void {
@@ -118,38 +87,120 @@ export class UploaTicket {
   removeFile(): void {
     this.selectedFile = null;
     this.filePreview = null;
+    this.errorMessage = null;
   }
 
   cancel(): void {
     this.form.reset({
       project_id: null,
-      project_search: '',
     });
 
     this.removeFile();
   }
 
+  goBack(): void {
+    this.router.navigateByUrl('/ordenes-compra');
+  }
+
   save(): void {
+    this.errorMessage = null;
+
     if (!this.canSave) {
       this.form.markAllAsTouched();
+
+      if (!this.selectedFile) {
+        this.errorMessage = 'Debes seleccionar una foto del ticket.';
+      }
+
+      return;
+    }
+
+    const projectId = this.getCatalogId(this.form.getRawValue().project_id);
+    const file = this.selectedFile;
+
+    if (!projectId) {
+      this.form.controls.project_id.setErrors({ required: true });
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Debes seleccionar un proyecto válido.';
+      return;
+    }
+
+    if (!file) {
+      this.errorMessage = 'Debes seleccionar una foto del ticket.';
       return;
     }
 
     this.saving = true;
 
-    setTimeout(() => {
-      this.saving = false;
-      console.log('Ticket listo para subir:', {
-        project_id: this.form.value.project_id,
-        file: this.selectedFile,
+    this.purchaseOrdersService
+      .getTicketPhotoUploadUrl({
+        fileName: file.name,
+        fileType: this.getFileMimeType(file),
+      })
+      .pipe(
+        switchMap((uploadData) =>
+          this.purchaseOrdersService
+            .uploadTicketPhotoToStorage(uploadData.uploadUrl, file)
+            .pipe(
+              switchMap(() =>
+                this.purchaseOrdersService.createTicketPhoto({
+                  purchase_order_id: null,
+                  project_id: projectId,
+                  file_name: file.name,
+                  mime_type: this.getFileMimeType(file),
+                  size_bytes: file.size,
+                  s3_key: uploadData.key,
+                  public_url: uploadData.publicUrl,
+                  notes: null,
+                }),
+              ),
+            ),
+        ),
+        catchError((err) => {
+          console.error('Error al subir ticket:', err);
+
+          this.errorMessage =
+            err?.error?.message ||
+            'No se pudo subir el ticket. Intenta nuevamente.';
+
+          return throwError(() => err);
+        }),
+        finalize(() => {
+          this.saving = false;
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.form.reset({
+            project_id: null,
+          });
+
+          this.removeFile();
+
+          // Después podemos cambiar esto por snackbar o redirección.
+          console.log('Ticket subido correctamente.');
+        },
       });
-    }, 800);
   }
 
   private setFile(file: File): void {
-    this.selectedFile = file;
+    this.errorMessage = null;
 
-    const isImage = file.type.startsWith('image/');
+    if (!this.isValidImage(file)) {
+      this.selectedFile = null;
+      this.filePreview = null;
+      this.errorMessage = 'Solo puedes subir imágenes JPG, PNG, WEBP o HEIC.';
+      return;
+    }
+
+    if (file.size > this.maxFileSizeBytes) {
+      this.selectedFile = null;
+      this.filePreview = null;
+      this.errorMessage = `La imagen no puede pesar más de ${this.maxFileSizeMb} MB.`;
+      return;
+    }
+
+    this.selectedFile = file;
 
     this.filePreview = {
       name: file.name,
@@ -157,8 +208,6 @@ export class UploaTicket {
       typeLabel: this.getFileTypeLabel(file),
       previewUrl: null,
     };
-
-    if (!isImage) return;
 
     const reader = new FileReader();
 
@@ -170,6 +219,31 @@ export class UploaTicket {
     };
 
     reader.readAsDataURL(file);
+  }
+
+  private isValidImage(file: File): boolean {
+    const mimeType = this.getFileMimeType(file).toLowerCase();
+    const extension = file.name.split('.').pop()?.toLowerCase();
+
+    const allowedMimeTypes = [
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/webp',
+      'image/heic',
+      'image/heif',
+    ];
+
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+
+    return (
+      allowedMimeTypes.includes(mimeType) ||
+      !!extension && allowedExtensions.includes(extension)
+    );
+  }
+
+  private getFileMimeType(file: File): string {
+    return file.type || 'application/octet-stream';
   }
 
   private formatFileSize(size: number): string {
@@ -185,6 +259,25 @@ export class UploaTicket {
   private getFileTypeLabel(file: File): string {
     const extension = file.name.split('.').pop()?.toUpperCase();
 
-    return extension || 'Archivo';
+    return extension || 'Imagen';
+  }
+
+  private getCatalogId(value: Catalog | number | string | null): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    if (typeof value === 'number') {
+      return Number.isFinite(value) ? value : null;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    const parsed = Number(value.id);
+
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }
