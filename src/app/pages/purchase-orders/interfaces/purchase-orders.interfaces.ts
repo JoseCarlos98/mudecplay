@@ -351,3 +351,30 @@ export interface CreateTicketPhotoResponse {
     created_at: string;
   };
 }
+
+export interface FiltersTicketPhotos {
+  page: number;
+  limit: number;
+  project_id?: number | null;
+}
+
+export interface PendingTicketPhotosPaginatedResponse {
+  data: PurchaseOrderTicketPhotoDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PendingTicketPhotoRow {
+  id: number;
+  preview_url: string | null;
+  file_name: string;
+  project_name: string;
+  uploaded_by_name: string;
+  status: string;
+  status_label: string;
+  created_at: string;
+  created_at_date: string;
+  public_url: string | null;
+}

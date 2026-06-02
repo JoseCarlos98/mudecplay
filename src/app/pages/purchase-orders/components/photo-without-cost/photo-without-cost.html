@@ -1,0 +1,68 @@
+<div class="c-table-page">
+  <div class="card-content shadow-md">
+    <app-module-header
+      title="Fotos sin gasto"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
+    </app-module-header>
+
+    <form [formGroup]="formFilters">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+        <app-autocomplete
+          formControlName="project"
+          label="Proyecto"
+          placeholder="Buscar proyecto"
+          [remote]="true"
+          catalogType="project">
+        </app-autocomplete>
+
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+    </form>
+  </div>
+
+  @if (photoTicketsTableData?.data) {
+    <div class="c-module-table">
+      @if (photos.length === 0 && !loadingTable()) {
+        <div class="photo-without-cost-empty">
+          <mat-icon>image_not_supported</mat-icon>
+          <strong>No hay fotos pendientes</strong>
+          <p>
+            Cuando un trabajador suba un ticket, aparecerá aquí para revisión.
+          </p>
+        </div>
+      } @else {
+        <app-data-table
+          [data]="photos"
+          [columnsConfig]="columnsConfig"
+          [displayedColumns]="displayedColumns"
+          [extraActions]="extraActions"
+          [actionPermissions]="{
+            showEdit: false,
+            showDelete: false
+          }"
+          (action)="onTableAction($event)">
+        </app-data-table>
+
+        <mat-paginator
+          [length]="photoTicketsTableData.total"
+          [pageSize]="filters.limit"
+          [pageIndex]="filters.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      }
+    </div>
+  }
+</div>
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando fotos pendientes...">
+</app-loading-overlay>

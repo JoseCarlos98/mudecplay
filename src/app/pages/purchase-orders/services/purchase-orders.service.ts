@@ -201,31 +201,51 @@ export class PurchaseOrdersService {
   }
 
   getTicketPhotoUploadUrl(
-  payload: entity.GetTicketPhotoUploadUrlDto,
-): Observable<entity.TicketPhotoUploadUrlResponse> {
-  return this.http.post<entity.TicketPhotoUploadUrlResponse>(
-    `${this.apiUrl}/ticket-photos/upload-url`,
-    payload,
-  );
-}
+    payload: entity.GetTicketPhotoUploadUrlDto,
+  ): Observable<entity.TicketPhotoUploadUrlResponse> {
+    return this.http.post<entity.TicketPhotoUploadUrlResponse>(
+      `${this.apiUrl}/ticket-photos/upload-url`,
+      payload,
+    );
+  }
 
-uploadTicketPhotoToStorage(
-  uploadUrl: string,
-  file: File,
-): Observable<void> {
-  return this.http.put<void>(uploadUrl, file, {
-    headers: {
-      'Content-Type': file.type,
-    },
-  });
-}
+  uploadTicketPhotoToStorage(
+    uploadUrl: string,
+    file: File,
+  ): Observable<void> {
+    return this.http.put<void>(uploadUrl, file, {
+      headers: {
+        'Content-Type': file.type,
+      },
+    });
+  }
 
-createTicketPhoto(
-  payload: entity.CreateTicketPhotoDto,
-): Observable<entity.CreateTicketPhotoResponse> {
-  return this.http.post<entity.CreateTicketPhotoResponse>(
-    `${this.apiUrl}/ticket-photos`,
-    payload,
+  createTicketPhoto(
+    payload: entity.CreateTicketPhotoDto,
+  ): Observable<entity.CreateTicketPhotoResponse> {
+    return this.http.post<entity.CreateTicketPhotoResponse>(
+      `${this.apiUrl}/ticket-photos`,
+      payload,
+    );
+  }
+
+  getPendingTicketPhotos(
+  filters?: entity.FiltersTicketPhotos,
+): Observable<entity.PendingTicketPhotosPaginatedResponse> {
+  let params = new HttpParams();
+
+  if (filters) {
+    params = params.set('page', String(filters.page));
+    params = params.set('limit', String(filters.limit));
+
+    if (filters.project_id) {
+      params = params.set('project_id', String(filters.project_id));
+    }
+  }
+
+  return this.http.get<entity.PendingTicketPhotosPaginatedResponse>(
+    `${this.apiUrl}/ticket-photos/pending`,
+    { params },
   );
 }
 }
