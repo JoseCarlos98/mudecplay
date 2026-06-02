@@ -30,6 +30,24 @@ interface BasicRef {
   name: string;
 }
 
+interface PurchaseOrderHistoryEventResponse {
+  id: number;
+  event_type: string;
+  title: string;
+  description: string | null;
+  performed_by_user: {
+    id: number;
+    name: string;
+  } | null;
+  performed_by_name: string | null;
+  tag: string;
+  tag_variant: DetailStatusVariant;
+  icon: string;
+  metadata: Record<string, any> | null;
+  created_at: string;
+}
+
+
 interface PurchaseOrderDetailInfoItem {
   label: string;
   value: string;
@@ -107,6 +125,7 @@ interface PurchaseOrderFlowDetailResponse {
   destination_type_label: string;
   will_have_invoice: boolean;
   will_have_invoice_label: string;
+  history?: PurchaseOrderHistoryEventResponse[];
   concept: string;
   requested_amount: number;
   status: string;
@@ -558,8 +577,37 @@ export class PurchaseOrderDetails implements OnInit {
       },
     ];
   }
-
   private buildHistory(
+    detail: PurchaseOrderFlowDetailResponse,
+  ): PurchaseOrderHistoryItem[] {
+    if (Array.isArray(detail.history) && detail.history.length > 0) {
+      return detail.history.map((event) => this.mapHistoryEvent(event));
+    }
+
+    return this.buildFallbackHistory(detail);
+  }
+
+  private mapHistoryEvent(
+    event: PurchaseOrderHistoryEventResponse,
+  ): PurchaseOrderHistoryItem {
+    return {
+      id: event.id,
+      title: event.title || this.getHistoryTitleByType(event.event_type),
+      user:
+        event.performed_by_user?.name ??
+        event.performed_by_name ??
+        'Sistema',
+      tag: event.tag || this.getHistoryTagByType(event.event_type),
+      tagVariant: event.tag_variant ?? this.getHistoryVariantByType(event.event_type),
+      date: this.formatDateTime(event.created_at),
+      description:
+        event.description ||
+        this.getHistoryDescriptionByType(event.event_type),
+      icon: event.icon || this.getHistoryIconByType(event.event_type),
+    };
+  }
+
+  private buildFallbackHistory(
     detail: PurchaseOrderFlowDetailResponse,
   ): PurchaseOrderHistoryItem[] {
     const rows: PurchaseOrderHistoryItem[] = [];
@@ -647,6 +695,155 @@ export class PurchaseOrderDetails implements OnInit {
     });
 
     return rows;
+  }
+
+  private getHistoryTitleByType(eventType: string): string {
+    switch (eventType) {
+      case 'created':
+        return 'Orden creada';
+
+      case 'updated':
+        return 'Orden editada';
+
+      case 'authorized':
+        return 'Orden autorizada';
+
+      case 'not_authorized':
+        return 'Orden no autorizada';
+
+      case 'cancelled':
+        return 'Orden cancelada';
+
+      case 'ticket_uploaded':
+        return 'Foto subida';
+
+      case 'ticket_reconciled':
+        return 'Foto conciliada';
+
+      case 'expense_linked':
+        return 'Gasto registrado';
+
+      default:
+        return 'Movimiento registrado';
+    }
+  }
+
+  private getHistoryTagByType(eventType: string): string {
+    switch (eventType) {
+      case 'created':
+        return 'Sistema';
+
+      case 'updated':
+        return 'Edición';
+
+      case 'authorized':
+        return 'Autorización';
+
+      case 'not_authorized':
+        return 'Rechazo';
+
+      case 'cancelled':
+        return 'Cancelación';
+
+      case 'ticket_uploaded':
+        return 'Foto';
+
+      case 'ticket_reconciled':
+        return 'Conciliación';
+
+      case 'expense_linked':
+        return 'Gasto';
+
+      default:
+        return 'Evento';
+    }
+  }
+
+  private getHistoryVariantByType(eventType: string): DetailStatusVariant {
+    switch (eventType) {
+      case 'authorized':
+        return 'success';
+
+      case 'not_authorized':
+        return 'warning';
+
+      case 'cancelled':
+        return 'danger';
+
+      case 'ticket_reconciled':
+        return 'info';
+
+      case 'expense_linked':
+        return 'primary';
+
+      case 'created':
+      case 'updated':
+      case 'ticket_uploaded':
+      default:
+        return 'info';
+    }
+  }
+
+  private getHistoryIconByType(eventType: string): string {
+    switch (eventType) {
+      case 'created':
+        return 'description';
+
+      case 'updated':
+        return 'edit';
+
+      case 'authorized':
+        return 'verified';
+
+      case 'not_authorized':
+        return 'block';
+
+      case 'cancelled':
+        return 'cancel';
+
+      case 'ticket_uploaded':
+        return 'photo_camera';
+
+      case 'ticket_reconciled':
+        return 'fact_check';
+
+      case 'expense_linked':
+        return 'receipt_long';
+
+      default:
+        return 'history';
+    }
+  }
+
+  private getHistoryDescriptionByType(eventType: string): string {
+    switch (eventType) {
+      case 'created':
+        return 'Se creó la orden de compra.';
+
+      case 'updated':
+        return 'Se editó la orden de compra.';
+
+      case 'authorized':
+        return 'La orden de compra fue autorizada.';
+
+      case 'not_authorized':
+        return 'La orden fue marcada como no autorizada.';
+
+      case 'cancelled':
+        return 'La orden fue cancelada.';
+
+      case 'ticket_uploaded':
+        return 'Se subió una foto o comprobante.';
+
+      case 'ticket_reconciled':
+        return 'La foto fue conciliada con la orden de compra.';
+
+      case 'expense_linked':
+        return 'Se registró un gasto relacionado.';
+
+      default:
+        return 'Se registró un movimiento en la orden de compra.';
+    }
   }
 
   private mapPhoto(photo: any): PurchaseOrderPhoto {

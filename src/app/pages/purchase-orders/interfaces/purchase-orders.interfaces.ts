@@ -8,6 +8,24 @@ export type PurchaseOrderStatus =
 
 export type PurchaseOrderDestinationType = 'direct' | 'warehouse';
 
+export type PurchaseOrderHistoryEventType =
+  | 'created'
+  | 'updated'
+  | 'authorized'
+  | 'not_authorized'
+  | 'cancelled'
+  | 'ticket_uploaded'
+  | 'ticket_reconciled'
+  | 'expense_linked';
+
+export type PurchaseOrderHistoryTagVariant =
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'primary';
+
 export interface PurchaseOrderUserDto {
   id: number;
   name: string;
@@ -18,6 +36,90 @@ export interface PurchaseOrderProjectDto {
   name: string;
 }
 
+export interface PurchaseOrderEmployeeDto {
+  id: number;
+  name: string;
+}
+
+export interface PurchaseOrderHistoryEventDto {
+  id: number;
+  event_type: PurchaseOrderHistoryEventType | string;
+  title: string;
+  description: string | null;
+
+  performed_by_user: PurchaseOrderUserDto | null;
+  performed_by_name: string | null;
+
+  tag: string;
+  tag_variant: PurchaseOrderHistoryTagVariant;
+  icon: string;
+
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface PurchaseOrderTicketPhotoDto {
+  id: number;
+  file_name?: string | null;
+  fileName?: string | null;
+  filename?: string | null;
+
+  status?: string | null;
+
+  public_url?: string | null;
+  publicUrl?: string | null;
+  preview_url?: string | null;
+  previewUrl?: string | null;
+  url?: string | null;
+
+  uploaded_by_user?: PurchaseOrderUserDto | null;
+  uploadedByUser?: PurchaseOrderUserDto | null;
+  user?: PurchaseOrderUserDto | null;
+
+  uploaded_at?: string | null;
+  created_at?: string | null;
+  createdAt?: string | null;
+
+  reconciled_by_user?: PurchaseOrderUserDto | null;
+  reconciled_at?: string | null;
+
+  project?: PurchaseOrderProjectDto | null;
+  notes?: string | null;
+}
+
+export interface PurchaseOrderExpenseLinkDto {
+  id: number;
+  expense_id?: number | null;
+  purchase_order_id?: number | null;
+  ticket_photo_id?: number | null;
+
+  registration_type?: 'manual' | 'xml' | string | null;
+  registration_type_label?: string | null;
+
+  amount_snapshot?: number | string | null;
+  notes?: string | null;
+  created_at?: string | null;
+
+  expense?: {
+    id: number;
+    folio?: string | null;
+    internal_folio?: string | null;
+    total?: number | string | null;
+    amount?: number | string | null;
+    total_amount?: number | string | null;
+    paid_amount?: number | string | null;
+    total_paid?: number | string | null;
+    payment_amount?: number | string | null;
+    items?: Array<{
+      payment_amount?: number | string | null;
+      paid_amount?: number | string | null;
+    }>;
+  } | null;
+
+  ticketPhoto?: PurchaseOrderTicketPhotoDto | null;
+  linkedByUser?: PurchaseOrderUserDto | null;
+}
+
 export interface PurchaseOrderResponseDto {
   id: number;
 
@@ -25,10 +127,7 @@ export interface PurchaseOrderResponseDto {
 
   project: PurchaseOrderProjectDto | null;
 
-  requested_by_employee?: {
-    id: number;
-    name: string;
-  } | null;
+  requested_by_employee?: PurchaseOrderEmployeeDto | null;
 
   destination_type: PurchaseOrderDestinationType;
   destination_type_label: string;
@@ -42,11 +141,12 @@ export interface PurchaseOrderResponseDto {
   status: PurchaseOrderStatus;
   status_label: string;
 
-  requested_by_user: PurchaseOrderUserDto | null;
+  requested_by_user?: PurchaseOrderUserDto | null;
   requested_by_name: string | null;
 
   created_by_user: PurchaseOrderUserDto | null;
 
+  authorized_by_employee?: PurchaseOrderEmployeeDto | null;
   authorized_by_name: string | null;
   authorization_registered_by_user: PurchaseOrderUserDto | null;
   authorized_at: string | null;
@@ -56,9 +156,12 @@ export interface PurchaseOrderResponseDto {
   created_at: string;
   updated_at: string;
 
-  // Campos solo cuando venga detalle
+  // Campos solo cuando venga detalle / flow-detail
   ticket_photos_count?: number;
   expense_links_count?: number;
+  ticket_photos?: PurchaseOrderTicketPhotoDto[];
+  expense_links?: PurchaseOrderExpenseLinkDto[];
+  history?: PurchaseOrderHistoryEventDto[];
 
   // Campos UI
   project_name?: string;
@@ -68,6 +171,14 @@ export interface PurchaseOrderResponseDto {
   status_name?: string;
   created_at_date?: string;
   authorized_at_date?: string | null;
+}
+
+export interface PurchaseOrderFlowDetailResponse extends PurchaseOrderResponseDto {
+  ticket_photos_count: number;
+  expense_links_count: number;
+  ticket_photos: PurchaseOrderTicketPhotoDto[];
+  expense_links: PurchaseOrderExpenseLinkDto[];
+  history: PurchaseOrderHistoryEventDto[];
 }
 
 export interface PurchaseOrdersPaginatedResponse {
@@ -152,10 +263,7 @@ export interface PurchaseOrderRequesterDto {
   employee_id: number | null;
   employee_name: string | null;
   is_active: boolean;
-  created_by_user: {
-    id: number;
-    name: string;
-  } | null;
+  created_by_user: PurchaseOrderUserDto | null;
   created_at: string;
   updated_at: string;
 }
@@ -187,10 +295,7 @@ export interface PurchaseOrderAuthorizerDto {
   employee_id: number | null;
   employee_name: string | null;
   is_active: boolean;
-  created_by_user: {
-    id: number;
-    name: string;
-  } | null;
+  created_by_user: PurchaseOrderUserDto | null;
   created_at: string;
   updated_at: string;
 }
@@ -204,3 +309,4 @@ export interface PurchaseOrderAuthorizerSaveResponse {
   message: string;
   data: PurchaseOrderAuthorizerDto;
 }
+

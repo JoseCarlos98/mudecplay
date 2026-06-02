@@ -110,6 +110,12 @@ export class Sidebar {
           roles: ['ORDENES_COMPRA_EDITOR'],
         },
         {
+          name: 'Subir Ticket de gasto',
+          icon: 'image_search',
+          route: '/ordenes-compra/subir-ticket-gasto',
+          // roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+        {
           name: 'Fotos sin gasto',
           icon: 'image_search',
           route: '/ordenes-compra/fotos-sin-gasto',

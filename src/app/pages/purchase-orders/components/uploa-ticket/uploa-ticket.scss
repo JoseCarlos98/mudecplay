@@ -1,0 +1,507 @@
+:host {
+  display: block;
+}
+
+.ticket-upload-page {
+  width: 100%;
+  min-height: 100%;
+
+  display: flex;
+  justify-content: center;
+
+  padding: 12px;
+  background: transparent;
+}
+
+.ticket-upload-shell {
+  width: 100%;
+  max-width: 430px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.ticket-upload-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 6px 2px 0;
+}
+
+.ticket-upload-header__back {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+
+  display: grid;
+  place-items: center;
+
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+
+  mat-icon {
+    width: 22px;
+    height: 22px;
+    font-size: 22px;
+  }
+}
+
+.ticket-upload-header__content {
+  min-width: 0;
+  padding-top: 2px;
+
+  h1 {
+    margin: 0;
+    color: var(--color-secundary);
+    font-size: 23px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+}
+
+.ticket-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ticket-upload-section {
+  display: grid;
+  gap: 7px;
+}
+
+.ticket-upload-label {
+  color: var(--color-secundary);
+  font-size: 14px;
+  font-weight: 800;
+
+  span {
+    color: #dc2626;
+  }
+}
+
+.ticket-project-autocomplete {
+  position: relative;
+
+  input {
+    width: 100%;
+    height: 44px;
+
+    padding: 0 42px 0 12px;
+
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 10px;
+    background: #ffffff;
+
+    color: var(--color-secundary);
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: rgba(30, 134, 177, 0.7);
+      box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.12);
+    }
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+
+  > mat-icon {
+    position: absolute;
+    top: 11px;
+    right: 12px;
+
+    width: 21px;
+    height: 21px;
+    font-size: 21px;
+    color: #64748b;
+    pointer-events: none;
+  }
+}
+
+.ticket-project-options {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.12);
+}
+
+.ticket-project-options__item,
+.ticket-project-options__empty {
+  width: 100%;
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 12px;
+
+  border: 0;
+  background: #ffffff;
+  color: var(--color-secundary);
+  font-size: 13px;
+  text-align: left;
+
+  mat-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
+    color: var(--color-primary-strong);
+  }
+}
+
+.ticket-project-options__item {
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f9fc;
+  }
+}
+
+.ticket-project-options__empty {
+  color: #94a3b8;
+}
+
+.ticket-upload-error {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ticket-upload-card {
+  display: grid;
+  gap: 14px;
+
+  padding: 14px;
+  border-radius: 14px;
+}
+
+.ticket-upload-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  > strong {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(39, 170, 225, 0.12);
+    color: var(--color-primary-strong);
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+  }
+}
+
+.ticket-upload-card__title {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  > span {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 10px;
+    background: #e5f3ff;
+    color: var(--color-primary-strong);
+  }
+
+  mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
+  }
+
+  h2 {
+    margin: 0;
+    color: var(--color-secundary);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 2px 0 0;
+    color: #64748b;
+    font-size: 12px;
+  }
+}
+
+.ticket-upload-dropzone {
+  min-height: 210px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 16px;
+
+  border: 1.5px dashed rgba(30, 134, 177, 0.55);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(39, 170, 225, 0.08) 0, transparent 35%),
+    #fbfdff;
+
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+
+  input {
+    display: none;
+  }
+}
+
+.ticket-upload-dropzone--active {
+  border-color: var(--color-primary-strong);
+  background: #f3f9fc;
+  box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.13);
+}
+
+.ticket-upload-dropzone--filled {
+  min-height: unset;
+  padding: 10px;
+  border-style: solid;
+}
+
+.ticket-upload-dropzone__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+
+  text-align: center;
+
+  > span {
+    width: 58px;
+    height: 58px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 999px;
+    background: #e5f3ff;
+    color: var(--color-primary-strong);
+
+    mat-icon {
+      width: 29px;
+      height: 29px;
+      font-size: 29px;
+    }
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+    font-size: 12px;
+  }
+}
+
+.ticket-upload-preview {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+}
+
+.ticket-upload-preview__image {
+  width: 86px;
+  height: 86px;
+
+  overflow: hidden;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  mat-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 30px;
+  }
+}
+
+.ticket-upload-preview__info {
+  min-width: 0;
+
+  display: grid;
+  gap: 4px;
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.25;
+    word-break: break-word;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  em {
+    width: fit-content;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    margin-top: 4px;
+    padding: 3px 8px;
+
+    border-radius: 999px;
+    background: #e9f7ef;
+    color: #287348;
+
+    font-style: normal;
+    font-size: 11px;
+    font-weight: 800;
+
+    mat-icon {
+      width: 13px;
+      height: 13px;
+      font-size: 13px;
+    }
+  }
+}
+
+.ticket-upload-remove {
+  width: 100%;
+  min-height: 38px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  border: 1px solid #fecaca;
+  border-radius: 9px;
+  background: #fff;
+  color: #dc2626;
+
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+.ticket-upload-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+
+  padding: 11px 12px;
+
+  border: 1px solid rgba(39, 170, 225, 0.25);
+  border-radius: 10px;
+  background: #f4fbff;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    font-size: 18px;
+    color: var(--color-primary-strong);
+  }
+
+  p {
+    margin: 0;
+    color: #475569;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+}
+
+.ticket-upload-actions {
+  position: sticky;
+  bottom: 0;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  padding: 10px 0 4px;
+}
+
+.ticket-upload-actions__button {
+  min-height: 42px;
+  border-radius: 9px !important;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ticket-upload-actions__button--primary {
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+@media screen and (max-width: 420px) {
+  .ticket-upload-page {
+    padding: 10px;
+  }
+
+  .ticket-upload-header__content h1 {
+    font-size: 21px;
+  }
+
+  .ticket-upload-card {
+    padding: 12px;
+  }
+
+  .ticket-upload-dropzone {
+    min-height: 190px;
+  }
+}

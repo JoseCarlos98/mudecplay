@@ -33,6 +33,14 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
   },
+  {
+    path: 'subir-ticket-gasto',
+    loadComponent: () =>
+      import('./components/uploa-ticket/uploa-ticket')
+        .then((m) => m.UploaTicket),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
 
   // {
   //   path: 'conciliacion',
