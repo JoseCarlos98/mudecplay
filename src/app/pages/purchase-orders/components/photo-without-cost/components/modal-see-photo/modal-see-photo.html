@@ -1,0 +1,77 @@
+<div class="c-modal c-modal--see-photo">
+  <app-module-header
+    [title]="'Ver foto del ticket'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="see-photo-body">
+    <div class="c-info-card c-info-card--info mb-0">
+      <div class="c-info-card__icon">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+
+      <div class="c-info-card__content">
+        <h3 class="c-info-card__title">
+          {{ fileName }}
+        </h3>
+
+        <div class="c-info-card__grid">
+          <span class="c-info-card__item">
+            Proyecto:
+            <strong>{{ projectName }}</strong>
+          </span>
+
+          <span class="c-info-card__item">
+            Subido por:
+            <strong>{{ uploadedByName }}</strong>
+          </span>
+
+          <span class="c-info-card__item">
+            Fecha:
+            <strong>{{ createdAt }}</strong>
+          </span>
+
+          <span class="c-info-card__item">
+            Estatus:
+            <strong>{{ statusLabel }}</strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <section class="see-photo-preview">
+      @if (loadingPhoto()) {
+        <app-loading-overlay
+          [visible]="true"
+          [fullscreen]="false"
+          text="Cargando foto...">
+        </app-loading-overlay>
+      }
+
+      @if (!loadingPhoto() && photoUrl && !imageError) {
+        <img
+          [src]="photoUrl"
+          [alt]="fileName"
+          (error)="onImageError()" />
+      }
+
+      @if (!loadingPhoto() && (!photoUrl || imageError || errorMessage)) {
+        <div class="see-photo-preview__empty">
+          <mat-icon>broken_image</mat-icon>
+          <strong>No se pudo mostrar la imagen</strong>
+          <p>
+            {{ errorMessage || 'La foto no está disponible.' }}
+          </p>
+        </div>
+      }
+    </section>
+
+    <app-btns-section
+      class="modal-actions-spacer"
+      type="save"
+      [saveDisabled]="!photoUrl"
+      (action)="onBtnsSectionAction($event)">
+    </app-btns-section>
+  </div>
+</div>

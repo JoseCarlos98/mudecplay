@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
@@ -19,6 +19,7 @@ import {
   DataTableExtraAction,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
@@ -28,12 +29,14 @@ import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 // Interfaces
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import * as entity from '../../interfaces/purchase-orders.interfaces';
-import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
+import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalSeePhoto } from './components/modal-see-photo/modal-see-photo';
+import { ModalConciliarPhoto } from './components/modal-conciliar-photo/modal-conciliar-photo';
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
-
 const PHOTO_WITHOUT_COST_FILTERS_KEY = 'mp_purchase_order_pending_photos_filters_v1';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
@@ -62,14 +65,27 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     key: 'status_label',
     label: 'Estatus',
     type: 'chip',
-    variantResolver: (row: entity.PendingTicketPhotoRow) =>
-      resolvePhotoStatusVariant(row),
+    variantResolver: (row: entity.PendingTicketPhotoRow) => resolvePhotoStatusVariant(row),
   },
 ];
 
-function resolvePhotoStatusVariant(
-  row: entity.PendingTicketPhotoRow,
-): ColumnVariant {
+const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((column) => column.key), 'actions'];
+
+const PAGE_SIZE_OPTIONS: number[] = [5, 10, 25, 50];
+
+type PhotoWithoutCostTableExtraAction = DataTableExtraAction<entity.PendingTicketPhotoRow>;
+
+type PhotoWithoutCostAction = DataTableActionEvent<entity.PendingTicketPhotoRow>;
+
+interface PendingTicketPhotosTableData {
+  data: entity.PendingTicketPhotoRow[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+function resolvePhotoStatusVariant(row: entity.PendingTicketPhotoRow): ColumnVariant {
   switch (row.status) {
     case 'reconciled':
       return 'chip-success';
@@ -83,25 +99,6 @@ function resolvePhotoStatusVariant(
   }
 }
 
-const DISPLAYED_COLUMNS: string[] = [
-  ...COLUMNS_CONFIG.map((column) => column.key),
-  'actions',
-];
-
-type PhotoWithoutCostTableExtraAction =
-  DataTableExtraAction<entity.PendingTicketPhotoRow>;
-
-type PhotoWithoutCostAction =
-  DataTableActionEvent<entity.PendingTicketPhotoRow>;
-
-interface PendingTicketPhotosTableData {
-  data: entity.PendingTicketPhotoRow[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 @Component({
   selector: 'app-photo-without-cost',
   standalone: true,
@@ -113,12 +110,13 @@ interface PendingTicketPhotosTableData {
     ModuleHeader,
     DataTable,
     Autocomplete,
+    BtnsSection,
     LoadingOverlay,
+    SearchMultiSelect,
 
     // Angular Material
     MatIconModule,
     MatPaginatorModule,
-    BtnsSection
   ],
   templateUrl: './photo-without-cost.html',
   styleUrl: './photo-without-cost.scss',
@@ -131,16 +129,33 @@ export class PhotoWithoutCost implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
-
+  private readonly dialogService = inject(DialogService);
   // ==========================
   //  CONFIG UI
   // ==========================
   readonly headerConfig = HEADER_CONFIG;
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
-  readonly pageSizeOptions: number[] = [5, 10, 20, 50];
+  readonly pageSizeOptions = PAGE_SIZE_OPTIONS;
 
   readonly loadingTable = signal(false);
+
+  readonly extraActions: PhotoWithoutCostTableExtraAction[] = [
+    {
+      type: 'viewPhoto',
+      icon: 'visibility',
+      tooltip: () => 'Ver foto',
+      visible: () => true,
+      disabled: (row) => !row.public_url,
+    },
+    {
+      type: 'reconcilePhoto',
+      icon: 'fact_check',
+      tooltip: () => 'Conciliar con O.C.',
+      visible: () => true,
+      disabled: () => false,
+    },
+  ];
 
   // ==========================
   //  ESTADO / DATA
@@ -163,23 +178,6 @@ export class PhotoWithoutCost implements OnInit {
     project: this.fb.control<Catalog | number | string | null>(null),
   });
 
-  readonly extraActions: PhotoWithoutCostTableExtraAction[] = [
-    {
-      type: 'viewPhoto',
-      icon: 'visibility',
-      tooltip: () => 'Ver foto',
-      visible: () => true,
-      disabled: (row) => !row.public_url,
-    },
-    {
-      type: 'reconcilePhoto',
-      icon: 'fact_check',
-      tooltip: () => 'Conciliar con O.C.',
-      visible: () => true,
-      disabled: () => false,
-    },
-  ];
-
   // ==========================
   //  CICLO DE VIDA
   // ==========================
@@ -196,26 +194,32 @@ export class PhotoWithoutCost implements OnInit {
     return !!this.getCatalogId(value.project ?? null);
   }
 
+  get photos(): entity.PendingTicketPhotoRow[] {
+    return this.photoTicketsTableData?.data ?? [];
+  }
+
   get totalPhotos(): number {
     return this.photoTicketsTableData?.total ?? 0;
   }
 
-  get photos(): entity.PendingTicketPhotoRow[] {
-    return this.photoTicketsTableData?.data ?? [];
-
-  }
-
   // ==========================
-  //  FILTROS
+  //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  searchWithFilters(): void {
+  private buildBackendFiltersFromUi(): entity.FiltersTicketPhotos {
     const value = this.formFilters.getRawValue();
 
-    this.filters = {
+    return {
       page: 1,
       limit: this.filters.limit,
       project_id: this.getCatalogId(value.project ?? null),
     };
+  }
+
+  // ==========================
+  //  FILTROS + BÚSQUEDA
+  // ==========================
+  searchWithFilters(): void {
+    this.filters = this.buildBackendFiltersFromUi();
 
     this.saveFiltersToStorage();
     this.loadPhotos();
@@ -254,9 +258,7 @@ export class PhotoWithoutCost implements OnInit {
         next: (response) => {
           this.photoTicketsTableData = {
             ...response,
-            data: (response.data ?? []).map((photo) =>
-              this.mapPhotoRow(photo),
-            ),
+            data: (response.data ?? []).map((photo) => this.mapPhotoRow(photo)),
           };
         },
         error: (err) => {
@@ -273,13 +275,8 @@ export class PhotoWithoutCost implements OnInit {
       });
   }
 
-  private mapPhotoRow(
-    photo: entity.PurchaseOrderTicketPhotoDto,
-  ): entity.PendingTicketPhotoRow {
-    const createdAt =
-      photo.created_at ??
-      photo.createdAt ??
-      '';
+  private mapPhotoRow(photo: entity.PurchaseOrderTicketPhotoDto): entity.PendingTicketPhotoRow {
+    const createdAt = photo.created_at ?? photo.createdAt ?? '';
 
     const publicUrl =
       photo.public_url ??
@@ -292,11 +289,7 @@ export class PhotoWithoutCost implements OnInit {
     return {
       id: photo.id,
       preview_url: publicUrl,
-      file_name:
-        photo.file_name ??
-        photo.fileName ??
-        photo.filename ??
-        'Foto sin nombre',
+      file_name: photo.file_name ?? photo.fileName ?? photo.filename ?? 'Foto sin nombre',
       project_name: photo.project?.name ?? 'Sin proyecto',
       uploaded_by_name:
         photo.uploaded_by_user?.name ??
@@ -305,6 +298,7 @@ export class PhotoWithoutCost implements OnInit {
         'Sin dato',
       status: photo.status ?? 'pending',
       status_label: this.getPhotoStatusLabel(photo.status ?? 'pending'),
+      project_id: photo.project?.id ?? null,
       created_at: createdAt,
       created_at_date: createdAt,
       public_url: publicUrl,
@@ -336,20 +330,24 @@ export class PhotoWithoutCost implements OnInit {
     }
   }
 
+  // ==========================
+  //  ACCIONES FOOTER-FILTROS
+  // ==========================
   onBtnsSectionAction(action: string): void {
-  switch (action) {
-    case 'search':
-      this.searchWithFilters();
-      break;
+    switch (action) {
+      case 'search':
+        this.searchWithFilters();
+        break;
 
-    case 'clean':
-      this.clearAllAndSearch();
-      break;
+      case 'clean':
+        this.clearAllAndSearch();
+        break;
 
-    default:
-      break;
+      default:
+        break;
+    }
   }
-}
+
   // ==========================
   //  ACCIONES TABLA
   // ==========================
@@ -369,19 +367,22 @@ export class PhotoWithoutCost implements OnInit {
   }
 
   private viewPhoto(row: entity.PendingTicketPhotoRow): void {
-    if (!row.public_url) return;
+    if (!row?.id) return;
 
-    window.open(row.public_url, '_blank', 'noopener,noreferrer');
+    this.dialogService.open(ModalSeePhoto, row, 'medium');
   }
 
   private reconcilePhoto(row: entity.PendingTicketPhotoRow): void {
-    console.log('Conciliar foto pendiente:', row);
+    if (!row?.id) return;
 
-    /**
-     * Siguiente paso:
-     * abrir modal para seleccionar O.C. autorizada
-     * y llamar PATCH /purchase-orders/ticket-photos/:photoId/reconcile
-     */
+    this.dialogService
+      .open(ModalConciliarPhoto, row, 'large')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPhotos();
+        }
+      });
   }
 
   // ==========================

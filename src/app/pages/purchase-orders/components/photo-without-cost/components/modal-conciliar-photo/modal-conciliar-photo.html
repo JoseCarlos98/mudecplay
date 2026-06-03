@@ -1,0 +1,200 @@
+<div class="c-modal c-modal--conciliar-photo">
+  <app-module-header
+    [title]="'Conciliar foto con O.C.'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="conciliar-photo-body">
+    <section class="conciliar-photo-layout">
+      <!-- FOTO -->
+      <aside class="conciliar-photo-panel conciliar-photo-panel--photo">
+        <div class="conciliar-photo-panel__header">
+          <div class="conciliar-photo-panel__title">
+            <span class="conciliar-photo-panel__title-icon">
+              <mat-icon>image</mat-icon>
+            </span>
+
+            <div>
+              <h3>Foto del gasto</h3>
+              <p>Revisa el ticket antes de relacionarlo con una O.C.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="conciliar-photo-preview">
+          @if (loadingPhoto()) {
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando foto...">
+            </app-loading-overlay>
+          }
+
+          @if (!loadingPhoto() && photoUrl && !imageError) {
+            <img
+              [src]="photoUrl"
+              [alt]="fileName"
+              (error)="onImageError()" />
+          }
+
+          @if (!loadingPhoto() && (!photoUrl || imageError || errorMessage)) {
+            <div class="conciliar-photo-preview__empty">
+              <mat-icon>broken_image</mat-icon>
+              <strong>No se pudo mostrar la foto</strong>
+              <p>{{ errorMessage || 'La foto no está disponible.' }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="conciliar-photo-meta">
+          <div>
+            <span>Archivo</span>
+            <strong>{{ fileName }}</strong>
+          </div>
+
+          <div>
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+          </div>
+
+          <div>
+            <span>Subido por</span>
+            <strong>{{ uploadedByName }}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ createdAt }}</strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-outline conciliar-photo-view-button"
+          [disabled]="!photoUrl"
+          (click)="openPhotoInNewTab()">
+          <mat-icon>open_in_new</mat-icon>
+          <span>Abrir imagen</span>
+        </button>
+      </aside>
+
+      <!-- ÓRDENES -->
+      <section class="conciliar-photo-panel conciliar-photo-panel--orders">
+        <div class="conciliar-photo-panel__header">
+          <div>
+            <h3>Órdenes de compra disponibles</h3>
+            <p>
+              Selecciona la O.C. autorizada que corresponde a esta foto.
+            </p>
+          </div>
+
+          <span class="conciliar-photo-count">
+            {{ totalOrders }} disponible{{ totalOrders === 1 ? '' : 's' }}
+          </span>
+        </div>
+
+        <form [formGroup]="formFilters">
+          <div class="c-filters conciliar-photo-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
+            <app-input-date
+              formControlName="dateRange"
+              label="Fecha O.C."
+              mode="range">
+            </app-input-date>
+
+            <app-input-field
+              formControlName="search"
+              label="Buscar O.C."
+              type="text"
+              [isFilter]="true">
+            </app-input-field>
+
+            <app-autocomplete-multiple
+              formControlName="projects"
+              label="Proyecto"
+              [remote]="true"
+              catalogType="project"
+              valueMode="objects">
+            </app-autocomplete-multiple>
+
+            <app-btns-section
+              type="search"
+              [hasActiveFilters]="hasActiveFilters"
+              (action)="onBtnsSectionAction($event)">
+            </app-btns-section>
+          </div>
+        </form>
+
+        <div class="conciliar-photo-table">
+          @if (loadingOrders()) {
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando O.C. disponibles...">
+            </app-loading-overlay>
+          }
+
+          @if (!loadingOrders() && orders.length === 0) {
+            <div class="conciliar-photo-empty">
+              <mat-icon>assignment_late</mat-icon>
+              <strong>No hay O.C. disponibles</strong>
+              <p>
+                No se encontraron órdenes autorizadas para conciliar con esta foto.
+              </p>
+            </div>
+          }
+
+          @if (!loadingOrders() && orders.length > 0) {
+            <div class="c-module-table conciliar-photo-table__content">
+              <app-data-table
+                [data]="orders"
+                [columnsConfig]="columnsConfig"
+                [displayedColumns]="displayedColumns"
+                [extraActions]="extraActions"
+                [actionPermissions]="{
+                  showEdit: false,
+                  showDelete: false
+                }"
+                (action)="onTableAction($event)">
+              </app-data-table>
+
+              <mat-paginator
+                [length]="ordersTableData.total"
+                [pageSize]="filters.limit"
+                [pageIndex]="filters.page - 1"
+                [pageSizeOptions]="pageSizeOptions"
+                (page)="onPageChange($event)"
+                showFirstLastButtons>
+              </mat-paginator>
+            </div>
+          }
+        </div>
+      </section>
+    </section>
+
+    @if (selectedOrder) {
+      <section class="conciliar-photo-selected">
+        <div class="conciliar-photo-selected__icon">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+
+        <div>
+          <strong>O.C. seleccionada</strong>
+
+          <p>
+            {{ selectedOrder.folio }} · {{ selectedOrder.project_name }} ·
+            {{ selectedOrder.requested_by_display }} ·
+            {{ selectedOrder.requested_amount | currency:'$ ':'symbol':'1.2-2' }}
+          </p>
+        </div>
+      </section>
+    }
+
+    <app-btns-section
+      class="modal-actions-spacer"
+      type="save"
+      [saveDisabled]="!canReconcile"
+      (action)="onBtnsSectionAction($event)">
+    </app-btns-section>
+  </div>
+</div>

@@ -230,22 +230,41 @@ export class PurchaseOrdersService {
   }
 
   getPendingTicketPhotos(
-  filters?: entity.FiltersTicketPhotos,
-): Observable<entity.PendingTicketPhotosPaginatedResponse> {
-  let params = new HttpParams();
+    filters?: entity.FiltersTicketPhotos,
+  ): Observable<entity.PendingTicketPhotosPaginatedResponse> {
+    let params = new HttpParams();
 
-  if (filters) {
-    params = params.set('page', String(filters.page));
-    params = params.set('limit', String(filters.limit));
+    if (filters) {
+      params = params.set('page', String(filters.page));
+      params = params.set('limit', String(filters.limit));
 
-    if (filters.project_id) {
-      params = params.set('project_id', String(filters.project_id));
+      if (filters.project_id) {
+        params = params.set('project_id', String(filters.project_id));
+      }
     }
+
+    return this.http.get<entity.PendingTicketPhotosPaginatedResponse>(
+      `${this.apiUrl}/ticket-photos/pending`,
+      { params },
+    );
   }
 
-  return this.http.get<entity.PendingTicketPhotosPaginatedResponse>(
-    `${this.apiUrl}/ticket-photos/pending`,
-    { params },
-  );
-}
+  getTicketPhotoViewUrl(
+    photoId: number,
+  ): Observable<entity.TicketPhotoViewUrlResponse> {
+    return this.http.get<entity.TicketPhotoViewUrlResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/view-url`,
+    );
+  }
+
+  reconcileTicketPhoto(
+    photoId: number,
+    payload: entity.ReconcileTicketPhotoDto,
+  ): Observable<entity.ReconcileTicketPhotoResponse> {
+    return this.http.patch<entity.ReconcileTicketPhotoResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/reconcile`,
+      payload,
+    );
+  }
+
 }

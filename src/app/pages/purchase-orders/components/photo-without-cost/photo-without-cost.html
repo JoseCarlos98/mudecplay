@@ -8,15 +8,16 @@
 
     <form [formGroup]="formFilters">
       <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
-        <app-autocomplete
+        <app-autocomplete-multiple
           formControlName="project"
           label="Proyecto"
           placeholder="Buscar proyecto"
           [remote]="true"
           catalogType="project">
-        </app-autocomplete>
+        </app-autocomplete-multiple>
 
         <app-btns-section
+          class="filter-actions"
           type="search"
           [hasActiveFilters]="hasActiveFilters"
           (action)="onBtnsSectionAction($event)">
@@ -25,9 +26,9 @@
     </form>
   </div>
 
-  @if (photoTicketsTableData?.data) {
-    <div class="c-module-table">
-      @if (photos.length === 0 && !loadingTable()) {
+  <div class="c-module-table">
+    @if (photos.length === 0) {
+      @if (!loadingTable()) {
         <div class="photo-without-cost-empty">
           <mat-icon>image_not_supported</mat-icon>
           <strong>No hay fotos pendientes</strong>
@@ -35,30 +36,30 @@
             Cuando un trabajador suba un ticket, aparecerá aquí para revisión.
           </p>
         </div>
-      } @else {
-        <app-data-table
-          [data]="photos"
-          [columnsConfig]="columnsConfig"
-          [displayedColumns]="displayedColumns"
-          [extraActions]="extraActions"
-          [actionPermissions]="{
-            showEdit: false,
-            showDelete: false
-          }"
-          (action)="onTableAction($event)">
-        </app-data-table>
-
-        <mat-paginator
-          [length]="photoTicketsTableData.total"
-          [pageSize]="filters.limit"
-          [pageIndex]="filters.page - 1"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onPageChange($event)"
-          showFirstLastButtons>
-        </mat-paginator>
       }
-    </div>
-  }
+    } @else {
+      <app-data-table
+        [data]="photos"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns"
+        [extraActions]="extraActions"
+        [actionPermissions]="{
+          showEdit: false,
+          showDelete: false
+        }"
+        (action)="onTableAction($event)">
+      </app-data-table>
+
+      <mat-paginator
+        [length]="totalPhotos"
+        [pageSize]="filters.limit"
+        [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    }
+  </div>
 </div>
 
 <app-loading-overlay

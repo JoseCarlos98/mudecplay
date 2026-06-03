@@ -368,6 +368,7 @@ export interface PendingTicketPhotosPaginatedResponse {
 
 export interface PendingTicketPhotoRow {
   id: number;
+  project_id: number | null;
   preview_url: string | null;
   file_name: string;
   project_name: string;
@@ -377,4 +378,29 @@ export interface PendingTicketPhotoRow {
   created_at: string;
   created_at_date: string;
   public_url: string | null;
+}
+
+export interface TicketPhotoViewUrlResponse {
+  id: number;
+  file_name: string | null;
+  url: string;
+  expiresIn: number;
+}
+
+export interface ReconcileTicketPhotoDto {
+  purchase_order_id: number;
+  notes?: string | null;
+}
+
+export interface ReconcileTicketPhotoResponse {
+  success: boolean;
+  message: string;
+  data: PurchaseOrderTicketPhotoDto;
+}
+
+export interface TicketPhotoViewUrlResponse {
+  id: number;
+  file_name: string | null;
+  url: string;
+  expiresIn: number;
 }
