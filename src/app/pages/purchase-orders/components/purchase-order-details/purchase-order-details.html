@@ -236,7 +236,13 @@
           @for (photo of photos; track photo.id) {
           <article class="purchase-order-photo-card">
             <div class="purchase-order-photo-card__image-wrap">
-              <div class="purchase-order-photo-card__image" [style.backgroundImage]="'url(' + photo.previewUrl + ')'">
+              <div class="purchase-order-photo-card__image"
+                [class.purchase-order-photo-card__image--empty]="!photo.previewUrl"
+                [style.backgroundImage]="photo.previewUrl ? 'url(' + photo.previewUrl + ')' : null">
+
+                @if (!photo.previewUrl) {
+                <mat-icon>image</mat-icon>
+                }
               </div>
 
               <span class="purchase-order-photo-card__image-badge">
@@ -276,7 +282,6 @@
 
               <div class="purchase-order-photo-card__actions">
                 <button type="button" class="btn-outline purchase-order-photo-card__button">
-                  <mat-icon>visibility</mat-icon>
                   <span>Ver foto</span>
                 </button>
               </div>
@@ -298,15 +303,15 @@
               <h3>Gastos relacionados</h3>
               <p>Gastos registrados desde esta orden de compra.</p>
             </div>
-           
+
           </div>
-           @if (expenses.length) {
-            <div class="purchase-order-table-action">
-              <button type="button" class="btn-outline purchase-order-table-action__button">
-                Ver todos los gastos
-              </button>
-            </div>
-            }
+          @if (expenses.length) {
+          <div class="purchase-order-table-action">
+            <button type="button" class="btn-outline purchase-order-table-action__button">
+              Ver todos los gastos
+            </button>
+          </div>
+          }
         </div>
 
         @if (expenses.length === 0) {

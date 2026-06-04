@@ -3,7 +3,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { finalize } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 
 import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -71,7 +71,7 @@ interface PurchaseOrderPhoto {
   statusVariant: DetailStatusVariant;
   uploadedBy: string;
   uploadedAt: string;
-  previewUrl: string;
+  previewUrl: string | null;
 }
 
 interface PurchaseOrderExpense {
@@ -349,6 +349,8 @@ export class PurchaseOrderDetails implements OnInit {
 
     this.expensesPageIndex = 0;
     this.historyPageIndex = 0;
+
+    this.loadPhotoPreviewUrls();
   }
 
   private mapOrder(
@@ -867,14 +869,54 @@ export class PurchaseOrderDetails implements OnInit {
       uploadedAt: this.formatDateTime(
         photo.uploaded_at ?? photo.created_at ?? photo.createdAt,
       ),
-      previewUrl:
-        photo.public_url ??
-        photo.publicUrl ??
-        photo.preview_url ??
-        photo.previewUrl ??
-        photo.url ??
-        '',
+      previewUrl: null,
     };
+  }
+  private loadPhotoPreviewUrls(): void {
+    const photosWithId = this.photos.filter((photo) => photo.id > 0);
+
+    if (photosWithId.length === 0) return;
+
+    forkJoin(
+      photosWithId.map((photo) =>
+        this.purchaseOrdersService.getTicketPhotoViewUrl(photo.id).pipe(
+          map((response) => ({
+            id: photo.id,
+            url: response.url,
+          })),
+          catchError((err) => {
+            console.error('Error cargando URL temporal de foto:', err);
+
+            return of({
+              id: photo.id,
+              url: null,
+            });
+          }),
+        ),
+      ),
+    ).subscribe((results) => {
+      const urlByPhotoId = new Map(
+        results.map((item) => [item.id, item.url]),
+      );
+
+      this.photos = this.photos.map((photo) => ({
+        ...photo,
+        previewUrl: urlByPhotoId.get(photo.id) ?? null,
+      }));
+    });
+  }
+
+  openPhoto(photo: PurchaseOrderPhoto): void {
+    if (!photo?.id) return;
+
+    this.purchaseOrdersService.getTicketPhotoViewUrl(photo.id).subscribe({
+      next: (response) => {
+        window.open(response.url, '_blank', 'noopener,noreferrer');
+      },
+      error: (err) => {
+        console.error('Error abriendo foto:', err);
+      },
+    });
   }
 
   private mapExpenseLink(link: any): PurchaseOrderExpense {
