@@ -267,4 +267,12 @@ export class PurchaseOrdersService {
     );
   }
 
+  getTicketPhotoById(
+    photoId: number,
+  ): Observable<entity.PurchaseOrderTicketPhotoDto> {
+    return this.http.get<entity.PurchaseOrderTicketPhotoDto>(
+      `${this.apiUrl}/ticket-photos/${photoId}`,
+    );
+  }
+
 }

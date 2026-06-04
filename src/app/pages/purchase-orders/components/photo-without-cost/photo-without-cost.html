@@ -27,29 +27,19 @@
   </div>
 
   <div class="c-module-table">
-    @if (photos.length === 0) {
-      @if (!loadingTable()) {
-        <div class="photo-without-cost-empty">
-          <mat-icon>image_not_supported</mat-icon>
-          <strong>No hay fotos pendientes</strong>
-          <p>
-            Cuando un trabajador suba un ticket, aparecerá aquí para revisión.
-          </p>
-        </div>
-      }
-    } @else {
-      <app-data-table
-        [data]="photos"
-        [columnsConfig]="columnsConfig"
-        [displayedColumns]="displayedColumns"
-        [extraActions]="extraActions"
-        [actionPermissions]="{
-          showEdit: false,
-          showDelete: false
-        }"
-        (action)="onTableAction($event)">
-      </app-data-table>
+    <app-data-table
+      [data]="photos"
+      [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns"
+      [extraActions]="extraActions"
+      [actionPermissions]="{
+        showEdit: false,
+        showDelete: false
+      }"
+      (action)="onTableAction($event)">
+    </app-data-table>
 
+    @if (totalPhotos > 0) {
       <mat-paginator
         [length]="totalPhotos"
         [pageSize]="filters.limit"

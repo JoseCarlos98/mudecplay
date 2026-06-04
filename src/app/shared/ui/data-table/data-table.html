@@ -255,6 +255,22 @@
         </td>
       </ng-container>
 
+      <tr class="mat-row table-empty-row" *matNoDataRow>
+        <td class="mat-cell table-empty-cell" [attr.colspan]="displayedColumns.length">
+          <div class="table-empty-state">
+            <div class="table-empty-state__icon">
+              <mat-icon>table_rows</mat-icon>
+            </div>
+
+            <strong>No hay datos para mostrar.</strong>
+
+            <p>
+              No encontramos registros que coincidan con los filtros aplicados.
+            </p>
+          </div>
+        </td>
+      </tr>
+
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumns" class="hover:bg-gray-100 transition-all duration-200">
       </tr>

@@ -207,19 +207,16 @@ export class PhotoReconcile implements OnInit {
       return;
     }
 
-    this.data = this.getPhotoFromNavigationState() ?? this.buildFallbackPhoto(this.photoId);
+    const statePhoto = this.getPhotoFromNavigationState();
 
-    this.formFilters.patchValue(
-      {
-        projects: this.getInitialProjects(),
-      },
-      { emitEvent: false },
-    );
+    if (statePhoto?.id) {
+      this.setPhotoData(statePhoto);
+      this.loadPhotoUrl();
+      this.loadAvailableOrders();
+      return;
+    }
 
-    this.filters = this.buildFiltersFromForm(1, this.filters.limit);
-
-    this.loadPhotoUrl();
-    this.loadAvailableOrders();
+    this.loadTicketPhotoDetail();
   }
 
   get fileName(): string {
@@ -297,6 +294,123 @@ export class PhotoReconcile implements OnInit {
       created_at_date: '',
       public_url: null,
     };
+  }
+
+  private loadTicketPhotoDetail(): void {
+    if (!this.photoId) {
+      this.errorMessage = 'No se encontró el identificador de la foto.';
+      return;
+    }
+
+    this.loadingPhoto.set(true);
+    this.errorMessage = null;
+
+    this.purchaseOrdersService
+      .getTicketPhotoById(this.photoId)
+      .pipe(finalize(() => this.loadingPhoto.set(false)))
+      .subscribe({
+        next: (photo) => {
+          const mappedPhoto = this.mapTicketPhotoToRow(photo);
+
+          this.setPhotoData(mappedPhoto);
+          this.loadPhotoUrl();
+          this.loadAvailableOrders();
+        },
+        error: (err) => {
+          console.error('Error al cargar detalle de la foto:', err);
+
+          this.data = this.buildFallbackPhoto(this.photoId!);
+          this.errorMessage =
+            err?.error?.message ||
+            'No se pudo cargar la información de la foto.';
+
+          this.loadPhotoUrl();
+          this.loadAvailableOrders();
+        },
+      });
+  }
+
+  private setPhotoData(photo: PendingTicketPhotoRow): void {
+    this.data = photo;
+
+    this.formFilters.patchValue(
+      {
+        projects: this.getInitialProjects(),
+      },
+      { emitEvent: false },
+    );
+
+    this.filters = this.buildFiltersFromForm(1, this.filters.limit);
+  }
+
+  private mapTicketPhotoToRow(
+    photo: any,
+  ): PendingTicketPhotoRow {
+    const createdAt = photo.created_at ?? photo.createdAt ?? '';
+
+    const publicUrl =
+      photo.public_url ??
+      photo.publicUrl ??
+      photo.preview_url ??
+      photo.previewUrl ??
+      photo.url ??
+      null;
+
+    const status = photo.status ?? 'pending';
+
+    return {
+      id: Number(photo.id ?? 0),
+      project_id: photo.project?.id ?? null,
+      preview_url: publicUrl,
+      file_name:
+        photo.file_name ??
+        photo.fileName ??
+        photo.filename ??
+        'Foto del ticket',
+      project_name: photo.project?.name ?? 'Sin proyecto',
+      uploaded_by_name:
+        photo.uploaded_by_user?.name ??
+        photo.uploadedByUser?.name ??
+        photo.user?.name ??
+        'Sin dato',
+      status,
+      status_label: this.getPhotoStatusLabel(status),
+      created_at: createdAt,
+      created_at_date: this.formatDateTime(createdAt),
+      public_url: publicUrl,
+    };
+  }
+
+  private getPhotoStatusLabel(status: string): string {
+    switch (status) {
+      case 'reconciled':
+        return 'Conciliada';
+
+      case 'discarded':
+        return 'Descartada';
+
+      case 'pending':
+      default:
+        return 'Pendiente';
+    }
+  }
+
+  private formatDateTime(value: string | Date | null | undefined): string {
+    if (!value) return 'Sin fecha';
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+    return date
+      .toLocaleString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+      .replace(',', '');
   }
 
   loadPhotoUrl(): void {
