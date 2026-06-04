@@ -186,4 +186,26 @@ export class DataTable<T> implements OnChanges {
   get showDeleteEffective(): boolean {
     return this.actionPermissions?.showDelete ?? true;
   }
+
+  isRowSelected(col: ColumnsConfig, row: T): boolean {
+  return col.selectedResolver ? col.selectedResolver(row) : false;
+}
+
+isSelectDisabled(col: ColumnsConfig, row: T): boolean {
+  return col.selectDisabledResolver ? col.selectDisabledResolver(row) : false;
+}
+
+getSelectTooltip(col: ColumnsConfig, row: T): string {
+  if (!col.selectTooltip) return '';
+
+  if (typeof col.selectTooltip === 'function') {
+    return col.selectTooltip(row) ?? '';
+  }
+
+  return col.selectTooltip;
+}
+
+onSelectColumn(col: ColumnsConfig, row: T): void {
+  this.onRowAction(col.selectActionType || 'select', row);
+}
 }

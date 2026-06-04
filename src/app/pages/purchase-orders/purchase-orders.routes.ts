@@ -49,6 +49,14 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
   },
+  {
+    path: 'fotos-sin-gasto/:photoId/conciliar',
+    loadComponent: () =>
+      import('./components/photo-without-cost/components/photo-reconcile/photo-reconcile')
+        .then((m) => m.PhotoReconcile),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
 
   // {
   //   path: 'conciliacion',

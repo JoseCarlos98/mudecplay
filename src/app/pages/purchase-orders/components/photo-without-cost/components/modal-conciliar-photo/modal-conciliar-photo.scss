@@ -3,8 +3,6 @@
 }
 
 .c-modal--conciliar-photo {
-  width: min(1180px, 94vw);
-
   .c-filters {
     ::ng-deep .c-input-field {
       margin-bottom: 0 !important;
@@ -13,9 +11,12 @@
   }
 }
 
+.modal-actions-spacer {
+  margin-top: 0!important;
+}
+
 .conciliar-photo-body {
   display: grid;
-  gap: 14px;
 }
 
 .conciliar-photo-layout {
@@ -102,8 +103,7 @@
 .conciliar-photo-preview {
   position: relative;
 
-  min-height: 380px;
-  max-height: 520px;
+  min-height: 350px;
 
   overflow: hidden;
 
@@ -222,51 +222,26 @@
 
 .conciliar-photo-table__content {
   min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.conciliar-photo-table__data {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.conciliar-photo-table__content > mat-paginator {
+  position: static !important;
+  flex: 0 0 auto;
+  width: 100%;
 }
 
 .conciliar-photo-selected {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 10px;
-
-  padding: 12px 14px;
-
-  border: 1px solid rgba(34, 197, 94, 0.25);
-  border-radius: 12px;
-  background: #f0fdf4;
-
-  strong {
-    display: block;
-    color: #166534;
-    font-size: 13px;
-    font-weight: 800;
-  }
-
-  p {
-    margin: 3px 0 0;
-    color: #36523f;
-    font-size: 12px;
-    line-height: 1.35;
-  }
-}
-
-.conciliar-photo-selected__icon {
-  width: 34px;
-  height: 34px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 10px;
-  background: #dcfce7;
-  color: #15803d;
-
-  mat-icon {
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-  }
+  margin-top: 12px;
 }
 
 @media screen and (max-width: 1040px) {
@@ -286,9 +261,5 @@
 
   .conciliar-photo-filters {
     grid-template-columns: 1fr;
-  }
-
-  .conciliar-photo-selected {
-    align-items: flex-start;
   }
 }

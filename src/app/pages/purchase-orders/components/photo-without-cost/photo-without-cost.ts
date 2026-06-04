@@ -21,19 +21,20 @@ import {
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
 import { LoadingOverlay } from '../../../../shared/ui/loading-overlay/loading-overlay';
+import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 // Servicios
 import { LocalStorageService } from '../../../../shared/services/local-storage.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 
 // Interfaces
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import * as entity from '../../interfaces/purchase-orders.interfaces';
-import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
-import { DialogService } from '../../../../shared/services/dialog.service';
+// Componentes
 import { ModalSeePhoto } from './components/modal-see-photo/modal-see-photo';
-import { ModalConciliarPhoto } from './components/modal-conciliar-photo/modal-conciliar-photo';
+
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
@@ -65,17 +66,23 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     key: 'status_label',
     label: 'Estatus',
     type: 'chip',
-    variantResolver: (row: entity.PendingTicketPhotoRow) => resolvePhotoStatusVariant(row),
+    variantResolver: (row: entity.PendingTicketPhotoRow) =>
+      resolvePhotoStatusVariant(row),
   },
 ];
 
-const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((column) => column.key), 'actions'];
+const DISPLAYED_COLUMNS: string[] = [
+  ...COLUMNS_CONFIG.map((column) => column.key),
+  'actions',
+];
 
 const PAGE_SIZE_OPTIONS: number[] = [5, 10, 25, 50];
 
-type PhotoWithoutCostTableExtraAction = DataTableExtraAction<entity.PendingTicketPhotoRow>;
+type PhotoWithoutCostTableExtraAction =
+  DataTableExtraAction<entity.PendingTicketPhotoRow>;
 
-type PhotoWithoutCostAction = DataTableActionEvent<entity.PendingTicketPhotoRow>;
+type PhotoWithoutCostAction =
+  DataTableActionEvent<entity.PendingTicketPhotoRow>;
 
 interface PendingTicketPhotosTableData {
   data: entity.PendingTicketPhotoRow[];
@@ -85,7 +92,9 @@ interface PendingTicketPhotosTableData {
   totalPages: number;
 }
 
-function resolvePhotoStatusVariant(row: entity.PendingTicketPhotoRow): ColumnVariant {
+function resolvePhotoStatusVariant(
+  row: entity.PendingTicketPhotoRow,
+): ColumnVariant {
   switch (row.status) {
     case 'reconciled':
       return 'chip-success';
@@ -130,6 +139,7 @@ export class PhotoWithoutCost implements OnInit {
   private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
+
   // ==========================
   //  CONFIG UI
   // ==========================
@@ -258,7 +268,9 @@ export class PhotoWithoutCost implements OnInit {
         next: (response) => {
           this.photoTicketsTableData = {
             ...response,
-            data: (response.data ?? []).map((photo) => this.mapPhotoRow(photo)),
+            data: (response.data ?? []).map((photo) =>
+              this.mapPhotoRow(photo),
+            ),
           };
         },
         error: (err) => {
@@ -275,7 +287,9 @@ export class PhotoWithoutCost implements OnInit {
       });
   }
 
-  private mapPhotoRow(photo: entity.PurchaseOrderTicketPhotoDto): entity.PendingTicketPhotoRow {
+  private mapPhotoRow(
+    photo: entity.PurchaseOrderTicketPhotoDto,
+  ): entity.PendingTicketPhotoRow {
     const createdAt = photo.created_at ?? photo.createdAt ?? '';
 
     const publicUrl =
@@ -289,7 +303,11 @@ export class PhotoWithoutCost implements OnInit {
     return {
       id: photo.id,
       preview_url: publicUrl,
-      file_name: photo.file_name ?? photo.fileName ?? photo.filename ?? 'Foto sin nombre',
+      file_name:
+        photo.file_name ??
+        photo.fileName ??
+        photo.filename ??
+        'Foto sin nombre',
       project_name: photo.project?.name ?? 'Sin proyecto',
       uploaded_by_name:
         photo.uploaded_by_user?.name ??
@@ -322,7 +340,7 @@ export class PhotoWithoutCost implements OnInit {
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
-        this.router.navigateByUrl('/ordenes-compra/subir-foto');
+        this.router.navigateByUrl('/ordenes-compra/subir-ticket-gasto');
         break;
 
       default:
@@ -375,14 +393,9 @@ export class PhotoWithoutCost implements OnInit {
   private reconcilePhoto(row: entity.PendingTicketPhotoRow): void {
     if (!row?.id) return;
 
-    this.dialogService
-      .open(ModalConciliarPhoto, row, 'large')
-      .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPhotos();
-        }
-      });
+    this.router.navigateByUrl(
+      `/ordenes-compra/fotos-sin-gasto/${row.id}/conciliar`,
+    );
   }
 
   // ==========================

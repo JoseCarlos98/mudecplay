@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { finalize } from 'rxjs';
 
 import { ModuleHeaderConfig } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -14,11 +14,13 @@ import {
   DataTableActionEvent,
   DataTableExtraAction,
 } from '../../../../../../shared/ui/data-table/interfaces/table-interfaces';
+
 import {
   PendingTicketPhotoRow,
   PurchaseOrderFilters,
   PurchaseOrderResponseDto,
 } from '../../../../interfaces/purchase-orders.interfaces';
+
 import { Catalog } from '../../../../../../shared/interfaces/general-interfaces';
 
 import { ModuleHeader } from '../../../../../../shared/ui/module-header/module-header';
@@ -32,7 +34,7 @@ import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-mult
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
-  modal: true,
+  formFull: true,
 };
 
 type ReconcilePurchaseOrderFilters = PurchaseOrderFilters & {
@@ -117,7 +119,7 @@ interface ReconcileOrdersTableData {
 type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
 
 @Component({
-  selector: 'app-modal-conciliar-photo',
+  selector: 'app-photo-reconcile',
   standalone: true,
   imports: [
     CommonModule,
@@ -138,16 +140,16 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     MatDatepickerModule,
     MatNativeDateModule,
   ],
-  templateUrl: './modal-conciliar-photo.html',
-  styleUrl: './modal-conciliar-photo.scss',
+  templateUrl: './photo-reconcile.html',
+  styleUrl: './photo-reconcile.scss',
 })
-export class ModalConciliarPhoto implements OnInit {
-  readonly data = inject<PendingTicketPhotoRow>(MAT_DIALOG_DATA);
-
-  private readonly dialogRef = inject(MatDialogRef<ModalConciliarPhoto>);
+export class PhotoReconcile implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
   private readonly fb = inject(FormBuilder);
 
+  readonly pageTitle = 'Conciliar foto con O.C.';
   readonly headerConfig = HEADER_CONFIG;
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
@@ -158,11 +160,12 @@ export class ModalConciliarPhoto implements OnInit {
   readonly saving = signal(false);
 
   /**
-   * Se deja vacío para no romper el HTML si todavía tienes
-   * [extraActions]="extraActions" en app-data-table.
-   * La selección real ahora vive en la columna type: 'select'.
+   * Se deja vacío porque la selección real vive en la columna type: 'select'.
    */
   readonly extraActions: DataTableExtraAction<ReconcileOrderRow>[] = [];
+
+  photoId: number | null = null;
+  data: PendingTicketPhotoRow | null = null;
 
   photoUrl: string | null = null;
   imageError = false;
@@ -197,6 +200,15 @@ export class ModalConciliarPhoto implements OnInit {
   });
 
   ngOnInit(): void {
+    this.photoId = this.getPhotoIdFromRoute();
+
+    if (!this.photoId) {
+      this.errorMessage = 'No se encontró el identificador de la foto.';
+      return;
+    }
+
+    this.data = this.getPhotoFromNavigationState() ?? this.buildFallbackPhoto(this.photoId);
+
     this.formFilters.patchValue(
       {
         projects: this.getInitialProjects(),
@@ -235,7 +247,7 @@ export class ModalConciliarPhoto implements OnInit {
   }
 
   get canReconcile(): boolean {
-    return !!this.data?.id && !!this.selectedOrder?.id && !this.saving();
+    return !!this.photoId && !!this.selectedOrder?.id && !this.saving();
   }
 
   get hasActiveFilters(): boolean {
@@ -256,8 +268,39 @@ export class ModalConciliarPhoto implements OnInit {
     return hasDates || hasSearch || hasProjectChanged;
   }
 
+  private getPhotoIdFromRoute(): number | null {
+    const rawPhotoId = this.route.snapshot.paramMap.get('photoId');
+    const photoId = Number(rawPhotoId);
+
+    return Number.isFinite(photoId) && photoId > 0 ? photoId : null;
+  }
+
+  private getPhotoFromNavigationState(): PendingTicketPhotoRow | null {
+    const state = history.state as { photo?: PendingTicketPhotoRow };
+
+    if (!state?.photo?.id) return null;
+
+    return state.photo;
+  }
+
+  private buildFallbackPhoto(photoId: number): PendingTicketPhotoRow {
+    return {
+      id: photoId,
+      preview_url: null,
+      file_name: 'Foto del ticket',
+      project_name: 'Sin proyecto',
+      uploaded_by_name: 'Sin dato',
+      status: 'pending',
+      status_label: 'Pendiente',
+      project_id: null,
+      created_at: '',
+      created_at_date: '',
+      public_url: null,
+    };
+  }
+
   loadPhotoUrl(): void {
-    if (!this.data?.id) {
+    if (!this.photoId) {
       this.errorMessage = 'No se encontró el identificador de la foto.';
       return;
     }
@@ -268,7 +311,7 @@ export class ModalConciliarPhoto implements OnInit {
     this.errorMessage = null;
 
     this.purchaseOrdersService
-      .getTicketPhotoViewUrl(this.data.id)
+      .getTicketPhotoViewUrl(this.photoId)
       .pipe(finalize(() => this.loadingPhoto.set(false)))
       .subscribe({
         next: (response) => {
@@ -405,6 +448,19 @@ export class ModalConciliarPhoto implements OnInit {
     return Number.isFinite(projectId) && projectId > 0 ? projectId : null;
   }
 
+  onHeaderAction(action: string): void {
+    switch (action) {
+      case 'back':
+      case 'cancel':
+      case 'close':
+        this.goBackToPhotos();
+        break;
+
+      default:
+        break;
+    }
+  }
+
   onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
@@ -420,7 +476,7 @@ export class ModalConciliarPhoto implements OnInit {
         break;
 
       case 'cancel':
-        this.closeModal();
+        this.goBackToPhotos();
         break;
 
       default:
@@ -466,21 +522,21 @@ export class ModalConciliarPhoto implements OnInit {
   }
 
   reconcile(): void {
-    if (!this.canReconcile || !this.selectedOrder?.id || !this.data?.id) {
+    if (!this.canReconcile || !this.selectedOrder?.id || !this.photoId) {
       return;
     }
 
     this.saving.set(true);
 
     this.purchaseOrdersService
-      .reconcileTicketPhoto(this.data.id, {
+      .reconcileTicketPhoto(this.photoId, {
         purchase_order_id: this.selectedOrder.id,
         notes: null,
       })
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: () => {
-          this.dialogRef.close(true);
+          this.goBackToPhotos();
         },
         error: (err) => {
           console.error('Error al conciliar foto:', err);
@@ -488,7 +544,7 @@ export class ModalConciliarPhoto implements OnInit {
       });
   }
 
-  closeModal(): void {
-    this.dialogRef.close(false);
+  goBackToPhotos(): void {
+    this.router.navigateByUrl('/ordenes-compra/fotos-sin-gasto');
   }
 }

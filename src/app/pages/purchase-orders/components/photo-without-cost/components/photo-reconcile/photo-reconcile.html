@@ -1,0 +1,214 @@
+<div class="card-content-form photo-reconcile-page">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="c-form photo-reconcile-form">
+    <div class="c-form-layout c-form-layout--with-aside photo-reconcile-layout">
+      <div class="c-form-main">
+        <section class="c-form-section photo-reconcile-orders">
+          <div class="c-form-section__header">
+            <div>
+              <h3 class="c-form-section__title">Órdenes de compra disponibles</h3>
+              <p class="c-form-section__desc">
+                Selecciona la O.C. autorizada que corresponde a esta foto.
+              </p>
+            </div>
+
+            <span class="photo-reconcile-count">
+              {{ totalOrders }} disponible{{ totalOrders === 1 ? '' : 's' }}
+            </span>
+          </div>
+
+          <form [formGroup]="formFilters">
+            <div class="c-filters photo-reconcile-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
+              <app-input-date
+                formControlName="dateRange"
+                label="Fecha O.C."
+                mode="range">
+              </app-input-date>
+
+              <app-input-field
+                formControlName="search"
+                label="Buscar O.C."
+                type="text"
+                [isFilter]="true">
+              </app-input-field>
+
+              <app-autocomplete-multiple
+                formControlName="projects"
+                label="Proyecto"
+                [remote]="true"
+                catalogType="project"
+                valueMode="objects">
+              </app-autocomplete-multiple>
+
+              <app-btns-section
+                type="search"
+                [hasActiveFilters]="hasActiveFilters"
+                (action)="onBtnsSectionAction($event)">
+              </app-btns-section>
+            </div>
+          </form>
+
+          <div class="photo-reconcile-table">
+            @if (loadingOrders()) {
+              <app-loading-overlay
+                [visible]="true"
+                [fullscreen]="false"
+                text="Cargando O.C. disponibles...">
+              </app-loading-overlay>
+            }
+
+            @if (!loadingOrders() && orders.length === 0) {
+              <div class="photo-reconcile-empty">
+                <mat-icon>assignment_late</mat-icon>
+                <strong>No hay O.C. disponibles</strong>
+                <p>
+                  No se encontraron órdenes autorizadas para conciliar con esta foto.
+                </p>
+              </div>
+            }
+
+            @if (!loadingOrders() && orders.length > 0) {
+              <div class="photo-reconcile-table__content">
+                <app-data-table
+                  class="photo-reconcile-table__data"
+                  [data]="orders"
+                  [columnsConfig]="columnsConfig"
+                  [displayedColumns]="displayedColumns"
+                  [extraActions]="extraActions"
+                  [actionPermissions]="{
+                    showEdit: false,
+                    showDelete: false
+                  }"
+                  (action)="onTableAction($event)">
+                </app-data-table>
+
+                <mat-paginator
+                  [length]="ordersTableData.total"
+                  [pageSize]="filters.limit"
+                  [pageIndex]="filters.page - 1"
+                  [pageSizeOptions]="pageSizeOptions"
+                  (page)="onPageChange($event)"
+                  showFirstLastButtons>
+                </mat-paginator>
+              </div>
+            }
+          </div>
+        </section>
+
+        @if (selectedOrder) {
+          <section class="c-info-card c-info-card--success photo-reconcile-selected">
+            <div class="c-info-card__icon">
+              <mat-icon>task_alt</mat-icon>
+            </div>
+
+            <div class="c-info-card__content">
+              <h3 class="c-info-card__title">
+                O.C. seleccionada
+              </h3>
+
+              <div class="c-info-card__grid">
+                <span class="c-info-card__item">
+                  Folio:
+                  <strong>{{ selectedOrder.folio }}</strong>
+                </span>
+
+                <span class="c-info-card__item">
+                  Proyecto:
+                  <strong>{{ selectedOrder.project_name }}</strong>
+                </span>
+
+                <span class="c-info-card__item">
+                  Solicitó:
+                  <strong>{{ selectedOrder.requested_by_display }}</strong>
+                </span>
+
+                <span class="c-info-card__item">
+                  Importe:
+                  <strong>{{ selectedOrder.requested_amount | currency:'$ ':'symbol':'1.2-2' }}</strong>
+                </span>
+              </div>
+            </div>
+          </section>
+        }
+      </div>
+
+      <aside class="c-form-aside c-form-aside--sticky photo-reconcile-aside">
+        <div class="c-form-section__header photo-reconcile-photo-header">
+          <div>
+            <h3 class="c-form-section__title">Foto del gasto</h3>
+            <p class="c-form-section__desc">
+              Revisa el ticket antes de relacionarlo con una O.C.
+            </p>
+          </div>
+        </div>
+
+        <div class="photo-reconcile-preview">
+          @if (loadingPhoto()) {
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando foto...">
+            </app-loading-overlay>
+          }
+
+          @if (!loadingPhoto() && photoUrl && !imageError) {
+            <img
+              [src]="photoUrl"
+              [alt]="fileName"
+              (error)="onImageError()" />
+          }
+
+          @if (!loadingPhoto() && (!photoUrl || imageError || errorMessage)) {
+            <div class="photo-reconcile-preview__empty">
+              <mat-icon>broken_image</mat-icon>
+              <strong>No se pudo mostrar la foto</strong>
+              <p>{{ errorMessage || 'La foto no está disponible.' }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="photo-reconcile-meta">
+          <div>
+            <span>Archivo</span>
+            <strong>{{ fileName }}</strong>
+          </div>
+
+          <div>
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+          </div>
+
+          <div>
+            <span>Subido por</span>
+            <strong>{{ uploadedByName }}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ createdAt }}</strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-outline photo-reconcile-view-button"
+          [disabled]="!photoUrl"
+          (click)="openPhotoInNewTab()">
+          <mat-icon>open_in_new</mat-icon>
+          <span>Abrir imagen</span>
+        </button>
+      </aside>
+    </div>
+  </div>
+
+  <app-btns-section
+    type="save"
+    [saveDisabled]="!canReconcile"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

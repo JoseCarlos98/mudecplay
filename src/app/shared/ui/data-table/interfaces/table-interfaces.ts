@@ -14,7 +14,6 @@ export interface DataTableActionPopover {
   items?: string[];
   kind?: ActionPopoverKind;
 }
-
 export type ColumnType =
   | 'text'
   | 'relation'
@@ -23,7 +22,8 @@ export type ColumnType =
   | 'showItems'
   | 'chip'
   | 'phone'
-  | 'booleanConfirm';
+  | 'booleanConfirm'
+  | 'select';
 
 export type ColumnVariant =
   | 'chip-success'
@@ -38,17 +38,19 @@ export interface ColumnsConfig {
 
   type?: ColumnType;
 
-  // Para 'relation'
   path?: string;
   typeVariant?: ColumnVariant;
   fallbackVariant?: ColumnVariant;
   fallback?: string;
 
-  // Permite resolver la variante por fila
   variantResolver?: (row: any) => ColumnVariant | null;
-
-  // Popover enriquecido para celdas, útil en chips de estado
   popoverContent?: (row: any) => DataTableActionPopover | null;
+
+  // Para type: 'select'
+  selectActionType?: string;
+  selectedResolver?: (row: any) => boolean;
+  selectDisabledResolver?: (row: any) => boolean;
+  selectTooltip?: string | ((row: any) => string | null);
 }
 
 export interface TableActionPermissions {
