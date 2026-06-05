@@ -443,3 +443,44 @@ export interface CreateDirectExpenseFromTicketResponse {
     total_amount: number;
   };
 }
+
+
+export interface CreateDirectXmlExpenseFromTicketItemDto {
+  product_id: number;
+  concept?: string | null;
+
+  quantity?: number | null;
+  unit?: string | null;
+  unit_price?: number | null;
+
+  base_amount?: number | null;
+  discount_amount?: number | null;
+  tax_amount?: number | null;
+  withheld_amount?: number | null;
+
+  amount: number;
+
+  payment_amount?: number | null;
+  payment_date?: string | null;
+}
+
+export interface CreateDirectXmlExpenseFromTicketDto {
+  date: string;
+  supplier_id: number;
+  cfdi_uuid: string;
+  notes?: string | null;
+  items: CreateDirectXmlExpenseFromTicketItemDto[];
+}
+
+export interface CreateDirectXmlExpenseFromTicketResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    ticket_photo_id: number;
+    expense_id: number;
+    cfdi_uuid: string;
+    total_amount: number;
+  };
+}

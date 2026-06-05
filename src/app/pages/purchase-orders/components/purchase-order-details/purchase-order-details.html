@@ -292,6 +292,13 @@
                   <span>Registrar gasto</span>
                 </button>
                 }
+
+                @if (canRegisterDirectXmlExpense(photo)) {
+                <button type="button" class="btn-primary purchase-order-photo-card__button"
+                  (click)="goToRegisterDirectXmlExpense(photo)">
+                  <span>Registrar con XML</span>
+                </button>
+                }
               </div>
             </div>
           </article>

@@ -67,6 +67,15 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
   },
 
+  {
+    path: 'registrar-gasto-xml/:photoId',
+    loadComponent: () =>
+      import('./components/purchase-order-details/components/record-oc-xml-expense/record-oc-xml-expense')
+        .then((m) => m.RecordOcXmlExpense),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
+
   // {
   //   path: 'conciliacion',
   //   loadComponent: () =>
