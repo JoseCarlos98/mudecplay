@@ -503,7 +503,7 @@
   display: grid;
   place-items: center;
 
-  margin-bottom: 4px;
+  // margin-bottom: 4px;
 
   border: 0;
   border-radius: 8px;
@@ -548,7 +548,7 @@
   color: var(--color-primary-strong);
 
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 
   transition:
@@ -577,7 +577,7 @@
   span {
     color: var(--color-primary-strong);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 600;
   }
 
   textarea {
@@ -605,8 +605,8 @@
 
     &:focus {
       border-color: var(--color-primary);
-      box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
-      background: #ffffff;
+      // box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
+      // background: #ffffff;
     }
 
     &::placeholder {
