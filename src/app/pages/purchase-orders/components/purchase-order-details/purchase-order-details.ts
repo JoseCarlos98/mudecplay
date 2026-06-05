@@ -334,12 +334,28 @@ export class PurchaseOrderDetails implements OnInit {
       });
   }
 
- private setDetailData(detail: PurchaseOrderFlowDetailResponse): void {
+private setDetailData(detail: PurchaseOrderFlowDetailResponse): void {
   const expenseLinks = detail.expense_links ?? [];
 
-  this.photos = (detail.ticket_photos ?? []).map((photo) =>
-    this.mapPhoto(photo, expenseLinks),
-  );
+  this.photos = (detail.ticket_photos ?? [])
+    .map((photo) => this.mapPhoto(photo, expenseLinks))
+    .sort((a, b) => {
+      // Primero las fotos conciliadas que aún NO tienen gasto registrado
+      const aCanRegister = a.status === 'reconciled' && !a.hasExpense;
+      const bCanRegister = b.status === 'reconciled' && !b.hasExpense;
+
+      if (aCanRegister !== bCanRegister) {
+        return aCanRegister ? -1 : 1;
+      }
+
+      // Después las fotos sin gasto, aunque no estén conciliadas
+      if (a.hasExpense !== b.hasExpense) {
+        return a.hasExpense ? 1 : -1;
+      }
+
+      // Mantiene el orden original dentro del mismo grupo
+      return 0;
+    });
 
   this.expenses = expenseLinks.map((link) =>
     this.mapExpenseLink(link),
