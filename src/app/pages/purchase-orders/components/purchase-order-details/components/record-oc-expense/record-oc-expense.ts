@@ -45,6 +45,7 @@ type RecordExpenseItemForm = {
 type RecordExpenseForm = {
   date: FormControl<string | null>;
   supplier: FormControl<Catalog | number | string | null>;
+  project: FormControl<string>;
   notes: FormControl<string | null>;
   items: FormArray<FormGroup<RecordExpenseItemForm>>;
 };
@@ -96,6 +97,12 @@ export class RecordOcExpense implements OnInit {
       validators: [Validators.required],
     }),
     supplier: this.fb.control<Catalog | number | string | null>(null),
+    project: this.fb.control(
+      { value: '', disabled: true },
+      {
+        nonNullable: true,
+      },
+    ),
     notes: this.fb.control<string | null>(null),
     items: this.fb.array<FormGroup<RecordExpenseItemForm>>([]),
   });
@@ -357,6 +364,7 @@ export class RecordOcExpense implements OnInit {
         next: (photo) => {
           this.photo = this.mapTicketPhotoToRow(photo);
 
+          this.syncProjectControl();
           this.syncDefaultConcepts();
           this.loadPhotoUrl();
 
@@ -393,6 +401,7 @@ export class RecordOcExpense implements OnInit {
           const detail = (response?.data ?? response) as PurchaseOrderFlowDetailResponse;
 
           this.order = detail;
+          this.syncProjectControl();
           this.syncDefaultConcepts();
         },
         error: (err) => {
@@ -457,6 +466,12 @@ export class RecordOcExpense implements OnInit {
       const payment = Number(group.controls.payment_amount.value ?? 0);
 
       return payment <= amount;
+    });
+  }
+
+  private syncProjectControl(): void {
+    this.form.controls.project.setValue(this.projectName, {
+      emitEvent: false,
     });
   }
 

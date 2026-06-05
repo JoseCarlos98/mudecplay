@@ -15,7 +15,7 @@
 
   <section class="record-oc-expense-hero">
     <article class="record-oc-expense-hero__item">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>description</mat-icon>
       </span>
 
@@ -26,7 +26,7 @@
     </article>
 
     <article class="record-oc-expense-hero__item">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>business</mat-icon>
       </span>
 
@@ -37,7 +37,7 @@
     </article>
 
     <article class="record-oc-expense-hero__item">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>place</mat-icon>
       </span>
 
@@ -48,7 +48,7 @@
     </article>
 
     <article class="record-oc-expense-hero__item">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>receipt</mat-icon>
       </span>
 
@@ -59,7 +59,7 @@
     </article>
 
     <article class="record-oc-expense-hero__item">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>person</mat-icon>
       </span>
 
@@ -70,7 +70,7 @@
     </article>
 
     <article class="record-oc-expense-hero__item record-oc-expense-hero__item--amount">
-      <span>
+      <span class="record-oc-expense-hero__icon">
         <mat-icon>paid</mat-icon>
       </span>
 
@@ -99,9 +99,15 @@
     <aside class="record-oc-expense-column record-oc-expense-column--left">
       <section class="record-oc-expense-card">
         <div class="record-oc-expense-card__header">
-          <div>
-            <h3>Foto del gasto</h3>
-            <p>Ticket conciliado con esta orden de compra.</p>
+          <div class="record-oc-expense-card__title-wrap">
+            <span class="record-oc-expense-card__icon">
+              <mat-icon>image</mat-icon>
+            </span>
+
+            <div>
+              <h3>Foto del gasto</h3>
+              <p>Ticket conciliado con esta orden de compra.</p>
+            </div>
           </div>
         </div>
 
@@ -131,24 +137,48 @@
         </div>
 
         <div class="record-oc-expense-meta">
-          <div>
-            <span>Archivo</span>
-            <strong>{{ ticketFileName }}</strong>
+          <div class="record-oc-expense-meta__row">
+            <span class="record-oc-expense-meta__icon">
+              <mat-icon>description</mat-icon>
+            </span>
+
+            <div>
+              <span>Archivo</span>
+              <strong>{{ ticketFileName }}</strong>
+            </div>
           </div>
 
-          <div>
-            <span>Proyecto</span>
-            <strong>{{ projectName }}</strong>
+          <div class="record-oc-expense-meta__row">
+            <span class="record-oc-expense-meta__icon">
+              <mat-icon>business</mat-icon>
+            </span>
+
+            <div>
+              <span>Proyecto</span>
+              <strong>{{ projectName }}</strong>
+            </div>
           </div>
 
-          <div>
-            <span>Subido por</span>
-            <strong>{{ uploadedByName }}</strong>
+          <div class="record-oc-expense-meta__row">
+            <span class="record-oc-expense-meta__icon">
+              <mat-icon>person</mat-icon>
+            </span>
+
+            <div>
+              <span>Subido por</span>
+              <strong>{{ uploadedByName }}</strong>
+            </div>
           </div>
 
-          <div>
-            <span>Fecha</span>
-            <strong>{{ uploadedAt }}</strong>
+          <div class="record-oc-expense-meta__row">
+            <span class="record-oc-expense-meta__icon">
+              <mat-icon>calendar_today</mat-icon>
+            </span>
+
+            <div>
+              <span>Fecha</span>
+              <strong>{{ uploadedAt }}</strong>
+            </div>
           </div>
         </div>
 
@@ -164,9 +194,15 @@
 
       <section class="record-oc-expense-card">
         <div class="record-oc-expense-card__header">
-          <div>
-            <h3>Información de la O.C.</h3>
-            <p>Datos base que respaldan el gasto.</p>
+          <div class="record-oc-expense-card__title-wrap">
+            <span class="record-oc-expense-card__icon">
+              <mat-icon>info</mat-icon>
+            </span>
+
+            <div>
+              <h3>Información de la O.C.</h3>
+              <p>Datos base que respaldan el gasto.</p>
+            </div>
           </div>
         </div>
 
@@ -188,9 +224,15 @@
     <main class="record-oc-expense-column record-oc-expense-column--center">
       <section class="record-oc-expense-card record-oc-expense-card--form">
         <div class="record-oc-expense-card__header">
-          <div>
-            <h3>Conceptos del gasto</h3>
-            <p>Registra los conceptos e importes del ticket.</p>
+          <div class="record-oc-expense-card__title-wrap">
+            <span class="record-oc-expense-card__icon">
+              <mat-icon>receipt_long</mat-icon>
+            </span>
+
+            <div>
+              <h3>Conceptos del gasto</h3>
+              <p>Registra los conceptos e importes del ticket.</p>
+            </div>
           </div>
 
           <span class="record-oc-expense-flow-chip">
@@ -213,11 +255,11 @@
             catalogType="supplier">
           </app-autocomplete>
 
-          <div class="record-oc-expense-project-locked">
-            <span>Proyecto</span>
-            <strong>{{ projectName }}</strong>
-            <mat-icon>lock</mat-icon>
-          </div>
+          <app-input-field
+            formControlName="project"
+            label="Proyecto"
+            type="text">
+          </app-input-field>
         </div>
 
         <div formArrayName="items" class="record-oc-expense-items">
@@ -295,9 +337,15 @@
     <aside class="record-oc-expense-column record-oc-expense-column--right">
       <section class="record-oc-expense-card record-oc-expense-card--summary">
         <div class="record-oc-expense-card__header">
-          <div>
-            <h3>Panel de acción</h3>
-            <p>Confirma el gasto antes de guardarlo.</p>
+          <div class="record-oc-expense-card__title-wrap">
+            <span class="record-oc-expense-card__icon">
+              <mat-icon>shield</mat-icon>
+            </span>
+
+            <div>
+              <h3>Panel de acción</h3>
+              <p>Confirma el gasto antes de guardarlo.</p>
+            </div>
           </div>
         </div>
 

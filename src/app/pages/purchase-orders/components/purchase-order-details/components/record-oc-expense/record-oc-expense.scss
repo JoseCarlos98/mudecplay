@@ -6,6 +6,10 @@
   min-height: unset;
 }
 
+/* =========================================================
+ * RESUMEN SUPERIOR
+ * ========================================================= */
+
 .record-oc-expense-hero {
   display: grid;
   grid-template-columns:
@@ -21,47 +25,32 @@
 
 .record-oc-expense-hero__item {
   min-width: 0;
-  min-height: 64px;
+  min-height: 68px;
 
   display: flex;
   align-items: center;
   gap: 11px;
 
-  padding: 10px 14px;
+  padding: 11px 14px;
 
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-
-  > span {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 10px;
-    background: #e5f3ff;
-    color: var(--color-primary-strong);
-  }
-
-  mat-icon {
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-  }
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.025);
 
   small {
     display: block;
     margin-bottom: 4px;
+
     color: #64748b;
     font-size: 11px;
     font-weight: 800;
+    line-height: 1.2;
   }
 
   strong {
     display: block;
+
     color: var(--color-secundary);
     font-size: 15px;
     font-weight: 800;
@@ -70,18 +59,42 @@
   }
 }
 
+.record-oc-expense-hero__icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
+  }
+}
+
 .record-oc-expense-hero__item--amount {
   background: linear-gradient(180deg, #ffffff 0%, #f8fffb 100%);
 
-  > span {
+  .record-oc-expense-hero__icon {
     background: #dcfce7;
     color: #15803d;
   }
 
   strong {
-    font-size: 17px;
+    font-size: 18px;
+    letter-spacing: 0.2px;
   }
 }
+
+/* =========================================================
+ * BLOQUEO DE FLUJO
+ * ========================================================= */
 
 .record-oc-expense-blocked {
   display: grid;
@@ -116,6 +129,10 @@
   }
 }
 
+/* =========================================================
+ * LAYOUT PRINCIPAL
+ * ========================================================= */
+
 .record-oc-expense-board {
   display: grid;
   grid-template-columns: 350px minmax(0, 1fr) 330px;
@@ -136,6 +153,10 @@
   top: 12px;
 }
 
+/* =========================================================
+ * CARDS BASE
+ * ========================================================= */
+
 .record-oc-expense-card {
   min-width: 0;
   padding: 14px;
@@ -143,6 +164,11 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 14px;
   background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.026);
+}
+
+.record-oc-expense-card--form {
+  padding: 16px;
 }
 
 .record-oc-expense-card__header {
@@ -151,13 +177,22 @@
   align-items: flex-start;
   gap: 10px;
 
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 11px;
 
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid rgba(39, 170, 225, 0.18);
+}
+
+.record-oc-expense-card__title-wrap {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 
   h3 {
     margin: 0;
+
     color: var(--color-secundary);
     font-size: 16px;
     font-weight: 800;
@@ -166,11 +201,35 @@
 
   p {
     margin: 4px 0 0;
+
     color: #64748b;
     font-size: 12px;
     line-height: 1.35;
   }
 }
+
+.record-oc-expense-card__icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+/* =========================================================
+ * FOTO
+ * ========================================================= */
 
 .record-oc-expense-photo {
   position: relative;
@@ -185,7 +244,9 @@
 
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
-  background: #f8fafc;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%),
+    #f8fafc;
 
   img {
     width: 100%;
@@ -225,18 +286,108 @@
   }
 }
 
-.record-oc-expense-meta,
-.record-oc-expense-info {
+.record-oc-expense-meta {
   display: grid;
   gap: 8px;
   margin-top: 12px;
+}
 
-  div {
+.record-oc-expense-meta__row {
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  > div {
+    min-width: 0;
     display: grid;
     gap: 2px;
+  }
 
-    padding-bottom: 8px;
+  span:not(.record-oc-expense-meta__icon) {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+  }
 
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+}
+
+.record-oc-expense-meta__icon {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.record-oc-expense-photo-button {
+  width: 100%;
+  min-height: 34px;
+
+  margin-top: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border-radius: 8px !important;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+/* =========================================================
+ * INFORMACIÓN DE O.C.
+ * ========================================================= */
+
+.record-oc-expense-info {
+  display: grid;
+  gap: 10px;
+
+  div {
+    min-width: 0;
+
+    display: grid;
+    gap: 5px;
+
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(148, 163, 184, 0.18);
 
     &:last-child {
@@ -255,28 +406,14 @@
     color: var(--color-secundary);
     font-size: 13px;
     font-weight: 800;
-    line-height: 1.35;
+    line-height: 1.4;
     word-break: break-word;
   }
 }
 
-.record-oc-expense-photo-button {
-  width: 100%;
-  min-height: 34px;
-
-  margin-top: 12px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-  }
-}
+/* =========================================================
+ * FORMULARIO CENTRAL
+ * ========================================================= */
 
 .record-oc-expense-flow-chip {
   padding: 5px 10px;
@@ -296,40 +433,13 @@
   align-items: end;
   gap: 10px;
   margin-bottom: 14px;
-}
 
-.record-oc-expense-project-locked {
-  min-height: 30px;
-
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 6px;
-
-  padding: 3px 8px;
-
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  border-radius: 6px;
-  background: #f8fafc;
-
-  span {
-    grid-column: 1 / -1;
-    color: var(--color-primary-strong);
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  strong {
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
-    color: #94a3b8;
+  app-input-date,
+  app-autocomplete,
+  app-input-field {
+    min-width: 0;
+    display: block;
+    width: 100%;
   }
 }
 
@@ -355,7 +465,17 @@
 
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
-  background: #fbfdff;
+  background:
+    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
+    #fbfdff;
+
+  app-autocomplete,
+  app-input-field,
+  app-input-date {
+    min-width: 0;
+    display: block;
+    width: 100%;
+  }
 }
 
 .record-oc-expense-item__number {
@@ -390,9 +510,17 @@
   color: var(--color-remove-bold);
   cursor: pointer;
 
+  transition:
+    background 180ms ease,
+    opacity 180ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(229, 56, 53, 0.14);
+  }
+
   &:disabled {
     opacity: 0.45;
-    cursor: not-allowed;
+    cursor: default;
   }
 
   mat-icon {
@@ -413,7 +541,7 @@
 
   margin-top: 10px;
 
-  border: 1px dashed rgba(39, 170, 225, 0.5);
+  border: 1px dashed rgba(39, 170, 225, 0.55);
   border-radius: 10px;
   background: #ffffff;
   color: var(--color-primary-strong);
@@ -421,6 +549,17 @@
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;
+
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+
+  &:hover {
+    background: rgba(39, 170, 225, 0.06);
+    border-color: rgba(30, 134, 177, 0.75);
+    box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.08);
+  }
 
   mat-icon {
     width: 18px;
@@ -454,13 +593,30 @@
     color: #111827;
     font-family: inherit;
     font-size: 13px;
+    line-height: 1.4;
+
+    background: #ffffff;
+
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
 
     &:focus {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
+      background: #ffffff;
+    }
+
+    &::placeholder {
+      color: #9ca3af;
     }
   }
 }
+
+/* =========================================================
+ * PANEL DERECHO
+ * ========================================================= */
 
 .record-oc-expense-card--summary {
   display: grid;
@@ -508,6 +664,7 @@
 
   padding: 12px;
 
+  border: 1px solid rgba(17, 100, 163, 0.16);
   border-radius: 12px;
   background: #f1f8ff;
   color: #0f5f92;
@@ -535,12 +692,32 @@
   justify-content: center;
   gap: 7px;
 
+  border-radius: 8px !important;
+
   mat-icon {
     width: 19px;
     height: 19px;
     font-size: 19px;
   }
+
+  span {
+    font-weight: 700;
+  }
 }
+
+.record-oc-expense-save {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.record-oc-expense-cancel {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
 
 @media screen and (max-width: 1320px) {
   .record-oc-expense-hero {
@@ -562,6 +739,10 @@
     grid-template-columns: 1fr;
   }
 
+  .record-oc-expense-column--right {
+    grid-column: auto;
+  }
+
   .record-oc-expense-main-fields,
   .record-oc-expense-item {
     grid-template-columns: 1fr;
@@ -570,6 +751,10 @@
   .record-oc-expense-item__number,
   .record-oc-expense-item__remove {
     margin-bottom: 0;
+  }
+
+  .record-oc-expense-item__remove {
+    width: 100%;
   }
 }
 
@@ -582,7 +767,43 @@
     padding: 12px;
   }
 
+  .record-oc-expense-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-oc-expense-flow-chip {
+    width: fit-content;
+  }
+
   .record-oc-expense-photo {
     min-height: 220px;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .record-oc-expense-hero__item {
+    padding: 10px 12px;
+  }
+
+  .record-oc-expense-card__title-wrap {
+    gap: 8px;
+
+    h3 {
+      font-size: 15px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+
+  .record-oc-expense-summary-box {
+    padding: 10px;
+
+    span,
+    strong {
+      font-size: 12px;
+    }
   }
 }
