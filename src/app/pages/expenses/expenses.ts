@@ -309,23 +309,23 @@ export class Expenses implements OnInit {
     };
   };
 
-getCancelWarehouseExpensePopover = (
-  row: entity.ExpenseResponseDto,
-): DataTableActionPopover | null => {
-  if (!this.isWarehouseExpense(row)) return null;
+  getCancelWarehouseExpensePopover = (
+    row: entity.ExpenseResponseDto,
+  ): DataTableActionPopover | null => {
+    if (!this.isWarehouseExpense(row)) return null;
 
-  return {
-    title: 'Cancelar gasto completo de almacén',
-    message: null,
-    items: [
-      'Esta acción cancelará el gasto completo de almacén.',
-      'El material dejará de estar disponible en existencias.',
-      'Si el gasto ya tuvo salidas a proyecto, esas salidas se regresarán automáticamente.',
-      'Después de cancelar, el gasto dejará de aparecer en el listado principal.',
-    ],
-    kind: 'warning',
+    return {
+      title: 'Cancelar gasto completo de almacén',
+      message: null,
+      items: [
+        'Esta acción cancelará el gasto completo de almacén.',
+        'El material dejará de estar disponible en existencias.',
+        'Si el gasto ya tuvo salidas a proyecto, esas salidas se regresarán automáticamente.',
+        'Después de cancelar, el gasto dejará de aparecer en el listado principal.',
+      ],
+      kind: 'warning',
+    };
   };
-};
 
   readonly extraActions: ExpenseTableExtraAction[] = [
     {
@@ -536,7 +536,11 @@ getCancelWarehouseExpensePopover = (
   onTableAction(ev: DataTableActionEvent<entity.ExpenseResponseDto>): void {
     switch (ev.type) {
       case 'edit':
-        this.router.navigateByUrl(`/gastos/editar/${ev.row.id}`);
+        this.router.navigate(['/gastos/editar', ev.row.id], {
+          queryParams: {
+            returnUrl: '/gastos',
+          },
+        });
         break;
 
       case 'delete':

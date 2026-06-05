@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -8,39 +8,42 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
 import {
   ModuleHeaderAction,
   ModuleHeaderConfig,
 } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
-import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
-import { InputField } from '../../../../shared/ui/input-field/input-field';
-import { InputDate } from '../../../../shared/ui/input-date/input-date';
 import {
   BtnsSection,
   ModuleFooterAction,
 } from '../../../../shared/ui/btns-section/btns-section';
+import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
+import { InputDate } from '../../../../shared/ui/input-date/input-date';
+import { InputField } from '../../../../shared/ui/input-field/input-field';
+import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 
-import { ExpenseService } from '../../services/expense.service';
-import * as entity from '../../interfaces/expense-interfaces';
+import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import {
   toCatalogAutoComplete,
   toIdForm,
 } from '../../../../shared/helpers/general-helpers';
-import { Catalog } from '../../../../shared/interfaces/general-interfaces';
-import { DialogService } from '../../../../shared/services/dialog.service';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { InputSelect } from '../../../../shared/ui/input-select/input-select';
+
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ExpenseService } from '../../services/expense.service';
+
+import * as entity from '../../interfaces/expense-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -51,45 +54,58 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   standalone: true,
   imports: [
     CommonModule,
-    MatDatepickerModule,
+    ReactiveFormsModule,
+
+    // UI
     ModuleHeader,
+    BtnsSection,
+    Autocomplete,
+    InputField,
+    InputDate,
+    InputSelect,
+
+    // Material
+    MatDatepickerModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
-    ReactiveFormsModule,
-    Autocomplete,
-    InputField,
-    BtnsSection,
-    InputDate,
     MatButtonModule,
     MatCheckboxModule,
     MatTooltipModule,
-    InputSelect
   ],
   templateUrl: './expense-form.html',
   styleUrl: './expense-form.scss',
 })
 export class ExpenseForm implements OnInit {
-  private readonly activatedroute = inject(ActivatedRoute);
   private readonly expenseService = inject(ExpenseService);
   private readonly catalogsService = inject(CatalogsService);
-  private readonly fb = inject(FormBuilder);
   private readonly dialogService = inject(DialogService);
-  readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly headerConfig = HEADER_CONFIG;
 
   measurementUnitsCatalog: Catalog[] = [];
 
-  isXmlImport: boolean = false;
-  isLaborAuto: boolean = false;
-  hasWarehouseItems: boolean = false;
+  isXmlImport = false;
+  isLaborAuto = false;
+  hasWarehouseItems = false;
 
   cfdiUuidFromXml: string | null = null;
 
-  xmlQueueTotal: number = 0;
-  xmlQueuePending: number = 0;
+  xmlQueueTotal = 0;
+  xmlQueuePending = 0;
+
+  expenseId = 0;
+  formData!: entity.ExpenseDetail;
+
+  bulkProjectCtrl = this.fb.control<any>(null);
+  bulkProjectSelected: Catalog | null = null;
+
+  bulkAmountCtrl = this.fb.control<number | null>(null);
+  bulkPaymentDateCtrl = this.fb.control<string | null>('');
 
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, {
@@ -100,14 +116,9 @@ export class ExpenseForm implements OnInit {
     items: this.fb.array([this.createItemGroup()]),
   });
 
-  bulkProjectCtrl = this.fb.control<any>(null);
-  bulkProjectSelected: Catalog | null = null;
-
-  bulkAmountCtrl = this.fb.control<number | null>(null);
-  bulkPaymentDateCtrl = this.fb.control<string | null>('');
-
-  expenseId: number = 0;
-  formData!: entity.ExpenseDetail;
+  // ==========================
+  //  GETTERS
+  // ==========================
 
   get currentXmlIndex(): number {
     if (!this.xmlQueueTotal) return 1;
@@ -161,29 +172,41 @@ export class ExpenseForm implements OnInit {
     );
   }
 
-  ngOnInit() {
+  // ==========================
+  //  CICLO DE VIDA
+  // ==========================
+
+  /**
+   * Inicializa catálogos, carga gasto si viene id o continúa cola XML.
+   */
+  ngOnInit(): void {
     this.loadCatalogs();
 
-    const idParam = this.activatedroute.snapshot.paramMap.get('id');
+    const idParam = this.route.snapshot.paramMap.get('id');
 
     if (idParam) {
-      this.expenseId = +idParam;
+      this.expenseId = Number(idParam);
       this.loadExpense(this.expenseId);
-    } else {
-      if (this.expenseService.hasMoreXmlDrafts()) {
-        this.loadNextXmlFromQueueOrExit();
-      }
+    } else if (this.expenseService.hasMoreXmlDrafts()) {
+      this.loadNextXmlFromQueueOrExit();
     }
 
     this.bulkProjectCtrl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((v) => {
-        if (v == null || v === '') {
+      .subscribe((value) => {
+        if (value == null || value === '') {
           this.bulkProjectSelected = null;
         }
       });
   }
 
+  // ==========================
+  //  CATÁLOGOS
+  // ==========================
+
+  /**
+   * Carga catálogo de unidades de medida para items de almacén.
+   */
   private loadCatalogs(): void {
     this.catalogsService.measurementUnitsCatalog().subscribe({
       next: (response) => {
@@ -193,6 +216,13 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  // ==========================
+  //  HELPERS GENERALES
+  // ==========================
+
+  /**
+   * Regresa la fecha actual en formato ISO yyyy-mm-dd.
+   */
   private getTodayIsoDate(): string {
     const today = new Date();
     const year = today.getFullYear();
@@ -202,7 +232,10 @@ export class ExpenseForm implements OnInit {
     return `${year}-${month}-${day}`;
   }
 
-  private formatMoney(amount: number): string {
+  /**
+   * Formatea monto como moneda MXN.
+   */
+  formatMoney(amount: number): string {
     return amount.toLocaleString('es-MX', {
       style: 'currency',
       currency: 'MXN',
@@ -211,24 +244,41 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  /**
+   * Convierte un valor a número o null.
+   */
   private toNumberOrNull(value: any): number | null {
     if (value === null || value === undefined || value === '') return null;
+
     const num = Number(value);
+
     return Number.isFinite(num) ? num : null;
   }
 
+  /**
+   * Redondea a 2 decimales.
+   */
   private round2(value: number): number {
     return Number(Number(value ?? 0).toFixed(2));
   }
 
+  /**
+   * Redondea a 4 decimales.
+   */
   private round4(value: number): number {
     return Number(Number(value ?? 0).toFixed(4));
   }
 
+  /**
+   * Redondea a 6 decimales.
+   */
   private round6(value: number): number {
     return Number(Number(value ?? 0).toFixed(6));
   }
 
+  /**
+   * Compara dos montos considerando centavos.
+   */
   private isSameMoney(a: any, b: any): boolean {
     const n1 = this.round2(Number(a ?? 0));
     const n2 = this.round2(Number(b ?? 0));
@@ -236,6 +286,44 @@ export class ExpenseForm implements OnInit {
     return Math.abs(n1 - n2) <= 0.01;
   }
 
+  /**
+   * Asigna valor sin disparar eventos y deja el control limpio.
+   */
+  private setSilentControlValue(
+    ctrl: AbstractControl,
+    controlName: string,
+    value: any,
+  ): void {
+    const control = ctrl.get(controlName);
+
+    if (!control) return;
+
+    control.setValue(value, { emitEvent: false });
+    control.markAsPristine();
+    control.markAsUntouched();
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
+  /**
+   * Normaliza texto para buscar coincidencias de catálogo.
+   */
+  private normalizeCatalogText(value: any): string {
+    return String(value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[().,]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  // ==========================
+  //  XML - CÁLCULOS FISCALES
+  // ==========================
+
+  /**
+   * Detecta si un item XML tiene descuento total y costo cero.
+   */
   isZeroCostXmlDiscountItem(ctrl: AbstractControl): boolean {
     if (!this.isXmlImport) return false;
 
@@ -244,6 +332,9 @@ export class ExpenseForm implements OnInit {
     return this.isZeroCostXmlDiscountRaw(raw);
   }
 
+  /**
+   * Detecta descuento total desde un objeto raw.
+   */
   private isZeroCostXmlDiscountRaw(item: any): boolean {
     if (!this.isXmlImport || !item) return false;
 
@@ -267,6 +358,9 @@ export class ExpenseForm implements OnInit {
     );
   }
 
+  /**
+   * Bloquea pago y fecha en productos XML con costo cero.
+   */
   private syncZeroCostDiscountPaymentState(ctrl: AbstractControl): void {
     const paymentAmountCtrl = ctrl.get('payment_amount');
     const paymentDateCtrl = ctrl.get('payment_date');
@@ -291,26 +385,32 @@ export class ExpenseForm implements OnInit {
     }
   }
 
+  /**
+   * Revisa si el item trae desglose fiscal CFDI.
+   */
   private hasFiscalBreakdownFromRawItem(item: any): boolean {
     return (
       item?.base_amount !== null &&
       item?.base_amount !== undefined &&
       item?.base_amount !== ''
     ) || (
-        item?.discount_amount !== null &&
-        item?.discount_amount !== undefined &&
-        item?.discount_amount !== ''
-      ) || (
-        item?.tax_amount !== null &&
-        item?.tax_amount !== undefined &&
-        item?.tax_amount !== ''
-      ) || (
-        item?.withheld_amount !== null &&
-        item?.withheld_amount !== undefined &&
-        item?.withheld_amount !== ''
-      );
+      item?.discount_amount !== null &&
+      item?.discount_amount !== undefined &&
+      item?.discount_amount !== ''
+    ) || (
+      item?.tax_amount !== null &&
+      item?.tax_amount !== undefined &&
+      item?.tax_amount !== ''
+    ) || (
+      item?.withheld_amount !== null &&
+      item?.withheld_amount !== undefined &&
+      item?.withheld_amount !== ''
+    );
   }
 
+  /**
+   * Calcula monto final desde base, descuento, IVA y retenciones.
+   */
   private resolveFiscalAmountFromRawItem(item: any): number | null {
     if (!this.hasFiscalBreakdownFromRawItem(item)) return null;
 
@@ -323,6 +423,9 @@ export class ExpenseForm implements OnInit {
     return this.round2(netBase + taxAmount - withheldAmount);
   }
 
+  /**
+   * Resuelve el monto correcto de un item XML.
+   */
   private resolveXmlAmountFromRawItem(item: any): number | null {
     if (this.isZeroCostXmlDiscountRaw(item)) {
       return 0;
@@ -345,6 +448,9 @@ export class ExpenseForm implements OnInit {
     return amount !== null && amount > 0 ? this.round2(amount) : null;
   }
 
+  /**
+   * Calcula precio unitario desde monto y cantidad.
+   */
   private resolveXmlUnitPriceFromAmount(
     amount: number | null,
     quantity: number | null,
@@ -356,6 +462,9 @@ export class ExpenseForm implements OnInit {
     return this.round6(amount / quantity);
   }
 
+  /**
+   * Corrige el abono cuando el XML cambió el monto fiscal real.
+   */
   private resolvePayloadPaymentAmount(
     rawPaymentAmount: any,
     normalizedAmount: number,
@@ -385,6 +494,9 @@ export class ExpenseForm implements OnInit {
     return roundedPaymentAmount;
   }
 
+  /**
+   * Sincroniza monto y precio unitario desde valores fiscales XML.
+   */
   private syncXmlFiscalValues(ctrl: AbstractControl): void {
     if (!this.isXmlImport) return;
 
@@ -426,19 +538,31 @@ export class ExpenseForm implements OnInit {
       ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
     }
   }
+
   // ==========================
   //  ALMACÉN - HELPERS UI
   // ==========================
+
+  /**
+   * Indica si el item es de almacén.
+   */
   isWarehouseItem(ctrl: AbstractControl): boolean {
     return ctrl.get('item_type')?.value === 'warehouse';
   }
 
+  /**
+   * Indica si el usuario puede cambiar el tipo de item.
+   */
   canChangeItemType(ctrl: AbstractControl): boolean {
     if (this.isLaborAuto) return false;
     if (this.isWarehouseSafeExpense) return false;
+
     return !!ctrl.get('item_type')?.enabled;
   }
 
+  /**
+   * Cambia el tipo de item entre directo y almacén.
+   */
   setItemType(index: number, type: entity.ExpenseItemType): void {
     const ctrl = this.itemsFA.at(index) as FormGroup;
 
@@ -473,6 +597,9 @@ export class ExpenseForm implements OnInit {
     }
   }
 
+  /**
+   * Limpia valores incompatibles al cambiar de tipo.
+   */
   private resetItemValuesForTypeChange(
     ctrl: AbstractControl,
     nextType: entity.ExpenseItemType,
@@ -500,7 +627,7 @@ export class ExpenseForm implements OnInit {
           xmlQuantity && xmlQuantity > 0 && xmlAmount !== null
             ? this.resolveXmlUnitPriceFromAmount(xmlAmount, xmlQuantity)
             : this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
-            this.toNumberOrNull(ctrl.get('unit_price')?.value);
+              this.toNumberOrNull(ctrl.get('unit_price')?.value);
 
         this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
         this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
@@ -561,38 +688,12 @@ export class ExpenseForm implements OnInit {
     this.setSilentControlValue(ctrl, 'amount', null);
   }
 
-  private setSilentControlValue(
-    ctrl: AbstractControl,
-    controlName: string,
-    value: any,
-  ): void {
-    const control = ctrl.get(controlName);
-
-    if (!control) return;
-
-    control.setValue(value, { emitEvent: false });
-
-    /**
-     * Lo dejamos limpio visualmente.
-     * Si el usuario guarda sin llenar, saveData() hace markAllAsTouched()
-     * y ahí sí se mostrarán las validaciones.
-     */
-    control.markAsPristine();
-    control.markAsUntouched();
-    control.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private normalizeCatalogText(value: any): string {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[().,]/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  private resolveMeasurementUnitIdFromText(unitText: string | null | undefined): number | null {
+  /**
+   * Resuelve unidad de medida por texto del XML.
+   */
+  private resolveMeasurementUnitIdFromText(
+    unitText: string | null | undefined,
+  ): number | null {
     const normalizedXmlUnit = this.normalizeCatalogText(unitText);
 
     if (!normalizedXmlUnit) return null;
@@ -638,6 +739,9 @@ export class ExpenseForm implements OnInit {
     return partialMatch ? Number(partialMatch.id) : null;
   }
 
+  /**
+   * Muestra cantidad y unidad inicial para items de almacén.
+   */
   getWarehouseInitialText(ctrl: AbstractControl): string {
     const quantity = Number(ctrl.get('quantity')?.value ?? 0);
     const rawUnitId = ctrl.get('unit_id')?.value;
@@ -655,6 +759,9 @@ export class ExpenseForm implements OnInit {
     return `${quantity.toLocaleString('es-MX')} ${unitName || ''}`.trim();
   }
 
+  /**
+   * Configura listeners de cantidad/precio para recalcular almacén.
+   */
   private setupWarehouseItemBehaviour(group: FormGroup): void {
     group
       .get('item_type')
@@ -680,6 +787,9 @@ export class ExpenseForm implements OnInit {
     this.refreshItemTypeState(group, false);
   }
 
+  /**
+   * Activa/desactiva validaciones según tipo de item.
+   */
   private refreshItemTypeState(ctrl: AbstractControl, emitEvent = false): void {
     const isWarehouse = this.isWarehouseItem(ctrl);
 
@@ -692,6 +802,7 @@ export class ExpenseForm implements OnInit {
 
     if (isWarehouse) {
       const isZeroCostDiscount = this.isZeroCostXmlDiscountItem(ctrl);
+
       quantityCtrl?.setValidators([Validators.required, Validators.min(0.0001)]);
       unitIdCtrl?.setValidators([Validators.required]);
       unitPriceCtrl?.setValidators([
@@ -733,6 +844,9 @@ export class ExpenseForm implements OnInit {
     amountCtrl?.updateValueAndValidity({ emitEvent });
   }
 
+  /**
+   * Recalcula importe de almacén con cantidad * precio unitario.
+   */
   private recalculateWarehouseAmount(ctrl: AbstractControl): void {
     if (!this.isWarehouseItem(ctrl)) return;
 
@@ -746,21 +860,29 @@ export class ExpenseForm implements OnInit {
 
     if (quantity > 0 && unitPrice > 0) {
       const amount = this.round2(quantity * unitPrice);
+
       ctrl.get('amount')?.setValue(amount, { emitEvent: false });
       ctrl.get('amount')?.updateValueAndValidity({ emitEvent: false });
 
       const paymentAmount = Number(ctrl.get('payment_amount')?.value ?? 0);
+
       if (paymentAmount > amount) {
         ctrl.get('payment_amount')?.setValue(null, { emitEvent: false });
-        ctrl.get('payment_date')?.setValue(this.getTodayIsoDate(), { emitEvent: false });
+        ctrl.get('payment_date')?.setValue(this.getTodayIsoDate(), {
+          emitEvent: false,
+        });
       }
     }
   }
 
   // ==========================
-  //  CARGAR GASTO
+  //  CARGA DE DATOS
   // ==========================
-  loadExpense(id: number) {
+
+  /**
+   * Carga un gasto existente para editar.
+   */
+  loadExpense(id: number): void {
     this.expenseService.getById(id).subscribe({
       next: (response: entity.ExpenseDetail) => {
         this.formData = response;
@@ -779,9 +901,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-              response.supplier.id,
-              response.supplier.company_name,
-            )
+                response.supplier.id,
+                response.supplier.company_name,
+              )
             : null,
           supplier_display: this.isLaborAuto
             ? (response.provider_display_name ?? '')
@@ -791,22 +913,18 @@ export class ExpenseForm implements OnInit {
         const itemsFGs = response.items.map((item) =>
           this.createItemGroup({
             id: item.id,
-
             item_type: item.item_type ?? 'direct',
             quantity: item.quantity ?? null,
             unit: item.unit ?? null,
             unit_id: (item as any).unit_id ?? null,
             unit_price: item.unit_price ?? null,
-
             amount: item.amount,
             payment_amount: item.payment_amount ?? null,
             payment_date: item.payment_date ?? null,
-
             base_amount: (item as any).base_amount ?? null,
             discount_amount: (item as any).discount_amount ?? null,
             tax_amount: (item as any).tax_amount ?? null,
             withheld_amount: (item as any).withheld_amount ?? null,
-
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
               : null,
@@ -835,10 +953,10 @@ export class ExpenseForm implements OnInit {
     });
   }
 
-  // ==========================
-  //  CARGAR DESDE XML
-  // ==========================
-  patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto) {
+  /**
+   * Llena el formulario con el siguiente XML de la cola.
+   */
+  patchFormFromXmlDraft(draft: entity.XmlExpenseDraftDto): void {
     this.isXmlImport = true;
     this.isLaborAuto = false;
     this.hasWarehouseItems = false;
@@ -855,26 +973,21 @@ export class ExpenseForm implements OnInit {
     const itemsFGs = draft.items.map((item) =>
       this.createItemGroup({
         item_type: item.item_type ?? 'direct',
-
         quantity: item.quantity ?? null,
         unit: item.unit ?? null,
         unit_id: null,
         unit_price: item.unit_price ?? null,
-
         xml_quantity: item.quantity ?? null,
         xml_unit: item.unit ?? null,
         xml_unit_price: item.unit_price ?? null,
         xml_amount: item.amount ?? null,
-
         amount: item.amount,
         payment_amount: item.payment_amount ?? null,
         payment_date: item.payment_date ?? null,
-
         base_amount: (item as any).base_amount ?? null,
         discount_amount: (item as any).discount_amount ?? null,
         tax_amount: (item as any).tax_amount ?? null,
         withheld_amount: (item as any).withheld_amount ?? null,
-
         project_id: null,
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
@@ -889,6 +1002,10 @@ export class ExpenseForm implements OnInit {
   // ==========================
   //  BLOQUEOS
   // ==========================
+
+  /**
+   * Bloquea campos que vienen desde XML.
+   */
   applyXmlLocking(): void {
     if (!this.isXmlImport) return;
 
@@ -914,6 +1031,9 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  /**
+   * Bloquea campos de gastos generados por mano de obra.
+   */
   applyLaborAutoLocking(): void {
     if (!this.isLaborAuto) return;
 
@@ -950,6 +1070,9 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  /**
+   * Bloquea edición estructural en gastos de almacén ya creados.
+   */
   applyWarehouseSafeLocking(): void {
     if (!this.isWarehouseSafeExpense) return;
 
@@ -973,9 +1096,13 @@ export class ExpenseForm implements OnInit {
   }
 
   // ==========================
-  //  CREATE
+  //  GUARDAR / ACTUALIZAR
   // ==========================
-  saveData() {
+
+  /**
+   * Crea un gasto nuevo.
+   */
+  saveData(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -993,16 +1120,16 @@ export class ExpenseForm implements OnInit {
         }
 
         this.expenseService.clearXmlQueue();
-        this.router.navigateByUrl('/gastos');
+        this.navigateToList();
       },
       error: (err) => console.error('Error al crear gasto:', err),
     });
   }
 
-  // ==========================
-  //  UPDATE
-  // ==========================
-  updateData() {
+  /**
+   * Actualiza un gasto existente.
+   */
+  updateData(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -1014,7 +1141,7 @@ export class ExpenseForm implements OnInit {
       this.expenseService.updateWarehouseExpenseSafe(this.expenseId, payload).subscribe({
         next: (response) => {
           if (response.success) {
-            this.router.navigateByUrl('/gastos');
+            this.navigateToList();
           }
         },
         error: (err) => console.error('Error al actualizar gasto con almacén:', err),
@@ -1028,16 +1155,32 @@ export class ExpenseForm implements OnInit {
     this.expenseService.update(this.expenseId, payload).subscribe({
       next: (response) => {
         if (response.success) {
-          this.router.navigateByUrl('/gastos');
+          this.navigateToList();
         }
       },
       error: (err) => console.error('Error al actualizar gasto:', err),
     });
   }
 
+  /**
+   * Decide si crea o actualiza según exista expenseId.
+   */
+  private submitForm(): void {
+    if (this.expenseId) {
+      this.updateData();
+      return;
+    }
+
+    this.saveData();
+  }
+
   // ==========================
-  //  ITEMS FORM
+  //  ITEMS DEL FORMULARIO
   // ==========================
+
+  /**
+   * Crea un FormGroup para un item del gasto.
+   */
   createItemGroup(data?: any): FormGroup {
     const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
     const isZeroCostDiscount = this.isZeroCostXmlDiscountRaw(data ?? {});
@@ -1092,32 +1235,51 @@ export class ExpenseForm implements OnInit {
     return group;
   }
 
-  addItem() {
+  /**
+   * Agrega un item manual al gasto.
+   */
+  addItem(): void {
     if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
+
     this.itemsFA.push(this.createItemGroup());
   }
 
-  removeItem(index: number) {
+  /**
+   * Elimina un item manual del gasto.
+   */
+  removeItem(index: number): void {
     if (this.itemsFA.length <= 1) return;
     if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
+
     this.itemsFA.removeAt(index);
   }
 
   // ==========================
   //  SELECCIÓN MASIVA
   // ==========================
+
+  /**
+   * Selecciona o deselecciona todos los items.
+   */
   onToggleSelectAll(checked: boolean): void {
     this.itemsFA.controls.forEach((ctrl) => {
       ctrl.get('selected')?.setValue(checked);
     });
   }
 
-  onBulkProjectSelected(p: Catalog) {
-    this.bulkProjectSelected = p;
+  /**
+   * Guarda el proyecto seleccionado para aplicación masiva.
+   */
+  onBulkProjectSelected(project: Catalog): void {
+    this.bulkProjectSelected = project;
   }
 
+  /**
+   * Aplica un proyecto a los items directos seleccionados.
+   */
   applyBulkProject(): void {
     const project = this.bulkProjectSelected;
+
     if (!project || this.isWarehouseSafeExpense) return;
 
     this.itemsFA.controls.forEach((ctrl) => {
@@ -1129,6 +1291,9 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  /**
+   * Aplica un monto a los items directos seleccionados.
+   */
   applyAmountToSelected(): void {
     if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
 
@@ -1158,6 +1323,9 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+  /**
+   * Marca como pagados los items seleccionados.
+   */
   applyFullPaymentToSelected(): void {
     if (this.isLaborAuto) return;
 
@@ -1233,38 +1401,54 @@ export class ExpenseForm implements OnInit {
   }
 
   // ==========================
-  //  HEADER
+  //  HEADER / FOOTER
   // ==========================
-  onHeaderAction(action: ModuleHeaderAction | string) {
+
+  /**
+   * Maneja acciones del header.
+   */
+  onHeaderAction(action: ModuleHeaderAction | string): void {
     switch (action) {
       case 'back':
-        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
-          this.confirmExitFromXmlFlow();
-        } else {
-          this.navigateToList();
-        }
+        this.handleExit();
         break;
     }
   }
 
-  // ==========================
-  //  FOOTER
-  // ==========================
-  onFooterAction(action: ModuleFooterAction | string) {
+  /**
+   * Maneja acciones del footer reutilizable.
+   */
+  onFooterAction(action: ModuleFooterAction | string): void {
     switch (action) {
       case 'cancel':
-        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
-          this.confirmExitFromXmlFlow();
-        } else {
-          this.navigateToList();
-        }
+        this.handleExit();
+        break;
+
+      case 'save':
+        this.submitForm();
         break;
     }
+  }
+
+  /**
+   * Si es XML nuevo pide confirmación, si no regresa directo.
+   */
+  private handleExit(): void {
+    if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
+      this.confirmExitFromXmlFlow();
+      return;
+    }
+
+    this.navigateToList();
   }
 
   // ==========================
   //  PAYLOAD BACKEND
   // ==========================
+
+  /**
+   * Construye payload para crear o actualizar gasto normal.
+   */
   buildPayloadFromForm(): entity.CreateExpense {
     const raw = this.form.getRawValue();
 
@@ -1280,7 +1464,7 @@ export class ExpenseForm implements OnInit {
 
         const xmlQuantity = isXml
           ? this.toNumberOrNull(item.quantity) ??
-          this.toNumberOrNull(item.xml_quantity)
+            this.toNumberOrNull(item.xml_quantity)
           : null;
 
         const quantity = isWarehouse
@@ -1314,7 +1498,7 @@ export class ExpenseForm implements OnInit {
             ? fiscalAmount !== null
               ? this.resolveXmlUnitPriceFromAmount(fiscalAmount, quantity)
               : this.toNumberOrNull(item.unit_price) ??
-              this.toNumberOrNull(item.xml_unit_price)
+                this.toNumberOrNull(item.xml_unit_price)
             : null;
 
         const paymentAmount = this.resolvePayloadPaymentAmount(
@@ -1348,29 +1532,29 @@ export class ExpenseForm implements OnInit {
 
           base_amount:
             item.base_amount !== null &&
-              item.base_amount !== undefined &&
-              item.base_amount !== ''
+            item.base_amount !== undefined &&
+            item.base_amount !== ''
               ? this.round2(Number(item.base_amount))
               : null,
 
           discount_amount:
             item.discount_amount !== null &&
-              item.discount_amount !== undefined &&
-              item.discount_amount !== ''
+            item.discount_amount !== undefined &&
+            item.discount_amount !== ''
               ? this.round2(Number(item.discount_amount))
               : null,
 
           tax_amount:
             item.tax_amount !== null &&
-              item.tax_amount !== undefined &&
-              item.tax_amount !== ''
+            item.tax_amount !== undefined &&
+            item.tax_amount !== ''
               ? this.round2(Number(item.tax_amount))
               : null,
 
           withheld_amount:
             item.withheld_amount !== null &&
-              item.withheld_amount !== undefined &&
-              item.withheld_amount !== ''
+            item.withheld_amount !== undefined &&
+            item.withheld_amount !== ''
               ? this.round2(Number(item.withheld_amount))
               : null,
 
@@ -1392,6 +1576,9 @@ export class ExpenseForm implements OnInit {
     };
   }
 
+  /**
+   * Construye payload seguro para editar solo pagos de almacén.
+   */
   buildWarehouseSafePayloadFromForm(): entity.UpdateWarehouseExpenseSafe {
     const raw = this.form.getRawValue();
 
@@ -1404,8 +1591,8 @@ export class ExpenseForm implements OnInit {
         .map((item: any): entity.UpdateWarehouseExpenseSafeItem => {
           const paymentAmount =
             item.payment_amount !== null &&
-              item.payment_amount !== undefined &&
-              item.payment_amount !== ''
+            item.payment_amount !== undefined &&
+            item.payment_amount !== ''
               ? Number(item.payment_amount)
               : null;
 
@@ -1421,7 +1608,14 @@ export class ExpenseForm implements OnInit {
     };
   }
 
-  loadNextXmlFromQueueOrExit() {
+  // ==========================
+  //  COLA XML
+  // ==========================
+
+  /**
+   * Carga el siguiente XML de la cola o sale si ya no hay.
+   */
+  loadNextXmlFromQueueOrExit(): void {
     const nextDraft = this.expenseService.consumeNextXmlDraft();
 
     if (!nextDraft) {
@@ -1430,7 +1624,7 @@ export class ExpenseForm implements OnInit {
       this.isLaborAuto = false;
       this.hasWarehouseItems = false;
       this.cfdiUuidFromXml = null;
-      this.router.navigateByUrl('/gastos');
+      this.navigateToList();
       return;
     }
 
@@ -1440,6 +1634,7 @@ export class ExpenseForm implements OnInit {
     this.patchFormFromXmlDraft(nextDraft);
 
     const status = this.expenseService.getXmlQueueStatus();
+
     this.xmlQueueTotal = status.total;
     this.xmlQueuePending = status.pending;
 
@@ -1450,7 +1645,10 @@ export class ExpenseForm implements OnInit {
     this.bulkPaymentDateCtrl.setValue('', { emitEvent: false });
   }
 
-  confirmExitFromXmlFlow() {
+  /**
+   * Confirma salida cuando el usuario está en flujo XML.
+   */
+  confirmExitFromXmlFlow(): void {
     const pendingText =
       this.xmlQueuePending > 0
         ? `Tienes ${this.xmlQueuePending} CFDI pendiente(s) por registrar.\n\n`
@@ -1476,6 +1674,13 @@ export class ExpenseForm implements OnInit {
       });
   }
 
+  // ==========================
+  //  TOOLTIPS
+  // ==========================
+
+  /**
+   * Construye tooltip para descuentos XML.
+   */
   buildDiscountTooltip(itemCtrl: any): string {
     const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
     const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
@@ -1496,6 +1701,9 @@ export class ExpenseForm implements OnInit {
     ].join('\n');
   }
 
+  /**
+   * Construye tooltip para retenciones XML.
+   */
   buildWithheldTooltip(itemCtrl: any): string {
     const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
     const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
@@ -1520,7 +1728,34 @@ export class ExpenseForm implements OnInit {
       .join('\n');
   }
 
-  navigateToList() {
-    this.router.navigateByUrl('/gastos');
+  // ==========================
+  //  NAVEGACIÓN
+  // ==========================
+
+  /**
+   * Regresa a la pantalla origen.
+   */
+  navigateToList(): void {
+    this.navigateBack();
+  }
+
+  /**
+   * Obtiene returnUrl desde queryParams.
+   */
+  private getReturnUrl(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+
+    if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) {
+      return '/gastos';
+    }
+
+    return returnUrl;
+  }
+
+  /**
+   * Ejecuta navegación de regreso.
+   */
+  private navigateBack(): void {
+    this.router.navigateByUrl(this.getReturnUrl());
   }
 }

@@ -59,11 +59,13 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
   },
 
   {
-  path: 'registrar-gasto/:photoId',
-  loadComponent: () =>
-    import('./components/purchase-order-details/components/record-oc-expense/record-oc-expense')
-      .then((m) => m.RecordOcExpense),
-},
+    path: 'registrar-gasto/:photoId',
+    loadComponent: () =>
+      import('./components/purchase-order-details/components/record-oc-expense/record-oc-expense')
+        .then((m) => m.RecordOcExpense),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+  },
 
   // {
   //   path: 'conciliacion',

@@ -313,13 +313,11 @@
             </div>
 
           </div>
-          <!-- @if (expenses.length) {
-          <div class="purchase-order-table-action">
-            <button type="button" class="btn-outline purchase-order-table-action__button">
-              Ver todos los gastos
-            </button>
-          </div>
-          } -->
+          @if (expenses.length) {
+          <button type="button" class="btn-outline purchase-order-table-action__button" (click)="goToExpensesList()">
+            Ver todos los gastos
+          </button>
+          }
         </div>
 
         @if (expenses.length === 0) {
@@ -332,7 +330,10 @@
         <div class="purchase-order-related-table purchase-order-related-table--expenses">
           <app-data-table class="purchase-order-related-table__data purchase-order-related-table__data--expenses"
             [data]="paginatedExpenses" [columnsConfig]="expenseColumnsConfig"
-            [displayedColumns]="expenseDisplayedColumns">
+            [displayedColumns]="expenseDisplayedColumns" [extraActions]="expenseExtraActions" [actionPermissions]="{
+    showEdit: false,
+    showDelete: false
+  }" (action)="onExpenseTableAction($event)">
           </app-data-table>
 
           <mat-paginator [length]="expenses.length" [pageSize]="expensesPageSize" [pageIndex]="expensesPageIndex"
