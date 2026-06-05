@@ -870,7 +870,7 @@
 
   span {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
   }
 }
 
@@ -1047,5 +1047,27 @@
     p {
       font-size: 12px;
     }
+  }
+}
+
+
+.purchase-order-photo-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.purchase-order-photo-card__button {
+  min-height: 32px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  mat-icon {
+    width: 17px;
+    height: 17px;
+    font-size: 17px;
   }
 }

@@ -66,6 +66,9 @@ export interface PurchaseOrderTicketPhotoDto {
 
   status?: string | null;
 
+  purchase_order?: TicketPhotoPurchaseOrderMiniDto | null;
+  purchaseOrder?: TicketPhotoPurchaseOrderMiniDto | null;
+
   public_url?: string | null;
   publicUrl?: string | null;
   preview_url?: string | null;
@@ -378,6 +381,7 @@ export interface PendingTicketPhotoRow {
   created_at: string;
   created_at_date: string;
   public_url: string | null;
+  purchase_order?: TicketPhotoPurchaseOrderMiniDto | null;
 }
 
 export interface TicketPhotoViewUrlResponse {
@@ -403,4 +407,39 @@ export interface TicketPhotoViewUrlResponse {
   file_name: string | null;
   url: string;
   expiresIn: number;
+}
+
+export interface TicketPhotoPurchaseOrderMiniDto {
+  id: number;
+  folio: string;
+  concept: string;
+  requested_amount: number;
+  status: PurchaseOrderStatus | string;
+}
+
+export interface CreateDirectExpenseFromTicketItemDto {
+  product_id: number;
+  concept?: string | null;
+  amount: number;
+  payment_amount?: number | null;
+  payment_date?: string | null;
+}
+
+export interface CreateDirectExpenseFromTicketDto {
+  date: string;
+  supplier_id?: number | null;
+  items: CreateDirectExpenseFromTicketItemDto[];
+  notes?: string | null;
+}
+
+export interface CreateDirectExpenseFromTicketResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    ticket_photo_id: number;
+    expense_id: number;
+    total_amount: number;
+  };
 }

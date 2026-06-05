@@ -281,9 +281,17 @@
               </div>
 
               <div class="purchase-order-photo-card__actions">
-                <button type="button" class="btn-outline purchase-order-photo-card__button">
+                <button type="button" class="btn-outline purchase-order-photo-card__button" [disabled]="!photo.id"
+                  (click)="openPhoto(photo)">
                   <span>Ver foto</span>
                 </button>
+
+                @if (canRegisterExpense(photo)) {
+                <button type="button" class="btn-primary purchase-order-photo-card__button"
+                  (click)="goToRegisterExpense(photo)">
+                  <span>Registrar gasto</span>
+                </button>
+                }
               </div>
             </div>
           </article>

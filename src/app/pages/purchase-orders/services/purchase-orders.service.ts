@@ -275,4 +275,13 @@ export class PurchaseOrdersService {
     );
   }
 
+  createDirectExpenseFromTicketPhoto(
+    photoId: number,
+    payload: entity.CreateDirectExpenseFromTicketDto,
+  ): Observable<entity.CreateDirectExpenseFromTicketResponse> {
+    return this.http.post<entity.CreateDirectExpenseFromTicketResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/direct-expense`,
+      payload,
+    );
+  }
 }

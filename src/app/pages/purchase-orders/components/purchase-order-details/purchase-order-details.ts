@@ -72,6 +72,7 @@ interface PurchaseOrderPhoto {
   uploadedBy: string;
   uploadedAt: string;
   previewUrl: string | null;
+  hasExpense: boolean;
 }
 
 interface PurchaseOrderExpense {
@@ -105,7 +106,9 @@ interface PurchaseOrderDetailViewModel {
   statusLabel: string;
   flowLabel: string;
   paymentStatusLabel: string;
+  destinationType: string;
   destinationLabel: string;
+  willHaveInvoice: boolean;
   invoiceLabel: string;
   requestedAmount: number;
   concept: string;
@@ -331,27 +334,29 @@ export class PurchaseOrderDetails implements OnInit {
       });
   }
 
-  private setDetailData(detail: PurchaseOrderFlowDetailResponse): void {
-    this.photos = (detail.ticket_photos ?? []).map((photo) =>
-      this.mapPhoto(photo),
-    );
+ private setDetailData(detail: PurchaseOrderFlowDetailResponse): void {
+  const expenseLinks = detail.expense_links ?? [];
 
-    this.expenses = (detail.expense_links ?? []).map((link) =>
-      this.mapExpenseLink(link),
-    );
+  this.photos = (detail.ticket_photos ?? []).map((photo) =>
+    this.mapPhoto(photo, expenseLinks),
+  );
 
-    this.order = this.mapOrder(detail);
+  this.expenses = expenseLinks.map((link) =>
+    this.mapExpenseLink(link),
+  );
 
-    this.orderInfoItems = this.buildOrderInfoItems(detail);
-    this.authorizationInfoItems = this.buildAuthorizationInfoItems(detail);
-    this.flowSteps = this.buildFlowSteps(detail);
-    this.history = this.buildHistory(detail);
+  this.order = this.mapOrder(detail);
 
-    this.expensesPageIndex = 0;
-    this.historyPageIndex = 0;
+  this.orderInfoItems = this.buildOrderInfoItems(detail);
+  this.authorizationInfoItems = this.buildAuthorizationInfoItems(detail);
+  this.flowSteps = this.buildFlowSteps(detail);
+  this.history = this.buildHistory(detail);
 
-    this.loadPhotoPreviewUrls();
-  }
+  this.expensesPageIndex = 0;
+  this.historyPageIndex = 0;
+
+  this.loadPhotoPreviewUrls();
+}
 
   private mapOrder(
     detail: PurchaseOrderFlowDetailResponse,
@@ -364,9 +369,11 @@ export class PurchaseOrderDetails implements OnInit {
       statusLabel: detail.status_label || this.getStatusLabel(detail.status),
       flowLabel: this.getFlowLabel(detail),
       paymentStatusLabel: this.getPaymentStatusLabel(),
+      destinationType: detail.destination_type,
       destinationLabel:
         detail.destination_type_label ||
         this.getDestinationTypeLabel(detail.destination_type),
+      willHaveInvoice: !!detail.will_have_invoice,
       invoiceLabel:
         detail.will_have_invoice_label ||
         (detail.will_have_invoice ? 'Con factura' : 'Sin factura'),
@@ -467,118 +474,143 @@ export class PurchaseOrderDetails implements OnInit {
     ];
   }
 
-  private buildFlowSteps(
-    detail: PurchaseOrderFlowDetailResponse,
-  ): PurchaseOrderFlowStep[] {
-    const isAuthorized = detail.status === 'authorized';
-    const isInReview = detail.status === 'in_review';
-    const isRejected = detail.status === 'not_authorized';
-    const isCancelled = detail.status === 'cancelled';
+private buildFlowSteps(
+  detail: PurchaseOrderFlowDetailResponse,
+): PurchaseOrderFlowStep[] {
+  const isAuthorized = detail.status === 'authorized';
+  const isInReview = detail.status === 'in_review';
+  const isRejected = detail.status === 'not_authorized';
+  const isCancelled = detail.status === 'cancelled';
 
-    const hasPhotos =
-      this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
+  const hasPhotos =
+    this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
 
-    const hasReconciledPhoto = this.photos.some(
-      (photo) => photo.status === 'reconciled',
-    );
+  const hasReconciledPhoto = this.photos.some(
+    (photo) => photo.status === 'reconciled',
+  );
 
-    const hasExpenses =
-      this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
+  const hasExpenses =
+    this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
 
-    const hasFullPayment =
-      this.expenses.length > 0 &&
-      this.expenses.every((expense) => Number(expense.balance ?? 0) <= 0);
+  const totalPaid = this.expenses.reduce((total, expense) => {
+    return total + Number(expense.paid ?? 0);
+  }, 0);
 
-    const firstPhoto = this.photos[0];
-    const reconciledPhoto = this.photos.find(
-      (photo) => photo.status === 'reconciled',
-    );
+  const totalBalance = this.expenses.reduce((total, expense) => {
+    return total + Number(expense.balance ?? 0);
+  }, 0);
 
-    return [
-      {
-        label: 'O.C. creada',
-        date: this.formatDateTime(detail.created_at),
-        icon: 'description',
-        status: 'done',
-      },
-      {
-        label:
-          detail.status === 'in_review'
-            ? 'Pendiente de autorización'
-            : detail.status === 'not_authorized'
-              ? 'O.C. no autorizada'
-              : detail.status === 'cancelled'
-                ? 'Autorización bloqueada'
-                : 'O.C. autorizada',
-        date: detail.authorized_at
-          ? this.formatDateTime(detail.authorized_at)
-          : 'Pendiente',
-        icon:
-          detail.status === 'not_authorized'
-            ? 'block'
+  const hasAnyPayment = totalPaid > 0;
+  const hasFullPayment = hasExpenses && totalBalance <= 0;
+
+  const paymentStepLabel = hasFullPayment
+    ? 'Pago completado'
+    : hasExpenses && hasAnyPayment
+      ? 'Pago parcial'
+      : hasExpenses
+        ? 'Pago pendiente'
+        : 'Pago completado';
+
+  const paymentStepDate = hasFullPayment
+    ? 'Completado'
+    : hasExpenses && hasAnyPayment
+      ? 'Con saldo'
+      : hasExpenses
+        ? 'Sin pago'
+        : 'Pendiente';
+
+  const firstPhoto = this.photos[0];
+
+  const reconciledPhoto = this.photos.find(
+    (photo) => photo.status === 'reconciled',
+  );
+
+  return [
+    {
+      label: 'O.C. creada',
+      date: this.formatDateTime(detail.created_at),
+      icon: 'description',
+      status: 'done',
+    },
+    {
+      label:
+        detail.status === 'in_review'
+          ? 'Pendiente de autorización'
+          : detail.status === 'not_authorized'
+            ? 'O.C. no autorizada'
             : detail.status === 'cancelled'
-              ? 'lock'
-              : 'verified',
-        status: isAuthorized
-          ? 'done'
-          : isInReview
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: 'Foto subida',
-        date: firstPhoto?.uploadedAt ?? 'Pendiente',
-        icon: 'photo_camera',
-        status: hasPhotos
-          ? 'done'
-          : isAuthorized
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: 'Foto conciliada',
-        date: hasReconciledPhoto
-          ? reconciledPhoto?.uploadedAt ?? 'Conciliada'
-          : 'Pendiente',
-        icon: 'fact_check',
-        status: hasReconciledPhoto
-          ? 'done'
-          : hasPhotos
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: 'Gasto registrado',
-        date: hasExpenses ? 'Registrado' : 'Pendiente',
-        icon: 'receipt_long',
-        status: hasExpenses
-          ? 'done'
-          : hasReconciledPhoto
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: 'Pago completado',
-        date: hasFullPayment ? 'Completado' : 'Pendiente',
-        icon: 'paid',
-        status: hasFullPayment
-          ? 'done'
-          : hasExpenses
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-    ];
-  }
+              ? 'Autorización bloqueada'
+              : 'O.C. autorizada',
+      date: detail.authorized_at
+        ? this.formatDateTime(detail.authorized_at)
+        : 'Pendiente',
+      icon:
+        detail.status === 'not_authorized'
+          ? 'block'
+          : detail.status === 'cancelled'
+            ? 'lock'
+            : 'verified',
+      status: isAuthorized
+        ? 'done'
+        : isInReview
+          ? 'current'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : 'pending',
+    },
+    {
+      label: 'Foto subida',
+      date: firstPhoto?.uploadedAt ?? 'Pendiente',
+      icon: 'photo_camera',
+      status: hasPhotos
+        ? 'done'
+        : isAuthorized
+          ? 'current'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : 'pending',
+    },
+    {
+      label: 'Foto conciliada',
+      date: hasReconciledPhoto
+        ? reconciledPhoto?.uploadedAt ?? 'Conciliada'
+        : 'Pendiente',
+      icon: 'fact_check',
+      status: hasReconciledPhoto
+        ? 'done'
+        : hasPhotos
+          ? 'current'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : 'pending',
+    },
+    {
+      label: 'Gasto registrado',
+      date: hasExpenses ? 'Registrado' : 'Pendiente',
+      icon: 'receipt_long',
+      status: hasExpenses
+        ? 'done'
+        : hasReconciledPhoto
+          ? 'current'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : 'pending',
+    },
+    {
+      label: paymentStepLabel,
+      date: paymentStepDate,
+      icon: hasFullPayment ? 'paid' : 'payments',
+      status: hasFullPayment
+        ? 'done'
+        : hasExpenses
+          ? 'current'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : 'pending',
+    },
+  ];
+}
+
   private buildHistory(
     detail: PurchaseOrderFlowDetailResponse,
   ): PurchaseOrderHistoryItem[] {
@@ -848,30 +880,50 @@ export class PurchaseOrderDetails implements OnInit {
     }
   }
 
-  private mapPhoto(photo: any): PurchaseOrderPhoto {
-    const status = String(photo.status ?? '').trim() || 'pending';
+private mapPhoto(
+  photo: any,
+  expenseLinks: any[] = [],
+): PurchaseOrderPhoto {
+  const photoId = Number(photo.id ?? 0);
+  const status = String(photo.status ?? '').trim() || 'pending';
 
-    return {
-      id: Number(photo.id ?? 0),
-      fileName:
-        photo.file_name ??
-        photo.fileName ??
-        photo.filename ??
-        'Foto sin nombre',
-      status,
-      statusLabel: this.getPhotoStatusLabel(status),
-      statusVariant: this.getPhotoStatusVariant(status),
-      uploadedBy:
-        photo.uploaded_by_user?.name ??
-        photo.uploadedByUser?.name ??
-        photo.user?.name ??
-        'Sin dato',
-      uploadedAt: this.formatDateTime(
-        photo.uploaded_at ?? photo.created_at ?? photo.createdAt,
-      ),
-      previewUrl: null,
-    };
-  }
+  return {
+    id: photoId,
+    fileName:
+      photo.file_name ??
+      photo.fileName ??
+      photo.filename ??
+      'Foto sin nombre',
+    status,
+    statusLabel: this.getPhotoStatusLabel(status),
+    statusVariant: this.getPhotoStatusVariant(status),
+    uploadedBy:
+      photo.uploaded_by_user?.name ??
+      photo.uploadedByUser?.name ??
+      photo.user?.name ??
+      'Sin dato',
+    uploadedAt: this.formatDateTime(
+      photo.uploaded_at ?? photo.created_at ?? photo.createdAt,
+    ),
+    previewUrl: null,
+    hasExpense: this.photoHasExpense(photoId, expenseLinks),
+  };
+}
+
+private photoHasExpense(photoId: number, expenseLinks: any[]): boolean {
+  if (!photoId || !Array.isArray(expenseLinks)) return false;
+
+  return expenseLinks.some((link) => {
+    const linkedPhotoId =
+      link.ticket_photo_id ??
+      link.ticketPhoto?.id ??
+      link.ticket_photo?.id ??
+      null;
+
+    return Number(linkedPhotoId) === photoId;
+  });
+}
+
   private loadPhotoPreviewUrls(): void {
     const photosWithId = this.photos.filter((photo) => photo.id > 0);
 
@@ -918,6 +970,23 @@ export class PurchaseOrderDetails implements OnInit {
       },
     });
   }
+
+  canRegisterExpense(photo: PurchaseOrderPhoto): boolean {
+  return (
+    !!photo?.id &&
+    photo.status === 'reconciled' &&
+    !photo.hasExpense &&
+    this.order.status === 'authorized' &&
+    this.order.destinationType === 'direct' &&
+    this.order.willHaveInvoice === false
+  );
+}
+
+goToRegisterExpense(photo: PurchaseOrderPhoto): void {
+  if (!this.canRegisterExpense(photo)) return;
+
+  this.router.navigateByUrl(`/ordenes-compra/registrar-gasto/${photo.id}`);
+}
 
   private mapExpenseLink(link: any): PurchaseOrderExpense {
     const expense = link.expense ?? link;
@@ -1220,7 +1289,9 @@ export class PurchaseOrderDetails implements OnInit {
       statusLabel: 'Sin estatus',
       flowLabel: 'Sin avance',
       paymentStatusLabel: 'Sin gasto',
+      destinationType: '',
       destinationLabel: 'Sin destino',
+      willHaveInvoice: false,
       invoiceLabel: 'Sin dato',
       requestedAmount: 0,
       concept: 'Sin concepto',

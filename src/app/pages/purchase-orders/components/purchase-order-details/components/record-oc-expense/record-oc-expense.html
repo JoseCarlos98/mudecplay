@@ -1,1 +1,378 @@
-<p>record-oc-expense works!</p>
+<div class="card-content-form record-oc-expense-page">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  @if (loadingPage()) {
+    <app-loading-overlay
+      [visible]="true"
+      [fullscreen]="true"
+      text="Cargando información de la O.C...">
+    </app-loading-overlay>
+  }
+
+  <section class="record-oc-expense-hero">
+    <article class="record-oc-expense-hero__item">
+      <span>
+        <mat-icon>description</mat-icon>
+      </span>
+
+      <div>
+        <small>Folio O.C.</small>
+        <strong>{{ order?.folio || 'Sin folio' }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-expense-hero__item">
+      <span>
+        <mat-icon>business</mat-icon>
+      </span>
+
+      <div>
+        <small>Proyecto</small>
+        <strong>{{ projectName }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-expense-hero__item">
+      <span>
+        <mat-icon>place</mat-icon>
+      </span>
+
+      <div>
+        <small>Destino</small>
+        <strong>{{ destinationLabel }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-expense-hero__item">
+      <span>
+        <mat-icon>receipt</mat-icon>
+      </span>
+
+      <div>
+        <small>Factura</small>
+        <strong>{{ invoiceLabel }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-expense-hero__item">
+      <span>
+        <mat-icon>person</mat-icon>
+      </span>
+
+      <div>
+        <small>Solicitante</small>
+        <strong>{{ requesterName }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-expense-hero__item record-oc-expense-hero__item--amount">
+      <span>
+        <mat-icon>paid</mat-icon>
+      </span>
+
+      <div>
+        <small>Monto solicitado</small>
+        <strong>{{ formatMoney(requestedAmount) }}</strong>
+      </div>
+    </article>
+  </section>
+
+  @if (isBlockedByFlow) {
+    <section class="record-oc-expense-blocked">
+      <mat-icon>info</mat-icon>
+
+      <div>
+        <strong>Este flujo no corresponde a gasto directo sin factura.</strong>
+        <p>
+          Esta O.C. es {{ flowTypeLabel }}. Más adelante se manejará con su flujo correspondiente.
+        </p>
+      </div>
+    </section>
+  }
+
+  <form [formGroup]="form" class="record-oc-expense-board">
+    <!-- IZQUIERDA -->
+    <aside class="record-oc-expense-column record-oc-expense-column--left">
+      <section class="record-oc-expense-card">
+        <div class="record-oc-expense-card__header">
+          <div>
+            <h3>Foto del gasto</h3>
+            <p>Ticket conciliado con esta orden de compra.</p>
+          </div>
+        </div>
+
+        <div class="record-oc-expense-photo">
+          @if (loadingPhoto()) {
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando foto...">
+            </app-loading-overlay>
+          }
+
+          @if (!loadingPhoto() && photoUrl && !imageError) {
+            <img
+              [src]="photoUrl"
+              [alt]="ticketFileName"
+              (error)="onImageError()" />
+          }
+
+          @if (!loadingPhoto() && (!photoUrl || imageError)) {
+            <div class="record-oc-expense-photo__empty">
+              <mat-icon>broken_image</mat-icon>
+              <strong>No se pudo mostrar la foto</strong>
+              <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="record-oc-expense-meta">
+          <div>
+            <span>Archivo</span>
+            <strong>{{ ticketFileName }}</strong>
+          </div>
+
+          <div>
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+          </div>
+
+          <div>
+            <span>Subido por</span>
+            <strong>{{ uploadedByName }}</strong>
+          </div>
+
+          <div>
+            <span>Fecha</span>
+            <strong>{{ uploadedAt }}</strong>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-outline record-oc-expense-photo-button"
+          [disabled]="!photoUrl"
+          (click)="openPhotoInNewTab()">
+          <mat-icon>open_in_new</mat-icon>
+          <span>Abrir imagen</span>
+        </button>
+      </section>
+
+      <section class="record-oc-expense-card">
+        <div class="record-oc-expense-card__header">
+          <div>
+            <h3>Información de la O.C.</h3>
+            <p>Datos base que respaldan el gasto.</p>
+          </div>
+        </div>
+
+        <div class="record-oc-expense-info">
+          <div>
+            <span>Concepto</span>
+            <strong>{{ orderConcept }}</strong>
+          </div>
+
+          <div>
+            <span>Notas</span>
+            <strong>{{ orderNotes }}</strong>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <!-- CENTRO -->
+    <main class="record-oc-expense-column record-oc-expense-column--center">
+      <section class="record-oc-expense-card record-oc-expense-card--form">
+        <div class="record-oc-expense-card__header">
+          <div>
+            <h3>Conceptos del gasto</h3>
+            <p>Registra los conceptos e importes del ticket.</p>
+          </div>
+
+          <span class="record-oc-expense-flow-chip">
+            {{ flowTypeLabel }}
+          </span>
+        </div>
+
+        <div class="record-oc-expense-main-fields">
+          <app-input-date
+            formControlName="date"
+            label="Fecha del gasto"
+            mode="single">
+          </app-input-date>
+
+          <app-autocomplete
+            formControlName="supplier"
+            label="Proveedor"
+            placeholder="Buscar proveedor"
+            [remote]="true"
+            catalogType="supplier">
+          </app-autocomplete>
+
+          <div class="record-oc-expense-project-locked">
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+            <mat-icon>lock</mat-icon>
+          </div>
+        </div>
+
+        <div formArrayName="items" class="record-oc-expense-items">
+          @for (item of itemsArray.controls; track $index; let i = $index) {
+            <article class="record-oc-expense-item" [formGroupName]="i">
+              <div class="record-oc-expense-item__number">
+                {{ i + 1 }}
+              </div>
+
+              <app-autocomplete
+                formControlName="product"
+                label="Producto"
+                placeholder="Buscar producto"
+                [remote]="true"
+                catalogType="product">
+              </app-autocomplete>
+
+              <app-input-field
+                formControlName="concept"
+                label="Concepto"
+                type="text">
+              </app-input-field>
+
+              <app-input-field
+                formControlName="amount"
+                label="Importe"
+                type="number"
+                (blur)="onAmountBlur(i)">
+              </app-input-field>
+
+              <app-input-field
+                formControlName="payment_amount"
+                label="Pagado"
+                type="number"
+                (blur)="onPaymentBlur(i)">
+              </app-input-field>
+
+              <app-input-date
+                formControlName="payment_date"
+                label="Fecha pago"
+                mode="single">
+              </app-input-date>
+
+              <button
+                type="button"
+                class="record-oc-expense-item__remove"
+                [disabled]="itemsArray.length <= 1"
+                (click)="removeItem(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </article>
+          }
+        </div>
+
+        <button
+          type="button"
+          class="record-oc-expense-add"
+          (click)="addItem()">
+          <mat-icon>add</mat-icon>
+          <span>Agregar concepto</span>
+        </button>
+
+        <label class="record-oc-expense-notes">
+          <span>Notas del registro</span>
+
+          <textarea
+            formControlName="notes"
+            placeholder="Ejemplo: gasto registrado desde ticket conciliado.">
+          </textarea>
+        </label>
+      </section>
+    </main>
+
+    <!-- DERECHA -->
+    <aside class="record-oc-expense-column record-oc-expense-column--right">
+      <section class="record-oc-expense-card record-oc-expense-card--summary">
+        <div class="record-oc-expense-card__header">
+          <div>
+            <h3>Panel de acción</h3>
+            <p>Confirma el gasto antes de guardarlo.</p>
+          </div>
+        </div>
+
+        <div class="record-oc-expense-summary-box">
+          <div>
+            <span>Total de conceptos</span>
+            <strong>{{ itemsCount }}</strong>
+          </div>
+
+          <div>
+            <span>Total del gasto</span>
+            <strong>{{ formatMoney(totalAmount) }}</strong>
+          </div>
+
+          <div>
+            <span>Total pagado</span>
+            <strong>{{ formatMoney(totalPaid) }}</strong>
+          </div>
+
+          <div>
+            <span>Saldo</span>
+            <strong [class.record-oc-expense-danger]="balance > 0">
+              {{ formatMoney(balance) }}
+            </strong>
+          </div>
+        </div>
+
+        <div class="record-oc-expense-summary-box">
+          <div>
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+          </div>
+
+          <div>
+            <span>Tipo de registro</span>
+            <strong>{{ flowTypeLabel }}</strong>
+          </div>
+
+          <div>
+            <span>O.C.</span>
+            <strong>{{ order?.folio || 'Sin folio' }}</strong>
+          </div>
+        </div>
+
+        <div class="record-oc-expense-alert">
+          <mat-icon>info</mat-icon>
+
+          <p>
+            La foto del gasto ya fue conciliada con la O.C.
+            Ahora registra los conceptos e importes pagados.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="btn-primary record-oc-expense-save"
+          [disabled]="!canSave"
+          (click)="saveExpense()">
+          <mat-icon>save</mat-icon>
+          <span>
+            @if (saving()) {
+              Guardando...
+            } @else {
+              Guardar gasto
+            }
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-outline record-oc-expense-cancel"
+          (click)="goBack()">
+          Cancelar
+        </button>
+      </section>
+    </aside>
+  </form>
+</div>
