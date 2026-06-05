@@ -396,6 +396,13 @@ export class RecordOcXmlExpense implements OnInit {
 
     if (!group || !item) return;
 
+    if (this.isZeroCostDiscountItem(item)) {
+      group.get('payment_amount')?.setValue(0, { emitEvent: false });
+      group.get('payment_date')?.setValue(null, { emitEvent: false });
+
+      return;
+    }
+
     const amount = this.resolveItemAmount(item);
     const payment = Number(group.get('payment_amount')?.value ?? 0);
 
@@ -496,28 +503,8 @@ export class RecordOcXmlExpense implements OnInit {
     this.xmlDraft = draft;
     this.itemsFA.clear();
 
-    const shouldAutoPay = this.shouldAutoPayXml();
-
     this.xmlItems.forEach((item) => {
-      const amount = this.resolveItemAmount(item);
-
-      const defaultPayment = shouldAutoPay
-        ? amount
-        : this.resolvePaymentAmount(item);
-
-      this.itemsFA.push(
-        this.fb.group({
-          payment_amount: this.fb.control<number | null>(defaultPayment, [
-            Validators.min(0),
-            Validators.max(amount),
-          ]),
-          payment_date: this.fb.control<string | null>(
-            defaultPayment && defaultPayment > 0
-              ? item.payment_date ?? draft.date ?? this.getToday()
-              : null,
-          ),
-        }),
-      );
+      this.itemsFA.push(this.createPaymentGroupForXmlItem(item, draft));
     });
   }
 
@@ -532,9 +519,11 @@ export class RecordOcXmlExpense implements OnInit {
       items: this.xmlItems.map((item, index) => {
         const paymentGroup = this.itemsFA.at(index) as FormGroup;
 
-        const paymentAmount = this.toNumberOrNull(
-          paymentGroup?.get('payment_amount')?.value,
-        );
+        const isZeroCostDiscount = this.isZeroCostDiscountItem(item);
+
+        const paymentAmount = isZeroCostDiscount
+          ? 0
+          : this.toNumberOrNull(paymentGroup?.get('payment_amount')?.value);
 
         return {
           product_id: Number(item.product?.id ?? item.product_id ?? 0),
@@ -557,7 +546,7 @@ export class RecordOcXmlExpense implements OnInit {
 
           payment_amount: paymentAmount,
           payment_date:
-            paymentAmount && paymentAmount > 0
+            !isZeroCostDiscount && paymentAmount && paymentAmount > 0
               ? paymentGroup?.get('payment_date')?.value ||
               this.xmlDraft?.date ||
               this.getToday()
@@ -576,6 +565,10 @@ export class RecordOcXmlExpense implements OnInit {
       const amount = this.resolveItemAmount(item);
       const group = this.itemsFA.at(index) as FormGroup;
       const payment = Number(group?.get('payment_amount')?.value ?? 0);
+
+      if (this.isZeroCostDiscountItem(item)) {
+        return productId > 0 && amount === 0 && payment === 0;
+      }
 
       return productId > 0 && amount >= 0 && payment <= amount;
     });
@@ -602,6 +595,62 @@ export class RecordOcXmlExpense implements OnInit {
     const withheld = this.toNumberOrZero(item.withheld_amount);
 
     return this.round2(Math.max(0, base - discount) + tax - withheld);
+  }
+
+  isZeroCostDiscountItem(item: any): boolean {
+    if (!item) return false;
+
+    const amount = this.round2(Number(item.amount ?? 0));
+    const baseAmount = this.round2(Number(item.base_amount ?? 0));
+    const discountAmount = this.round2(Number(item.discount_amount ?? 0));
+    const taxAmount = this.round2(Number(item.tax_amount ?? 0));
+    const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
+
+    const fiscalAmount = this.round2(
+      Math.max(0, baseAmount - discountAmount) + taxAmount - withheldAmount,
+    );
+
+    return (
+      amount === 0 &&
+      fiscalAmount === 0 &&
+      baseAmount > 0 &&
+      discountAmount >= baseAmount &&
+      taxAmount === 0 &&
+      withheldAmount === 0
+    );
+  }
+
+  private createPaymentGroupForXmlItem(
+    item: any,
+    draft: expenseEntity.XmlExpenseDraftDto,
+  ): FormGroup {
+    const amount = this.resolveItemAmount(item);
+    const isZeroCostDiscount = this.isZeroCostDiscountItem(item);
+
+    const defaultPayment = isZeroCostDiscount
+      ? 0
+      : this.shouldAutoPayXml()
+        ? amount
+        : this.resolvePaymentAmount(item);
+
+    const group = this.fb.group({
+      payment_amount: this.fb.control<number | null>(defaultPayment, [
+        Validators.min(0),
+        Validators.max(amount),
+      ]),
+      payment_date: this.fb.control<string | null>(
+        defaultPayment && defaultPayment > 0
+          ? item.payment_date ?? draft.date ?? this.getToday()
+          : null,
+      ),
+    });
+
+    if (isZeroCostDiscount) {
+      group.get('payment_amount')?.disable({ emitEvent: false });
+      group.get('payment_date')?.disable({ emitEvent: false });
+    }
+
+    return group;
   }
 
   resolveFiscalFormula(item: any): string {

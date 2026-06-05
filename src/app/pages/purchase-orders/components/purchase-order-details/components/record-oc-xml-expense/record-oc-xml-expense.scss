@@ -410,7 +410,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     word-break: break-word;
   }
 }
@@ -452,7 +452,7 @@
   color: var(--color-primary-strong);
 
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .record-oc-xml-item__content {
@@ -471,7 +471,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   span {
@@ -518,7 +518,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 800;
   }
 }
 
@@ -585,7 +585,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     text-align: right;
     word-break: break-word;
   }
@@ -660,5 +660,84 @@
 
   .record-oc-xml-photo {
     min-height: 220px;
+  }
+}
+
+.record-oc-xml-item--discount-total {
+  border-color: rgba(34, 197, 94, 0.32);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fff9 100%);
+}
+
+.record-oc-xml-item__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  strong {
+    min-width: 0;
+  }
+}
+
+.record-oc-xml-discount-chip {
+  width: fit-content;
+
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+
+  padding: 3px 8px;
+
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+.record-oc-xml-item__amount {
+  small {
+    display: block;
+    margin-top: 4px;
+
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
+  }
+}
+
+.record-oc-xml-readonly-field {
+  min-height: 50px;
+
+  display: grid;
+  align-content: center;
+  gap: 3px;
+
+  padding: 8px 10px;
+
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 9px;
+  background: #f8fafc;
+
+  span {
+    color: var(--color-primary-strong);
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  small {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.25;
   }
 }

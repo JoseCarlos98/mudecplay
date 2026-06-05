@@ -1,31 +1,17 @@
 <div class="card-content-form record-oc-xml-page">
-  <input
-    #xmlInput
-    type="file"
-    accept=".xml"
-    hidden
-    (change)="onXmlSelected($event)" />
+  <input #xmlInput type="file" accept=".xml" hidden (change)="onXmlSelected($event)" />
 
-  <app-module-header
-    [title]="pageTitle"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
   @if (loadingPage()) {
-    <app-loading-overlay
-      [visible]="true"
-      [fullscreen]="true"
-      text="Cargando información de la O.C...">
-    </app-loading-overlay>
+  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Cargando información de la O.C...">
+  </app-loading-overlay>
   }
 
   @if (loadingXml()) {
-    <app-loading-overlay
-      [visible]="true"
-      [fullscreen]="true"
-      text="Procesando XML...">
-    </app-loading-overlay>
+  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Procesando XML...">
+  </app-loading-overlay>
   }
 
   <section class="record-oc-xml-hero">
@@ -85,27 +71,27 @@
   </section>
 
   @if (isBlockedByFlow) {
-    <section class="record-oc-xml-alert record-oc-xml-alert--warning">
-      <mat-icon>info</mat-icon>
+  <section class="record-oc-xml-alert record-oc-xml-alert--warning">
+    <mat-icon>info</mat-icon>
 
-      <div>
-        <strong>Este flujo no corresponde a directo con factura.</strong>
-        <p>
-          Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.
-        </p>
-      </div>
-    </section>
+    <div>
+      <strong>Este flujo no corresponde a directo con factura.</strong>
+      <p>
+        Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.
+      </p>
+    </div>
+  </section>
   }
 
   @if (errorMessage) {
-    <section class="record-oc-xml-alert record-oc-xml-alert--danger">
-      <mat-icon>warning</mat-icon>
+  <section class="record-oc-xml-alert record-oc-xml-alert--danger">
+    <mat-icon>warning</mat-icon>
 
-      <div>
-        <strong>Revisión requerida</strong>
-        <p>{{ errorMessage }}</p>
-      </div>
-    </section>
+    <div>
+      <strong>Revisión requerida</strong>
+      <p>{{ errorMessage }}</p>
+    </div>
+  </section>
   }
 
   <form [formGroup]="form" class="record-oc-xml-board">
@@ -121,26 +107,20 @@
 
         <div class="record-oc-xml-photo">
           @if (loadingPhoto()) {
-            <app-loading-overlay
-              [visible]="true"
-              [fullscreen]="false"
-              text="Cargando foto...">
-            </app-loading-overlay>
+          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Cargando foto...">
+          </app-loading-overlay>
           }
 
           @if (!loadingPhoto() && photoUrl && !imageError) {
-            <img
-              [src]="photoUrl"
-              [alt]="ticketFileName"
-              (error)="onImageError()" />
+          <img [src]="photoUrl" [alt]="ticketFileName" (error)="onImageError()" />
           }
 
           @if (!loadingPhoto() && (!photoUrl || imageError)) {
-            <div class="record-oc-xml-photo__empty">
-              <mat-icon>broken_image</mat-icon>
-              <strong>No se pudo mostrar la foto</strong>
-              <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
-            </div>
+          <div class="record-oc-xml-photo__empty">
+            <mat-icon>broken_image</mat-icon>
+            <strong>No se pudo mostrar la foto</strong>
+            <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
+          </div>
           }
         </div>
 
@@ -166,10 +146,7 @@
           </div>
         </div>
 
-        <button
-          type="button"
-          class="btn-outline record-oc-xml-photo-button"
-          [disabled]="!photoUrl"
+        <button type="button" class="btn-outline record-oc-xml-photo-button" [disabled]="!photoUrl"
           (click)="openPhotoInNewTab()">
           <mat-icon>open_in_new</mat-icon>
           <span>Abrir imagen</span>
@@ -213,109 +190,108 @@
         </div>
 
         @if (!xmlDraft) {
-          <button
-            type="button"
-            class="record-oc-xml-upload"
-            [disabled]="isBlockedByFlow"
-            (click)="openXmlInput()">
-            <mat-icon>upload_file</mat-icon>
+        <button type="button" class="record-oc-xml-upload" [disabled]="isBlockedByFlow" (click)="openXmlInput()">
+          <mat-icon>upload_file</mat-icon>
 
-            <strong>Seleccionar XML</strong>
-            <span>El sistema validará proveedor, UUID, conceptos e importes.</span>
-          </button>
+          <strong>Seleccionar XML</strong>
+          <span>El sistema validará proveedor, UUID, conceptos e importes.</span>
+        </button>
         } @else {
-          <div class="record-oc-xml-loaded">
-            <div>
-              <mat-icon>fact_check</mat-icon>
+        <div class="record-oc-xml-loaded">
+          <div>
+            <mat-icon>fact_check</mat-icon>
 
-              <div>
-                <strong>{{ xmlFileName || 'XML cargado' }}</strong>
-                <span>UUID: {{ xmlUuid }}</span>
+            <div>
+              <strong>{{ xmlFileName || 'XML cargado' }}</strong>
+              <span>UUID: {{ xmlUuid }}</span>
+            </div>
+          </div>
+
+          <button type="button" class="btn-outline" (click)="clearXml()">
+            Cambiar XML
+          </button>
+        </div>
+
+        <section class="record-oc-xml-summary-grid">
+          <article>
+            <span>Proveedor XML</span>
+            <strong>{{ xmlSupplierName }}</strong>
+          </article>
+
+          <article>
+            <span>Fecha XML</span>
+            <strong>{{ xmlDate }}</strong>
+          </article>
+
+          <article>
+            <span>Total XML</span>
+            <strong>{{ formatMoney(xmlTotal) }}</strong>
+          </article>
+
+          <article>
+            <span>Diferencia vs O.C.</span>
+            <strong [class.record-oc-xml-danger]="amountDifference !== 0">
+              {{ formatMoney(amountDifference) }}
+            </strong>
+          </article>
+        </section>
+
+        <div formArrayName="items" class="record-oc-xml-items">
+          @for (item of xmlItems; track $index; let i = $index) {
+          <article class="record-oc-xml-item" [class.record-oc-xml-item--discount-total]="isZeroCostDiscountItem(item)"
+            [formGroupName]="i">
+
+            <div class="record-oc-xml-item__number">
+              {{ i + 1 }}
+            </div>
+
+            <div class="record-oc-xml-item__content">
+              <div class="record-oc-xml-item__main">
+                <div class="record-oc-xml-item__title-row">
+                  <strong>{{ getProductName(item) }}</strong>
+
+                  @if (isZeroCostDiscountItem(item)) {
+                  <span class="record-oc-xml-discount-chip">
+                    Descuento total CFDI
+                  </span>
+                  }
+                </div>
+
+                <!-- <span>{{ getItemConcept(item) }}</span> -->
+              </div>
+
+              <div class="record-oc-xml-item__fiscal">
+                <span>Desglose CFDI</span>
+                <strong>
+                  {{ resolveFiscalFormula(item) }}
+                </strong>
               </div>
             </div>
 
-            <button
-              type="button"
-              class="btn-outline"
-              (click)="clearXml()">
-              Cambiar XML
-            </button>
-          </div>
+            <div class="record-oc-xml-item__amount">
+              <span>Importe XML</span>
+              <strong>{{ formatMoney(resolveItemAmount(item)) }}</strong>
 
-          <section class="record-oc-xml-summary-grid">
-            <article>
-              <span>Proveedor XML</span>
-              <strong>{{ xmlSupplierName }}</strong>
-            </article>
+              @if (isZeroCostDiscountItem(item)) {
+              <small>Producto recibido con costo $0.00</small>
+              }
+            </div>
 
-            <article>
-              <span>Fecha XML</span>
-              <strong>{{ xmlDate }}</strong>
-            </article>
+            <app-input-field formControlName="payment_amount" label="Pagado" type="number" (blur)="onPaymentBlur(i)">
+            </app-input-field>
 
-            <article>
-              <span>Total XML</span>
-              <strong>{{ formatMoney(xmlTotal) }}</strong>
-            </article>
+            <app-input-date formControlName="payment_date" label="Fecha pago" mode="single">
+            </app-input-date>
+          </article>
+          }
+        </div>
 
-            <article>
-              <span>Diferencia vs O.C.</span>
-              <strong [class.record-oc-xml-danger]="amountDifference !== 0">
-                {{ formatMoney(amountDifference) }}
-              </strong>
-            </article>
-          </section>
+        <label class="record-oc-xml-notes">
+          <span>Notas del registro</span>
 
-          <div formArrayName="items" class="record-oc-xml-items">
-            @for (item of xmlItems; track $index; let i = $index) {
-              <article class="record-oc-xml-item" [formGroupName]="i">
-                <div class="record-oc-xml-item__number">
-                  {{ i + 1 }}
-                </div>
-
-                <div class="record-oc-xml-item__content">
-                  <div class="record-oc-xml-item__main">
-                    <strong>{{ getProductName(item) }}</strong>
-                    <span>{{ getItemConcept(item) }}</span>
-                  </div>
-
-                  <div class="record-oc-xml-item__fiscal">
-                    <span>Fórmula fiscal</span>
-                    <strong>
-                      {{ resolveFiscalFormula(item) }}
-                    </strong>
-                  </div>
-                </div>
-
-                <div class="record-oc-xml-item__amount">
-                  <span>Importe XML</span>
-                  <strong>{{ formatMoney(resolveItemAmount(item)) }}</strong>
-                </div>
-
-                <app-input-field
-                  formControlName="payment_amount"
-                  label="Pagado"
-                  type="number"
-                  (blur)="onPaymentBlur(i)">
-                </app-input-field>
-
-                <app-input-date
-                  formControlName="payment_date"
-                  label="Fecha pago"
-                  mode="single">
-                </app-input-date>
-              </article>
-            }
-          </div>
-
-          <label class="record-oc-xml-notes">
-            <span>Notas del registro</span>
-
-            <textarea
-              formControlName="notes"
-              placeholder="Ejemplo: XML relacionado con ticket conciliado.">
+          <textarea formControlName="notes" placeholder="Ejemplo: XML relacionado con ticket conciliado.">
             </textarea>
-          </label>
+        </label>
         }
       </section>
     </main>
@@ -377,13 +353,13 @@
         </div>
 
         @if (xmlDuplicates.length > 0) {
-          <div class="record-oc-xml-alert record-oc-xml-alert--warning">
-            <mat-icon>warning</mat-icon>
+        <div class="record-oc-xml-alert record-oc-xml-alert--warning">
+          <mat-icon>warning</mat-icon>
 
-            <p>
-              El XML cargado ya aparece como duplicado. Revisa antes de continuar.
-            </p>
-          </div>
+          <p>
+            El XML cargado ya aparece como duplicado. Revisa antes de continuar.
+          </p>
+        </div>
         }
 
         <div class="record-oc-xml-alert">
@@ -394,26 +370,19 @@
           </p>
         </div>
 
-        <button
-          type="button"
-          class="btn-primary record-oc-xml-save"
-          [disabled]="!canSave"
-          (click)="saveExpense()">
+        <button type="button" class="btn-primary record-oc-xml-save" [disabled]="!canSave" (click)="saveExpense()">
           <mat-icon>save</mat-icon>
 
           <span>
             @if (saving()) {
-              Guardando...
+            Guardando...
             } @else {
-              Guardar gasto XML
+            Guardar gasto XML
             }
           </span>
         </button>
 
-        <button
-          type="button"
-          class="btn-outline record-oc-xml-cancel"
-          (click)="goBack()">
+        <button type="button" class="btn-outline record-oc-xml-cancel" (click)="goBack()">
           Cancelar
         </button>
       </section>
