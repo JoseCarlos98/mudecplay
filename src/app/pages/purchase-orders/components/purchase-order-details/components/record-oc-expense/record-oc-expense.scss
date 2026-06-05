@@ -682,40 +682,6 @@
     line-height: 1.4;
   }
 }
-
-.record-oc-expense-save,
-.record-oc-expense-cancel {
-  width: 100%;
-  min-height: 40px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-
-  border-radius: 8px !important;
-
-  mat-icon {
-    width: 19px;
-    height: 19px;
-    font-size: 19px;
-  }
-
-  span {
-    font-weight: 700;
-  }
-}
-
-.record-oc-expense-save {
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.record-oc-expense-cancel {
-  font-size: 14px;
-  font-weight: 700;
-}
-
 /* =========================================================
  * RESPONSIVE
  * ========================================================= */
@@ -808,3 +774,4 @@
     }
   }
 }
+

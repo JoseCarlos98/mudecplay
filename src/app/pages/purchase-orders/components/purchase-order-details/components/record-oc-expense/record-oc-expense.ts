@@ -29,6 +29,7 @@ import {
   PurchaseOrderFlowDetailResponse,
   PurchaseOrderTicketPhotoDto,
 } from '../../../../interfaces/purchase-orders.interfaces';
+import { BtnsSection, ModuleFooterAction } from '../../../../../../shared/ui/btns-section/btns-section';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -63,7 +64,7 @@ type RecordExpenseForm = {
     InputField,
     Autocomplete,
     LoadingOverlay,
-
+    BtnsSection,
     // Material
     MatIconModule,
   ],
@@ -520,6 +521,18 @@ export class RecordOcExpense implements OnInit {
       created_at_date: this.formatDateTime(createdAt),
       public_url: publicUrl,
     };
+  }
+
+  onFooterAction(action: ModuleFooterAction | string): void {
+    switch (action) {
+      case 'cancel':
+        this.goBack();
+        break;
+
+      case 'save':
+        this.saveExpense();
+        break;
+    }
   }
 
   private getPhotoStatusLabel(status: string): string {
