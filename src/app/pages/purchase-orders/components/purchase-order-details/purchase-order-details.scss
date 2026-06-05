@@ -699,6 +699,9 @@
 .purchase-order-photo-list {
   display: grid;
   gap: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 10px;
 }
 
 .purchase-order-photo-card {
@@ -893,11 +896,14 @@
 }
 
 .purchase-order-related-table__data--expenses {
-  height: 150px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #ffffff;
 }
 
 .purchase-order-related-table__data--history {
-  height: 260px;
+  // height: 260px;
+   max-height: 400px;
 }
 
 .purchase-order-related-table > mat-paginator {
