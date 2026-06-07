@@ -205,6 +205,7 @@ export class PurchaseOrderDetails implements OnInit {
     {
       key: 'type',
       label: 'Tipo',
+      type: 'chip', typeVariant: 'chip-neutral'
     },
     {
       key: 'total',

@@ -39,13 +39,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };
 
-interface XmlPaymentInfo {
-  condicionesDePago: string | null;
-  metodoPago: string | null;
-  formaPago: string | null;
-  isPaid: boolean;
-}
-
 @Component({
   selector: 'app-record-oc-xml-expense',
   standalone: true,
@@ -90,7 +83,6 @@ export class RecordOcXmlExpense implements OnInit {
 
   order: PurchaseOrderFlowDetailResponse | null = null;
 
-  xmlPaymentInfo: XmlPaymentInfo | null = null;
   xmlDraft: expenseEntity.XmlExpenseDraftDto | null = null;
   xmlDuplicates: expenseEntity.XmlDuplicateDto[] = [];
   xmlErrors: any[] = [];
@@ -251,7 +243,7 @@ export class RecordOcXmlExpense implements OnInit {
     this.xmlInput?.nativeElement?.click();
   }
 
-  async onXmlSelected(event: Event): Promise<void> {
+  onXmlSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
 
     if (!input.files || input.files.length === 0) return;
@@ -262,16 +254,8 @@ export class RecordOcXmlExpense implements OnInit {
     this.xmlDraft = null;
     this.xmlDuplicates = [];
     this.xmlErrors = [];
-    this.xmlPaymentInfo = null;
     this.errorMessage = null;
     this.itemsFA.clear();
-
-    try {
-      this.xmlPaymentInfo = await this.readXmlPaymentInfo(file);
-    } catch (err) {
-      console.error('Error leyendo forma de pago del XML:', err);
-      this.xmlPaymentInfo = null;
-    }
 
     this.loadingXml.set(true);
 
@@ -330,7 +314,6 @@ export class RecordOcXmlExpense implements OnInit {
     this.xmlDraft = null;
     this.xmlDuplicates = [];
     this.xmlErrors = [];
-    this.xmlPaymentInfo = null;
     this.xmlFileName = null;
     this.itemsFA.clear();
   }
@@ -396,27 +379,46 @@ export class RecordOcXmlExpense implements OnInit {
 
     if (!group || !item) return;
 
+    const paymentCtrl = group.get('payment_amount');
+    const paymentDateCtrl = group.get('payment_date');
+
+    if (!paymentCtrl || !paymentDateCtrl) return;
+
     if (this.isZeroCostDiscountItem(item)) {
-      group.get('payment_amount')?.setValue(0, { emitEvent: false });
-      group.get('payment_date')?.setValue(null, { emitEvent: false });
+      paymentCtrl.setValue(0, { emitEvent: false });
+      paymentDateCtrl.setValue(null, { emitEvent: false });
+
+      paymentCtrl.disable({ emitEvent: false });
+      paymentDateCtrl.disable({ emitEvent: false });
 
       return;
     }
 
     const amount = this.resolveItemAmount(item);
-    const payment = Number(group.get('payment_amount')?.value ?? 0);
+    let payment = Number(paymentCtrl.value ?? 0);
+
+    if (!Number.isFinite(payment) || payment < 0) {
+      payment = 0;
+      paymentCtrl.setValue(0, { emitEvent: false });
+    }
 
     if (payment > amount) {
-      group.get('payment_amount')?.setValue(amount);
+      payment = amount;
+      paymentCtrl.setValue(amount, { emitEvent: false });
     }
 
-    if (payment > 0 && !group.get('payment_date')?.value) {
-      group.get('payment_date')?.setValue(this.xmlDraft?.date ?? this.getToday());
+    if (payment > 0) {
+      paymentDateCtrl.enable({ emitEvent: false });
+
+      if (!paymentDateCtrl.value) {
+        paymentDateCtrl.setValue(this.getToday(), { emitEvent: false });
+      }
+
+      return;
     }
 
-    if (payment <= 0) {
-      group.get('payment_date')?.setValue(null);
-    }
+    paymentDateCtrl.setValue(null, { emitEvent: false });
+    paymentDateCtrl.disable({ emitEvent: false });
   }
 
   private loadInitialData(): void {
@@ -519,6 +521,7 @@ export class RecordOcXmlExpense implements OnInit {
       items: this.xmlItems.map((item, index) => {
         const paymentGroup = this.itemsFA.at(index) as FormGroup;
 
+
         const isZeroCostDiscount = this.isZeroCostDiscountItem(item);
 
         const paymentAmount = isZeroCostDiscount
@@ -547,9 +550,7 @@ export class RecordOcXmlExpense implements OnInit {
           payment_amount: paymentAmount,
           payment_date:
             !isZeroCostDiscount && paymentAmount && paymentAmount > 0
-              ? paymentGroup?.get('payment_date')?.value ||
-              this.xmlDraft?.date ||
-              this.getToday()
+              ? paymentGroup?.get('payment_date')?.value || this.getToday()
               : null,
         };
       }),
@@ -565,12 +566,19 @@ export class RecordOcXmlExpense implements OnInit {
       const amount = this.resolveItemAmount(item);
       const group = this.itemsFA.at(index) as FormGroup;
       const payment = Number(group?.get('payment_amount')?.value ?? 0);
+      const paymentDate = group?.get('payment_date')?.value ?? null;
 
       if (this.isZeroCostDiscountItem(item)) {
         return productId > 0 && amount === 0 && payment === 0;
       }
 
-      return productId > 0 && amount >= 0 && payment <= amount;
+      return (
+        productId > 0 &&
+        amount >= 0 &&
+        payment >= 0 &&
+        payment <= amount &&
+        (payment <= 0 || !!paymentDate)
+      );
     });
   }
 
@@ -629,9 +637,7 @@ export class RecordOcXmlExpense implements OnInit {
 
     const defaultPayment = isZeroCostDiscount
       ? 0
-      : this.shouldAutoPayXml()
-        ? amount
-        : this.resolvePaymentAmount(item);
+      : this.resolvePaymentAmount(item) ?? 0;
 
     const group = this.fb.group({
       payment_amount: this.fb.control<number | null>(defaultPayment, [
@@ -639,14 +645,17 @@ export class RecordOcXmlExpense implements OnInit {
         Validators.max(amount),
       ]),
       payment_date: this.fb.control<string | null>(
-        defaultPayment && defaultPayment > 0
-          ? item.payment_date ?? draft.date ?? this.getToday()
-          : null,
+        defaultPayment > 0 ? this.getToday() : null,
       ),
     });
 
     if (isZeroCostDiscount) {
       group.get('payment_amount')?.disable({ emitEvent: false });
+      group.get('payment_date')?.disable({ emitEvent: false });
+      return group;
+    }
+
+    if (defaultPayment <= 0) {
       group.get('payment_date')?.disable({ emitEvent: false });
     }
 
@@ -788,58 +797,6 @@ export class RecordOcXmlExpense implements OnInit {
         minute: '2-digit',
       })
       .replace(',', '');
-  }
-
-
-  private async readXmlPaymentInfo(file: File): Promise<XmlPaymentInfo | null> {
-    const text = await file.text();
-    const xml = new DOMParser().parseFromString(text, 'application/xml');
-
-    if (xml.querySelector('parsererror')) {
-      return null;
-    }
-
-    const comprobante =
-      xml.getElementsByTagNameNS(
-        'http://www.sat.gob.mx/cfd/4',
-        'Comprobante',
-      )[0] ??
-      xml.getElementsByTagName('cfdi:Comprobante')[0] ??
-      xml.getElementsByTagName('Comprobante')[0];
-
-    if (!comprobante) return null;
-
-    const condicionesDePago = comprobante.getAttribute('CondicionesDePago');
-    const metodoPago = comprobante.getAttribute('MetodoPago');
-    const formaPago = comprobante.getAttribute('FormaPago');
-
-    const normalizedCondition = this.normalizeXmlText(condicionesDePago);
-    const normalizedMetodoPago = String(metodoPago ?? '')
-      .trim()
-      .toUpperCase();
-
-    const isPaid =
-      normalizedCondition.includes('PAGADO') ||
-      normalizedMetodoPago === 'PUE';
-
-    return {
-      condicionesDePago,
-      metodoPago,
-      formaPago,
-      isPaid,
-    };
-  }
-
-  private shouldAutoPayXml(): boolean {
-    return this.xmlPaymentInfo?.isPaid === true;
-  }
-
-  private normalizeXmlText(value: unknown): string {
-    return String(value ?? '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toUpperCase()
-      .trim();
   }
 
   formatMoney(value: number | string | null | undefined): string {

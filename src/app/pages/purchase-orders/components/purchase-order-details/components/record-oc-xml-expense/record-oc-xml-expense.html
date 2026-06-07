@@ -241,30 +241,49 @@
           <article class="record-oc-xml-item" [class.record-oc-xml-item--discount-total]="isZeroCostDiscountItem(item)"
             [formGroupName]="i">
 
-            <div class="record-oc-xml-item__number">
-              {{ i + 1 }}
-            </div>
-
             <div class="record-oc-xml-item__content">
-              <div class="record-oc-xml-item__main">
-                <div class="record-oc-xml-item__title-row">
-                  <strong>{{ getProductName(item) }}</strong>
-
-                  @if (isZeroCostDiscountItem(item)) {
-                  <span class="record-oc-xml-discount-chip">
-                    Descuento total CFDI
-                  </span>
-                  }
+              <div class="record-oc-xml-item__header">
+                <div class="record-oc-xml-item__number">
+                  {{ i + 1 }}
                 </div>
 
-                <!-- <span>{{ getItemConcept(item) }}</span> -->
+                <div class="record-oc-xml-item__main">
+                  <div class="record-oc-xml-item__title-row">
+                    <strong>{{ getProductName(item) }}</strong>
+
+                    @if (isZeroCostDiscountItem(item)) {
+                    <span class="record-oc-xml-discount-chip">
+                      Descuento total CFDI
+                    </span>
+                    }
+                  </div>
+                </div>
               </div>
 
               <div class="record-oc-xml-item__fiscal">
                 <span>Desglose CFDI</span>
-                <strong>
-                  {{ resolveFiscalFormula(item) }}
-                </strong>
+
+                <div class="record-oc-xml-fiscal-breakdown">
+                  <div>
+                    <small>Subtotal</small>
+                    <strong>{{ formatMoney(item.base_amount) }}</strong>
+                  </div>
+
+                  <div>
+                    <small>Descuento</small>
+                    <strong>- {{ formatMoney(item.discount_amount) }}</strong>
+                  </div>
+
+                  <div>
+                    <small>Impuestos</small>
+                    <strong>+ {{ formatMoney(item.tax_amount) }}</strong>
+                  </div>
+
+                  <div>
+                    <small>Retenciones</small>
+                    <strong>- {{ formatMoney(item.withheld_amount) }}</strong>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -277,7 +296,8 @@
               }
             </div>
 
-            <app-input-field formControlName="payment_amount" label="Pagado" type="number" (blur)="onPaymentBlur(i)">
+            <app-input-field formControlName="payment_amount" label="Pagado" type="number" (input)="onPaymentBlur(i)"
+              (blur)="onPaymentBlur(i)">
             </app-input-field>
 
             <app-input-date formControlName="payment_date" label="Fecha pago" mode="single">
@@ -290,7 +310,7 @@
           <span>Notas del registro</span>
 
           <textarea formControlName="notes" placeholder="Ejemplo: XML relacionado con ticket conciliado.">
-            </textarea>
+          </textarea>
         </label>
         }
       </section>

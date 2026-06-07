@@ -129,7 +129,7 @@
 
 .record-oc-xml-board {
   display: grid;
-  grid-template-columns: 350px minmax(0, 1fr) 330px;
+  grid-template-columns: 250px minmax(0, 1fr) 280px;
   gap: 14px;
   align-items: start;
 }
@@ -265,7 +265,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.35;
     word-break: break-word;
   }
@@ -418,15 +418,17 @@
 .record-oc-xml-items {
   display: grid;
   gap: 10px;
+  overflow: auto;
+  padding: 5px;
+  max-height: 480px;
 }
 
 .record-oc-xml-item {
   display: grid;
   grid-template-columns:
-    28px
-    minmax(260px, 1fr)
-    minmax(120px, 0.35fr)
-    minmax(120px, 0.35fr)
+    minmax(330px, 1fr)
+    minmax(110px, 0.32fr)
+    minmax(120px, 0.36fr)
     minmax(135px, 0.4fr);
   align-items: end;
   gap: 8px;
@@ -438,14 +440,28 @@
   background: #fbfdff;
 }
 
+.record-oc-xml-item__content {
+  min-width: 0;
+
+  display: grid;
+  gap: 7px;
+}
+
+.record-oc-xml-item__header {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .record-oc-xml-item__number {
   width: 26px;
   height: 26px;
+  min-width: 26px;
 
   display: grid;
   place-items: center;
-
-  margin-bottom: 4px;
 
   border-radius: 999px;
   background: #e5f3ff;
@@ -455,14 +471,9 @@
   font-weight: 800;
 }
 
-.record-oc-xml-item__content {
+.record-oc-xml-item__main {
   min-width: 0;
 
-  display: grid;
-  gap: 6px;
-}
-
-.record-oc-xml-item__main {
   strong,
   span {
     display: block;
@@ -482,25 +493,57 @@
   }
 }
 
+.record-oc-xml-item__title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  strong {
+    min-width: 0;
+  }
+}
+
 .record-oc-xml-item__fiscal {
-  padding: 8px 10px;
+  padding: 7px 9px;
 
   border-radius: 10px;
   background: #f8fafc;
 
-  span {
+  > span {
     display: block;
+    margin-bottom: 5px;
     color: #64748b;
     font-size: 10px;
     font-weight: 800;
   }
+}
+
+.record-oc-xml-fiscal-breakdown {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+
+  div {
+    min-width: 0;
+  }
+
+  small {
+    display: block;
+    margin-bottom: 2px;
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
 
   strong {
     display: block;
-    margin-top: 3px;
     color: #475569;
     font-size: 11px;
     font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 }
 
@@ -519,6 +562,16 @@
     color: var(--color-secundary);
     font-size: 14px;
     font-weight: 800;
+  }
+
+  small {
+    display: block;
+    margin-top: 4px;
+
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
   }
 }
 
@@ -612,71 +665,9 @@
   }
 }
 
-@media screen and (max-width: 1320px) {
-  .record-oc-xml-hero {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .record-oc-xml-board {
-    grid-template-columns: 320px minmax(0, 1fr);
-  }
-
-  .record-oc-xml-column--right {
-    grid-column: 1 / -1;
-    position: static;
-  }
-
-  .record-oc-xml-summary-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (max-width: 1040px) {
-  .record-oc-xml-board {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-item {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-item__number {
-    margin-bottom: 0;
-  }
-}
-
-@media screen and (max-width: 760px) {
-  .record-oc-xml-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-card {
-    padding: 12px;
-  }
-
-  .record-oc-xml-photo {
-    min-height: 220px;
-  }
-}
-
 .record-oc-xml-item--discount-total {
   border-color: rgba(34, 197, 94, 0.32);
   background: linear-gradient(180deg, #ffffff 0%, #f7fff9 100%);
-}
-
-.record-oc-xml-item__title-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-
-  strong {
-    min-width: 0;
-  }
 }
 
 .record-oc-xml-discount-chip {
@@ -695,18 +686,6 @@
   font-size: 10px !important;
   font-weight: 700 !important;
   line-height: 1.2 !important;
-}
-
-.record-oc-xml-item__amount {
-  small {
-    display: block;
-    margin-top: 4px;
-
-    color: #15803d;
-    font-size: 10px;
-    font-weight: 600;
-    line-height: 1.25;
-  }
 }
 
 .record-oc-xml-readonly-field {
@@ -739,5 +718,60 @@
     font-size: 10px;
     font-weight: 700;
     line-height: 1.25;
+  }
+}
+
+@media screen and (max-width: 1320px) {
+  .record-oc-xml-hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .record-oc-xml-board {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+
+  .record-oc-xml-column--right {
+    grid-column: 1 / -1;
+    position: static;
+  }
+
+  .record-oc-xml-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 1040px) {
+  .record-oc-xml-board {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-item {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-fiscal-breakdown {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .record-oc-xml-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-card {
+    padding: 12px;
+  }
+
+  .record-oc-xml-photo {
+    min-height: 220px;
+  }
+
+  .record-oc-xml-fiscal-breakdown {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
