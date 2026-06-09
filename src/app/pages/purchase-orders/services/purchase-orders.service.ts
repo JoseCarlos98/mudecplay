@@ -359,4 +359,59 @@ export class PurchaseOrdersService {
       payload,
     );
   }
+
+  getAvailableWarehouseXmlExpensesForPurchaseOrder(
+    purchaseOrderId: number | string,
+    filters?: entity.FiltersAvailableWarehouseXmlExpenses,
+  ): Observable<entity.AvailableWarehouseXmlExpensesResponse> {
+    let params = new HttpParams();
+
+    if (filters) {
+      params = params.set('page', String(filters.page ?? 1));
+      params = params.set('limit', String(filters.limit ?? 20));
+
+      if (filters.search?.trim()) {
+        params = params.set('search', filters.search.trim());
+      }
+
+      if (
+        filters.supplier_id !== undefined &&
+        filters.supplier_id !== null &&
+        String(filters.supplier_id).trim() !== ''
+      ) {
+        params = params.set('supplier_id', String(filters.supplier_id));
+      }
+
+      if (filters.date_from?.trim()) {
+        params = params.set('date_from', filters.date_from.trim());
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set('date_to', filters.date_to.trim());
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null &&
+        String(filters.amount).trim() !== ''
+      ) {
+        params = params.set('amount', String(filters.amount));
+      }
+    }
+
+    return this.http.get<entity.AvailableWarehouseXmlExpensesResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/available-warehouse-xml-expenses`,
+      { params },
+    );
+  }
+
+  linkExistingWarehouseXmlExpenseToTicketPhoto(
+    photoId: number | string,
+    payload: entity.LinkExistingWarehouseXmlExpenseDto,
+  ): Observable<entity.LinkExistingWarehouseXmlExpenseResponse> {
+    return this.http.post<entity.LinkExistingWarehouseXmlExpenseResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/link-existing-warehouse-xml-expense`,
+      payload,
+    );
+  }
 }

@@ -85,6 +85,15 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     data: { roles: ['ORDENES_COMPRA_EDITOR'] },
   },
 
+  {
+  path: 'registrar-almacen-xml/:photoId',
+  loadComponent: () =>
+    import('./components/purchase-order-details/components/record-oc-warehouse-xml-expense/record-oc-warehouse-xml-expense')
+      .then((m) => m.RecordOcWarehouseXmlExpense),
+  canActivate: [rolesGuard],
+  data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+},
+
   // {
   //   path: 'conciliacion',
   //   loadComponent: () =>

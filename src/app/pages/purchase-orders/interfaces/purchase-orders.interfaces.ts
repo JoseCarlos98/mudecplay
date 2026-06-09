@@ -608,3 +608,75 @@ export interface CreateWarehouseExpenseFromTicketResponse {
     total_amount: number;
   };
 }
+
+export interface AvailableWarehouseXmlExpenseItemDto extends PurchaseOrderExpenseItemDetailDto {
+  id: number;
+}
+
+export interface AvailableWarehouseXmlExpenseDto {
+  id: number;
+  date: string;
+  internal_folio: string;
+  total_amount: number | string;
+  cfdi_uuid: string | null;
+
+  supplier: {
+    id: number;
+    company_name: string;
+  } | null;
+
+  status: {
+    id: number;
+    name: string;
+  } | null;
+
+  available_items: AvailableWarehouseXmlExpenseItemDto[];
+  available_item_ids: number[];
+  available_items_count: number;
+
+  available_amount: number;
+  available_paid_amount: number;
+  available_balance: number;
+
+  can_select: boolean;
+}
+
+export interface AvailableWarehouseXmlExpensesResponse {
+  data: AvailableWarehouseXmlExpenseDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface FiltersAvailableWarehouseXmlExpenses {
+  page: number;
+  limit: number;
+
+  search?: string | null;
+  supplier_id?: number | string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+  amount?: number | string | null;
+}
+
+export interface LinkExistingWarehouseXmlExpenseDto {
+  expense_id: number;
+  expense_item_ids: number[];
+  notes?: string | null;
+}
+
+export interface LinkExistingWarehouseXmlExpenseResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    ticket_photo_id: number;
+    expense_id: number;
+    expense_folio: string;
+    cfdi_uuid: string;
+    selected_item_ids: number[];
+    amount_snapshot: number;
+  };
+}

@@ -306,6 +306,13 @@
                   <span>Registrar entrada</span>
                 </button>
                 }
+
+                @if (canRegisterWarehouseXmlExpense(photo)) {
+                <button type="button" class="btn-primary purchase-order-photo-card__button"
+                  (click)="goToRegisterWarehouseXmlExpense(photo)">
+                  <span>Relacionar XML almacén</span>
+                </button>
+                }
               </div>
             </div>
           </article>

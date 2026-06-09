@@ -356,6 +356,23 @@ export class PurchaseOrderDetails implements OnInit {
     this.router.navigateByUrl(`/ordenes-compra/registrar-almacen/${photo.id}`);
   }
 
+  canRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): boolean {
+  return (
+    !!photo?.id &&
+    photo.status === 'reconciled' &&
+    !photo.hasExpense &&
+    this.order.status === 'authorized' &&
+    this.order.destinationType === 'warehouse' &&
+    this.order.willHaveInvoice === true
+  );
+}
+
+goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
+  if (!this.canRegisterWarehouseXmlExpense(photo)) return;
+
+  this.router.navigateByUrl(`/ordenes-compra/registrar-almacen-xml/${photo.id}`);
+}
+
   goToExpenseForm(expense: PurchaseOrderExpense): void {
     if (!expense?.id) return;
 
