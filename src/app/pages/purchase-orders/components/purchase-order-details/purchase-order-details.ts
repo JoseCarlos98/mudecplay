@@ -73,6 +73,7 @@ interface PurchaseOrderPhoto {
   statusVariant: DetailStatusVariant;
   uploadedBy: string;
   uploadedAt: string;
+  reconciledAt: string | null;
   previewUrl: string | null;
   hasExpense: boolean;
 }
@@ -355,23 +356,24 @@ export class PurchaseOrderDetails implements OnInit {
 
     this.router.navigateByUrl(`/ordenes-compra/registrar-almacen/${photo.id}`);
   }
-
   canRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): boolean {
-  return (
-    !!photo?.id &&
-    photo.status === 'reconciled' &&
-    !photo.hasExpense &&
-    this.order.status === 'authorized' &&
-    this.order.destinationType === 'warehouse' &&
-    this.order.willHaveInvoice === true
-  );
-}
+    return (
+      !!photo?.id &&
+      photo.status === 'reconciled' &&
+      !photo.hasExpense &&
+      this.order.status === 'authorized' &&
+      this.order.destinationType === 'warehouse' &&
+      this.order.willHaveInvoice === true
+    );
+  }
 
-goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
-  if (!this.canRegisterWarehouseXmlExpense(photo)) return;
+  goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
+    if (!this.canRegisterWarehouseXmlExpense(photo)) return;
 
-  this.router.navigateByUrl(`/ordenes-compra/registrar-almacen-xml/${photo.id}`);
-}
+    this.router.navigateByUrl(
+      `/ordenes-compra/registrar-almacen-xml/${photo.id}`,
+    );
+  }
 
   goToExpenseForm(expense: PurchaseOrderExpense): void {
     if (!expense?.id) return;
@@ -681,7 +683,7 @@ goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
       {
         label: 'Foto conciliada',
         date: hasReconciledPhoto
-          ? reconciledPhoto?.uploadedAt ?? 'Conciliada'
+          ? reconciledPhoto?.reconciledAt ?? 'Conciliada'
           : 'Pendiente',
         icon: 'fact_check',
         status: hasReconciledPhoto
@@ -995,6 +997,11 @@ goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
     const photoId = Number(photo.id ?? 0);
     const status = String(photo.status ?? '').trim() || 'pending';
 
+    const reconciledAtRaw =
+      photo.reconciled_at ??
+      photo.reconciledAt ??
+      null;
+
     return {
       id: photoId,
       fileName:
@@ -1013,6 +1020,9 @@ goToRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): void {
       uploadedAt: this.formatDateTime(
         photo.uploaded_at ?? photo.created_at ?? photo.createdAt,
       ),
+      reconciledAt: reconciledAtRaw
+        ? this.formatDateTime(reconciledAtRaw)
+        : null,
       previewUrl: null,
       hasExpense: this.photoHasExpense(photoId, expenseLinks),
     };
