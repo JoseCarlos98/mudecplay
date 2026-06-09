@@ -299,6 +299,13 @@
                   <span>Relacionar gasto XML</span>
                 </button>
                 }
+
+                @if (canRegisterWarehouseExpense(photo)) {
+                <button type="button" class="btn-primary purchase-order-photo-card__button"
+                  (click)="goToRegisterWarehouseExpense(photo)">
+                  <span>Registrar entrada</span>
+                </button>
+                }
               </div>
             </div>
           </article>

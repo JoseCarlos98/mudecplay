@@ -323,21 +323,38 @@ export class PurchaseOrderDetails implements OnInit {
   }
 
   canRegisterDirectXmlExpense(photo: PurchaseOrderPhoto): boolean {
-  return (
-    !!photo?.id &&
-    photo.status === 'reconciled' &&
-    !photo.hasExpense &&
-    this.order.status === 'authorized' &&
-    this.order.destinationType === 'direct' &&
-    this.order.willHaveInvoice === true
-  );
-}
+    return (
+      !!photo?.id &&
+      photo.status === 'reconciled' &&
+      !photo.hasExpense &&
+      this.order.status === 'authorized' &&
+      this.order.destinationType === 'direct' &&
+      this.order.willHaveInvoice === true
+    );
+  }
 
-goToRegisterDirectXmlExpense(photo: PurchaseOrderPhoto): void {
-  if (!this.canRegisterDirectXmlExpense(photo)) return;
+  canRegisterWarehouseExpense(photo: PurchaseOrderPhoto): boolean {
+    return (
+      !!photo?.id &&
+      photo.status === 'reconciled' &&
+      !photo.hasExpense &&
+      this.order.status === 'authorized' &&
+      this.order.destinationType === 'warehouse' &&
+      this.order.willHaveInvoice === false
+    );
+  }
 
-  this.router.navigateByUrl(`/ordenes-compra/registrar-gasto-xml/${photo.id}`);
-}
+  goToRegisterDirectXmlExpense(photo: PurchaseOrderPhoto): void {
+    if (!this.canRegisterDirectXmlExpense(photo)) return;
+
+    this.router.navigateByUrl(`/ordenes-compra/registrar-gasto-xml/${photo.id}`);
+  }
+
+  goToRegisterWarehouseExpense(photo: PurchaseOrderPhoto): void {
+    if (!this.canRegisterWarehouseExpense(photo)) return;
+
+    this.router.navigateByUrl(`/ordenes-compra/registrar-almacen/${photo.id}`);
+  }
 
   goToExpenseForm(expense: PurchaseOrderExpense): void {
     if (!expense?.id) return;
