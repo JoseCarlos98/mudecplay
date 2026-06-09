@@ -577,3 +577,37 @@ export interface LinkExistingXmlExpenseResponse {
     amount_snapshot: number;
   };
 }
+
+export interface CreateWarehouseExpenseFromTicketItemDto {
+  product_id: number;
+  concept?: string | null;
+
+  quantity: number;
+  unit?: string | null;
+  unit_id?: number | null;
+  unit_price: number;
+
+  amount: number;
+
+  payment_amount?: number | null;
+  payment_date?: string | null;
+}
+
+export interface CreateWarehouseExpenseFromTicketDto {
+  date: string;
+  supplier_id?: number | null;
+  notes?: string | null;
+  items: CreateWarehouseExpenseFromTicketItemDto[];
+}
+
+export interface CreateWarehouseExpenseFromTicketResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    ticket_photo_id: number;
+    expense_id: number;
+    total_amount: number;
+  };
+}

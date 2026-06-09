@@ -349,4 +349,14 @@ export class PurchaseOrdersService {
       payload,
     );
   }
+
+  createWarehouseExpenseFromTicketPhoto(
+    photoId: number | string,
+    payload: entity.CreateWarehouseExpenseFromTicketDto,
+  ): Observable<entity.CreateWarehouseExpenseFromTicketResponse> {
+    return this.http.post<entity.CreateWarehouseExpenseFromTicketResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/warehouse-expense`,
+      payload,
+    );
+  }
 }
