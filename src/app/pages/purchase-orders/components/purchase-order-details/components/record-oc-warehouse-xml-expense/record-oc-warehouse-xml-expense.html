@@ -1,1 +1,565 @@
-<p>record-oc-warehouse-xml-expense works!</p>
+<div class="card-content-form record-oc-warehouse-xml-page">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  @if (loadingPage()) {
+  <app-loading-overlay
+    [visible]="true"
+    [fullscreen]="true"
+    text="Cargando información de la O.C...">
+  </app-loading-overlay>
+  }
+
+  <section class="record-oc-warehouse-xml-hero">
+    <article class="record-oc-warehouse-xml-hero__item">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>description</mat-icon>
+      </span>
+
+      <div>
+        <small>Folio O.C.</small>
+        <strong>{{ order?.folio || 'Sin folio' }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-warehouse-xml-hero__item">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>business</mat-icon>
+      </span>
+
+      <div>
+        <small>Proyecto referencia</small>
+        <strong>{{ projectName }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-warehouse-xml-hero__item">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>warehouse</mat-icon>
+      </span>
+
+      <div>
+        <small>Destino</small>
+        <strong>{{ destinationLabel }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-warehouse-xml-hero__item">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>receipt</mat-icon>
+      </span>
+
+      <div>
+        <small>Factura</small>
+        <strong>{{ invoiceLabel }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-warehouse-xml-hero__item">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>person</mat-icon>
+      </span>
+
+      <div>
+        <small>Solicitante</small>
+        <strong>{{ requesterName }}</strong>
+      </div>
+    </article>
+
+    <article class="record-oc-warehouse-xml-hero__item record-oc-warehouse-xml-hero__item--amount">
+      <span class="record-oc-warehouse-xml-hero__icon">
+        <mat-icon>paid</mat-icon>
+      </span>
+
+      <div>
+        <small>Monto solicitado</small>
+        <strong>{{ formatMoney(requestedAmount) }}</strong>
+      </div>
+    </article>
+  </section>
+
+  @if (isBlockedByFlow) {
+  <section class="record-oc-warehouse-xml-alert record-oc-warehouse-xml-alert--warning">
+    <mat-icon>info</mat-icon>
+
+    <div>
+      <strong>Este flujo no corresponde a almacén con factura.</strong>
+      <p>Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.</p>
+    </div>
+  </section>
+  }
+
+  @if (errorMessage) {
+  <section class="record-oc-warehouse-xml-alert record-oc-warehouse-xml-alert--danger">
+    <mat-icon>warning</mat-icon>
+
+    <div>
+      <strong>Revisión requerida</strong>
+      <p>{{ errorMessage }}</p>
+    </div>
+  </section>
+  }
+
+  <form [formGroup]="filtersForm" class="record-oc-warehouse-xml-board">
+    <aside class="record-oc-warehouse-xml-column record-oc-warehouse-xml-column--left">
+      <section class="record-oc-warehouse-xml-card">
+        <div class="record-oc-warehouse-xml-card__header">
+          <div class="record-oc-warehouse-xml-card__title-wrap">
+            <span class="record-oc-warehouse-xml-card__icon">
+              <mat-icon>image</mat-icon>
+            </span>
+
+            <div>
+              <h3>Foto del gasto</h3>
+              <p>Ticket conciliado con esta orden de compra.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="record-oc-warehouse-xml-photo">
+          @if (loadingPhoto()) {
+          <app-loading-overlay
+            [visible]="true"
+            [fullscreen]="false"
+            text="Cargando foto...">
+          </app-loading-overlay>
+          }
+
+          @if (!loadingPhoto() && photoUrl && !imageError) {
+          <img
+            [src]="photoUrl"
+            [alt]="ticketFileName"
+            (error)="onImageError()" />
+          }
+
+          @if (!loadingPhoto() && (!photoUrl || imageError)) {
+          <div class="record-oc-warehouse-xml-photo__empty">
+            <mat-icon>broken_image</mat-icon>
+            <strong>No se pudo mostrar la foto</strong>
+            <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
+          </div>
+          }
+        </div>
+
+        <div class="record-oc-warehouse-xml-meta">
+          <div class="record-oc-warehouse-xml-meta__row">
+            <span class="record-oc-warehouse-xml-meta__icon">
+              <mat-icon>description</mat-icon>
+            </span>
+
+            <div>
+              <span>Archivo</span>
+              <strong>{{ ticketFileName }}</strong>
+            </div>
+          </div>
+
+          <div class="record-oc-warehouse-xml-meta__row">
+            <span class="record-oc-warehouse-xml-meta__icon">
+              <mat-icon>business</mat-icon>
+            </span>
+
+            <div>
+              <span>Proyecto referencia</span>
+              <strong>{{ projectName }}</strong>
+            </div>
+          </div>
+
+          <div class="record-oc-warehouse-xml-meta__row">
+            <span class="record-oc-warehouse-xml-meta__icon">
+              <mat-icon>person</mat-icon>
+            </span>
+
+            <div>
+              <span>Subido por</span>
+              <strong>{{ uploadedByName }}</strong>
+            </div>
+          </div>
+
+          <div class="record-oc-warehouse-xml-meta__row">
+            <span class="record-oc-warehouse-xml-meta__icon">
+              <mat-icon>calendar_today</mat-icon>
+            </span>
+
+            <div>
+              <span>Fecha</span>
+              <strong>{{ uploadedAt }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-outline record-oc-warehouse-xml-photo-button"
+          [disabled]="!photoUrl"
+          (click)="openPhotoInNewTab()">
+          <mat-icon>open_in_new</mat-icon>
+          <span>Abrir imagen</span>
+        </button>
+      </section>
+
+      <section class="record-oc-warehouse-xml-card">
+        <div class="record-oc-warehouse-xml-card__header">
+          <div class="record-oc-warehouse-xml-card__title-wrap">
+            <span class="record-oc-warehouse-xml-card__icon">
+              <mat-icon>info</mat-icon>
+            </span>
+
+            <div>
+              <h3>Información de la O.C.</h3>
+              <p>Datos base que respaldan la relación.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="record-oc-warehouse-xml-info">
+          <div>
+            <span>Concepto</span>
+            <strong>{{ orderConcept }}</strong>
+          </div>
+
+          <div>
+            <span>Notas</span>
+            <strong>{{ orderNotes }}</strong>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="record-oc-warehouse-xml-column record-oc-warehouse-xml-column--center">
+      <section class="record-oc-warehouse-xml-card record-oc-warehouse-xml-card--list">
+        <div class="record-oc-warehouse-xml-card__header">
+          <div class="record-oc-warehouse-xml-card__title-wrap">
+            <span class="record-oc-warehouse-xml-card__icon">
+              <mat-icon>receipt_long</mat-icon>
+            </span>
+
+            <div>
+              <h3>XML de almacén disponibles</h3>
+              <p>Selecciona un gasto XML ya cargado desde Gastos.</p>
+            </div>
+          </div>
+
+          <span class="record-oc-warehouse-xml-flow-chip">
+            {{ flowTypeLabel }}
+          </span>
+        </div>
+
+        <section class="record-oc-warehouse-xml-banner">
+          <mat-icon>info</mat-icon>
+
+          <p>
+            Esta pantalla no crea gastos nuevos ni sube XML. Solo relaciona esta O.C.
+            con un gasto XML de almacén ya existente y sus partidas disponibles.
+          </p>
+        </section>
+
+        <section class="record-oc-warehouse-xml-filters">
+          <app-input-field
+            formControlName="search"
+            label="Buscar"
+            type="text"
+            placeholder="Folio, UUID, proveedor o producto">
+          </app-input-field>
+
+          <app-input-field
+            formControlName="amount"
+            label="Monto"
+            type="number"
+            placeholder="0">
+          </app-input-field>
+
+          <app-input-date
+            formControlName="date_from"
+            label="Desde"
+            mode="single"
+            [showClear]="true">
+          </app-input-date>
+
+          <app-input-date
+            formControlName="date_to"
+            label="Hasta"
+            mode="single"
+            [showClear]="true">
+          </app-input-date>
+
+          <div class="record-oc-warehouse-xml-filters__actions">
+            <button
+              type="button"
+              class="btn-primary"
+              [disabled]="loadingXmlExpenses() || isBlockedByFlow"
+              (click)="applyFilters()">
+              <mat-icon>search</mat-icon>
+              <span>Buscar</span>
+            </button>
+
+            <button
+              type="button"
+              class="btn-outline"
+              [disabled]="loadingXmlExpenses()"
+              (click)="clearFilters()">
+              Limpiar
+            </button>
+          </div>
+        </section>
+
+        <section class="record-oc-warehouse-xml-list">
+          @if (loadingXmlExpenses()) {
+          <div class="record-oc-warehouse-xml-loading">
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Buscando XML disponibles...">
+            </app-loading-overlay>
+          </div>
+          }
+
+          @if (!loadingXmlExpenses() && !hasXmlExpenses) {
+          <div class="record-oc-warehouse-xml-empty">
+            <mat-icon>inventory_2</mat-icon>
+            <strong>No hay XML de almacén disponibles</strong>
+            <p>
+              Primero carga el XML desde Gastos y asegúrate de que sus partidas sean de almacén.
+            </p>
+          </div>
+          }
+
+          @if (!loadingXmlExpenses() && hasXmlExpenses) {
+          @for (expense of xmlExpenses; track expense.id) {
+          <article
+            class="record-oc-warehouse-xml-expense"
+            [class.record-oc-warehouse-xml-expense--selected]="selectedExpense?.id === expense.id">
+            <div class="record-oc-warehouse-xml-expense__main">
+              <div>
+                <div class="record-oc-warehouse-xml-expense__folio">
+                  <mat-icon>receipt</mat-icon>
+                  <strong>{{ expense.internal_folio }}</strong>
+                  <span>{{ getExpenseStatusName(expense) }}</span>
+                </div>
+
+                <p class="record-oc-warehouse-xml-expense__supplier">
+                  {{ getExpenseSupplierName(expense) }}
+                </p>
+
+                <p class="record-oc-warehouse-xml-expense__uuid">
+                  UUID: {{ expense.cfdi_uuid || 'Sin UUID' }}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="btn-primary record-oc-warehouse-xml-expense__select"
+                [disabled]="!expense.can_select"
+                (click)="selectExpense(expense)">
+                Seleccionar
+              </button>
+            </div>
+
+            <div class="record-oc-warehouse-xml-expense__stats">
+              <div>
+                <span>Fecha</span>
+                <strong>{{ formatDate(expense.date) }}</strong>
+              </div>
+
+              <div>
+                <span>Total XML</span>
+                <strong>{{ formatMoney(expense.total_amount) }}</strong>
+              </div>
+
+              <div>
+                <span>Disponible</span>
+                <strong>{{ formatMoney(expense.available_amount) }}</strong>
+              </div>
+
+              <div>
+                <span>Pagado</span>
+                <strong>{{ formatMoney(expense.available_paid_amount) }}</strong>
+              </div>
+
+              <div>
+                <span>Saldo</span>
+                <strong [class.record-oc-warehouse-xml-danger]="expense.available_balance > 0">
+                  {{ formatMoney(expense.available_balance) }}
+                </strong>
+              </div>
+
+              <div>
+                <span>Partidas</span>
+                <strong>{{ expense.available_items_count }}</strong>
+              </div>
+            </div>
+          </article>
+          }
+          }
+        </section>
+
+        @if (totalPages > 1) {
+        <section class="record-oc-warehouse-xml-pagination">
+          <button
+            type="button"
+            class="btn-outline"
+            [disabled]="page <= 1 || loadingXmlExpenses()"
+            (click)="previousPage()">
+            Anterior
+          </button>
+
+          <span>Página {{ page }} de {{ totalPages }}</span>
+
+          <button
+            type="button"
+            class="btn-outline"
+            [disabled]="page >= totalPages || loadingXmlExpenses()"
+            (click)="nextPage()">
+            Siguiente
+          </button>
+        </section>
+        }
+      </section>
+    </main>
+
+    <aside class="record-oc-warehouse-xml-column record-oc-warehouse-xml-column--right">
+      <section class="record-oc-warehouse-xml-card record-oc-warehouse-xml-card--summary">
+        <div class="record-oc-warehouse-xml-card__header">
+          <div class="record-oc-warehouse-xml-card__title-wrap">
+            <span class="record-oc-warehouse-xml-card__icon">
+              <mat-icon>fact_check</mat-icon>
+            </span>
+
+            <div>
+              <h3>Partidas a relacionar</h3>
+              <p>Confirma las partidas del XML que corresponden a esta O.C.</p>
+            </div>
+          </div>
+        </div>
+
+        @if (!selectedExpense) {
+        <div class="record-oc-warehouse-xml-side-empty">
+          <mat-icon>touch_app</mat-icon>
+          <strong>Selecciona un XML</strong>
+          <p>Al elegir un gasto XML, aquí aparecerán sus partidas de almacén disponibles.</p>
+        </div>
+        }
+
+        @if (selectedExpense) {
+        <div class="record-oc-warehouse-xml-selected">
+          <div>
+            <span>Gasto seleccionado</span>
+            <strong>{{ selectedExpense.internal_folio }}</strong>
+          </div>
+
+          <div>
+            <span>Proveedor</span>
+            <strong>{{ getExpenseSupplierName(selectedExpense) }}</strong>
+          </div>
+
+          <div>
+            <span>UUID</span>
+            <strong>{{ selectedExpense.cfdi_uuid }}</strong>
+          </div>
+        </div>
+
+        <div class="record-oc-warehouse-xml-selected-actions">
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="selectAllItems()">
+            Seleccionar todas
+          </button>
+
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="clearSelectedItems()">
+            Quitar selección
+          </button>
+        </div>
+
+        <div class="record-oc-warehouse-xml-items">
+          @for (item of availableItemsForSelected; track item.id) {
+          <article
+            class="record-oc-warehouse-xml-item"
+            [class.record-oc-warehouse-xml-item--selected]="isItemSelected(item.id)"
+            (click)="toggleItem(item)">
+            <div class="record-oc-warehouse-xml-item__check">
+              @if (isItemSelected(item.id)) {
+              <mat-icon>check</mat-icon>
+              }
+            </div>
+
+            <div class="record-oc-warehouse-xml-item__content">
+              <strong>{{ getItemName(item) }}</strong>
+
+              <span>
+                {{ getItemUnitText(item) }} · Unitario {{ formatMoney(getItemUnitPrice(item)) }}
+              </span>
+
+              <small>
+                Importe {{ formatMoney(item.amount) }} · Pagado {{ formatMoney(item.payment_amount) }}
+              </small>
+            </div>
+          </article>
+          }
+        </div>
+
+        <div class="record-oc-warehouse-xml-summary-box">
+          <div>
+            <span>Partidas seleccionadas</span>
+            <strong>{{ selectedItemsCount }}</strong>
+          </div>
+
+          <div>
+            <span>Total relacionado</span>
+            <strong>{{ formatMoney(selectedAmount) }}</strong>
+          </div>
+
+          <div>
+            <span>Total pagado</span>
+            <strong>{{ formatMoney(selectedPaidAmount) }}</strong>
+          </div>
+
+          <div>
+            <span>Saldo</span>
+            <strong [class.record-oc-warehouse-xml-danger]="selectedBalance > 0">
+              {{ formatMoney(selectedBalance) }}
+            </strong>
+          </div>
+        </div>
+
+        <label class="record-oc-warehouse-xml-notes">
+          <span>Notas de la relación</span>
+
+          <textarea
+            formControlName="notes"
+            placeholder="Ejemplo: XML relacionado según ticket de almacén.">
+          </textarea>
+        </label>
+
+        <button
+          type="button"
+          class="btn-primary record-oc-warehouse-xml-save"
+          [disabled]="!canSave"
+          (click)="saveRelation()">
+          <mat-icon>save</mat-icon>
+
+          <span>
+            @if (saving()) {
+            Guardando...
+            } @else {
+            Relacionar XML almacén
+            }
+          </span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-outline record-oc-warehouse-xml-cancel"
+          (click)="goBack()">
+          Cancelar
+        </button>
+        }
+      </section>
+    </aside>
+  </form>
+</div>
