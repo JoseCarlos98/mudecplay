@@ -583,11 +583,8 @@ export interface CreateWarehouseExpenseFromTicketItemDto {
   concept?: string | null;
 
   quantity: number;
-  unit?: string | null;
-  unit_id?: number | null;
+  unit_id: number | null;
   unit_price: number;
-
-  amount: number;
 
   payment_amount?: number | null;
   payment_date?: string | null;
