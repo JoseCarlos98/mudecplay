@@ -286,12 +286,67 @@ export class PurchaseOrdersService {
   }
 
   createDirectXmlExpenseFromTicketPhoto(
-  photoId: number,
-  payload: entity.CreateDirectXmlExpenseFromTicketDto,
-): Observable<entity.CreateDirectXmlExpenseFromTicketResponse> {
-  return this.http.post<entity.CreateDirectXmlExpenseFromTicketResponse>(
-    `${this.apiUrl}/ticket-photos/${photoId}/direct-xml-expense`,
-    payload,
-  );
-}
+    photoId: number,
+    payload: entity.CreateDirectXmlExpenseFromTicketDto,
+  ): Observable<entity.CreateDirectXmlExpenseFromTicketResponse> {
+    return this.http.post<entity.CreateDirectXmlExpenseFromTicketResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/direct-xml-expense`,
+      payload,
+    );
+  }
+
+  getAvailableXmlExpensesForPurchaseOrder(
+    purchaseOrderId: number | string,
+    filters?: entity.FiltersAvailableXmlExpenses,
+  ): Observable<entity.AvailableXmlExpensesResponse> {
+    let params = new HttpParams();
+
+    if (filters) {
+      params = params.set('page', String(filters.page ?? 1));
+      params = params.set('limit', String(filters.limit ?? 20));
+
+      if (filters.search?.trim()) {
+        params = params.set('search', filters.search.trim());
+      }
+
+      if (
+        filters.supplier_id !== undefined &&
+        filters.supplier_id !== null &&
+        String(filters.supplier_id).trim() !== ''
+      ) {
+        params = params.set('supplier_id', String(filters.supplier_id));
+      }
+
+      if (filters.date_from?.trim()) {
+        params = params.set('date_from', filters.date_from.trim());
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set('date_to', filters.date_to.trim());
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null &&
+        String(filters.amount).trim() !== ''
+      ) {
+        params = params.set('amount', String(filters.amount));
+      }
+    }
+
+    return this.http.get<entity.AvailableXmlExpensesResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/available-xml-expenses`,
+      { params },
+    );
+  }
+
+  linkExistingXmlExpenseToTicketPhoto(
+    photoId: number | string,
+    payload: entity.LinkExistingXmlExpenseDto,
+  ): Observable<entity.LinkExistingXmlExpenseResponse> {
+    return this.http.post<entity.LinkExistingXmlExpenseResponse>(
+      `${this.apiUrl}/ticket-photos/${photoId}/link-existing-xml-expense`,
+      payload,
+    );
+  }
 }

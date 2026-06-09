@@ -484,3 +484,96 @@ export interface CreateDirectXmlExpenseFromTicketResponse {
     total_amount: number;
   };
 }
+
+export interface PurchaseOrderExpenseItemDetailDto {
+  id: number;
+  item_type?: string | null;
+  product?: {
+    id: number;
+    name: string;
+  } | null;
+  project?: PurchaseOrderProjectDto | null;
+  concept?: string | null;
+  quantity?: number | string | null;
+  unit?: string | null;
+  unit_id?: number | null;
+  unit_name?: string | null;
+  unit_price?: number | string | null;
+  amount?: number | string | null;
+  payment_amount?: number | string | null;
+  payment_date?: string | null;
+}
+
+export interface PurchaseOrderExpenseLinkedItemDto
+  extends PurchaseOrderExpenseItemDetailDto {
+  link_item_id?: number | null;
+  expense_item_id: number;
+  amount_snapshot?: number | string | null;
+  linked_at?: string | null;
+}
+
+export interface AvailableXmlExpenseItemDto extends PurchaseOrderExpenseItemDetailDto {
+  id: number;
+}
+
+export interface AvailableXmlExpenseDto {
+  id: number;
+  date: string;
+  internal_folio: string;
+  total_amount: number | string;
+  cfdi_uuid: string | null;
+  supplier: {
+    id: number;
+    company_name: string;
+  } | null;
+  status: {
+    id: number;
+    name: string;
+  } | null;
+  available_items: AvailableXmlExpenseItemDto[];
+  available_item_ids: number[];
+  available_items_count: number;
+  available_amount: number;
+  available_paid_amount: number;
+  available_balance: number;
+  can_select: boolean;
+}
+
+export interface AvailableXmlExpensesResponse {
+  data: AvailableXmlExpenseDto[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface FiltersAvailableXmlExpenses {
+  page: number;
+  limit: number;
+  search?: string | null;
+  supplier_id?: number | string | null;
+  date_from?: string | null;
+  date_to?: string | null;
+  amount?: number | string | null;
+}
+
+export interface LinkExistingXmlExpenseDto {
+  expense_id: number;
+  expense_item_ids: number[];
+  notes?: string | null;
+}
+
+export interface LinkExistingXmlExpenseResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    ticket_photo_id: number;
+    expense_id: number;
+    expense_folio: string;
+    cfdi_uuid: string;
+    selected_item_ids: number[];
+    amount_snapshot: number;
+  };
+}

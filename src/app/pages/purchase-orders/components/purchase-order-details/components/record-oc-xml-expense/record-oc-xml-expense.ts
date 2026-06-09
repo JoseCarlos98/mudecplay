@@ -1,39 +1,24 @@
 import { CommonModule } from '@angular/common';
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-  inject,
-  signal,
-} from '@angular/core';
-import {
-  FormArray,
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs';
 
 import { ModuleHeader } from '../../../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
-import { InputDate } from '../../../../../../shared/ui/input-date/input-date';
-import { InputField } from '../../../../../../shared/ui/input-field/input-field';
 import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
 import {
-  CreateDirectXmlExpenseFromTicketDto,
+  AvailableXmlExpenseDto,
+  AvailableXmlExpenseItemDto,
+  FiltersAvailableXmlExpenses,
+  LinkExistingXmlExpenseDto,
   PendingTicketPhotoRow,
   PurchaseOrderFlowDetailResponse,
   PurchaseOrderTicketPhotoDto,
 } from '../../../../interfaces/purchase-orders.interfaces';
-
-import { ExpenseService } from '../../../../../expenses/services/expense.service';
-import * as expenseEntity from '../../../../../expenses/interfaces/expense-interfaces';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -48,8 +33,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
     // UI
     ModuleHeader,
-    InputDate,
-    InputField,
     LoadingOverlay,
 
     // Material
@@ -59,20 +42,17 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './record-oc-xml-expense.scss',
 })
 export class RecordOcXmlExpense implements OnInit {
-  @ViewChild('xmlInput') xmlInput!: ElementRef<HTMLInputElement>;
-
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
-  private readonly expenseService = inject(ExpenseService);
 
-  readonly pageTitle = 'Registrar gasto con XML';
+  readonly pageTitle = 'Relacionar gasto XML';
   readonly headerConfig = HEADER_CONFIG;
 
   readonly loadingPage = signal(false);
   readonly loadingPhoto = signal(false);
-  readonly loadingXml = signal(false);
+  readonly loadingXmlExpenses = signal(false);
   readonly saving = signal(false);
 
   photoId: number | null = null;
@@ -83,16 +63,23 @@ export class RecordOcXmlExpense implements OnInit {
 
   order: PurchaseOrderFlowDetailResponse | null = null;
 
-  xmlDraft: expenseEntity.XmlExpenseDraftDto | null = null;
-  xmlDuplicates: expenseEntity.XmlDuplicateDto[] = [];
-  xmlErrors: any[] = [];
-  xmlFileName: string | null = null;
+  availableXmlExpenses: AvailableXmlExpenseDto[] = [];
+  selectedXmlExpense: AvailableXmlExpenseDto | null = null;
+  selectedItemIds: number[] = [];
+
+  totalAvailableXmlExpenses = 0;
+  availablePage = 1;
+  availableLimit = 20;
+  availableTotalPages = 0;
 
   errorMessage: string | null = null;
 
   form: FormGroup = this.fb.group({
+    search: this.fb.control<string | null>(null),
+    amount: this.fb.control<number | string | null>(null),
+    date_from: this.fb.control<string | null>(null),
+    date_to: this.fb.control<string | null>(null),
     notes: this.fb.control<string | null>(null),
-    items: this.fb.array([]),
   });
 
   ngOnInit(): void {
@@ -104,14 +91,6 @@ export class RecordOcXmlExpense implements OnInit {
     }
 
     this.loadInitialData();
-  }
-
-  get itemsFA(): FormArray {
-    return this.form.get('items') as FormArray;
-  }
-
-  get xmlItems(): any[] {
-    return (this.xmlDraft?.items ?? []) as any[];
   }
 
   get orderFolio(): string {
@@ -168,40 +147,6 @@ export class RecordOcXmlExpense implements OnInit {
     return this.order?.notes || 'Sin notas registradas.';
   }
 
-  get xmlSupplierName(): string {
-    return this.xmlDraft?.supplier?.name ?? 'Sin proveedor';
-  }
-
-  get xmlUuid(): string {
-    return this.xmlDraft?.uuid ?? 'Sin UUID';
-  }
-
-  get xmlDate(): string {
-    return this.xmlDraft?.date ?? 'Sin fecha';
-  }
-
-  get xmlTotal(): number {
-    if (!this.xmlDraft) return 0;
-
-    return this.xmlItems.reduce((total, item) => {
-      return total + this.resolveItemAmount(item);
-    }, 0);
-  }
-
-  get xmlTotalPaid(): number {
-    return this.itemsFA.controls.reduce((total, group) => {
-      return total + Number(group.get('payment_amount')?.value ?? 0);
-    }, 0);
-  }
-
-  get xmlBalance(): number {
-    return Math.max(this.xmlTotal - this.xmlTotalPaid, 0);
-  }
-
-  get amountDifference(): number {
-    return Number((this.xmlTotal - this.requestedAmount).toFixed(2));
-  }
-
   get isDirectWithInvoice(): boolean {
     return (
       this.order?.destination_type === 'direct' &&
@@ -213,15 +158,63 @@ export class RecordOcXmlExpense implements OnInit {
     return !!this.order && !this.isDirectWithInvoice;
   }
 
+  get hasExistingPhotoLink(): boolean {
+    if (!this.photoId || !this.order?.expense_links?.length) return false;
+
+    return this.order.expense_links.some((link) => {
+      const ticketPhotoId =
+        Number((link as any).ticket_photo?.id ?? link.ticket_photo_id ?? 0);
+
+      return ticketPhotoId === this.photoId;
+    });
+  }
+
+  get selectedItems(): AvailableXmlExpenseItemDto[] {
+    if (!this.selectedXmlExpense) return [];
+
+    return (this.selectedXmlExpense.available_items ?? []).filter((item) =>
+      this.selectedItemIds.includes(Number(item.id)),
+    );
+  }
+
+  get selectedItemsCount(): number {
+    return this.selectedItems.length;
+  }
+
+  get selectedAmount(): number {
+    return this.round2(
+      this.selectedItems.reduce(
+        (sum, item) => sum + Number(item.amount ?? 0),
+        0,
+      ),
+    );
+  }
+
+  get selectedPaidAmount(): number {
+    return this.round2(
+      this.selectedItems.reduce(
+        (sum, item) => sum + Number(item.payment_amount ?? 0),
+        0,
+      ),
+    );
+  }
+
+  get selectedBalance(): number {
+    return this.round2(Math.max(this.selectedAmount - this.selectedPaidAmount, 0));
+  }
+
+  get amountDifference(): number {
+    return Number((this.selectedAmount - this.requestedAmount).toFixed(2));
+  }
+
   get canSave(): boolean {
     return (
       !!this.photoId &&
-      !!this.xmlDraft &&
-      this.form.valid &&
+      !!this.selectedXmlExpense &&
+      this.selectedItemIds.length > 0 &&
+      this.selectedAmount > 0 &&
       this.isDirectWithInvoice &&
-      this.xmlItems.length > 0 &&
-      this.xmlTotal > 0 &&
-      this.hasValidXmlPayload() &&
+      !this.hasExistingPhotoLink &&
       !this.saving()
     );
   }
@@ -239,97 +232,83 @@ export class RecordOcXmlExpense implements OnInit {
     }
   }
 
-  openXmlInput(): void {
-    this.xmlInput?.nativeElement?.click();
+  applyFilters(): void {
+    this.loadAvailableXmlExpenses(true);
   }
 
-  onXmlSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
+  clearFilters(): void {
+    this.form.patchValue({
+      search: null,
+      amount: null,
+      date_from: null,
+      date_to: null,
+    });
 
-    if (!input.files || input.files.length === 0) return;
+    this.loadAvailableXmlExpenses(true);
+  }
 
-    const file = input.files[0];
-
-    this.xmlFileName = file.name;
-    this.xmlDraft = null;
-    this.xmlDuplicates = [];
-    this.xmlErrors = [];
+  selectXmlExpense(expense: AvailableXmlExpenseDto): void {
+    this.selectedXmlExpense = expense;
+    this.selectedItemIds = [...(expense.available_item_ids ?? [])];
     this.errorMessage = null;
-    this.itemsFA.clear();
-
-    this.loadingXml.set(true);
-
-    this.expenseService
-      .uploadXml([file])
-      .pipe(
-        finalize(() => {
-          this.loadingXml.set(false);
-          input.value = '';
-        }),
-      )
-      .subscribe({
-        next: (rawResponse: any) => {
-          const response = rawResponse?.body ?? rawResponse;
-
-          if (
-            !response ||
-            (!('drafts' in response) &&
-              !('duplicates' in response) &&
-              !('errors' in response))
-          ) {
-            return;
-          }
-
-          const drafts = response.drafts ?? [];
-          const duplicates = response.duplicates ?? [];
-          const errors = response.errors ?? [];
-
-          this.xmlDuplicates = duplicates;
-          this.xmlErrors = errors;
-
-          if (!drafts.length) {
-            this.errorMessage =
-              errors?.[0]?.reason ||
-              (duplicates.length > 0
-                ? `El XML "${duplicates[0].sourceFileName ?? 'seleccionado'}" ya está registrado con el UUID ${duplicates[0].uuid}.`
-                : null) ||
-              'No se encontró un XML válido para registrar.';
-
-            return;
-          }
-
-          this.setXmlDraft(drafts[0]);
-        },
-        error: (err) => {
-          console.error('Error al leer XML:', err);
-
-          this.errorMessage =
-            err?.error?.message ||
-            'Ocurrió un error al procesar el XML.';
-        },
-      });
   }
 
-  clearXml(): void {
-    this.xmlDraft = null;
-    this.xmlDuplicates = [];
-    this.xmlErrors = [];
-    this.xmlFileName = null;
-    this.itemsFA.clear();
+  clearSelectedXmlExpense(): void {
+    this.selectedXmlExpense = null;
+    this.selectedItemIds = [];
+  }
+
+  isXmlExpenseSelected(expense: AvailableXmlExpenseDto): boolean {
+    return Number(this.selectedXmlExpense?.id ?? 0) === Number(expense.id);
+  }
+
+  toggleXmlItem(item: AvailableXmlExpenseItemDto): void {
+    const itemId = Number(item.id);
+
+    if (!itemId) return;
+
+    if (this.selectedItemIds.includes(itemId)) {
+      this.selectedItemIds = this.selectedItemIds.filter((id) => id !== itemId);
+      return;
+    }
+
+    this.selectedItemIds = [...this.selectedItemIds, itemId];
+  }
+
+  isXmlItemSelected(item: AvailableXmlExpenseItemDto): boolean {
+    return this.selectedItemIds.includes(Number(item.id));
+  }
+
+  selectAllItems(): void {
+    if (!this.selectedXmlExpense) return;
+
+    this.selectedItemIds = [
+      ...(this.selectedXmlExpense.available_item_ids ?? []),
+    ];
+  }
+
+  clearSelectedItems(): void {
+    this.selectedItemIds = [];
   }
 
   saveExpense(): void {
-    if (!this.canSave || !this.photoId) {
+    if (!this.canSave || !this.photoId || !this.selectedXmlExpense) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const payload = this.buildPayload();
+    const raw = this.form.getRawValue();
+
+    const payload: LinkExistingXmlExpenseDto = {
+      expense_id: Number(this.selectedXmlExpense.id),
+      expense_item_ids: this.selectedItemIds.map(Number),
+      notes: raw.notes?.trim() || null,
+    };
 
     this.saving.set(true);
 
     this.purchaseOrdersService
-      .createDirectXmlExpenseFromTicketPhoto(this.photoId, payload)
+      .linkExistingXmlExpenseToTicketPhoto(this.photoId, payload)
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: (response) => {
@@ -344,11 +323,11 @@ export class RecordOcXmlExpense implements OnInit {
           this.goBack();
         },
         error: (err) => {
-          console.error('Error registrando gasto XML desde O.C.:', err);
+          console.error('Error relacionando gasto XML con O.C.:', err);
 
           this.errorMessage =
             err?.error?.message ||
-            'No se pudo registrar el gasto con XML.';
+            'No se pudo relacionar el gasto XML con la orden de compra.';
         },
       });
   }
@@ -373,52 +352,26 @@ export class RecordOcXmlExpense implements OnInit {
     this.router.navigateByUrl('/ordenes-compra');
   }
 
-  onPaymentBlur(index: number): void {
-    const group = this.itemsFA.at(index) as FormGroup;
-    const item = this.xmlItems[index];
+  trackByExpenseId(_: number, expense: AvailableXmlExpenseDto): number {
+    return Number(expense.id);
+  }
 
-    if (!group || !item) return;
+  trackByItemId(_: number, item: AvailableXmlExpenseItemDto): number {
+    return Number(item.id);
+  }
 
-    const paymentCtrl = group.get('payment_amount');
-    const paymentDateCtrl = group.get('payment_date');
+  getAvailableItemName(item: AvailableXmlExpenseItemDto): string {
+    return (
+      item.product?.name ??
+      item.concept ??
+      'Partida sin nombre'
+    );
+  }
 
-    if (!paymentCtrl || !paymentDateCtrl) return;
-
-    if (this.isZeroCostDiscountItem(item)) {
-      paymentCtrl.setValue(0, { emitEvent: false });
-      paymentDateCtrl.setValue(null, { emitEvent: false });
-
-      paymentCtrl.disable({ emitEvent: false });
-      paymentDateCtrl.disable({ emitEvent: false });
-
-      return;
-    }
-
-    const amount = this.resolveItemAmount(item);
-    let payment = Number(paymentCtrl.value ?? 0);
-
-    if (!Number.isFinite(payment) || payment < 0) {
-      payment = 0;
-      paymentCtrl.setValue(0, { emitEvent: false });
-    }
-
-    if (payment > amount) {
-      payment = amount;
-      paymentCtrl.setValue(amount, { emitEvent: false });
-    }
-
-    if (payment > 0) {
-      paymentDateCtrl.enable({ emitEvent: false });
-
-      if (!paymentDateCtrl.value) {
-        paymentDateCtrl.setValue(this.getToday(), { emitEvent: false });
-      }
-
-      return;
-    }
-
-    paymentDateCtrl.setValue(null, { emitEvent: false });
-    paymentDateCtrl.disable({ emitEvent: false });
+  getItemBalance(item: AvailableXmlExpenseItemDto): number {
+    return this.round2(
+      Math.max(Number(item.amount ?? 0) - Number(item.payment_amount ?? 0), 0),
+    );
   }
 
   private loadInitialData(): void {
@@ -466,6 +419,16 @@ export class RecordOcXmlExpense implements OnInit {
       .subscribe({
         next: (response) => {
           this.order = (response?.data ?? response) as PurchaseOrderFlowDetailResponse;
+
+          if (this.hasExistingPhotoLink) {
+            this.errorMessage =
+              'Esta foto ya tiene un gasto XML relacionado.';
+            return;
+          }
+
+          if (this.isDirectWithInvoice) {
+            this.loadAvailableXmlExpenses(true);
+          }
         },
         error: (err) => {
           console.error('Error cargando detalle de O.C.:', err);
@@ -473,6 +436,59 @@ export class RecordOcXmlExpense implements OnInit {
           this.errorMessage =
             err?.error?.message ||
             'No se pudo cargar la información de la O.C.';
+        },
+      });
+  }
+
+  private loadAvailableXmlExpenses(resetPage = false): void {
+    if (!this.order?.id) return;
+
+    if (resetPage) {
+      this.availablePage = 1;
+    }
+
+    const raw = this.form.getRawValue();
+
+    const filters: FiltersAvailableXmlExpenses = {
+      page: this.availablePage,
+      limit: this.availableLimit,
+      search: raw.search?.trim() || null,
+      amount:
+        raw.amount !== undefined && raw.amount !== null && String(raw.amount).trim() !== ''
+          ? raw.amount
+          : null,
+      date_from: raw.date_from || null,
+      date_to: raw.date_to || null,
+    };
+
+    this.loadingXmlExpenses.set(true);
+
+    this.purchaseOrdersService
+      .getAvailableXmlExpensesForPurchaseOrder(this.order.id, filters)
+      .pipe(finalize(() => this.loadingXmlExpenses.set(false)))
+      .subscribe({
+        next: (response) => {
+          this.availableXmlExpenses = response.data ?? [];
+          this.totalAvailableXmlExpenses = Number(response.total ?? 0);
+          this.availablePage = Number(response.page ?? 1);
+          this.availableLimit = Number(response.limit ?? 20);
+          this.availableTotalPages = Number(response.totalPages ?? 0);
+
+          if (
+            this.selectedXmlExpense &&
+            !this.availableXmlExpenses.some(
+              (expense) => Number(expense.id) === Number(this.selectedXmlExpense?.id),
+            )
+          ) {
+            this.clearSelectedXmlExpense();
+          }
+        },
+        error: (err) => {
+          console.error('Error cargando gastos XML disponibles:', err);
+
+          this.errorMessage =
+            err?.error?.message ||
+            'No se pudieron cargar los gastos XML disponibles.';
         },
       });
   }
@@ -496,198 +512,6 @@ export class RecordOcXmlExpense implements OnInit {
           this.errorMessage = 'No se pudo cargar la foto del ticket.';
         },
       });
-  }
-
-  private setXmlDraft(draft: expenseEntity.XmlExpenseDraftDto): void {
-    this.errorMessage = null;
-    this.xmlErrors = [];
-
-    this.xmlDraft = draft;
-    this.itemsFA.clear();
-
-    this.xmlItems.forEach((item) => {
-      this.itemsFA.push(this.createPaymentGroupForXmlItem(item, draft));
-    });
-  }
-
-  private buildPayload(): CreateDirectXmlExpenseFromTicketDto {
-    const raw = this.form.getRawValue();
-
-    return {
-      date: this.xmlDraft?.date || this.getToday(),
-      supplier_id: Number(this.xmlDraft?.supplier?.id),
-      cfdi_uuid: String(this.xmlDraft?.uuid ?? ''),
-      notes: raw.notes?.trim() || null,
-      items: this.xmlItems.map((item, index) => {
-        const paymentGroup = this.itemsFA.at(index) as FormGroup;
-
-
-        const isZeroCostDiscount = this.isZeroCostDiscountItem(item);
-
-        const paymentAmount = isZeroCostDiscount
-          ? 0
-          : this.toNumberOrNull(paymentGroup?.get('payment_amount')?.value);
-
-        return {
-          product_id: Number(item.product?.id ?? item.product_id ?? 0),
-          concept:
-            item.concept ??
-            item.description ??
-            item.product?.name ??
-            this.orderConcept,
-
-          quantity: this.toNumberOrNull(item.quantity),
-          unit: item.unit ?? null,
-          unit_price: this.toNumberOrNull(item.unit_price),
-
-          base_amount: this.toNumberOrZero(item.base_amount),
-          discount_amount: this.toNumberOrZero(item.discount_amount),
-          tax_amount: this.toNumberOrZero(item.tax_amount),
-          withheld_amount: this.toNumberOrZero(item.withheld_amount),
-
-          amount: this.resolveItemAmount(item),
-
-          payment_amount: paymentAmount,
-          payment_date:
-            !isZeroCostDiscount && paymentAmount && paymentAmount > 0
-              ? paymentGroup?.get('payment_date')?.value || this.getToday()
-              : null,
-        };
-      }),
-    };
-  }
-
-  private hasValidXmlPayload(): boolean {
-    if (!this.xmlDraft?.uuid) return false;
-    if (!this.xmlDraft?.supplier?.id) return false;
-
-    return this.xmlItems.every((item, index) => {
-      const productId = Number(item.product?.id ?? item.product_id ?? 0);
-      const amount = this.resolveItemAmount(item);
-      const group = this.itemsFA.at(index) as FormGroup;
-      const payment = Number(group?.get('payment_amount')?.value ?? 0);
-      const paymentDate = group?.get('payment_date')?.value ?? null;
-
-      if (this.isZeroCostDiscountItem(item)) {
-        return productId > 0 && amount === 0 && payment === 0;
-      }
-
-      return (
-        productId > 0 &&
-        amount >= 0 &&
-        payment >= 0 &&
-        payment <= amount &&
-        (payment <= 0 || !!paymentDate)
-      );
-    });
-  }
-
-  private resolvePaymentAmount(item: any): number | null {
-    const payment = this.toNumberOrNull(item.payment_amount);
-
-    if (payment === null) return null;
-
-    return payment;
-  }
-
-  resolveItemAmount(item: any): number {
-    const amount = this.toNumberOrNull(item.amount);
-
-    if (amount !== null) {
-      return this.round2(amount);
-    }
-
-    const base = this.toNumberOrZero(item.base_amount);
-    const discount = this.toNumberOrZero(item.discount_amount);
-    const tax = this.toNumberOrZero(item.tax_amount);
-    const withheld = this.toNumberOrZero(item.withheld_amount);
-
-    return this.round2(Math.max(0, base - discount) + tax - withheld);
-  }
-
-  isZeroCostDiscountItem(item: any): boolean {
-    if (!item) return false;
-
-    const amount = this.round2(Number(item.amount ?? 0));
-    const baseAmount = this.round2(Number(item.base_amount ?? 0));
-    const discountAmount = this.round2(Number(item.discount_amount ?? 0));
-    const taxAmount = this.round2(Number(item.tax_amount ?? 0));
-    const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
-
-    const fiscalAmount = this.round2(
-      Math.max(0, baseAmount - discountAmount) + taxAmount - withheldAmount,
-    );
-
-    return (
-      amount === 0 &&
-      fiscalAmount === 0 &&
-      baseAmount > 0 &&
-      discountAmount >= baseAmount &&
-      taxAmount === 0 &&
-      withheldAmount === 0
-    );
-  }
-
-  private createPaymentGroupForXmlItem(
-    item: any,
-    draft: expenseEntity.XmlExpenseDraftDto,
-  ): FormGroup {
-    const amount = this.resolveItemAmount(item);
-    const isZeroCostDiscount = this.isZeroCostDiscountItem(item);
-
-    const defaultPayment = isZeroCostDiscount
-      ? 0
-      : this.resolvePaymentAmount(item) ?? 0;
-
-    const group = this.fb.group({
-      payment_amount: this.fb.control<number | null>(defaultPayment, [
-        Validators.min(0),
-        Validators.max(amount),
-      ]),
-      payment_date: this.fb.control<string | null>(
-        defaultPayment > 0 ? this.getToday() : null,
-      ),
-    });
-
-    if (isZeroCostDiscount) {
-      group.get('payment_amount')?.disable({ emitEvent: false });
-      group.get('payment_date')?.disable({ emitEvent: false });
-      return group;
-    }
-
-    if (defaultPayment <= 0) {
-      group.get('payment_date')?.disable({ emitEvent: false });
-    }
-
-    return group;
-  }
-
-  resolveFiscalFormula(item: any): string {
-    const base = this.toNumberOrZero(item.base_amount);
-    const discount = this.toNumberOrZero(item.discount_amount);
-    const tax = this.toNumberOrZero(item.tax_amount);
-    const withheld = this.toNumberOrZero(item.withheld_amount);
-
-    return `${this.formatMoney(base)} - ${this.formatMoney(discount)} + ${this.formatMoney(tax)} - ${this.formatMoney(withheld)}`;
-  }
-
-  getProductName(item: any): string {
-    return (
-      item.product?.name ??
-      item.product_name ??
-      item.concept ??
-      item.description ??
-      'Producto sin nombre'
-    );
-  }
-
-  getItemConcept(item: any): string {
-    return (
-      item.concept ??
-      item.description ??
-      item.product?.name ??
-      this.orderConcept
-    );
   }
 
   private mapTicketPhotoToRow(
@@ -724,6 +548,7 @@ export class RecordOcXmlExpense implements OnInit {
       created_at: createdAt,
       created_at_date: this.formatDateTime(createdAt),
       public_url: publicUrl,
+      purchase_order: photo.purchase_order ?? photo.purchaseOrder ?? null,
     };
   }
 
@@ -749,32 +574,6 @@ export class RecordOcXmlExpense implements OnInit {
     const photoId = Number(rawPhotoId);
 
     return Number.isFinite(photoId) && photoId > 0 ? photoId : null;
-  }
-
-  private getToday(): string {
-    const date = new Date();
-
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  }
-
-  private toNumberOrNull(value: unknown): number | null {
-    if (value === null || value === undefined || value === '') {
-      return null;
-    }
-
-    const parsed = Number(value);
-
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-
-  private toNumberOrZero(value: unknown): number {
-    const parsed = Number(value ?? 0);
-
-    return Number.isFinite(parsed) ? parsed : 0;
   }
 
   private round2(value: number): number {

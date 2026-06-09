@@ -1,6 +1,4 @@
 <div class="card-content-form record-oc-xml-page">
-  <input #xmlInput type="file" accept=".xml" hidden (change)="onXmlSelected($event)" />
-
   <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
@@ -9,8 +7,8 @@
   </app-loading-overlay>
   }
 
-  @if (loadingXml()) {
-  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Procesando XML...">
+  @if (saving()) {
+  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Relacionando gasto XML...">
   </app-loading-overlay>
   }
 
@@ -78,6 +76,19 @@
       <strong>Este flujo no corresponde a directo con factura.</strong>
       <p>
         Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.
+      </p>
+    </div>
+  </section>
+  }
+
+  @if (hasExistingPhotoLink) {
+  <section class="record-oc-xml-alert record-oc-xml-alert--warning">
+    <mat-icon>fact_check</mat-icon>
+
+    <div>
+      <strong>Esta foto ya tiene un gasto relacionado.</strong>
+      <p>
+        Regresa al detalle de la O.C. para revisar el gasto XML ya vinculado.
       </p>
     </div>
   </section>
@@ -180,8 +191,8 @@
       <section class="record-oc-xml-card record-oc-xml-card--form">
         <div class="record-oc-xml-card__header">
           <div>
-            <h3>XML de la factura</h3>
-            <p>Sube el CFDI para crear el gasto fiscal ligado a esta O.C.</p>
+            <h3>Gastos XML disponibles</h3>
+            <p>Selecciona un gasto XML ya cargado desde Gastos y sus partidas disponibles.</p>
           </div>
 
           <span class="record-oc-xml-flow-chip">
@@ -189,130 +200,173 @@
           </span>
         </div>
 
-        @if (!xmlDraft) {
-        <button type="button" class="record-oc-xml-upload" [disabled]="isBlockedByFlow" (click)="openXmlInput()">
-          <mat-icon>upload_file</mat-icon>
+        <div class="record-oc-xml-filters">
+          <label>
+            <span>Buscar</span>
+            <input type="text" formControlName="search" placeholder="Folio, UUID, proveedor o producto" />
+          </label>
 
-          <strong>Seleccionar XML</strong>
-          <span>El sistema validará proveedor, UUID, conceptos e importes.</span>
-        </button>
-        } @else {
-        <div class="record-oc-xml-loaded">
-          <div>
-            <mat-icon>fact_check</mat-icon>
+          <label>
+            <span>Monto</span>
+            <input type="number" formControlName="amount" placeholder="Ej. 1064.28" />
+          </label>
 
-            <div>
-              <strong>{{ xmlFileName || 'XML cargado' }}</strong>
-              <span>UUID: {{ xmlUuid }}</span>
-            </div>
+          <label>
+            <span>Desde</span>
+            <input type="date" formControlName="date_from" />
+          </label>
+
+          <label>
+            <span>Hasta</span>
+            <input type="date" formControlName="date_to" />
+          </label>
+
+          <div class="record-oc-xml-filters__actions">
+            <button type="button" class="btn-primary" [disabled]="isBlockedByFlow || hasExistingPhotoLink"
+              (click)="applyFilters()">
+              <mat-icon>search</mat-icon>
+              <span>Buscar</span>
+            </button>
+
+            <button type="button" class="btn-outline" (click)="clearFilters()">
+              Limpiar
+            </button>
           </div>
-
-          <button type="button" class="btn-outline" (click)="clearXml()">
-            Cambiar XML
-          </button>
         </div>
 
-        <section class="record-oc-xml-summary-grid">
-          <article>
-            <span>Proveedor XML</span>
-            <strong>{{ xmlSupplierName }}</strong>
-          </article>
+        <div class="record-oc-xml-list-wrapper">
+          @if (loadingXmlExpenses()) {
+          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Buscando XML disponibles...">
+          </app-loading-overlay>
+          }
 
-          <article>
-            <span>Fecha XML</span>
-            <strong>{{ xmlDate }}</strong>
-          </article>
+          @if (!loadingXmlExpenses() && availableXmlExpenses.length === 0) {
+          <div class="record-oc-xml-empty">
+            <mat-icon>receipt_long</mat-icon>
+            <strong>No hay gastos XML disponibles</strong>
+            <p>
+              Sube y desglosa el XML desde Gastos. Después aparecerá aquí si tiene partidas directas del proyecto
+              {{ projectName }} que aún no estén relacionadas con otra O.C.
+            </p>
+          </div>
+          }
 
-          <article>
-            <span>Total XML</span>
-            <strong>{{ formatMoney(xmlTotal) }}</strong>
-          </article>
-
-          <article>
-            <span>Diferencia vs O.C.</span>
-            <strong [class.record-oc-xml-danger]="amountDifference !== 0">
-              {{ formatMoney(amountDifference) }}
-            </strong>
-          </article>
-        </section>
-
-        <div formArrayName="items" class="record-oc-xml-items">
-          @for (item of xmlItems; track $index; let i = $index) {
-          <article class="record-oc-xml-item" [class.record-oc-xml-item--discount-total]="isZeroCostDiscountItem(item)"
-            [formGroupName]="i">
-
-            <div class="record-oc-xml-item__content">
-              <div class="record-oc-xml-item__header">
-                <div class="record-oc-xml-item__number">
-                  {{ i + 1 }}
+          @if (!loadingXmlExpenses() && availableXmlExpenses.length > 0) {
+          <div class="record-oc-xml-list">
+            @for (expense of availableXmlExpenses; track trackByExpenseId($index, expense)) {
+            <article class="record-oc-xml-available-card" [class.record-oc-xml-available-card--selected]="isXmlExpenseSelected(expense)">
+              <div class="record-oc-xml-available-card__header">
+                <div>
+                  <small>{{ expense.supplier?.company_name || 'Sin proveedor' }}</small>
+                  <strong>{{ expense.internal_folio }}</strong>
                 </div>
 
-                <div class="record-oc-xml-item__main">
-                  <div class="record-oc-xml-item__title-row">
-                    <strong>{{ getProductName(item) }}</strong>
+                <button type="button" class="btn-outline" [disabled]="!expense.can_select" (click)="selectXmlExpense(expense)">
+                  @if (isXmlExpenseSelected(expense)) {
+                  Seleccionado
+                  } @else {
+                  Seleccionar
+                  }
+                </button>
+              </div>
 
-                    @if (isZeroCostDiscountItem(item)) {
-                    <span class="record-oc-xml-discount-chip">
-                      Descuento total CFDI
-                    </span>
-                    }
-                  </div>
+              <div class="record-oc-xml-available-card__meta">
+                <div>
+                  <span>Fecha</span>
+                  <strong>{{ expense.date || 'Sin fecha' }}</strong>
+                </div>
+
+                <div>
+                  <span>Total XML</span>
+                  <strong>{{ formatMoney(expense.total_amount) }}</strong>
+                </div>
+
+                <div>
+                  <span>Disponible</span>
+                  <strong>{{ formatMoney(expense.available_amount) }}</strong>
+                </div>
+
+                <div>
+                  <span>Partidas</span>
+                  <strong>{{ expense.available_items_count }}</strong>
                 </div>
               </div>
 
-              <div class="record-oc-xml-item__fiscal">
-                <span>Desglose CFDI</span>
-
-                <div class="record-oc-xml-fiscal-breakdown">
-                  <div>
-                    <small>Subtotal</small>
-                    <strong>{{ formatMoney(item.base_amount) }}</strong>
-                  </div>
-
-                  <div>
-                    <small>Descuento</small>
-                    <strong>- {{ formatMoney(item.discount_amount) }}</strong>
-                  </div>
-
-                  <div>
-                    <small>Impuestos</small>
-                    <strong>+ {{ formatMoney(item.tax_amount) }}</strong>
-                  </div>
-
-                  <div>
-                    <small>Retenciones</small>
-                    <strong>- {{ formatMoney(item.withheld_amount) }}</strong>
-                  </div>
-                </div>
+              <div class="record-oc-xml-uuid">
+                <span>UUID</span>
+                <strong>{{ expense.cfdi_uuid || 'Sin UUID' }}</strong>
               </div>
-            </div>
-
-            <div class="record-oc-xml-item__amount">
-              <span>Importe XML</span>
-              <strong>{{ formatMoney(resolveItemAmount(item)) }}</strong>
-
-              @if (isZeroCostDiscountItem(item)) {
-              <small>Producto recibido con costo $0.00</small>
-              }
-            </div>
-
-            <app-input-field formControlName="payment_amount" label="Pagado" type="number" (input)="onPaymentBlur(i)"
-              (blur)="onPaymentBlur(i)">
-            </app-input-field>
-
-            <app-input-date formControlName="payment_date" label="Fecha pago" mode="single">
-            </app-input-date>
-          </article>
+            </article>
+            }
+          </div>
           }
         </div>
 
+        @if (selectedXmlExpense) {
+        <section class="record-oc-xml-selected">
+          <div class="record-oc-xml-selected__header">
+            <div>
+              <h3>Partidas del XML seleccionado</h3>
+              <p>Marca solo las partidas que corresponden a esta O.C.</p>
+            </div>
+
+            <div class="record-oc-xml-selected__actions">
+              <button type="button" class="btn-outline" (click)="selectAllItems()">
+                Seleccionar todas
+              </button>
+
+              <button type="button" class="btn-outline" (click)="clearSelectedItems()">
+                Quitar selección
+              </button>
+            </div>
+          </div>
+
+          <div class="record-oc-xml-items">
+            @for (item of selectedXmlExpense.available_items; track trackByItemId($index, item)) {
+            <article class="record-oc-xml-item" [class.record-oc-xml-item--selected]="isXmlItemSelected(item)">
+              <label class="record-oc-xml-check">
+                <input type="checkbox" [checked]="isXmlItemSelected(item)" (change)="toggleXmlItem(item)" />
+                <span></span>
+              </label>
+
+              <div class="record-oc-xml-item__content">
+                <strong>{{ getAvailableItemName(item) }}</strong>
+                <span>{{ item.project?.name || projectName }}</span>
+              </div>
+
+              <div class="record-oc-xml-item__data">
+                <span>Cantidad</span>
+                <strong>{{ item.quantity || '—' }} {{ item.unit || item.unit_name || '' }}</strong>
+              </div>
+
+              <div class="record-oc-xml-item__data">
+                <span>Importe</span>
+                <strong>{{ formatMoney(item.amount) }}</strong>
+              </div>
+
+              <div class="record-oc-xml-item__data">
+                <span>Pagado</span>
+                <strong>{{ formatMoney(item.payment_amount) }}</strong>
+              </div>
+
+              <div class="record-oc-xml-item__data">
+                <span>Saldo</span>
+                <strong [class.record-oc-xml-danger]="getItemBalance(item) > 0">
+                  {{ formatMoney(getItemBalance(item)) }}
+                </strong>
+              </div>
+            </article>
+            }
+          </div>
+        </section>
+        }
+
         <label class="record-oc-xml-notes">
-          <span>Notas del registro</span>
+          <span>Notas de la relación</span>
 
           <textarea formControlName="notes" placeholder="Ejemplo: XML relacionado con ticket conciliado.">
           </textarea>
         </label>
-        }
       </section>
     </main>
 
@@ -322,30 +376,40 @@
         <div class="record-oc-xml-card__header">
           <div>
             <h3>Panel de acción</h3>
-            <p>Confirma el XML antes de guardar.</p>
+            <p>Confirma el gasto XML antes de relacionarlo.</p>
           </div>
         </div>
 
         <div class="record-oc-xml-summary-box">
           <div>
-            <span>Total conceptos</span>
-            <strong>{{ xmlItems.length }}</strong>
+            <span>Gasto XML</span>
+            <strong>{{ selectedXmlExpense?.internal_folio || 'Sin seleccionar' }}</strong>
           </div>
 
           <div>
-            <span>Total XML</span>
-            <strong>{{ formatMoney(xmlTotal) }}</strong>
+            <span>Proveedor</span>
+            <strong>{{ selectedXmlExpense?.supplier?.company_name || 'Sin proveedor' }}</strong>
+          </div>
+
+          <div>
+            <span>Partidas seleccionadas</span>
+            <strong>{{ selectedItemsCount }}</strong>
+          </div>
+
+          <div>
+            <span>Total relacionado</span>
+            <strong>{{ formatMoney(selectedAmount) }}</strong>
           </div>
 
           <div>
             <span>Total pagado</span>
-            <strong>{{ formatMoney(xmlTotalPaid) }}</strong>
+            <strong>{{ formatMoney(selectedPaidAmount) }}</strong>
           </div>
 
           <div>
             <span>Saldo</span>
-            <strong [class.record-oc-xml-danger]="xmlBalance > 0">
-              {{ formatMoney(xmlBalance) }}
+            <strong [class.record-oc-xml-danger]="selectedBalance > 0">
+              {{ formatMoney(selectedBalance) }}
             </strong>
           </div>
         </div>
@@ -368,36 +432,37 @@
 
           <div>
             <span>UUID</span>
-            <strong>{{ xmlDraft?.uuid || 'Sin XML' }}</strong>
+            <strong>{{ selectedXmlExpense?.cfdi_uuid || 'Sin XML' }}</strong>
           </div>
         </div>
 
-        @if (xmlDuplicates.length > 0) {
-        <div class="record-oc-xml-alert record-oc-xml-alert--warning">
-          <mat-icon>warning</mat-icon>
+        @if (selectedXmlExpense && amountDifference !== 0) {
+        <div class="record-oc-xml-alert record-oc-xml-alert--warning record-oc-xml-alert--inline">
+          <mat-icon>info</mat-icon>
 
           <p>
-            El XML cargado ya aparece como duplicado. Revisa antes de continuar.
+            Diferencia contra el monto solicitado: {{ formatMoney(amountDifference) }}.
           </p>
         </div>
         }
 
-        <div class="record-oc-xml-alert">
+        <div class="record-oc-xml-alert record-oc-xml-alert--inline">
           <mat-icon>info</mat-icon>
 
           <p>
-            Este registro creará un gasto directo con CFDI y quedará ligado a la foto conciliada.
+            Este proceso no crea un gasto nuevo. Solo relaciona la O.C. y la foto con un gasto XML ya creado desde
+            Gastos.
           </p>
         </div>
 
         <button type="button" class="btn-primary record-oc-xml-save" [disabled]="!canSave" (click)="saveExpense()">
-          <mat-icon>save</mat-icon>
+          <mat-icon>link</mat-icon>
 
           <span>
             @if (saving()) {
-            Guardando...
+            Relacionando...
             } @else {
-            Guardar gasto XML
+            Relacionar gasto XML
             }
           </span>
         </button>
