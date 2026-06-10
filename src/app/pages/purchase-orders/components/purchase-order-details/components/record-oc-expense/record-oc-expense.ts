@@ -94,7 +94,7 @@ export class RecordOcExpense implements OnInit {
   order: PurchaseOrderFlowDetailResponse | null = null;
 
   form = this.fb.group<RecordExpenseForm>({
-    date: this.fb.control<string | null>(this.getToday(), {
+    date: this.fb.control<string | null>(null, {
       validators: [Validators.required],
     }),
     supplier: this.fb.control<Catalog | number | string | null>(null),
@@ -165,6 +165,8 @@ export class RecordOcExpense implements OnInit {
   }
 
   get orderConcept(): string {
+    console.log(this.order);
+
     return this.order?.concept ?? 'Sin concepto';
   }
 
@@ -234,8 +236,6 @@ export class RecordOcExpense implements OnInit {
   }
 
   addItem(): void {
-    const defaultDate = this.form.controls.date.value ?? this.getToday();
-
     this.itemsArray.push(
       this.fb.group<RecordExpenseItemForm>({
         product: this.fb.control<Catalog | number | string | null>(null, {
@@ -251,11 +251,10 @@ export class RecordOcExpense implements OnInit {
         payment_amount: this.fb.control<number | null>(null, {
           validators: [Validators.min(0)],
         }),
-        payment_date: this.fb.control<string | null>(defaultDate),
+        payment_date: this.fb.control<string | null>(null),
       }),
     );
 
-    this.syncDefaultConcepts();
   }
 
   removeItem(index: number): void {
@@ -366,7 +365,6 @@ export class RecordOcExpense implements OnInit {
           this.photo = this.mapTicketPhotoToRow(photo);
 
           this.syncProjectControl();
-          this.syncDefaultConcepts();
           this.loadPhotoUrl();
 
           const purchaseOrderId =
@@ -403,7 +401,6 @@ export class RecordOcExpense implements OnInit {
 
           this.order = detail;
           this.syncProjectControl();
-          this.syncDefaultConcepts();
         },
         error: (err) => {
           console.error('Error cargando detalle de O.C.:', err);
@@ -449,7 +446,7 @@ export class RecordOcExpense implements OnInit {
 
         return {
           product_id: this.getCatalogId(item.product) ?? 0,
-          concept: item.concept?.trim() || this.orderConcept,
+          concept: item.concept?.trim() || null, 
           amount,
           payment_amount: paymentAmount,
           payment_date:
@@ -473,16 +470,6 @@ export class RecordOcExpense implements OnInit {
   private syncProjectControl(): void {
     this.form.controls.project.setValue(this.projectName, {
       emitEvent: false,
-    });
-  }
-
-  private syncDefaultConcepts(): void {
-    const concept = this.orderConcept;
-
-    this.itemsArray.controls.forEach((group) => {
-      if (!group.controls.concept.value?.trim()) {
-        group.controls.concept.setValue(concept);
-      }
     });
   }
 

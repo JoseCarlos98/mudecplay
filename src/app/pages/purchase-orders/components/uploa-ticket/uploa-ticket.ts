@@ -8,6 +8,7 @@ import { catchError, finalize, switchMap, throwError } from 'rxjs';
 import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
+import { BtnsSection, ModuleFooterAction } from '../../../../shared/ui/btns-section/btns-section';
 
 interface TicketFilePreview {
   name: string;
@@ -23,6 +24,7 @@ interface TicketFilePreview {
     ReactiveFormsModule,
     MatIconModule,
     Autocomplete,
+    BtnsSection
   ],
   templateUrl: './uploa-ticket.html',
   styleUrl: './uploa-ticket.scss',
@@ -70,6 +72,21 @@ export class UploaTicket {
 
     if (file) {
       this.setFile(file);
+    }
+  }
+
+  onBtnsSectionAction(action: ModuleFooterAction): void {
+    switch (action) {
+      case 'save':
+        this.save();
+        break;
+
+      case 'cancel':
+        this.cancel();
+        break;
+
+      default:
+        break;
     }
   }
 

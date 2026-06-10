@@ -245,8 +245,7 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%),
-    #f8fafc;
+    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%), #f8fafc;
 
   img {
     width: 100%;
@@ -459,7 +458,7 @@
     minmax(110px, 0.65fr)
     minmax(135px, 0.75fr)
     34px;
-  align-items: end;
+  align-items: start;
   gap: 8px;
 
   padding: 10px;
@@ -467,8 +466,7 @@
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
-    #fbfdff;
+    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%), #fbfdff;
 
   app-autocomplete,
   app-input-field,
@@ -504,6 +502,7 @@
   place-items: center;
 
   // margin-bottom: 4px;
+  margin-top: 25px;
 
   border: 0;
   border-radius: 8px;
@@ -774,4 +773,3 @@
     }
   }
 }
-

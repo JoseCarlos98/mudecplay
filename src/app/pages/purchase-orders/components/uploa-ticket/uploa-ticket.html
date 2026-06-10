@@ -9,7 +9,7 @@
                 </div>
             </header>
 
-            <form class="ticket-upload-form" [formGroup]="form" (ngSubmit)="save()">
+            <form class="ticket-upload-form" [formGroup]="form" (submit)="$event.preventDefault()">
                 <section class="ticket-upload-section">
                     <app-autocomplete formControlName="project_id" label="Proyecto" placeholder="Buscar proyecto"
                         [remote]="true" catalogType="project">
@@ -87,19 +87,10 @@
                 </div>
 
                 <footer class="ticket-upload-actions">
-                    <button type="button" class="btn-outline ticket-upload-actions__button" (click)="cancel()">
-                        Cancelar
-                    </button>
-
-                    <button type="submit"
-                        class="btn-primary ticket-upload-actions__button ticket-upload-actions__button--primary"
-                        [disabled]="!canSave">
-                        @if (saving) {
-                        Guardando...
-                        } @else {
-                        Subir foto
-                        }
-                    </button>
+                    <app-btns-section type="save" cancelLabel="Cancelar"
+                        [saveLabel]="saving ? 'Guardando...' : 'Subir foto'" [saveDisabled]="!canSave"
+                        [cancelDisabled]="saving" (action)="onBtnsSectionAction($event)">
+                    </app-btns-section>
                 </footer>
             </form>
         </div>

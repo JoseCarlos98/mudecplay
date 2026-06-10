@@ -103,12 +103,12 @@ export class Sidebar {
           route: '/ordenes-compra',
           roles: ['ORDENES_COMPRA_EDITOR'],
         },
-        {
-          name: 'Conciliación',
-          icon: 'compare_arrows',
-          route: '/ordenes-compra/conciliacion',
-          roles: ['ORDENES_COMPRA_EDITOR'],
-        },
+        // {
+        //   name: 'Conciliación',
+        //   icon: 'compare_arrows',
+        //   route: '/ordenes-compra/conciliacion',
+        //   roles: ['ORDENES_COMPRA_EDITOR'],
+        // },
         {
           name: 'Subir Ticket de gasto',
           icon: 'image_search',
