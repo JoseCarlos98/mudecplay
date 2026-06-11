@@ -16,6 +16,9 @@ import {
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalSeePhoto } from '../photo-without-cost/components/modal-see-photo/modal-see-photo';
+import { PendingTicketPhotoRow } from '../../interfaces/purchase-orders.interfaces';
 
 type DetailStatusVariant =
   | 'success'
@@ -175,6 +178,7 @@ export class PurchaseOrderDetails implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
+  private readonly dialogService = inject(DialogService);
 
   readonly pageTitle = 'Detalle de orden de compra';
   readonly headerConfig = HEADER_CONFIG;
@@ -1079,14 +1083,27 @@ export class PurchaseOrderDetails implements OnInit {
   openPhoto(photo: PurchaseOrderPhoto): void {
     if (!photo?.id) return;
 
-    this.purchaseOrdersService.getTicketPhotoViewUrl(photo.id).subscribe({
-      next: (response) => {
-        window.open(response.url, '_blank', 'noopener,noreferrer');
-      },
-      error: (err) => {
-        console.error('Error abriendo foto:', err);
-      },
-    });
+    this.dialogService.open(
+      ModalSeePhoto,
+      this.mapPhotoToModalRow(photo),
+      'medium',
+    );
+  }
+
+  private mapPhotoToModalRow(photo: PurchaseOrderPhoto): PendingTicketPhotoRow {
+    return {
+      id: photo.id,
+      file_name: photo.fileName,
+      project_id: this.order.id ?? null,
+      project_name: this.order.project || 'Sin proyecto',
+      uploaded_by_name: photo.uploadedBy,
+      status: photo.status,
+      status_label: photo.statusLabel,
+      created_at: photo.uploadedAt,
+      created_at_date: photo.uploadedAt,
+      preview_url: photo.previewUrl,
+      public_url: photo.previewUrl,
+    } as PendingTicketPhotoRow;
   }
 
   canRegisterExpense(photo: PurchaseOrderPhoto): boolean {
