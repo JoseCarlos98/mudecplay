@@ -269,7 +269,7 @@
     min-width: 0;
     color: var(--color-secundary);
     font-size: 15px;
-    font-weight: 850;
+    font-weight: 800;
     line-height: 1.15;
     word-break: break-word;
   }
@@ -377,14 +377,14 @@
   strong {
     color: #92400e;
     font-size: 12.8px;
-    font-weight: 850;
+    font-weight: 700;
     line-height: 1.2;
   }
 
   span {
     color: #78350f;
     font-size: 12.2px;
-    font-weight: 650;
+    font-weight: 600;
     line-height: 1.25;
   }
 }
@@ -882,7 +882,7 @@
 }
 
 /* ============================
- * Fotos
+ * Fotos relacionadas
  * ============================ */
 
 .purchase-order-detail-card--photos {
@@ -893,11 +893,31 @@
   display: grid;
   gap: 10px;
 
-  max-height: 400px;
+  max-height: 360px;
   overflow-y: auto;
   overflow-x: hidden;
 
-  padding: 10px;
+  padding: 8px 8px 8px 10px;
+
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.42) transparent;
+}
+
+.purchase-order-photo-list::-webkit-scrollbar {
+  width: 7px;
+}
+
+.purchase-order-photo-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.purchase-order-photo-list::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.35);
+}
+
+.purchase-order-photo-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.56);
 }
 
 .purchase-order-photo-card {
@@ -905,21 +925,23 @@
   min-width: 0;
 
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   grid-template-areas:
     'image main'
-    'image status'
+    'image relation'
     'image actions';
-  align-items: center;
-  gap: 8px 12px;
+  align-items: start;
+  gap: 7px 12px;
 
-  padding: 10px;
+  padding: 9px 10px;
 
   overflow: hidden;
 
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  border-radius: 13px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(39, 170, 225, 0.035) 0, transparent 32%),
+    linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.035);
 
   transition:
@@ -929,7 +951,7 @@
 }
 
 .purchase-order-photo-card:hover {
-  border-color: rgba(30, 134, 177, 0.28);
+  border-color: rgba(30, 134, 177, 0.32);
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
   transform: translateY(-1px);
 }
@@ -938,20 +960,20 @@
   grid-area: image;
 
   position: relative;
+  width: 112px;
+  height: 116px;
   min-width: 0;
-  width: 128px;
-  height: 132px;
 
   overflow: hidden;
 
-  border-radius: 10px;
+  border-radius: 11px;
   background: #e5f3ff;
 }
 
 .purchase-order-photo-card__image {
   width: 100%;
   height: 100%;
-  min-height: 132px;
+  min-height: 116px;
 
   display: grid;
   place-items: center;
@@ -972,50 +994,51 @@
   right: 7px;
   bottom: 7px;
 
-  width: 28px;
-  height: 28px;
+  width: 27px;
+  height: 27px;
 
   display: grid;
   place-items: center;
 
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   color: var(--color-primary-strong);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.16);
 
   mat-icon {
-    width: 16px;
-    height: 16px;
-    font-size: 16px;
+    width: 15px;
+    height: 15px;
+    font-size: 15px;
   }
 }
 
 .purchase-order-photo-card__main {
   grid-area: main;
-
   min-width: 0;
 
   display: grid;
-  gap: 7px;
+  gap: 6px;
 }
 
 .purchase-order-photo-card__top {
   min-width: 0;
 
-  display: grid;
-  gap: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
 
-  padding-bottom: 7px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .purchase-order-photo-card__title {
   min-width: 0;
 
   color: var(--color-secundary);
-  font-size: 13.8px;
-  font-weight: 800;
-  line-height: 1.25;
+  font-size: 13.6px;
+  font-weight: 700;
+  line-height: 1.2;
   word-break: break-word;
 }
 
@@ -1028,7 +1051,7 @@
 
 .purchase-order-photo-card__meta {
   display: grid;
-  gap: 6px;
+  gap: 5px;
 }
 
 .purchase-order-photo-card__meta-row {
@@ -1036,22 +1059,22 @@
 
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 
-  color: #6b7280;
-  font-size: 12.1px;
+  color: #64748b;
+  font-size: 12px;
   line-height: 1.25;
 
   strong {
     color: #263241;
-    font-weight: 750;
+    font-weight: 800;
   }
 }
 
 .purchase-order-photo-card__meta-icon {
-  width: 23px;
-  height: 23px;
-  min-width: 23px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
 
   display: grid;
   place-items: center;
@@ -1067,8 +1090,9 @@
   }
 }
 
+/* Franja compacta de relación foto -> gasto */
 .purchase-order-photo-card__status-area {
-  grid-area: status;
+  grid-area: relation;
 
   min-width: 0;
   max-width: 100%;
@@ -1078,58 +1102,70 @@
   width: 100%;
   min-width: 0;
 
-  display: grid;
-  gap: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
 
-  padding: 9px 10px;
+  padding: 7px 0 0;
 
-  border-radius: 10px;
-  border: 1px solid rgba(39, 170, 225, 0.22);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(39, 170, 225, 0.09) 0, transparent 42%),
-    linear-gradient(180deg, #ffffff 0%, #f5fbff 100%);
+  border-top: 1px solid rgba(39, 170, 225, 0.18);
+  background: transparent;
 }
 
 .purchase-order-photo-card__expense-main {
   min-width: 0;
 
-  display: grid;
-  grid-template-columns: 25px minmax(0, 1fr);
-  gap: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  > div {
+    min-width: 0;
+    display: inline-flex !important;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+  }
 
   span {
+    display: inline;
     color: #64748b;
-    font-size: 11.5px;
-    font-weight: 750;
+    font-size: 11.4px;
+    font-weight: 700;
     line-height: 1.2;
   }
 
   strong {
+    display: inline;
     min-width: 0;
+
     color: var(--color-secundary);
-    font-size: 12.8px;
-    font-weight: 850;
-    line-height: 1.25;
+    font-size: 12.4px;
+    font-weight: 800;
+    line-height: 1.2;
     word-break: break-word;
   }
 }
 
 .purchase-order-photo-card__expense-icon {
-  width: 25px;
-  height: 25px;
-  min-width: 25px;
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
 
-  display: grid;
-  place-items: center;
+  display: flex!important;
+  align-items: center;
+  // place-items: center;
+  justify-content: center;
 
   border-radius: 999px;
   background: #e5f3ff;
   color: var(--color-primary-strong);
 
   mat-icon {
-    width: 14px;
-    height: 14px;
-    font-size: 14px;
+    width: 13px;
+    height: 13px;
+    font-size: 13px;
   }
 }
 
@@ -1138,7 +1174,7 @@
 
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 
   > span {
@@ -1151,7 +1187,7 @@
     border: 1px solid rgba(148, 163, 184, 0.22);
 
     color: #64748b;
-    font-size: 11px;
+    font-size: 10.8px;
     font-weight: 750;
     line-height: 1;
     white-space: nowrap;
@@ -1159,7 +1195,7 @@
 
   > .purchase-order-detail-chip {
     padding: 3px 8px;
-    font-size: 11px !important;
+    font-size: 10.8px !important;
   }
 }
 
@@ -1204,14 +1240,14 @@
 
 .purchase-order-photo-card__button {
   width: fit-content;
-  min-height: 31px;
+  min-height: 30px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 
-  padding-inline: 12px !important;
+  padding-inline: 11px !important;
   border-radius: 8px !important;
 
   mat-icon {
@@ -1221,7 +1257,7 @@
   }
 
   span {
-    font-size: 11.8px;
+    font-size: 11.6px;
     font-weight: 700;
   }
 }
@@ -1323,16 +1359,16 @@
   }
 
   .purchase-order-photo-card {
-    grid-template-columns: 140px minmax(0, 1fr);
+    grid-template-columns: 132px minmax(0, 1fr);
   }
 
   .purchase-order-photo-card__image-wrap {
-    width: 140px;
-    height: 130px;
+    width: 132px;
+    height: 126px;
   }
 
   .purchase-order-photo-card__image {
-    min-height: 130px;
+    min-height: 126px;
   }
 }
 
@@ -1429,7 +1465,7 @@
     grid-template-areas:
       'image'
       'main'
-      'status'
+      'relation'
       'actions';
   }
 
@@ -1439,11 +1475,7 @@
   }
 
   .purchase-order-photo-card__image {
-    min-height: 170px;
-  }
-
-  .purchase-order-photo-card__actions {
-    justify-content: flex-start;
+    min-height: 165px;
   }
 }
 

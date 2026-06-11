@@ -166,20 +166,6 @@
             }
           </div>
 
-          @if (paymentSummary.exceedsRequested) {
-            <div class="purchase-order-amount-warning">
-              <mat-icon>warning</mat-icon>
-
-              <div>
-                <strong>El total registrado supera el monto solicitado.</strong>
-                <span>
-                  Solicitado: {{ formatMoney(paymentSummary.requestedAmount) }} ·
-                  Registrado: {{ formatMoney(paymentSummary.totalRegistered) }} ·
-                  Diferencia: {{ formatMoney(paymentSummary.requestedDifference) }}
-                </span>
-              </div>
-            </div>
-          }
         }
 
         <div class="purchase-order-info-panels">
