@@ -845,33 +845,6 @@
   color: #b91c1c !important;
 }
 
-// .record-oc-warehouse-actions {
-//   display: block;
-
-//   app-btns-section {
-//     display: block;
-//     width: 100%;
-//   }
-
-//   ::ng-deep .c-modal-actions {
-//     display: grid;
-//     grid-template-columns: 1fr 1fr;
-//     gap: 10px;
-
-//     margin: 0;
-//     padding: 0;
-//   }
-
-//   ::ng-deep .c-modal-actions button {
-//     width: 100%;
-//     min-height: 40px;
-//     border-radius: 9px !important;
-
-//     font-size: 13px;
-//     font-weight: 700;
-//   }
-// }
-
 /* =========================================================
  * RESPONSIVE
  * ========================================================= */
@@ -956,11 +929,7 @@
     align-items: flex-start;
   }
 
-  .record-oc-warehouse-actions {
-    ::ng-deep .c-modal-actions {
-      grid-template-columns: 1fr;
-    }
-  }
+
 }
 
 @media screen and (max-width: 430px) {
