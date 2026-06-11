@@ -116,7 +116,7 @@
   strong {
     display: block;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   p {
@@ -137,14 +137,12 @@
 }
 
 .record-oc-xml-alert--warning {
-  margin-bottom: 14px;
   border: 1px solid rgba(245, 158, 11, 0.3);
   background: #fffbeb;
   color: #92400e;
 }
 
 .record-oc-xml-alert--danger {
-  margin-bottom: 14px;
   border: 1px solid rgba(239, 68, 68, 0.28);
   background: #fef2f2;
   color: #991b1b;
@@ -156,7 +154,7 @@
 
 .record-oc-xml-board {
   display: grid;
-  grid-template-columns: 350px minmax(0, 1fr) 330px;
+  grid-template-columns: 250px minmax(0, 1fr) 300px;
   gap: 14px;
   align-items: start;
 }
@@ -507,11 +505,11 @@
     width: 100%;
   }
 
-  ::ng-deep .btns-action-filters {
-    display: flex;
-    align-items: end;
-    gap: 8px;
-  }
+  // ::ng-deep .btns-action-filters {
+  //   display: flex;
+  //   align-items: end;
+  //   gap: 8px;
+  // }
 }
 
 .record-oc-xml-list-wrapper {
@@ -572,7 +570,7 @@
 
     color: var(--color-secundary);
     font-size: 15px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   button {
@@ -660,7 +658,7 @@
 
     color: var(--color-secundary);
     font-size: 15px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   p {
@@ -738,7 +736,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
     line-height: 1.25;
   }
 
@@ -766,7 +764,7 @@
   strong {
     color: var(--color-secundary);
     font-size: 12px;
-    font-weight: 900;
+    font-weight: 800;
     word-break: break-word;
   }
 }
@@ -941,4 +939,440 @@
   }
 
  
+}
+
+/* =========================================================
+ * AJUSTE FILTROS XML
+ * ========================================================= */
+
+.record-oc-xml-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(220px, 1fr)
+    minmax(130px, 0.45fr)
+    minmax(145px, 0.45fr)
+    minmax(145px, 0.45fr);
+  gap: 10px;
+  align-items: end;
+
+  margin-bottom: 12px;
+
+  app-input-field,
+  app-input-date {
+    min-width: 0;
+    display: block;
+    width: 100%;
+  }
+}
+
+.record-oc-xml-filters__actions {
+  grid-column: 1 / -1;
+
+  display: flex;
+  justify-content: flex-end;
+
+  app-btns-section {
+    display: block;
+  }
+
+  ::ng-deep .btns-action-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  // ::ng-deep .btns-action-filters button {
+  //   min-height: 36px;
+  //   border-radius: 9px !important;
+  // }
+}
+
+/* =========================================================
+ * FONDO GRADIENTE COMO DIRECTO SIN FACTURA
+ * ========================================================= */
+
+.record-oc-xml-available-card,
+.record-oc-xml-item {
+  background:
+    radial-gradient(
+      circle at 2% 30%,
+      rgba(39, 170, 225, 0.06) 0,
+      transparent 28%
+    ),
+    #fbfdff;
+}
+
+/* =========================================================
+ * LISTA XML
+ * ========================================================= */
+
+.record-oc-xml-list-wrapper {
+  position: relative;
+  min-height: 220px;
+}
+
+.record-oc-xml-list {
+  display: grid;
+  gap: 10px;
+
+  max-height: 390px;
+  overflow: auto;
+
+  padding: 4px;
+}
+
+.record-oc-xml-available-card {
+  display: grid;
+  gap: 10px;
+
+  padding: 12px;
+
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+}
+
+.record-oc-xml-available-card--selected {
+  border-color: rgba(39, 170, 225, 0.65);
+  background: #f2faff;
+  box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.08);
+}
+
+.record-oc-xml-available-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  small {
+    display: block;
+    margin-bottom: 2px;
+
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  strong {
+    display: block;
+
+    color: var(--color-secundary);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  button {
+    min-height: 32px;
+    border-radius: 8px !important;
+    white-space: nowrap;
+  }
+}
+
+.record-oc-xml-available-card__meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+
+  div {
+    min-width: 0;
+
+    padding: 8px;
+
+    border: 1px solid rgba(148, 163, 184, 0.16);
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 3px;
+
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 12px;
+    font-weight: 800;
+    word-break: break-word;
+  }
+}
+
+.record-oc-xml-uuid {
+  display: grid;
+  gap: 3px;
+
+  padding: 8px 10px;
+
+  border-radius: 10px;
+  background: #f8fafc;
+
+  span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  strong {
+    color: #475569;
+    font-size: 11px;
+    font-weight: 800;
+    word-break: break-word;
+  }
+}
+
+/* =========================================================
+ * DESGLOSE XML
+ * ========================================================= */
+
+.record-oc-xml-selected {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.record-oc-xml-selected__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin-bottom: 10px;
+
+  h3 {
+    margin: 0;
+
+    color: var(--color-secundary);
+    font-size: 15px;
+    font-weight: 800;
+  }
+
+  p {
+    margin: 3px 0 0;
+
+    color: #64748b;
+    font-size: 12px;
+  }
+}
+
+.record-oc-xml-selected__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    min-height: 32px;
+    border-radius: 8px !important;
+    white-space: nowrap;
+  }
+}
+
+.record-oc-xml-items {
+  display: grid;
+  gap: 8px;
+
+  max-height: 330px;
+  overflow: auto;
+
+  padding: 4px;
+}
+
+.record-oc-xml-item {
+  display: grid;
+  grid-template-columns:
+    28px
+    minmax(220px, 1fr)
+    minmax(90px, 0.35fr)
+    minmax(90px, 0.35fr)
+    minmax(90px, 0.35fr)
+    minmax(90px, 0.35fr);
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px;
+
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+}
+
+.record-oc-xml-item--selected {
+  border-color: rgba(34, 197, 94, 0.38);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fff9 100%);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.06);
+}
+
+.record-oc-xml-check {
+  display: grid;
+  place-items: center;
+
+  input {
+    width: 17px;
+    height: 17px;
+
+    cursor: pointer;
+    accent-color: var(--color-primary);
+  }
+}
+
+.record-oc-xml-item__main {
+  min-width: 0;
+
+  strong,
+  span,
+  p {
+    display: block;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  span {
+    margin-top: 2px;
+
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 4px 0 0;
+
+    color: #475569;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+}
+
+.record-oc-xml-item__data {
+  min-width: 0;
+
+  span {
+    display: block;
+    margin-bottom: 2px;
+
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 12px;
+    font-weight: 800;
+    word-break: break-word;
+  }
+}
+
+.record-oc-xml-item__breakdown {
+  grid-column: 2 / -1;
+
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+
+  padding: 8px 10px;
+
+  border: 1px solid rgba(39, 170, 225, 0.16);
+  border-radius: 10px;
+  background: rgba(241, 248, 255, 0.72);
+
+  span {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-weight: 800;
+  }
+}
+
+/* =========================================================
+ * BOTONES PANEL DERECHO
+ * ========================================================= */
+
+.record-oc-xml-actions {
+  display: block;
+
+  app-btns-section {
+    display: block;
+    width: 100%;
+  }
+
+  ::ng-deep .c-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+
+    margin: 0;
+    padding: 0;
+  }
+
+  ::ng-deep .c-modal-actions button {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 9px !important;
+
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 1320px) {
+  .record-oc-xml-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .record-oc-xml-filters__actions {
+    justify-content: flex-start;
+  }
+
+  .record-oc-xml-item {
+    grid-template-columns:
+      28px
+      minmax(220px, 1fr)
+      repeat(2, minmax(90px, 0.35fr));
+  }
+
+  .record-oc-xml-item__breakdown {
+    grid-column: 2 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .record-oc-xml-filters,
+  .record-oc-xml-available-card__meta,
+  .record-oc-xml-item__breakdown {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-selected__header {
+    flex-direction: column;
+  }
+
+  .record-oc-xml-item {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .record-oc-xml-item__data,
+  .record-oc-xml-item__breakdown {
+    grid-column: 2 / -1;
+  }
+
+  .record-oc-xml-actions {
+    ::ng-deep .c-modal-actions {
+      grid-template-columns: 1fr;
+    }
+  }
 }

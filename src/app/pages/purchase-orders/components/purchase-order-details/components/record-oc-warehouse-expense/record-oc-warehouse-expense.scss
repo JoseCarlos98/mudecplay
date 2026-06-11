@@ -116,7 +116,7 @@
   strong {
     display: block;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   p {
@@ -152,7 +152,7 @@
 
 .record-oc-warehouse-board {
   display: grid;
-  grid-template-columns: 350px minmax(0, 1fr) 330px;
+  grid-template-columns: 250px minmax(0, 1fr) 300px;
   gap: 14px;
   align-items: start;
 }
@@ -262,8 +262,7 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%),
-    #f8fafc;
+    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%), #f8fafc;
 
   img {
     width: 100%;
@@ -506,8 +505,7 @@
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
-    #fbfdff;
+    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%), #fbfdff;
 }
 
 .record-oc-warehouse-item__number {
@@ -522,7 +520,7 @@
   color: var(--color-primary-strong);
 
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .record-oc-warehouse-item__content {
@@ -541,7 +539,7 @@
     display: block;
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 800;
   }
 
   span {
@@ -664,7 +662,7 @@
 
 .record-oc-warehouse-status-strip__strong {
   color: var(--color-primary-strong);
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .record-oc-warehouse-status-strip__dot {
@@ -928,8 +926,6 @@
   .record-oc-warehouse-status-strip {
     align-items: flex-start;
   }
-
-
 }
 
 @media screen and (max-width: 430px) {
