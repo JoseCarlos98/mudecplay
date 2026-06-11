@@ -1,15 +1,23 @@
 <div class="card-content-form record-oc-warehouse-page">
-  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
   </app-module-header>
 
   @if (loadingPage()) {
-  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Cargando información de la O.C...">
-  </app-loading-overlay>
+    <app-loading-overlay
+      [visible]="true"
+      [fullscreen]="true"
+      text="Cargando información de la O.C...">
+    </app-loading-overlay>
   }
 
   <section class="record-oc-warehouse-hero">
     <article class="record-oc-warehouse-hero__item">
-      <span><mat-icon>description</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>description</mat-icon>
+      </span>
 
       <div>
         <small>Folio O.C.</small>
@@ -18,7 +26,9 @@
     </article>
 
     <article class="record-oc-warehouse-hero__item">
-      <span><mat-icon>business</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>business</mat-icon>
+      </span>
 
       <div>
         <small>Proyecto referencia</small>
@@ -27,7 +37,9 @@
     </article>
 
     <article class="record-oc-warehouse-hero__item">
-      <span><mat-icon>warehouse</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>warehouse</mat-icon>
+      </span>
 
       <div>
         <small>Destino</small>
@@ -36,7 +48,9 @@
     </article>
 
     <article class="record-oc-warehouse-hero__item">
-      <span><mat-icon>receipt</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>receipt</mat-icon>
+      </span>
 
       <div>
         <small>Factura</small>
@@ -45,7 +59,9 @@
     </article>
 
     <article class="record-oc-warehouse-hero__item">
-      <span><mat-icon>person</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>person</mat-icon>
+      </span>
 
       <div>
         <small>Solicitante</small>
@@ -54,7 +70,9 @@
     </article>
 
     <article class="record-oc-warehouse-hero__item record-oc-warehouse-hero__item--amount">
-      <span><mat-icon>paid</mat-icon></span>
+      <span class="record-oc-warehouse-hero__icon">
+        <mat-icon>paid</mat-icon>
+      </span>
 
       <div>
         <small>Monto solicitado</small>
@@ -64,79 +82,113 @@
   </section>
 
   @if (isBlockedByFlow) {
-  <section class="record-oc-warehouse-alert record-oc-warehouse-alert--warning">
-    <mat-icon>info</mat-icon>
+    <section class="record-oc-warehouse-alert record-oc-warehouse-alert--warning">
+      <mat-icon>info</mat-icon>
 
-    <div>
-      <strong>Este flujo no corresponde a almacén sin factura.</strong>
-      <p>Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.</p>
-    </div>
-  </section>
+      <div>
+        <strong>Este flujo no corresponde a almacén sin factura.</strong>
+        <p>Esta O.C. es {{ flowTypeLabel }}. Debe seguir el flujo correspondiente.</p>
+      </div>
+    </section>
   }
 
   @if (errorMessage) {
-  <section class="record-oc-warehouse-alert record-oc-warehouse-alert--danger">
-    <mat-icon>warning</mat-icon>
+    <section class="record-oc-warehouse-alert record-oc-warehouse-alert--danger">
+      <mat-icon>warning</mat-icon>
 
-    <div>
-      <strong>Revisión requerida</strong>
-      <p>{{ errorMessage }}</p>
-    </div>
-  </section>
+      <div>
+        <strong>Revisión requerida</strong>
+        <p>{{ errorMessage }}</p>
+      </div>
+    </section>
   }
 
-  <form [formGroup]="form" class="record-oc-warehouse-board">
+  <form
+    id="form"
+    [formGroup]="form"
+    class="record-oc-warehouse-board"
+    (submit)="$event.preventDefault()">
+
+    <!-- IZQUIERDA -->
     <aside class="record-oc-warehouse-column record-oc-warehouse-column--left">
       <section class="record-oc-warehouse-card">
         <div class="record-oc-warehouse-card__header">
-          <div>
-            <h3>Foto del gasto</h3>
-            <p>Ticket conciliado con esta orden de compra.</p>
+          <div class="record-oc-warehouse-card__title-wrap">
+            <span class="record-oc-warehouse-card__icon">
+              <mat-icon>image</mat-icon>
+            </span>
+
+            <div>
+              <h3>Foto del ticket</h3>
+              <p>Ticket conciliado con esta orden de compra.</p>
+            </div>
           </div>
         </div>
 
         <div class="record-oc-warehouse-photo">
           @if (loadingPhoto()) {
-          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Cargando foto...">
-          </app-loading-overlay>
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando foto...">
+            </app-loading-overlay>
           }
 
           @if (!loadingPhoto() && photoUrl && !imageError) {
-          <img [src]="photoUrl" [alt]="ticketFileName" (error)="onImageError()" />
+            <img
+              [src]="photoUrl"
+              [alt]="ticketFileName"
+              (error)="onImageError()" />
           }
 
           @if (!loadingPhoto() && (!photoUrl || imageError)) {
-          <div class="record-oc-warehouse-photo__empty">
-            <mat-icon>broken_image</mat-icon>
-            <strong>No se pudo mostrar la foto</strong>
-            <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
-          </div>
+            <div class="record-oc-warehouse-photo__empty">
+              <mat-icon>broken_image</mat-icon>
+              <strong>No se pudo mostrar la foto</strong>
+              <p>{{ errorMessage || 'La imagen no está disponible.' }}</p>
+            </div>
           }
         </div>
 
         <div class="record-oc-warehouse-meta">
-          <div>
-            <span>Archivo</span>
-            <strong>{{ ticketFileName }}</strong>
+          <div class="record-oc-warehouse-meta__row">
+            <span class="record-oc-warehouse-meta__icon">
+              <mat-icon>description</mat-icon>
+            </span>
+
+            <div>
+              <span>Archivo</span>
+              <strong>{{ ticketFileName }}</strong>
+            </div>
           </div>
 
-          <div>
-            <span>Proyecto referencia</span>
-            <strong>{{ projectName }}</strong>
+          <div class="record-oc-warehouse-meta__row">
+            <span class="record-oc-warehouse-meta__icon">
+              <mat-icon>person</mat-icon>
+            </span>
+
+            <div>
+              <span>Subido por</span>
+              <strong>{{ uploadedByName }}</strong>
+            </div>
           </div>
 
-          <div>
-            <span>Subido por</span>
-            <strong>{{ uploadedByName }}</strong>
-          </div>
+          <div class="record-oc-warehouse-meta__row">
+            <span class="record-oc-warehouse-meta__icon">
+              <mat-icon>calendar_today</mat-icon>
+            </span>
 
-          <div>
-            <span>Fecha</span>
-            <strong>{{ uploadedAt }}</strong>
+            <div>
+              <span>Fecha</span>
+              <strong>{{ uploadedAt }}</strong>
+            </div>
           </div>
         </div>
 
-        <button type="button" class="btn-outline record-oc-warehouse-photo-button" [disabled]="!photoUrl"
+        <button
+          type="button"
+          class="btn-outline record-oc-warehouse-photo-button"
+          [disabled]="!photoUrl"
           (click)="openPhotoInNewTab()">
           <mat-icon>open_in_new</mat-icon>
           <span>Abrir imagen</span>
@@ -145,9 +197,15 @@
 
       <section class="record-oc-warehouse-card">
         <div class="record-oc-warehouse-card__header">
-          <div>
-            <h3>Información de la O.C.</h3>
-            <p>Datos base que respaldan la entrada.</p>
+          <div class="record-oc-warehouse-card__title-wrap">
+            <span class="record-oc-warehouse-card__icon">
+              <mat-icon>info</mat-icon>
+            </span>
+
+            <div>
+              <h3>Información de la O.C.</h3>
+              <p>Datos base que respaldan la entrada.</p>
+            </div>
           </div>
         </div>
 
@@ -165,149 +223,224 @@
       </section>
     </aside>
 
+    <!-- CENTRO -->
     <main class="record-oc-warehouse-column record-oc-warehouse-column--center">
       <section class="record-oc-warehouse-card record-oc-warehouse-card--form">
         <div class="record-oc-warehouse-card__header">
-          <div>
-            <h3>Conceptos de almacén</h3>
-            <p>Registra productos, cantidades y costos del ticket para generar existencia.</p>
+          <div class="record-oc-warehouse-card__title-wrap">
+            <span class="record-oc-warehouse-card__icon">
+              <mat-icon>inventory_2</mat-icon>
+            </span>
+
+            <div>
+              <h3>Entrada a almacén</h3>
+              <p>Registra productos, cantidades y costos para generar existencia.</p>
+            </div>
           </div>
 
-          <span class="record-oc-warehouse-flow-chip">Almacén · Sin factura</span>
+          <span class="record-oc-warehouse-flow-chip">
+            {{ flowTypeLabel }}
+          </span>
         </div>
 
         <section class="record-oc-warehouse-banner">
           <mat-icon>info</mat-icon>
 
           <p>
-            Esta pantalla crea un gasto sin CFDI con partidas de <strong>almacén</strong>.
-            El costo no se manda al proyecto todavía; se genera existencia para asignarla después desde Almacén.
+            Esta pantalla crea un gasto manual con partidas de <strong>almacén</strong>.
+            El costo no impacta al proyecto todavía; se genera existencia para asignarla después desde Almacén.
           </p>
         </section>
 
-        <section class="record-oc-warehouse-form-grid">
-          <app-input-date formControlName="date" label="Fecha del gasto" mode="single">
+        <section class="record-oc-warehouse-main-fields">
+          <app-input-date
+            formControlName="date"
+            label="Fecha del gasto"
+            mode="single">
           </app-input-date>
 
-          <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true" catalogType="supplier">
+          <app-autocomplete
+            formControlName="supplier_id"
+            label="Proveedor"
+            placeholder="Buscar proveedor"
+            [remote]="true"
+            catalogType="supplier">
           </app-autocomplete>
         </section>
 
         <div formArrayName="items" class="record-oc-warehouse-items">
           @for (itemGroup of itemsFA.controls; track itemGroup; let i = $index) {
-          <article class="record-oc-warehouse-item" [formGroupName]="i">
-            <div class="record-oc-warehouse-item__number">
-              {{ i + 1 }}
-            </div>
-
-            <div class="record-oc-warehouse-item__content">
-              <div class="record-oc-warehouse-item__top">
-                <div>
-                  <strong>Producto de almacén</strong>
-                  <span>Este concepto generará lote y movimiento de entrada.</span>
-                </div>
-
-                <button type="button" class="record-oc-warehouse-delete" [disabled]="itemsFA.length <= 1"
-                  (click)="removeItem(i)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+            <article class="record-oc-warehouse-item" [formGroupName]="i">
+              <div class="record-oc-warehouse-item__number">
+                {{ i + 1 }}
               </div>
 
-              <section class="record-oc-warehouse-item__grid">
-                <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
-                  catalogType="product">
-                </app-autocomplete>
-
-                <app-input-field formControlName="concept" label="Concepto" type="text"
-                  placeholder="Ej. material comprado según ticket">
-                </app-input-field>
-
-                <app-input-field formControlName="quantity" label="Cantidad" type="number" placeholder="0"
-                  (input)="onQuantityOrPriceChange(i)" (blur)="onQuantityOrPriceChange(i)">
-                </app-input-field>
-
-                <app-input-select formControlName="unit_id" label="Unidad" [options]="measurementUnitsCatalog">
-                </app-input-select>
-
-                <app-input-field formControlName="unit_price" label="Precio unitario" type="money" placeholder="0"
-                  (input)="onQuantityOrPriceChange(i)" (blur)="onQuantityOrPriceChange(i)">
-                </app-input-field>
-
-                <app-input-field formControlName="amount" label="Monto" type="money" placeholder="0">
-                </app-input-field>
-              </section>
-
-              <section class="record-oc-warehouse-secondary-grid">
-                <div class="record-oc-warehouse-status-strip">
-                  <div class="record-oc-warehouse-status-strip__icon">
-                    <mat-icon>inventory_2</mat-icon>
+              <div class="record-oc-warehouse-item__content">
+                <div class="record-oc-warehouse-item__top">
+                  <div>
+                    <strong>Producto de almacén</strong>
+                    <span>Este concepto generará lote y movimiento de entrada.</span>
                   </div>
 
-                  <div class="record-oc-warehouse-status-strip__content">
-                    <span class="record-oc-warehouse-status-strip__strong">Entra a almacén</span>
-                    <span class="record-oc-warehouse-status-strip__dot">•</span>
-
-                    <span>
-                      Existencia inicial:
-                      <strong>{{ getWarehouseInitialText(itemGroup) }}</strong>
-                    </span>
-
-                    <span class="record-oc-warehouse-status-strip__dot">•</span>
-                    <span>Se asignará después desde Almacén</span>
-                  </div>
+                  <button
+                    type="button"
+                    class="record-oc-warehouse-delete"
+                    [disabled]="itemsFA.length <= 1"
+                    (click)="removeItem(i)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
 
-                <div class="record-oc-warehouse-payment-grid">
-                  <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" placeholder="0"
-                    [ngClass]="{
-    'field-invalid':
-      getItemAmount(itemGroup) &&
-      getItemAmount(itemGroup) < getItemPayment(itemGroup)
-  }" (input)="onPaymentBlur(i)" (blur)="onPaymentBlur(i)">
+                <section class="record-oc-warehouse-item__grid">
+                  <app-autocomplete
+                    formControlName="product_id"
+                    label="Producto"
+                    placeholder="Buscar producto"
+                    [remote]="true"
+                    catalogType="product">
+                  </app-autocomplete>
+
+                  <app-input-field
+                    formControlName="concept"
+                    label="Concepto"
+                    type="text"
+                    placeholder="Ej. material comprado según ticket">
                   </app-input-field>
 
-                  @if (hasPayment(itemGroup)) {
-                  <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
-                  </app-input-date>
-                  }
+                  <app-input-field
+                    formControlName="quantity"
+                    label="Cantidad"
+                    type="number"
+                    placeholder="0"
+                    (input)="onQuantityOrPriceChange(i)"
+                    (blur)="onQuantityOrPriceChange(i)">
+                  </app-input-field>
 
-                  @if (getItemAmount(itemGroup)) {
-                  <div class="record-oc-warehouse-restant-box">
-                    <span class="record-oc-warehouse-restant-box__label">Restante</span>
+                  <app-input-select
+                    formControlName="unit_id"
+                    label="Unidad"
+                    [options]="measurementUnitsCatalog">
+                  </app-input-select>
 
-                    <strong class="record-oc-warehouse-restant-box__amount" [ngClass]="{
-                        'error-restant': getItemAmount(itemGroup) < getItemPayment(itemGroup)
-                      }">
-                      {{ formatMoney(getItemBalance(itemGroup)) }}
-                    </strong>
+                  <app-input-field
+                    formControlName="unit_price"
+                    label="Precio unitario"
+                    type="money"
+                    placeholder="0"
+                    (input)="onQuantityOrPriceChange(i)"
+                    (blur)="onQuantityOrPriceChange(i)">
+                  </app-input-field>
+
+                  <app-input-field
+                    formControlName="amount"
+                    label="Importe calculado"
+                    type="money"
+                    placeholder="0">
+                  </app-input-field>
+                </section>
+
+                <section class="record-oc-warehouse-secondary-grid">
+                  <div class="record-oc-warehouse-status-strip">
+                    <div class="record-oc-warehouse-status-strip__icon">
+                      <mat-icon>warehouse</mat-icon>
+                    </div>
+
+                    <div class="record-oc-warehouse-status-strip__content">
+                      <span class="record-oc-warehouse-status-strip__strong">
+                        Entra a almacén
+                      </span>
+
+                      <span class="record-oc-warehouse-status-strip__dot">•</span>
+
+                      <span>
+                        Existencia inicial:
+                        <strong>{{ getWarehouseInitialText(itemGroup) }}</strong>
+                      </span>
+
+                      <span class="record-oc-warehouse-status-strip__dot">•</span>
+
+                      <span>Se asignará después desde Almacén</span>
+                    </div>
                   </div>
-                  }
-                </div>
-              </section>
-            </div>
-          </article>
+
+                  <div class="record-oc-warehouse-payment-grid">
+                    <app-input-field
+                      formControlName="payment_amount"
+                      label="Abono / Pago"
+                      type="money"
+                      [ngClass]="{
+                        'field-invalid':
+                          getItemAmount(itemGroup) &&
+                          getItemAmount(itemGroup) < getItemPayment(itemGroup)
+                      }"
+                      (input)="onPaymentBlur(i)"
+                      (blur)="onPaymentBlur(i)">
+                    </app-input-field>
+
+                    @if (hasPayment(itemGroup)) {
+                      <app-input-date
+                        formControlName="payment_date"
+                        label="Fecha de pago"
+                        mode="single"
+                        [showClear]="true">
+                      </app-input-date>
+                    }
+
+                    @if (getItemAmount(itemGroup)) {
+                      <div class="record-oc-warehouse-restant-box">
+                        <span class="record-oc-warehouse-restant-box__label">
+                          Restante
+                        </span>
+
+                        <strong
+                          class="record-oc-warehouse-restant-box__amount"
+                          [ngClass]="{
+                            'error-restant': getItemAmount(itemGroup) < getItemPayment(itemGroup)
+                          }">
+                          {{ formatMoney(getItemBalance(itemGroup)) }}
+                        </strong>
+                      </div>
+                    }
+                  </div>
+                </section>
+              </div>
+            </article>
           }
         </div>
 
-        <button type="button" class="record-oc-warehouse-add" [disabled]="isBlockedByFlow" (click)="addItem()">
+        <button
+          type="button"
+          class="record-oc-warehouse-add"
+          [disabled]="isBlockedByFlow"
+          (click)="addItem()">
           <mat-icon>add</mat-icon>
           <span>Agregar producto</span>
         </button>
 
         <label class="record-oc-warehouse-notes">
           <span>Notas del registro</span>
-          <textarea formControlName="notes"
-            placeholder="Ejemplo: entrada registrada desde ticket conciliado."></textarea>
+
+          <textarea
+            formControlName="notes"
+            placeholder="Ejemplo: entrada registrada desde ticket conciliado.">
+          </textarea>
         </label>
       </section>
     </main>
 
+    <!-- DERECHA -->
     <aside class="record-oc-warehouse-column record-oc-warehouse-column--right">
       <section class="record-oc-warehouse-card record-oc-warehouse-card--summary">
         <div class="record-oc-warehouse-card__header">
-          <div>
-            <h3>Panel de acción</h3>
-            <p>Confirma la entrada antes de guardarla.</p>
+          <div class="record-oc-warehouse-card__title-wrap">
+            <span class="record-oc-warehouse-card__icon">
+              <mat-icon>shield</mat-icon>
+            </span>
+
+            <div>
+              <h3>Panel de acción</h3>
+              <p>Confirma la entrada antes de guardarla.</p>
+            </div>
           </div>
         </div>
 
@@ -352,30 +485,24 @@
           </div>
         </div>
 
-        <div class="record-oc-warehouse-alert">
+        <div class="record-oc-warehouse-alert record-oc-warehouse-alert--info">
           <mat-icon>inventory_2</mat-icon>
 
           <p>
-            Al guardar, se creará el gasto de almacén y sus lotes quedarán disponibles para asignarlos después.
+            Al guardar, se creará el gasto de almacén y sus lotes quedarán disponibles
+            para asignarlos después.
           </p>
         </div>
 
-        <button type="button" class="btn-primary record-oc-warehouse-save" [disabled]="!canSave"
-          (click)="saveWarehouseExpense()">
-          <mat-icon>save</mat-icon>
-
-          <span>
-            @if (saving()) {
-            Guardando...
-            } @else {
-            Guardar entrada
-            }
-          </span>
-        </button>
-
-        <button type="button" class="btn-outline record-oc-warehouse-cancel" (click)="goBack()">
-          Cancelar
-        </button>
+        <div class="record-oc-warehouse-actions">
+          <app-btns-section
+            form="form"
+            type="save"
+            cancelLabel="Cancelar"
+            [saveDisabled]="!canSave"
+            (action)="onFooterAction($event)">
+          </app-btns-section>
+        </div>
       </section>
     </aside>
   </form>

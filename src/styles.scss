@@ -2226,3 +2226,13 @@ body {
   background:
     radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%), #fbfdff;
 }
+/* Fondo suave reutilizable para cards/secciones */
+.c-soft-gradient-bg {
+  background:
+    radial-gradient(
+      circle at 2% 30%,
+      rgba(39, 170, 225, 0.06) 0,
+      transparent 28%
+    ),
+    linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+}

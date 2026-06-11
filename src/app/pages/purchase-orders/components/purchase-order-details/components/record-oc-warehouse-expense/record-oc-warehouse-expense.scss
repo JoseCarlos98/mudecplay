@@ -6,82 +6,95 @@
   min-height: unset;
 }
 
+/* =========================================================
+ * RESUMEN SUPERIOR
+ * ========================================================= */
+
 .record-oc-warehouse-hero {
   display: grid;
   grid-template-columns:
-    minmax(160px, 0.9fr)
     minmax(170px, 1fr)
-    minmax(145px, 0.75fr)
-    minmax(145px, 0.75fr)
-    minmax(170px, 0.95fr)
-    minmax(185px, 0.85fr);
+    minmax(180px, 1fr)
+    minmax(150px, 0.85fr)
+    minmax(150px, 0.85fr)
+    minmax(180px, 1fr)
+    minmax(190px, 0.9fr);
   gap: 10px;
   margin-bottom: 14px;
 }
 
 .record-oc-warehouse-hero__item {
   min-width: 0;
-  min-height: 64px;
+  min-height: 68px;
 
   display: flex;
   align-items: center;
   gap: 11px;
 
-  padding: 10px 14px;
+  padding: 11px 14px;
 
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
   background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
-
-  > span {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-
-    display: grid;
-    place-items: center;
-
-    border-radius: 10px;
-    background: #e5f3ff;
-    color: var(--color-primary-strong);
-  }
-
-  mat-icon {
-    width: 20px;
-    height: 20px;
-    font-size: 20px;
-  }
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.025);
 
   small {
     display: block;
     margin-bottom: 4px;
+
     color: #64748b;
     font-size: 11px;
     font-weight: 800;
+    line-height: 1.2;
   }
 
   strong {
     display: block;
+
     color: var(--color-secundary);
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1.2;
     word-break: break-word;
+  }
+}
+
+.record-oc-warehouse-hero__icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
   }
 }
 
 .record-oc-warehouse-hero__item--amount {
   background: linear-gradient(180deg, #ffffff 0%, #f8fffb 100%);
 
-  > span {
+  .record-oc-warehouse-hero__icon {
     background: #dcfce7;
     color: #15803d;
   }
 
   strong {
-    font-size: 17px;
+    font-size: 18px;
+    letter-spacing: 0.2px;
   }
 }
+
+/* =========================================================
+ * ALERTAS
+ * ========================================================= */
 
 .record-oc-warehouse-alert {
   display: grid;
@@ -113,6 +126,12 @@
   }
 }
 
+.record-oc-warehouse-alert--info {
+  border: 1px solid rgba(17, 100, 163, 0.16);
+  background: #f1f8ff;
+  color: #0f5f92;
+}
+
 .record-oc-warehouse-alert--warning {
   margin-bottom: 14px;
   border: 1px solid rgba(245, 158, 11, 0.3);
@@ -127,9 +146,13 @@
   color: #991b1b;
 }
 
+/* =========================================================
+ * LAYOUT PRINCIPAL
+ * ========================================================= */
+
 .record-oc-warehouse-board {
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr) 280px;
+  grid-template-columns: 350px minmax(0, 1fr) 330px;
   gap: 14px;
   align-items: start;
 }
@@ -147,6 +170,10 @@
   top: 12px;
 }
 
+/* =========================================================
+ * CARDS
+ * ========================================================= */
+
 .record-oc-warehouse-card {
   min-width: 0;
   padding: 14px;
@@ -154,6 +181,11 @@
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 14px;
   background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.026);
+}
+
+.record-oc-warehouse-card--form {
+  padding: 16px;
 }
 
 .record-oc-warehouse-card__header {
@@ -162,13 +194,22 @@
   align-items: flex-start;
   gap: 10px;
 
-  margin-bottom: 12px;
-  padding-bottom: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 11px;
 
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid rgba(39, 170, 225, 0.18);
+}
+
+.record-oc-warehouse-card__title-wrap {
+  min-width: 0;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 
   h3 {
     margin: 0;
+
     color: var(--color-secundary);
     font-size: 16px;
     font-weight: 800;
@@ -177,11 +218,35 @@
 
   p {
     margin: 4px 0 0;
+
     color: #64748b;
     font-size: 12px;
     line-height: 1.35;
   }
 }
+
+.record-oc-warehouse-card__icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 10px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+}
+
+/* =========================================================
+ * FOTO
+ * ========================================================= */
 
 .record-oc-warehouse-photo {
   position: relative;
@@ -196,7 +261,9 @@
 
   border: 1px solid rgba(148, 163, 184, 0.28);
   border-radius: 12px;
-  background: #f8fafc;
+  background:
+    radial-gradient(circle at 50% 16%, rgba(39, 170, 225, 0.08) 0, transparent 32%),
+    #f8fafc;
 
   img {
     width: 100%;
@@ -236,18 +303,108 @@
   }
 }
 
-.record-oc-warehouse-meta,
-.record-oc-warehouse-info {
+.record-oc-warehouse-meta {
   display: grid;
   gap: 8px;
   margin-top: 12px;
+}
 
-  div {
+.record-oc-warehouse-meta__row {
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+
+  > div {
+    min-width: 0;
     display: grid;
     gap: 2px;
+  }
 
-    padding-bottom: 8px;
+  span:not(.record-oc-warehouse-meta__icon) {
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 800;
+  }
 
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+    word-break: break-word;
+  }
+}
+
+.record-oc-warehouse-meta__icon {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 999px;
+  background: #e5f3ff;
+  color: var(--color-primary-strong);
+
+  mat-icon {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+  }
+}
+
+.record-oc-warehouse-photo-button {
+  width: 100%;
+  min-height: 34px;
+
+  margin-top: 12px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  border-radius: 8px !important;
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+/* =========================================================
+ * INFO OC
+ * ========================================================= */
+
+.record-oc-warehouse-info {
+  display: grid;
+  gap: 10px;
+
+  div {
+    min-width: 0;
+
+    display: grid;
+    gap: 5px;
+
+    padding-bottom: 10px;
     border-bottom: 1px solid rgba(148, 163, 184, 0.18);
 
     &:last-child {
@@ -265,29 +422,15 @@
   strong {
     color: var(--color-secundary);
     font-size: 13px;
-    font-weight: 700;
-    line-height: 1.35;
+    font-weight: 800;
+    line-height: 1.4;
     word-break: break-word;
   }
 }
 
-.record-oc-warehouse-photo-button {
-  width: 100%;
-  min-height: 34px;
-
-  margin-top: 12px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
-  }
-}
+/* =========================================================
+ * FORMULARIO
+ * ========================================================= */
 
 .record-oc-warehouse-flow-chip {
   padding: 5px 10px;
@@ -297,7 +440,7 @@
   color: #166534;
 
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   white-space: nowrap;
 }
 
@@ -327,11 +470,20 @@
   }
 }
 
-.record-oc-warehouse-form-grid {
+.record-oc-warehouse-main-fields {
   display: grid;
-  grid-template-columns: 180px minmax(220px, 1fr);
+  grid-template-columns: 170px minmax(220px, 1fr) minmax(180px, 0.8fr);
+  align-items: end;
   gap: 10px;
   margin-bottom: 14px;
+
+  app-input-date,
+  app-autocomplete,
+  app-input-field {
+    min-width: 0;
+    display: block;
+    width: 100%;
+  }
 }
 
 .record-oc-warehouse-items {
@@ -353,7 +505,9 @@
 
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
-  background: #fbfdff;
+  background:
+    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
+    #fbfdff;
 }
 
 .record-oc-warehouse-item__number {
@@ -368,7 +522,7 @@
   color: var(--color-primary-strong);
 
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .record-oc-warehouse-item__content {
@@ -408,20 +562,27 @@
 
   border: 0;
   border-radius: 10px;
-  background: #fee2e2;
-  color: #b91c1c;
-
+  background: rgba(229, 56, 53, 0.08);
+  color: var(--color-remove-bold);
   cursor: pointer;
 
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
+  transition:
+    background 180ms ease,
+    opacity 180ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(229, 56, 53, 0.14);
   }
 
   &:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+  }
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
   }
 }
 
@@ -429,13 +590,21 @@
   display: grid;
   grid-template-columns:
     minmax(170px, 1.1fr)
-    minmax(200px, 1.1fr)
+    minmax(210px, 1.2fr)
     minmax(96px, 0.48fr)
     minmax(130px, 0.58fr)
-    minmax(120px, 0.56fr)
-    minmax(115px, 0.5fr);
+    minmax(125px, 0.56fr)
+    minmax(125px, 0.56fr);
   gap: 8px;
   align-items: end;
+
+  app-autocomplete,
+  app-input-field,
+  app-input-select {
+    min-width: 0;
+    display: block;
+    width: 100%;
+  }
 }
 
 .record-oc-warehouse-secondary-grid {
@@ -489,7 +658,7 @@
 
   strong {
     color: var(--color-secundary);
-    font-weight: 900;
+    font-weight: 700;
   }
 }
 
@@ -517,10 +686,10 @@
   gap: 3px;
 
   padding: 8px 10px;
-
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 10px;
-  background: #ffffff;
+  padding-bottom: 0;
+  // border: 1px solid rgba(148, 163, 184, 0.22);
+  // border-radius: 10px;
+  // background: #ffffff;
 }
 
 .record-oc-warehouse-restant-box__label {
@@ -532,7 +701,7 @@
 .record-oc-warehouse-restant-box__amount {
   color: #15803d;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 800;
 }
 
 .error-restant {
@@ -558,21 +727,33 @@
 
   border: 1px dashed rgba(39, 170, 225, 0.55);
   border-radius: 12px;
-  background: #f8fcff;
+  background: #ffffff;
   color: var(--color-primary-strong);
 
+  font-size: 13px;
   font-weight: 800;
   cursor: pointer;
 
-  mat-icon {
-    width: 18px;
-    height: 18px;
-    font-size: 18px;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(39, 170, 225, 0.06);
+    border-color: rgba(30, 134, 177, 0.75);
+    box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.08);
   }
 
   &:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+  }
+
+  mat-icon {
+    width: 18px;
+    height: 18px;
+    font-size: 18px;
   }
 }
 
@@ -601,13 +782,28 @@
     color: #111827;
     font-family: inherit;
     font-size: 13px;
+    line-height: 1.4;
+
+    background: #ffffff;
+
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
 
     &:focus {
       border-color: var(--color-primary);
       box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
     }
+
+    &::placeholder {
+      color: #9ca3af;
+    }
   }
 }
+
+/* =========================================================
+ * PANEL DERECHO
+ * ========================================================= */
 
 .record-oc-warehouse-card--summary {
   display: grid;
@@ -649,26 +845,44 @@
   color: #b91c1c !important;
 }
 
-.record-oc-warehouse-save,
-.record-oc-warehouse-cancel {
-  width: 100%;
-  min-height: 40px;
+// .record-oc-warehouse-actions {
+//   display: block;
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
+//   app-btns-section {
+//     display: block;
+//     width: 100%;
+//   }
 
-  mat-icon {
-    width: 19px;
-    height: 19px;
-    font-size: 19px;
+//   ::ng-deep .c-modal-actions {
+//     display: grid;
+//     grid-template-columns: 1fr 1fr;
+//     gap: 10px;
+
+//     margin: 0;
+//     padding: 0;
+//   }
+
+//   ::ng-deep .c-modal-actions button {
+//     width: 100%;
+//     min-height: 40px;
+//     border-radius: 9px !important;
+
+//     font-size: 13px;
+//     font-weight: 700;
+//   }
+// }
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 1320px) {
+  .record-oc-warehouse-hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
-}
 
-@media (max-width: 1280px) {
   .record-oc-warehouse-board {
-    grid-template-columns: 230px minmax(0, 1fr);
+    grid-template-columns: 320px minmax(0, 1fr);
   }
 
   .record-oc-warehouse-column--right {
@@ -685,12 +899,93 @@
   }
 }
 
-@media (max-width: 990px) {
-  .record-oc-warehouse-hero,
-  .record-oc-warehouse-board,
-  .record-oc-warehouse-form-grid,
+@media screen and (max-width: 1040px) {
+  .record-oc-warehouse-board {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-warehouse-column--right {
+    grid-column: auto;
+  }
+
+  .record-oc-warehouse-main-fields,
   .record-oc-warehouse-item__grid,
   .record-oc-warehouse-payment-grid {
     grid-template-columns: 1fr;
+  }
+
+  .record-oc-warehouse-items {
+    max-height: unset;
+    overflow: visible;
+    padding: 0;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .record-oc-warehouse-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-warehouse-card {
+    padding: 12px;
+  }
+
+  .record-oc-warehouse-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-oc-warehouse-flow-chip {
+    width: fit-content;
+  }
+
+  .record-oc-warehouse-photo {
+    min-height: 220px;
+  }
+
+  .record-oc-warehouse-item {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-warehouse-item__number {
+    width: fit-content;
+    min-width: 28px;
+  }
+
+  .record-oc-warehouse-status-strip {
+    align-items: flex-start;
+  }
+
+  .record-oc-warehouse-actions {
+    ::ng-deep .c-modal-actions {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .record-oc-warehouse-hero__item {
+    padding: 10px 12px;
+  }
+
+  .record-oc-warehouse-card__title-wrap {
+    gap: 8px;
+
+    h3 {
+      font-size: 15px;
+    }
+
+    p {
+      font-size: 12px;
+    }
+  }
+
+  .record-oc-warehouse-summary-box {
+    padding: 10px;
+
+    span,
+    strong {
+      font-size: 12px;
+    }
   }
 }

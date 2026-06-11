@@ -14,6 +14,11 @@ import {
   Validators,
 } from '@angular/forms';
 
+import {
+  BtnsSection,
+  ModuleFooterAction,
+} from '../../../../../../shared/ui/btns-section/btns-section';
+
 import { ModuleHeader } from '../../../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
 import { Autocomplete } from '../../../../../../shared/ui/autocomplete/autocomplete';
@@ -45,15 +50,14 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     CommonModule,
     ReactiveFormsModule,
 
-    // UI
     ModuleHeader,
     Autocomplete,
     InputDate,
     InputField,
     InputSelect,
     LoadingOverlay,
+    BtnsSection,
 
-    // Material
     MatIconModule,
   ],
   templateUrl: './record-oc-warehouse-expense.html',
@@ -71,7 +75,6 @@ export class RecordOcWarehouseExpense implements OnInit {
 
   readonly loadingPage = signal(false);
   readonly loadingPhoto = signal(false);
-  readonly saving = signal(false);
 
   measurementUnitsCatalog: Catalog[] = [];
 
@@ -199,8 +202,7 @@ export class RecordOcWarehouseExpense implements OnInit {
       this.form.valid &&
       this.itemsFA.length > 0 &&
       this.totalAmount > 0 &&
-      this.hasValidPayload() &&
-      !this.saving()
+      this.hasValidPayload() 
     );
   }
 
@@ -286,12 +288,10 @@ export class RecordOcWarehouseExpense implements OnInit {
 
     const payload = this.buildPayload();
 
-    this.saving.set(true);
     this.errorMessage = null;
 
     this.purchaseOrdersService
       .createWarehouseExpenseFromTicketPhoto(this.photoId, payload)
-      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: (response) => {
           const purchaseOrderId =
@@ -395,11 +395,11 @@ export class RecordOcWarehouseExpense implements OnInit {
       ]),
 
       amount: this.fb.control<number | null>(
-        { value: 0, disabled: true },
+        { value: null, disabled: true },
         [Validators.required, Validators.min(0)],
       ),
 
-      payment_amount: this.fb.control<number | null>(0, [Validators.min(0)]),
+      payment_amount: this.fb.control<number | null>(null, [Validators.min(0)]),
       payment_date: this.fb.control<string | null>({
         value: null,
         disabled: true,
@@ -608,6 +608,21 @@ export class RecordOcWarehouseExpense implements OnInit {
       public_url: publicUrl,
     };
   }
+
+  onFooterAction(action: ModuleFooterAction): void {
+  switch (action) {
+    case 'save':
+      this.saveWarehouseExpense();
+      break;
+
+    case 'cancel':
+      this.goBack();
+      break;
+
+    default:
+      break;
+  }
+}
 
   private getPhotoStatusLabel(status: string): string {
     switch (status) {
