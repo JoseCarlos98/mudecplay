@@ -183,6 +183,7 @@ export interface ExpenseResponseDtoMapper {
  * ===================================================== */
 
 export interface CreateExpenseItem {
+  id?: number | null;
   product_id?: number | null;
 
   item_type?: ExpenseItemType;

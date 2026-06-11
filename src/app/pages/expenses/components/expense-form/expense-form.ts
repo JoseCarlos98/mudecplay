@@ -394,18 +394,18 @@ export class ExpenseForm implements OnInit {
       item?.base_amount !== undefined &&
       item?.base_amount !== ''
     ) || (
-      item?.discount_amount !== null &&
-      item?.discount_amount !== undefined &&
-      item?.discount_amount !== ''
-    ) || (
-      item?.tax_amount !== null &&
-      item?.tax_amount !== undefined &&
-      item?.tax_amount !== ''
-    ) || (
-      item?.withheld_amount !== null &&
-      item?.withheld_amount !== undefined &&
-      item?.withheld_amount !== ''
-    );
+        item?.discount_amount !== null &&
+        item?.discount_amount !== undefined &&
+        item?.discount_amount !== ''
+      ) || (
+        item?.tax_amount !== null &&
+        item?.tax_amount !== undefined &&
+        item?.tax_amount !== ''
+      ) || (
+        item?.withheld_amount !== null &&
+        item?.withheld_amount !== undefined &&
+        item?.withheld_amount !== ''
+      );
   }
 
   /**
@@ -627,7 +627,7 @@ export class ExpenseForm implements OnInit {
           xmlQuantity && xmlQuantity > 0 && xmlAmount !== null
             ? this.resolveXmlUnitPriceFromAmount(xmlAmount, xmlQuantity)
             : this.toNumberOrNull(ctrl.get('xml_unit_price')?.value) ??
-              this.toNumberOrNull(ctrl.get('unit_price')?.value);
+            this.toNumberOrNull(ctrl.get('unit_price')?.value);
 
         this.setSilentControlValue(ctrl, 'quantity', xmlQuantity ?? null);
         this.setSilentControlValue(ctrl, 'unit', xmlUnit || null);
@@ -901,9 +901,9 @@ export class ExpenseForm implements OnInit {
           date: response.date,
           supplier_id: response.supplier
             ? toCatalogAutoComplete(
-                response.supplier.id,
-                response.supplier.company_name,
-              )
+              response.supplier.id,
+              response.supplier.company_name,
+            )
             : null,
           supplier_display: this.isLaborAuto
             ? (response.provider_display_name ?? '')
@@ -1464,7 +1464,7 @@ export class ExpenseForm implements OnInit {
 
         const xmlQuantity = isXml
           ? this.toNumberOrNull(item.quantity) ??
-            this.toNumberOrNull(item.xml_quantity)
+          this.toNumberOrNull(item.xml_quantity)
           : null;
 
         const quantity = isWarehouse
@@ -1498,7 +1498,7 @@ export class ExpenseForm implements OnInit {
             ? fiscalAmount !== null
               ? this.resolveXmlUnitPriceFromAmount(fiscalAmount, quantity)
               : this.toNumberOrNull(item.unit_price) ??
-                this.toNumberOrNull(item.xml_unit_price)
+              this.toNumberOrNull(item.xml_unit_price)
             : null;
 
         const paymentAmount = this.resolvePayloadPaymentAmount(
@@ -1509,6 +1509,13 @@ export class ExpenseForm implements OnInit {
         );
 
         return {
+          id:
+            item.id !== null &&
+              item.id !== undefined &&
+              item.id !== ''
+              ? Number(item.id)
+              : null,
+
           item_type: itemType,
 
           quantity:
@@ -1532,29 +1539,29 @@ export class ExpenseForm implements OnInit {
 
           base_amount:
             item.base_amount !== null &&
-            item.base_amount !== undefined &&
-            item.base_amount !== ''
+              item.base_amount !== undefined &&
+              item.base_amount !== ''
               ? this.round2(Number(item.base_amount))
               : null,
 
           discount_amount:
             item.discount_amount !== null &&
-            item.discount_amount !== undefined &&
-            item.discount_amount !== ''
+              item.discount_amount !== undefined &&
+              item.discount_amount !== ''
               ? this.round2(Number(item.discount_amount))
               : null,
 
           tax_amount:
             item.tax_amount !== null &&
-            item.tax_amount !== undefined &&
-            item.tax_amount !== ''
+              item.tax_amount !== undefined &&
+              item.tax_amount !== ''
               ? this.round2(Number(item.tax_amount))
               : null,
 
           withheld_amount:
             item.withheld_amount !== null &&
-            item.withheld_amount !== undefined &&
-            item.withheld_amount !== ''
+              item.withheld_amount !== undefined &&
+              item.withheld_amount !== ''
               ? this.round2(Number(item.withheld_amount))
               : null,
 
@@ -1591,8 +1598,8 @@ export class ExpenseForm implements OnInit {
         .map((item: any): entity.UpdateWarehouseExpenseSafeItem => {
           const paymentAmount =
             item.payment_amount !== null &&
-            item.payment_amount !== undefined &&
-            item.payment_amount !== ''
+              item.payment_amount !== undefined &&
+              item.payment_amount !== ''
               ? Number(item.payment_amount)
               : null;
 
@@ -1759,3 +1766,4 @@ export class ExpenseForm implements OnInit {
     this.router.navigateByUrl(this.getReturnUrl());
   }
 }
+
