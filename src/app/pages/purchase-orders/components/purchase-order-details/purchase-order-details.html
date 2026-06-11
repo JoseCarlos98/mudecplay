@@ -1,5 +1,8 @@
 <div class="card-content-form purchase-order-detail-page">
-  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
   </app-module-header>
 
   <div class="purchase-order-detail-layout">
@@ -19,158 +22,258 @@
       </div>
 
       @if (orderInfoItems.length >= 8) {
-      <div class="purchase-order-info-summary">
-        <article class="purchase-order-info-summary__item">
-          <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--folio">
-            <mat-icon>description</mat-icon>
-          </span>
-
-          <div class="purchase-order-info-summary__content">
-            <span>{{ orderInfoItems[0].label }}</span>
-            <strong>{{ orderInfoItems[0].value }}</strong>
-          </div>
-        </article>
-
-        <article class="purchase-order-info-summary__item">
-          <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--success">
-            <mat-icon>verified_user</mat-icon>
-          </span>
-
-          <div class="purchase-order-info-summary__content">
-            <span>{{ orderInfoItems[1].label }}</span>
-
-            <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[1].variant)">
-              {{ orderInfoItems[1].value }}
-            </strong>
-          </div>
-        </article>
-
-        <article class="purchase-order-info-summary__item">
-          <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--primary">
-            <mat-icon>timeline</mat-icon>
-          </span>
-
-          <div class="purchase-order-info-summary__content">
-            <span>{{ orderInfoItems[2].label }}</span>
-
-            <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[2].variant)">
-              {{ orderInfoItems[2].value }}
-            </strong>
-          </div>
-        </article>
-
-        <article class="purchase-order-info-summary__item">
-          <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--warning">
-            <mat-icon>paid</mat-icon>
-          </span>
-
-          <div class="purchase-order-info-summary__content">
-            <span>{{ orderInfoItems[3].label }}</span>
-
-            <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[3].variant)">
-              {{ orderInfoItems[3].value }}
-            </strong>
-          </div>
-        </article>
-
-        <article class="purchase-order-info-summary__item purchase-order-info-summary__item--amount">
-          <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--money">
-            <mat-icon>monetization_on</mat-icon>
-          </span>
-
-          <div class="purchase-order-info-summary__content">
-            <span>{{ orderInfoItems[7].label }}</span>
-            <strong>{{ orderInfoItems[7].value }}</strong>
-          </div>
-        </article>
-      </div>
-
-      <div class="purchase-order-info-panels">
-        <article class="purchase-order-info-panel">
-          <div class="purchase-order-info-panel__header">
-            <span>
-              <mat-icon>article</mat-icon>
+        <!-- Resumen principal -->
+        <div class="purchase-order-info-summary">
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--folio">
+              <mat-icon>description</mat-icon>
             </span>
 
-            <h4>Datos generales</h4>
-          </div>
-
-          <div class="purchase-order-info-panel__body">
-            <div class="purchase-order-info-item">
-              <span>{{ orderInfoItems[4].label }}</span>
-              <strong>{{ orderInfoItems[4].value }}</strong>
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[0].label }}</span>
+              <strong>{{ orderInfoItems[0].value }}</strong>
             </div>
+          </article>
 
-            <div class="purchase-order-info-item">
-              <span>{{ orderInfoItems[5].label }}</span>
-
-              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[5].variant)">
-                {{ orderInfoItems[5].value }}
-              </strong>
-            </div>
-
-            <div class="purchase-order-info-item">
-              <span>{{ orderInfoItems[6].label }}</span>
-
-              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(orderInfoItems[6].variant)">
-                {{ orderInfoItems[6].value }}
-              </strong>
-            </div>
-          </div>
-        </article>
-
-        <article class="purchase-order-info-panel purchase-order-info-panel--authorization">
-          <div class="purchase-order-info-panel__header">
-            <span>
-              <mat-icon>shield</mat-icon>
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--success">
+              <mat-icon>verified_user</mat-icon>
             </span>
 
-            <h4>Autorización</h4>
-          </div>
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[1].label }}</span>
 
-          <div class="purchase-order-info-panel__body">
-            @for (item of authorizationInfoItems; track item.label) {
-            <div class="purchase-order-info-item">
-              <span>{{ item.label }}</span>
-
-              @if (item.chip) {
-              <strong class="purchase-order-detail-chip" [ngClass]="getChipClass(item.variant)">
-                {{ item.value }}
+              <strong
+                class="purchase-order-detail-chip"
+                [ngClass]="getChipClass(orderInfoItems[1].variant)">
+                {{ orderInfoItems[1].value }}
               </strong>
-              } @else {
-              <strong>
-                @if (item.icon) {
-                <mat-icon class="purchase-order-inline-icon">{{ item.icon }}</mat-icon>
-                }
-
-                {{ item.value }}
-              </strong>
-              }
             </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--primary">
+              <mat-icon>timeline</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[2].label }}</span>
+
+              <strong
+                class="purchase-order-detail-chip"
+                [ngClass]="getChipClass(orderInfoItems[2].variant)">
+                {{ orderInfoItems[2].value }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--warning">
+              <mat-icon>paid</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[3].label }}</span>
+
+              <strong
+                class="purchase-order-detail-chip"
+                [ngClass]="getChipClass(orderInfoItems[3].variant)">
+                {{ orderInfoItems[3].value }}
+              </strong>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-summary__item purchase-order-info-summary__item--amount">
+            <span class="purchase-order-info-summary__icon purchase-order-info-summary__icon--money">
+              <mat-icon>monetization_on</mat-icon>
+            </span>
+
+            <div class="purchase-order-info-summary__content">
+              <span>{{ orderInfoItems[7].label }}</span>
+              <strong>{{ orderInfoItems[7].value }}</strong>
+            </div>
+          </article>
+        </div>
+
+        <!-- Resumen financiero -->
+        @if (paymentSummary.reconciledPhotosCount > 0 || paymentSummary.hasExpenses) {
+          <div
+            class="purchase-order-payment-overview"
+            [class.purchase-order-payment-overview--with-difference]="paymentSummary.hasExpenses">
+
+            <article class="purchase-order-payment-overview__item">
+              <span class="purchase-order-payment-overview__icon">
+                <mat-icon>image</mat-icon>
+              </span>
+
+              <div>
+                <span>Tickets con gasto</span>
+                <strong>
+                  {{ paymentSummary.photosWithExpenseCount }} de {{ paymentSummary.reconciledPhotosCount }}
+                </strong>
+              </div>
+            </article>
+
+            <article class="purchase-order-payment-overview__item">
+              <span class="purchase-order-payment-overview__icon">
+                <mat-icon>receipt_long</mat-icon>
+              </span>
+
+              <div>
+                <span>Total registrado</span>
+                <strong>{{ formatMoney(paymentSummary.totalRegistered) }}</strong>
+              </div>
+            </article>
+
+            <article class="purchase-order-payment-overview__item">
+              <span class="purchase-order-payment-overview__icon purchase-order-payment-overview__icon--success">
+                <mat-icon>payments</mat-icon>
+              </span>
+
+              <div>
+                <span>Total pagado</span>
+                <strong>{{ formatMoney(paymentSummary.totalPaid) }}</strong>
+              </div>
+            </article>
+
+            <article class="purchase-order-payment-overview__item">
+              <span class="purchase-order-payment-overview__icon purchase-order-payment-overview__icon--warning">
+                <mat-icon>account_balance_wallet</mat-icon>
+              </span>
+
+              <div>
+                <span>Saldo pendiente</span>
+                <strong>{{ formatMoney(paymentSummary.totalBalance) }}</strong>
+              </div>
+            </article>
+
+            @if (paymentSummary.hasExpenses) {
+              <article
+                class="purchase-order-payment-overview__item purchase-order-payment-overview__item--difference"
+                [class.purchase-order-payment-overview__item--warning]="paymentSummary.exceedsRequested">
+
+                <span
+                  class="purchase-order-payment-overview__icon"
+                  [class.purchase-order-payment-overview__icon--warning]="paymentSummary.exceedsRequested">
+                  <mat-icon>{{ paymentSummary.exceedsRequested ? 'warning' : 'compare_arrows' }}</mat-icon>
+                </span>
+
+                <div>
+                  <span>Diferencia vs solicitado</span>
+                  <strong>{{ formatMoney(paymentSummary.requestedDifference) }}</strong>
+                </div>
+              </article>
             }
           </div>
-        </article>
 
-        <article class="purchase-order-info-panel purchase-order-info-panel--text">
-          <div class="purchase-order-info-panel__header">
-            <span>
-              <mat-icon>notes</mat-icon>
-            </span>
+          @if (paymentSummary.exceedsRequested) {
+            <div class="purchase-order-amount-warning">
+              <mat-icon>warning</mat-icon>
 
-            <h4>Concepto y notas</h4>
-          </div>
+              <div>
+                <strong>El total registrado supera el monto solicitado.</strong>
+                <span>
+                  Solicitado: {{ formatMoney(paymentSummary.requestedAmount) }} ·
+                  Registrado: {{ formatMoney(paymentSummary.totalRegistered) }} ·
+                  Diferencia: {{ formatMoney(paymentSummary.requestedDifference) }}
+                </span>
+              </div>
+            </div>
+          }
+        }
 
-          <div class="purchase-order-text-block">
-            <span>Concepto</span>
-            <strong>{{ order.concept }}</strong>
-          </div>
+        <div class="purchase-order-info-panels">
+          <article class="purchase-order-info-panel">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>article</mat-icon>
+              </span>
 
-          <div class="purchase-order-text-block">
-            <span>Notas</span>
-            <strong>{{ order.notes || 'Sin notas registradas.' }}</strong>
-          </div>
-        </article>
-      </div>
+              <h4>Datos generales</h4>
+            </div>
+
+            <div class="purchase-order-info-panel__body">
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[4].label }}</span>
+                <strong>{{ orderInfoItems[4].value }}</strong>
+              </div>
+
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[5].label }}</span>
+
+                <strong
+                  class="purchase-order-detail-chip"
+                  [ngClass]="getChipClass(orderInfoItems[5].variant)">
+                  {{ orderInfoItems[5].value }}
+                </strong>
+              </div>
+
+              <div class="purchase-order-info-item">
+                <span>{{ orderInfoItems[6].label }}</span>
+
+                <strong
+                  class="purchase-order-detail-chip"
+                  [ngClass]="getChipClass(orderInfoItems[6].variant)">
+                  {{ orderInfoItems[6].value }}
+                </strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="purchase-order-info-panel purchase-order-info-panel--authorization">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>shield</mat-icon>
+              </span>
+
+              <h4>Autorización</h4>
+            </div>
+
+            <div class="purchase-order-info-panel__body">
+              @for (item of authorizationInfoItems; track item.label) {
+                <div class="purchase-order-info-item">
+                  <span>{{ item.label }}</span>
+
+                  @if (item.chip) {
+                    <strong
+                      class="purchase-order-detail-chip"
+                      [ngClass]="getChipClass(item.variant)">
+                      {{ item.value }}
+                    </strong>
+                  } @else {
+                    <strong>
+                      @if (item.icon) {
+                        <mat-icon class="purchase-order-inline-icon">{{ item.icon }}</mat-icon>
+                      }
+
+                      {{ item.value }}
+                    </strong>
+                  }
+                </div>
+              }
+            </div>
+          </article>
+
+          <article class="purchase-order-info-panel purchase-order-info-panel--text">
+            <div class="purchase-order-info-panel__header">
+              <span>
+                <mat-icon>notes</mat-icon>
+              </span>
+
+              <h4>Concepto y notas</h4>
+            </div>
+
+            <div class="purchase-order-text-block">
+              <span>Concepto</span>
+              <strong>{{ order.concept }}</strong>
+            </div>
+
+            <div class="purchase-order-text-block">
+              <span>Notas</span>
+              <strong>{{ order.notes || 'Sin notas registradas.' }}</strong>
+            </div>
+          </article>
+        </div>
       }
     </section>
 
@@ -191,20 +294,20 @@
 
       <div class="purchase-order-flow">
         @for (step of flowSteps; track step.label; let last = $last) {
-        <article class="purchase-order-flow-step" [ngClass]="getFlowStepClass(step)">
-          <div class="purchase-order-flow-step__circle">
-            <mat-icon>{{ step.icon }}</mat-icon>
-          </div>
+          <article class="purchase-order-flow-step" [ngClass]="getFlowStepClass(step)">
+            <div class="purchase-order-flow-step__circle">
+              <mat-icon>{{ step.icon }}</mat-icon>
+            </div>
 
-          @if (!last) {
-          <div class="purchase-order-flow-step__line"></div>
-          }
+            @if (!last) {
+              <div class="purchase-order-flow-step__line"></div>
+            }
 
-          <div class="purchase-order-flow-step__text">
-            <strong>{{ step.label }}</strong>
-            <span>{{ step.date }}</span>
-          </div>
-        </article>
+            <div class="purchase-order-flow-step__text">
+              <strong>{{ step.label }}</strong>
+              <span>{{ step.date }}</span>
+            </div>
+          </article>
         }
       </div>
     </section>
@@ -226,98 +329,145 @@
         </div>
 
         @if (photos.length === 0) {
-        <div class="purchase-order-empty">
-          <mat-icon>image_not_supported</mat-icon>
-          <strong>No hay fotos relacionadas</strong>
-          <span>Cuando se suba un ticket aparecerá aquí.</span>
-        </div>
+          <div class="purchase-order-empty">
+            <mat-icon>image_not_supported</mat-icon>
+            <strong>No hay fotos relacionadas</strong>
+            <span>Cuando se suba un ticket aparecerá aquí.</span>
+          </div>
         } @else {
-        <div class="purchase-order-photo-list">
-          @for (photo of photos; track photo.id) {
-          <article class="purchase-order-photo-card">
-            <div class="purchase-order-photo-card__image-wrap">
-              <div class="purchase-order-photo-card__image"
-                [class.purchase-order-photo-card__image--empty]="!photo.previewUrl"
-                [style.backgroundImage]="photo.previewUrl ? 'url(' + photo.previewUrl + ')' : null">
+          <div class="purchase-order-photo-list">
+            @for (photo of photos; track photo.id) {
+              <article class="purchase-order-photo-card">
+                <div class="purchase-order-photo-card__image-wrap">
+                  <div
+                    class="purchase-order-photo-card__image"
+                    [class.purchase-order-photo-card__image--empty]="!photo.previewUrl"
+                    [style.backgroundImage]="photo.previewUrl ? 'url(' + photo.previewUrl + ')' : null">
 
-                @if (!photo.previewUrl) {
-                <mat-icon>image</mat-icon>
-                }
-              </div>
+                    @if (!photo.previewUrl) {
+                      <mat-icon>image</mat-icon>
+                    }
+                  </div>
 
-              <span class="purchase-order-photo-card__image-badge">
-                <mat-icon>image</mat-icon>
-              </span>
-            </div>
-
-            <div class="purchase-order-photo-card__content">
-              <div class="purchase-order-photo-card__top">
-                <strong class="purchase-order-photo-card__title">{{ photo.fileName }}</strong>
-
-                <span class="purchase-order-detail-chip" [ngClass]="getChipClass(photo.statusVariant)">
-                  <mat-icon class="purchase-order-photo-card__chip-icon">check_circle</mat-icon>
-                  {{ photo.statusLabel }}
-                </span>
-              </div>
-
-              <div class="purchase-order-photo-card__meta">
-                <div class="purchase-order-photo-card__meta-row">
-                  <span class="purchase-order-photo-card__meta-icon">
-                    <mat-icon>person</mat-icon>
-                  </span>
-
-                  <span>
-                    Subida por <strong>{{ photo.uploadedBy }}</strong>
+                  <span class="purchase-order-photo-card__image-badge">
+                    <mat-icon>image</mat-icon>
                   </span>
                 </div>
 
-                <div class="purchase-order-photo-card__meta-row">
-                  <span class="purchase-order-photo-card__meta-icon">
-                    <mat-icon>calendar_today</mat-icon>
-                  </span>
+                <div class="purchase-order-photo-card__main">
+                  <div class="purchase-order-photo-card__top">
+                    <strong class="purchase-order-photo-card__title">{{ photo.fileName }}</strong>
 
-                  <span>{{ photo.uploadedAt }}</span>
+                    <span
+                      class="purchase-order-detail-chip"
+                      [ngClass]="getChipClass(photo.statusVariant)">
+                      <mat-icon class="purchase-order-photo-card__chip-icon">check_circle</mat-icon>
+                      {{ photo.statusLabel }}
+                    </span>
+                  </div>
+
+                  <div class="purchase-order-photo-card__meta">
+                    <div class="purchase-order-photo-card__meta-row">
+                      <span class="purchase-order-photo-card__meta-icon">
+                        <mat-icon>person</mat-icon>
+                      </span>
+
+                      <span>
+                        Subida por <strong>{{ photo.uploadedBy }}</strong>
+                      </span>
+                    </div>
+
+                    <div class="purchase-order-photo-card__meta-row">
+                      <span class="purchase-order-photo-card__meta-icon">
+                        <mat-icon>calendar_today</mat-icon>
+                      </span>
+
+                      <span>{{ photo.uploadedAt }}</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="purchase-order-photo-card__actions">
-                <button type="button" class="btn-outline purchase-order-photo-card__button" [disabled]="!photo.id"
-                  (click)="openPhoto(photo)">
-                  <span>Ver foto</span>
-                </button>
+                <div class="purchase-order-photo-card__status-area">
+                  @if (photo.hasExpense) {
+                    <div class="purchase-order-photo-card__expense">
+                      <div class="purchase-order-photo-card__expense-main">
+                        <span class="purchase-order-photo-card__expense-icon">
+                          <mat-icon>receipt_long</mat-icon>
+                        </span>
 
-                @if (canRegisterExpense(photo)) {
-                <button type="button" class="btn-primary purchase-order-photo-card__button"
-                  (click)="goToRegisterExpense(photo)">
-                  <span>Registrar gasto</span>
-                </button>
-                }
+                        <div>
+                          <span>Gasto relacionado</span>
+                          <strong>{{ photo.linkedExpenseFolio || 'Gasto registrado' }}</strong>
+                        </div>
+                      </div>
 
-                @if (canRegisterDirectXmlExpense(photo)) {
-                <button type="button" class="btn-primary purchase-order-photo-card__button"
-                  (click)="goToRegisterDirectXmlExpense(photo)">
-                  <span>Relacionar gasto XML</span>
-                </button>
-                }
+                      <div class="purchase-order-photo-card__expense-amounts">
+                        <span>Total {{ formatMoney(photo.linkedExpenseTotal) }}</span>
+                        <span>Pagado {{ formatMoney(photo.linkedExpensePaid) }}</span>
 
-                @if (canRegisterWarehouseExpense(photo)) {
-                <button type="button" class="btn-primary purchase-order-photo-card__button"
-                  (click)="goToRegisterWarehouseExpense(photo)">
-                  <span>Registrar entrada</span>
-                </button>
-                }
+                        <strong
+                          class="purchase-order-detail-chip"
+                          [ngClass]="getChipClass(photo.linkedExpenseStatusVariant ?? 'neutral')">
+                          {{ photo.linkedExpenseStatusLabel || 'Registrado' }}
+                        </strong>
+                      </div>
+                    </div>
+                  } @else if (photo.status === 'reconciled') {
+                    <div class="purchase-order-photo-card__pending-expense">
+                      <mat-icon>pending_actions</mat-icon>
+                      <span>Pendiente de registrar gasto</span>
+                    </div>
+                  }
+                </div>
 
-                @if (canRegisterWarehouseXmlExpense(photo)) {
-                <button type="button" class="btn-primary purchase-order-photo-card__button"
-                  (click)="goToRegisterWarehouseXmlExpense(photo)">
-                  <span>Relacionar XML almacén</span>
-                </button>
-                }
-              </div>
-            </div>
-          </article>
-          }
-        </div>
+                <div class="purchase-order-photo-card__actions">
+                  <button
+                    type="button"
+                    class="btn-outline purchase-order-photo-card__button"
+                    [disabled]="!photo.id"
+                    (click)="openPhoto(photo)">
+                    <span>Ver foto</span>
+                  </button>
+
+                  @if (canRegisterExpense(photo)) {
+                    <button
+                      type="button"
+                      class="btn-primary purchase-order-photo-card__button"
+                      (click)="goToRegisterExpense(photo)">
+                      <span>Registrar gasto</span>
+                    </button>
+                  }
+
+                  @if (canRegisterDirectXmlExpense(photo)) {
+                    <button
+                      type="button"
+                      class="btn-primary purchase-order-photo-card__button"
+                      (click)="goToRegisterDirectXmlExpense(photo)">
+                      <span>Relacionar gasto XML</span>
+                    </button>
+                  }
+
+                  @if (canRegisterWarehouseExpense(photo)) {
+                    <button
+                      type="button"
+                      class="btn-primary purchase-order-photo-card__button"
+                      (click)="goToRegisterWarehouseExpense(photo)">
+                      <span>Registrar entrada</span>
+                    </button>
+                  }
+
+                  @if (canRegisterWarehouseXmlExpense(photo)) {
+                    <button
+                      type="button"
+                      class="btn-primary purchase-order-photo-card__button"
+                      (click)="goToRegisterWarehouseXmlExpense(photo)">
+                      <span>Relacionar XML almacén</span>
+                    </button>
+                  }
+                </div>
+              </article>
+            }
+          </div>
         }
       </article>
 
@@ -332,37 +482,39 @@
               <h3>Gastos relacionados</h3>
               <p>Gastos registrados desde esta orden de compra.</p>
             </div>
-
           </div>
-          <!-- @if (expenses.length) {
-          <button type="button" class="btn-outline purchase-order-table-action__button" (click)="goToExpensesList()">
-            Ver todos los gastos
-          </button>
-          } -->
         </div>
 
         @if (expenses.length === 0) {
-        <div class="purchase-order-empty">
-          <mat-icon>receipt_long</mat-icon>
-          <strong>No hay gastos relacionados</strong>
-          <span>Cuando se registre un gasto aparecerá aquí.</span>
-        </div>
+          <div class="purchase-order-empty">
+            <mat-icon>receipt_long</mat-icon>
+            <strong>No hay gastos relacionados</strong>
+            <span>Cuando se registre un gasto aparecerá aquí.</span>
+          </div>
         } @else {
-        <div class="purchase-order-related-table purchase-order-related-table--expenses">
-          <app-data-table class="purchase-order-related-table__data purchase-order-related-table__data--expenses"
-            [data]="paginatedExpenses" [columnsConfig]="expenseColumnsConfig"
-            [displayedColumns]="expenseDisplayedColumns" [extraActions]="expenseExtraActions" [actionPermissions]="{
-    showEdit: false,
-    showDelete: false
-  }" (action)="onExpenseTableAction($event)">
-          </app-data-table>
+          <div class="purchase-order-related-table purchase-order-related-table--expenses">
+            <app-data-table
+              class="purchase-order-related-table__data purchase-order-related-table__data--expenses"
+              [data]="paginatedExpenses"
+              [columnsConfig]="expenseColumnsConfig"
+              [displayedColumns]="expenseDisplayedColumns"
+              [extraActions]="expenseExtraActions"
+              [actionPermissions]="{
+                showEdit: false,
+                showDelete: false
+              }"
+              (action)="onExpenseTableAction($event)">
+            </app-data-table>
 
-          <mat-paginator [length]="expenses.length" [pageSize]="expensesPageSize" [pageIndex]="expensesPageIndex"
-            [pageSizeOptions]="tablePageSizeOptions" (page)="onExpensesPageChange($event)" showFirstLastButtons>
-          </mat-paginator>
-        </div>
-
-
+            <mat-paginator
+              [length]="expenses.length"
+              [pageSize]="expensesPageSize"
+              [pageIndex]="expensesPageIndex"
+              [pageSizeOptions]="tablePageSizeOptions"
+              (page)="onExpensesPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
+          </div>
         }
       </article>
     </section>
@@ -383,21 +535,29 @@
       </div>
 
       @if (history.length === 0) {
-      <div class="purchase-order-empty">
-        <mat-icon>history</mat-icon>
-        <strong>No hay movimientos registrados</strong>
-        <span>Cuando exista actividad sobre esta orden aparecerá aquí.</span>
-      </div>
+        <div class="purchase-order-empty">
+          <mat-icon>history</mat-icon>
+          <strong>No hay movimientos registrados</strong>
+          <span>Cuando exista actividad sobre esta orden aparecerá aquí.</span>
+        </div>
       } @else {
-      <div class="purchase-order-related-table purchase-order-related-table--history">
-        <app-data-table class="purchase-order-related-table__data purchase-order-related-table__data--history"
-          [data]="paginatedHistory" [columnsConfig]="historyColumnsConfig" [displayedColumns]="historyDisplayedColumns">
-        </app-data-table>
+        <div class="purchase-order-related-table purchase-order-related-table--history">
+          <app-data-table
+            class="purchase-order-related-table__data purchase-order-related-table__data--history"
+            [data]="paginatedHistory"
+            [columnsConfig]="historyColumnsConfig"
+            [displayedColumns]="historyDisplayedColumns">
+          </app-data-table>
 
-        <mat-paginator [length]="history.length" [pageSize]="historyPageSize" [pageIndex]="historyPageIndex"
-          [pageSizeOptions]="tablePageSizeOptions" (page)="onHistoryPageChange($event)" showFirstLastButtons>
-        </mat-paginator>
-      </div>
+          <mat-paginator
+            [length]="history.length"
+            [pageSize]="historyPageSize"
+            [pageIndex]="historyPageIndex"
+            [pageSizeOptions]="tablePageSizeOptions"
+            (page)="onHistoryPageChange($event)"
+            showFirstLastButtons>
+          </mat-paginator>
+        </div>
       }
     </section>
   </div>

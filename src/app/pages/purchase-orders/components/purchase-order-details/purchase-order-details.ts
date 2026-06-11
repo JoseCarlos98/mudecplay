@@ -79,6 +79,14 @@ interface PurchaseOrderPhoto {
   reconciledAt: string | null;
   previewUrl: string | null;
   hasExpense: boolean;
+
+  linkedExpenseId: number | null;
+  linkedExpenseFolio: string | null;
+  linkedExpenseTotal: number | null;
+  linkedExpensePaid: number | null;
+  linkedExpenseBalance: number | null;
+  linkedExpenseStatusLabel: string | null;
+  linkedExpenseStatusVariant: DetailStatusVariant | null;
 }
 
 interface PurchaseOrderExpense {
@@ -91,6 +99,26 @@ interface PurchaseOrderExpense {
   balanceDisplay: string;
   statusLabel: string;
   statusVariant: DetailStatusVariant;
+
+  ticketPhotoId: number | null;
+  ticketFileName: string | null;
+}
+
+interface PurchaseOrderPaymentSummary {
+  photosCount: number;
+  reconciledPhotosCount: number;
+  expensesCount: number;
+  photosWithExpenseCount: number;
+  pendingExpensePhotosCount: number;
+
+  totalRegistered: number;
+  totalPaid: number;
+  totalBalance: number;
+
+  requestedAmount: number;
+  requestedDifference: number;
+  exceedsRequested: boolean;
+  hasExpenses: boolean;
 }
 
 type ExpenseTableAction = DataTableActionEvent<PurchaseOrderExpense>;
@@ -201,6 +229,8 @@ export class PurchaseOrderDetails implements OnInit {
   photos: PurchaseOrderPhoto[] = [];
   expenses: PurchaseOrderExpense[] = [];
   history: PurchaseOrderHistoryItem[] = [];
+
+  paymentSummary: PurchaseOrderPaymentSummary = this.getEmptyPaymentSummary();
 
   readonly expenseColumnsConfig: ColumnsConfig[] = [
     {
@@ -460,6 +490,7 @@ export class PurchaseOrderDetails implements OnInit {
     );
 
     this.order = this.mapOrder(detail);
+    this.paymentSummary = this.buildPaymentSummary(detail);
 
     this.orderInfoItems = this.buildOrderInfoItems(detail);
     this.authorizationInfoItems = this.buildAuthorizationInfoItems(detail);
@@ -599,12 +630,24 @@ export class PurchaseOrderDetails implements OnInit {
     const hasPhotos =
       this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
 
-    const hasReconciledPhoto = this.photos.some(
+    const reconciledPhotos = this.photos.filter(
       (photo) => photo.status === 'reconciled',
     );
 
+    const reconciledPhotosCount = reconciledPhotos.length;
+
+    const photosWithExpenseCount = this.photos.filter(
+      (photo) => photo.hasExpense,
+    ).length;
+
+    const hasReconciledPhoto = reconciledPhotosCount > 0;
+
     const hasExpenses =
       this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
+
+    const allReconciledPhotosHaveExpense =
+      hasReconciledPhoto &&
+      photosWithExpenseCount >= reconciledPhotosCount;
 
     const totalPaid = this.expenses.reduce((total, expense) => {
       return total + Number(expense.paid ?? 0);
@@ -634,10 +677,30 @@ export class PurchaseOrderDetails implements OnInit {
           : 'Pendiente';
 
     const firstPhoto = this.photos[0];
+    const reconciledPhoto = reconciledPhotos[0];
 
-    const reconciledPhoto = this.photos.find(
-      (photo) => photo.status === 'reconciled',
-    );
+    const photoStepLabel =
+      this.photos.length > 1 ? 'Fotos subidas' : 'Foto subida';
+
+    const reconciledStepLabel =
+      reconciledPhotosCount > 1 ? 'Fotos conciliadas' : 'Foto conciliada';
+
+    const reconciledStepDate =
+      reconciledPhotosCount > 1
+        ? `${reconciledPhotosCount} fotos`
+        : hasReconciledPhoto
+          ? reconciledPhoto?.reconciledAt ?? 'Conciliada'
+          : 'Pendiente';
+
+    const expenseStepLabel =
+      reconciledPhotosCount > 1 ? 'Gastos registrados' : 'Gasto registrado';
+
+    const expenseStepDate =
+      hasExpenses && reconciledPhotosCount > 1
+        ? `${photosWithExpenseCount} de ${reconciledPhotosCount}`
+        : hasExpenses
+          ? 'Registrado'
+          : 'Pendiente';
 
     return [
       {
@@ -673,8 +736,11 @@ export class PurchaseOrderDetails implements OnInit {
               : 'pending',
       },
       {
-        label: 'Foto subida',
-        date: firstPhoto?.uploadedAt ?? 'Pendiente',
+        label: photoStepLabel,
+        date:
+          this.photos.length > 1
+            ? `${this.photos.length} fotos`
+            : firstPhoto?.uploadedAt ?? 'Pendiente',
         icon: 'photo_camera',
         status: hasPhotos
           ? 'done'
@@ -685,10 +751,8 @@ export class PurchaseOrderDetails implements OnInit {
               : 'pending',
       },
       {
-        label: 'Foto conciliada',
-        date: hasReconciledPhoto
-          ? reconciledPhoto?.reconciledAt ?? 'Conciliada'
-          : 'Pendiente',
+        label: reconciledStepLabel,
+        date: reconciledStepDate,
         icon: 'fact_check',
         status: hasReconciledPhoto
           ? 'done'
@@ -699,12 +763,12 @@ export class PurchaseOrderDetails implements OnInit {
               : 'pending',
       },
       {
-        label: 'Gasto registrado',
-        date: hasExpenses ? 'Registrado' : 'Pendiente',
+        label: expenseStepLabel,
+        date: expenseStepDate,
         icon: 'receipt_long',
-        status: hasExpenses
+        status: allReconciledPhotosHaveExpense
           ? 'done'
-          : hasReconciledPhoto
+          : hasExpenses || hasReconciledPhoto
             ? 'current'
             : isRejected || isCancelled
               ? 'blocked'
@@ -1006,6 +1070,8 @@ export class PurchaseOrderDetails implements OnInit {
       photo.reconciledAt ??
       null;
 
+    const linkedExpense = this.getLinkedExpenseForPhoto(photoId, expenseLinks);
+
     return {
       id: photoId,
       fileName:
@@ -1028,8 +1094,35 @@ export class PurchaseOrderDetails implements OnInit {
         ? this.formatDateTime(reconciledAtRaw)
         : null,
       previewUrl: null,
-      hasExpense: this.photoHasExpense(photoId, expenseLinks),
+      hasExpense: !!linkedExpense,
+
+      linkedExpenseId: linkedExpense?.id ?? null,
+      linkedExpenseFolio: linkedExpense?.folio ?? null,
+      linkedExpenseTotal: linkedExpense?.total ?? null,
+      linkedExpensePaid: linkedExpense?.paid ?? null,
+      linkedExpenseBalance: linkedExpense?.balance ?? null,
+      linkedExpenseStatusLabel: linkedExpense?.statusLabel ?? null,
+      linkedExpenseStatusVariant: linkedExpense?.statusVariant ?? null,
     };
+  }
+
+  private getLinkedExpenseForPhoto(
+    photoId: number,
+    expenseLinks: any[],
+  ): PurchaseOrderExpense | null {
+    if (!photoId || !Array.isArray(expenseLinks)) return null;
+
+    const link = expenseLinks.find((item) => {
+      const linkedPhotoId =
+        item.ticket_photo_id ??
+        item.ticketPhoto?.id ??
+        item.ticket_photo?.id ??
+        null;
+
+      return Number(linkedPhotoId) === Number(photoId);
+    });
+
+    return link ? this.mapExpenseLink(link) : null;
   }
 
   private photoHasExpense(photoId: number, expenseLinks: any[]): boolean {
@@ -1144,6 +1237,17 @@ export class PurchaseOrderDetails implements OnInit {
 
     const balance = Math.max(total - paid, 0);
 
+    const ticketPhoto =
+      link.ticket_photo ??
+      link.ticketPhoto ??
+      null;
+
+    const ticketPhotoId = Number(
+      link.ticket_photo_id ??
+      ticketPhoto?.id ??
+      0,
+    );
+
     return {
       id: Number(expense.id ?? link.expense_id ?? link.id ?? 0),
       folio:
@@ -1171,6 +1275,12 @@ export class PurchaseOrderDetails implements OnInit {
           : paid > 0
             ? 'warning'
             : 'danger',
+
+      ticketPhotoId: ticketPhotoId > 0 ? ticketPhotoId : null,
+      ticketFileName:
+        ticketPhoto?.file_name ??
+        ticketPhoto?.fileName ??
+        null,
     };
   }
 
@@ -1190,9 +1300,15 @@ export class PurchaseOrderDetails implements OnInit {
     const hasPhotos =
       this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
 
-    const hasReconciledPhoto = this.photos.some(
+    const reconciledPhotosCount = this.photos.filter(
       (photo) => photo.status === 'reconciled',
-    );
+    ).length;
+
+    const photosWithExpenseCount = this.photos.filter(
+      (photo) => photo.hasExpense,
+    ).length;
+
+    const hasReconciledPhoto = reconciledPhotosCount > 0;
 
     const hasExpenses =
       this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
@@ -1206,10 +1322,18 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     if (hasReconciledPhoto && !hasExpenses) {
-      return 'Foto conciliada sin gasto';
+      return reconciledPhotosCount > 1
+        ? 'Fotos conciliadas sin gasto'
+        : 'Foto conciliada sin gasto';
     }
 
     if (hasExpenses) {
+      if (reconciledPhotosCount > 1) {
+        return photosWithExpenseCount >= reconciledPhotosCount
+          ? 'Gastos registrados'
+          : `Gastos ${photosWithExpenseCount} de ${reconciledPhotosCount}`;
+      }
+
       return 'Gasto registrado';
     }
 
@@ -1413,6 +1537,77 @@ export class PurchaseOrderDetails implements OnInit {
       default:
         return 'chip-neutral';
     }
+  }
+
+private buildPaymentSummary(
+  detail: PurchaseOrderFlowDetailResponse,
+): PurchaseOrderPaymentSummary {
+  const photosCount = this.photos.length;
+  const reconciledPhotos = this.photos.filter(
+    (photo) => photo.status === 'reconciled',
+  );
+
+  const photosWithExpense = this.photos.filter((photo) => photo.hasExpense);
+
+  const totalRegistered = this.expenses.reduce((total, expense) => {
+    return total + Number(expense.total ?? 0);
+  }, 0);
+
+  const totalPaid = this.expenses.reduce((total, expense) => {
+    return total + Number(expense.paid ?? 0);
+  }, 0);
+
+  const totalBalance = this.expenses.reduce((total, expense) => {
+    return total + Number(expense.balance ?? 0);
+  }, 0);
+
+  const requestedAmount = Number(detail.requested_amount ?? 0);
+
+  const requestedDifference = this.expenses.length > 0
+    ? Number((totalRegistered - requestedAmount).toFixed(2))
+    : 0;
+
+  return {
+    photosCount,
+    reconciledPhotosCount: reconciledPhotos.length,
+    expensesCount: this.expenses.length,
+    photosWithExpenseCount: photosWithExpense.length,
+    pendingExpensePhotosCount: Math.max(
+      reconciledPhotos.length - photosWithExpense.length,
+      0,
+    ),
+
+    totalRegistered: Number(totalRegistered.toFixed(2)),
+    totalPaid: Number(totalPaid.toFixed(2)),
+    totalBalance: Number(totalBalance.toFixed(2)),
+
+    requestedAmount,
+    requestedDifference,
+    exceedsRequested:
+      this.expenses.length > 0 &&
+      requestedAmount > 0 &&
+      totalRegistered > requestedAmount + 0.01,
+    hasExpenses: this.expenses.length > 0,
+  };
+}
+
+  private getEmptyPaymentSummary(): PurchaseOrderPaymentSummary {
+    return {
+      photosCount: 0,
+      reconciledPhotosCount: 0,
+      expensesCount: 0,
+      photosWithExpenseCount: 0,
+      pendingExpensePhotosCount: 0,
+
+      totalRegistered: 0,
+      totalPaid: 0,
+      totalBalance: 0,
+
+      requestedAmount: 0,
+      requestedDifference: 0,
+      exceedsRequested: false,
+      hasExpenses: false,
+    };
   }
 
   private getEmptyOrder(): PurchaseOrderDetailViewModel {

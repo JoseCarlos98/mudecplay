@@ -121,12 +121,12 @@ export class Sidebar {
           route: '/ordenes-compra/fotos-sin-gasto',
           roles: ['ORDENES_COMPRA_EDITOR'],
         },
-        {
-          name: 'Tesorería',
-          icon: 'payments',
-          route: '/ordenes-compra/tesoreria',
-          roles: ['ORDENES_COMPRA_EDITOR'],
-        },
+        // {
+        //   name: 'Tesorería',
+        //   icon: 'payments',
+        //   route: '/ordenes-compra/tesoreria',
+        //   roles: ['ORDENES_COMPRA_EDITOR'],
+        // },
       ],
     },
     {

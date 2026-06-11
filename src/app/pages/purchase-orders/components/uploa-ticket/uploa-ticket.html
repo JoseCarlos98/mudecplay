@@ -88,7 +88,7 @@
 
                 <footer class="ticket-upload-actions">
                     <app-btns-section type="save" cancelLabel="Cancelar"
-                        [saveLabel]="saving ? 'Guardando...' : 'Subir foto'" [saveDisabled]="!canSave"
+                        saveLabel="Subir foto" [saveDisabled]="!canSave"
                         [cancelDisabled]="saving" (action)="onBtnsSectionAction($event)">
                     </app-btns-section>
                 </footer>

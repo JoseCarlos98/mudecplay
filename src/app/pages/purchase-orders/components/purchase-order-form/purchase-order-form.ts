@@ -84,7 +84,9 @@ export class PurchaseOrderForm implements OnInit {
   ];
 
   form = this.fb.group({
-    project_id: this.fb.control<Catalog | number | string | null>(null),
+    project_id: this.fb.control<Catalog | number | string | null>(null, {
+  validators: [Validators.required],
+}),
     destination_type: this.fb.control<entity.PurchaseOrderDestinationType | null>(
       'direct',
       {
@@ -113,19 +115,22 @@ export class PurchaseOrderForm implements OnInit {
     notes: this.fb.control<string | null>(null),
   });
 
-  ngOnInit(): void {
-    this.setCapturedByUser();
-    this.watchDestinationType();
+ngOnInit(): void {
+  this.setCapturedByUser();
+  this.watchDestinationType();
 
-    const idParam = this.route.snapshot.paramMap.get('id');
+  // Como el destino inicia en "direct", el proyecto debe ser requerido desde el inicio.
+  this.applyProjectValidator(this.destinationType);
 
-    if (idParam) {
-      this.purchaseOrderId = Number(idParam);
-      this.isEditMode = true;
-    }
+  const idParam = this.route.snapshot.paramMap.get('id');
 
-    this.loadInitialData();
+  if (idParam) {
+    this.purchaseOrderId = Number(idParam);
+    this.isEditMode = true;
   }
+
+  this.loadInitialData();
+}
 
   get pageTitle(): string {
     return this.isEditMode ? 'Editar orden de compra' : 'Nueva orden de compra';
