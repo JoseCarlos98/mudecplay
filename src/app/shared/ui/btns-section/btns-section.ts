@@ -4,7 +4,9 @@ import {
   Component,
   EventEmitter,
   Input,
+  OnDestroy,
   Output,
+  signal,
 } from '@angular/core';
 
 import { MatIconModule } from '@angular/material/icon';
@@ -35,7 +37,7 @@ export type ModuleFooterButtonVariant = 'primary' | 'danger';
   styleUrl: './btns-section.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BtnsSection {
+export class BtnsSection implements OnDestroy {
   /**
    * Modo del componente:
    * - save: footer de formulario Cancelar / Guardar
@@ -80,6 +82,13 @@ export class BtnsSection {
   @Input() continueDisabled: boolean = false;
 
   /**
+   * Bloqueo interno contra doble click.
+   * Sirve para evitar doble submit inmediato sin obligar a cada pantalla a manejar saving.
+   */
+  @Input() preventDoubleClick: boolean = true;
+  @Input() doubleClickLockMs: number = 1200;
+
+  /**
    * Configuración de filtros.
    */
   @Input() searchDisabled: boolean = true;
@@ -91,4 +100,70 @@ export class BtnsSection {
    * El padre hace un switch(action) y decide qué hacer.
    */
   @Output() action = new EventEmitter<ModuleFooterAction>();
+
+  readonly actionLocked = signal(false);
+
+  private unlockTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  ngOnDestroy(): void {
+    this.clearUnlockTimeout();
+  }
+
+  emitAction(action: ModuleFooterAction): void {
+    if (this.isActionDisabled(action)) return;
+
+    if (this.shouldLockAction(action)) {
+      if (this.actionLocked()) return;
+
+      this.actionLocked.set(true);
+      this.clearUnlockTimeout();
+
+      this.unlockTimeout = setTimeout(() => {
+        this.actionLocked.set(false);
+        this.unlockTimeout = null;
+      }, this.doubleClickLockMs);
+    }
+
+    this.action.emit(action);
+  }
+
+  isActionDisabled(action: ModuleFooterAction): boolean {
+    switch (action) {
+      case 'cancel':
+        return this.cancelDisabled;
+
+      case 'save':
+        return this.saveDisabled || this.actionLocked();
+
+      case 'continue':
+        return this.continueDisabled || this.actionLocked();
+
+      case 'search':
+        return this.isSearchButtonDisabled() || this.actionLocked();
+
+      case 'clean':
+        return !this.hasActiveFilters;
+
+      default:
+        return false;
+    }
+  }
+
+  private shouldLockAction(action: ModuleFooterAction): boolean {
+    return (
+      this.preventDoubleClick &&
+      ['save', 'continue', 'search'].includes(action)
+    );
+  }
+
+  private isSearchButtonDisabled(): boolean {
+    return this.hasActiveSearch ? !this.hasActiveSearch : false;
+  }
+
+  private clearUnlockTimeout(): void {
+    if (!this.unlockTimeout) return;
+
+    clearTimeout(this.unlockTimeout);
+    this.unlockTimeout = null;
+  }
 }
