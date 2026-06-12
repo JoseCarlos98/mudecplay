@@ -168,9 +168,9 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return this.order.expense_links.some((link) => {
       const ticketPhotoId = Number(
         (link as any).ticket_photo?.id ??
-          (link as any).ticketPhoto?.id ??
-          link.ticket_photo_id ??
-          0,
+        (link as any).ticketPhoto?.id ??
+        link.ticket_photo_id ??
+        0,
       );
 
       return ticketPhotoId === this.photoId;
@@ -204,6 +204,19 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return this.selectedItems.length;
   }
 
+  get hasSelectedWarehouseQuantity(): boolean {
+    return this.selectedItems.some((item) => {
+      const quantity = Number(item.quantity ?? 0);
+      const productId = Number(item.product?.id ?? 0);
+
+      return (
+        item.item_type === 'warehouse' &&
+        productId > 0 &&
+        quantity > 0
+      );
+    });
+  }
+
   get selectedAmount(): number {
     return this.round2(
       this.selectedItems.reduce(
@@ -230,12 +243,16 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
 
+  abs(value: number): number {
+  return Math.abs(Number(value ?? 0));
+}
+
   get canSave(): boolean {
     return (
       !!this.photoId &&
       !!this.selectedWarehouseXmlExpense &&
       this.selectedItemIds.length > 0 &&
-      this.selectedAmount > 0 &&
+      this.hasSelectedWarehouseQuantity &&
       this.isWarehouseWithInvoice &&
       !this.hasExistingPhotoLink
     );
