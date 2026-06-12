@@ -116,8 +116,16 @@ interface PurchaseOrderPaymentSummary {
   totalBalance: number;
 
   requestedAmount: number;
+
   requestedDifference: number;
+
+  requestedDifferenceDisplay: number;
+
+  requestedDifferenceLabel: string;
+  requestedDifferenceIcon: string;
+
   exceedsRequested: boolean;
+  isUnderRequested: boolean;
   hasExpenses: boolean;
 }
 
@@ -1539,57 +1547,83 @@ export class PurchaseOrderDetails implements OnInit {
     }
   }
 
-private buildPaymentSummary(
-  detail: PurchaseOrderFlowDetailResponse,
-): PurchaseOrderPaymentSummary {
-  const photosCount = this.photos.length;
-  const reconciledPhotos = this.photos.filter(
-    (photo) => photo.status === 'reconciled',
-  );
+  private buildPaymentSummary(
+    detail: PurchaseOrderFlowDetailResponse,
+  ): PurchaseOrderPaymentSummary {
+    const photosCount = this.photos.length;
 
-  const photosWithExpense = this.photos.filter((photo) => photo.hasExpense);
+    const reconciledPhotos = this.photos.filter(
+      (photo) => photo.status === 'reconciled',
+    );
 
-  const totalRegistered = this.expenses.reduce((total, expense) => {
-    return total + Number(expense.total ?? 0);
-  }, 0);
+    const photosWithExpense = this.photos.filter((photo) => photo.hasExpense);
 
-  const totalPaid = this.expenses.reduce((total, expense) => {
-    return total + Number(expense.paid ?? 0);
-  }, 0);
+    const totalRegistered = this.expenses.reduce((total, expense) => {
+      return total + Number(expense.total ?? 0);
+    }, 0);
 
-  const totalBalance = this.expenses.reduce((total, expense) => {
-    return total + Number(expense.balance ?? 0);
-  }, 0);
+    const totalPaid = this.expenses.reduce((total, expense) => {
+      return total + Number(expense.paid ?? 0);
+    }, 0);
 
-  const requestedAmount = Number(detail.requested_amount ?? 0);
+    const totalBalance = this.expenses.reduce((total, expense) => {
+      return total + Number(expense.balance ?? 0);
+    }, 0);
 
-  const requestedDifference = this.expenses.length > 0
-    ? Number((totalRegistered - requestedAmount).toFixed(2))
-    : 0;
+    const requestedAmount = Number(detail.requested_amount ?? 0);
 
-  return {
-    photosCount,
-    reconciledPhotosCount: reconciledPhotos.length,
-    expensesCount: this.expenses.length,
-    photosWithExpenseCount: photosWithExpense.length,
-    pendingExpensePhotosCount: Math.max(
-      reconciledPhotos.length - photosWithExpense.length,
-      0,
-    ),
+    const hasExpenses = this.expenses.length > 0;
+    const hasRequestedAmount = requestedAmount > 0;
 
-    totalRegistered: Number(totalRegistered.toFixed(2)),
-    totalPaid: Number(totalPaid.toFixed(2)),
-    totalBalance: Number(totalBalance.toFixed(2)),
+    const requestedDifference =
+      hasExpenses && hasRequestedAmount
+        ? Number((totalRegistered - requestedAmount).toFixed(2))
+        : 0;
 
-    requestedAmount,
-    requestedDifference,
-    exceedsRequested:
-      this.expenses.length > 0 &&
-      requestedAmount > 0 &&
-      totalRegistered > requestedAmount + 0.01,
-    hasExpenses: this.expenses.length > 0,
-  };
-}
+    const exceedsRequested = requestedDifference > 0.01;
+    const isUnderRequested = requestedDifference < -0.01;
+
+    const requestedDifferenceDisplay = Number(
+      Math.abs(requestedDifference).toFixed(2),
+    );
+
+    const requestedDifferenceLabel = exceedsRequested
+      ? 'Excedente vs solicitado'
+      : isUnderRequested
+        ? 'Sobrante vs solicitado'
+        : 'Diferencia vs solicitado';
+
+    const requestedDifferenceIcon = exceedsRequested
+      ? 'warning'
+      : isUnderRequested
+        ? 'savings'
+        : 'compare_arrows';
+
+    return {
+      photosCount,
+      reconciledPhotosCount: reconciledPhotos.length,
+      expensesCount: this.expenses.length,
+      photosWithExpenseCount: photosWithExpense.length,
+      pendingExpensePhotosCount: Math.max(
+        reconciledPhotos.length - photosWithExpense.length,
+        0,
+      ),
+
+      totalRegistered: Number(totalRegistered.toFixed(2)),
+      totalPaid: Number(totalPaid.toFixed(2)),
+      totalBalance: Number(totalBalance.toFixed(2)),
+
+      requestedAmount,
+      requestedDifference,
+      requestedDifferenceDisplay,
+      requestedDifferenceLabel,
+      requestedDifferenceIcon,
+
+      exceedsRequested,
+      isUnderRequested,
+      hasExpenses,
+    };
+  }
 
   private getEmptyPaymentSummary(): PurchaseOrderPaymentSummary {
     return {
@@ -1605,7 +1639,12 @@ private buildPaymentSummary(
 
       requestedAmount: 0,
       requestedDifference: 0,
+      requestedDifferenceDisplay: 0,
+      requestedDifferenceLabel: 'Diferencia vs solicitado',
+      requestedDifferenceIcon: 'compare_arrows',
+
       exceedsRequested: false,
+      isUnderRequested: false,
       hasExpenses: false,
     };
   }

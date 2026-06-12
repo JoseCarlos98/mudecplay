@@ -93,6 +93,8 @@ export class ExpenseForm implements OnInit {
   isLaborAuto = false;
   hasWarehouseItems = false;
 
+  isPurchaseOrderLinkedExpense = false;
+
   cfdiUuidFromXml: string | null = null;
 
   xmlQueueTotal = 0;
@@ -142,6 +144,10 @@ export class ExpenseForm implements OnInit {
   get allSelected(): boolean {
     if (!this.itemsFA.length) return false;
     return this.itemsFA.controls.every((ctrl) => !!ctrl.get('selected')?.value);
+  }
+
+  get isPurchaseOrderProjectLocked(): boolean {
+    return !!this.expenseId && this.isPurchaseOrderLinkedExpense;
   }
 
   get isSpecialReadonlyExpense(): boolean {
@@ -825,8 +831,14 @@ export class ExpenseForm implements OnInit {
       unitIdCtrl?.clearValidators();
       unitPriceCtrl?.clearValidators();
 
-      if (!this.isLaborAuto && !this.isWarehouseSafeExpense) {
+      if (
+        !this.isLaborAuto &&
+        !this.isWarehouseSafeExpense &&
+        !this.isPurchaseOrderProjectLocked
+      ) {
         projectCtrl?.enable({ emitEvent: false });
+      } else {
+        projectCtrl?.disable({ emitEvent: false });
       }
 
       if (!this.isXmlImport && !this.isLaborAuto && !this.isWarehouseSafeExpense) {
@@ -893,6 +905,12 @@ export class ExpenseForm implements OnInit {
         this.cfdiUuidFromXml = anyResp.cfdi_uuid ?? null;
         this.isLaborAuto = anyResp.origin_type === 'labor_auto';
 
+        this.isPurchaseOrderLinkedExpense =
+          anyResp.origin_type === 'purchase_order' ||
+          anyResp.source_module === 'purchase_orders' ||
+          anyResp.source_module === 'purchase_order' ||
+          !!anyResp.source_record_id;
+
         this.hasWarehouseItems = response.items.some(
           (item) => item.item_type === 'warehouse',
         );
@@ -947,6 +965,10 @@ export class ExpenseForm implements OnInit {
 
         if (this.isWarehouseSafeExpense) {
           this.applyWarehouseSafeLocking();
+        }
+
+        if (this.isPurchaseOrderProjectLocked) {
+          this.applyPurchaseOrderProjectLocking();
         }
       },
       error: (err) => console.error('Error al cargar gastos:', err),
@@ -1095,6 +1117,26 @@ export class ExpenseForm implements OnInit {
     });
   }
 
+
+  /**
+ * Bloquea el proyecto en gastos relacionados a una orden de compra.
+ * El proyecto debe conservarse igual al de la O.C. para no romper trazabilidad.
+ */
+  applyPurchaseOrderProjectLocking(): void {
+    if (!this.isPurchaseOrderProjectLocked) return;
+
+    this.bulkProjectCtrl.disable({ emitEvent: false });
+    this.bulkProjectSelected = null;
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      if (this.isWarehouseItem(ctrl)) {
+        ctrl.get('project_id')?.setValue(null, { emitEvent: false });
+      }
+
+      ctrl.get('project_id')?.disable({ emitEvent: false });
+      ctrl.get('project_id')?.updateValueAndValidity({ emitEvent: false });
+    });
+  }
   // ==========================
   //  GUARDAR / ACTUALIZAR
   // ==========================
@@ -1280,7 +1322,9 @@ export class ExpenseForm implements OnInit {
   applyBulkProject(): void {
     const project = this.bulkProjectSelected;
 
-    if (!project || this.isWarehouseSafeExpense) return;
+    if (!project || this.isWarehouseSafeExpense || this.isPurchaseOrderProjectLocked) {
+      return;
+    }
 
     this.itemsFA.controls.forEach((ctrl) => {
       if (ctrl.get('selected')?.value && !this.isWarehouseItem(ctrl)) {

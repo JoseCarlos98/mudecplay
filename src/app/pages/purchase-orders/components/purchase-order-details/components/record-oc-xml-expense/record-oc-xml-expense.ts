@@ -13,7 +13,10 @@ import {
 import { ModuleHeader } from '../../../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
 import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
-import { InputDate } from '../../../../../../shared/ui/input-date/input-date';
+import {
+  DateRangeValue,
+  InputDate,
+} from '../../../../../../shared/ui/input-date/input-date';
 import { InputField } from '../../../../../../shared/ui/input-field/input-field';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
@@ -82,10 +85,9 @@ export class RecordOcXmlExpense implements OnInit {
   errorMessage: string | null = null;
 
   form: FormGroup = this.fb.group({
+    dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string | null>(null),
     amount: this.fb.control<number | string | null>(null),
-    date_from: this.fb.control<string | null>(null),
-    date_to: this.fb.control<string | null>(null),
     notes: this.fb.control<string | null>(null),
   });
 
@@ -176,11 +178,15 @@ export class RecordOcXmlExpense implements OnInit {
   get hasActiveXmlFilters(): boolean {
     const raw = this.form.getRawValue();
 
+    const hasDates = !!(
+      raw.dateRange?.startDate ||
+      raw.dateRange?.endDate
+    );
+
     return !!(
+      hasDates ||
       raw.search?.trim() ||
-      this.toNumberOrNull(raw.amount) !== null ||
-      raw.date_from ||
-      raw.date_to
+      this.toNumberOrNull(raw.amount) !== null
     );
   }
 
@@ -283,12 +289,14 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   clearFilters(): void {
-    this.form.patchValue({
-      search: null,
-      amount: null,
-      date_from: null,
-      date_to: null,
-    });
+    this.form.patchValue(
+      {
+        dateRange: null,
+        search: null,
+        amount: null,
+      },
+      { emitEvent: false },
+    );
 
     this.loadAvailableXmlExpenses(true);
   }
@@ -496,8 +504,8 @@ export class RecordOcXmlExpense implements OnInit {
       limit: this.availableLimit,
       search: raw.search?.trim() || null,
       amount,
-      date_from: raw.date_from || null,
-      date_to: raw.date_to || null,
+      date_from: raw.dateRange?.startDate ?? null,
+      date_to: raw.dateRange?.endDate ?? null,
     };
 
     this.loadingXmlExpenses.set(true);

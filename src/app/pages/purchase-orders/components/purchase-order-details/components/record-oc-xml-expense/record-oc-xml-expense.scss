@@ -476,530 +476,39 @@
   }
 }
 
+/* =========================================================
+ * FILTROS XML
+ * ========================================================= */
+
 .record-oc-xml-filters {
-  display: grid;
-  grid-template-columns:
-    minmax(220px, 1fr)
-    minmax(130px, 0.45fr)
-    minmax(145px, 0.45fr)
-    minmax(145px, 0.45fr)
-    auto;
-  gap: 10px;
-  align-items: end;
-
-  margin-bottom: 12px;
-
-  app-input-field,
-  app-input-date {
-    min-width: 0;
-    display: block;
-    width: 100%;
-  }
-}
-
-.record-oc-xml-filters__actions {
-  display: block;
-
-  app-btns-section {
-    display: block;
-    width: 100%;
-  }
-
-  // ::ng-deep .btns-action-filters {
-  //   display: flex;
-  //   align-items: end;
-  //   gap: 8px;
-  // }
-}
-
-.record-oc-xml-list-wrapper {
-  position: relative;
-  min-height: 220px;
-}
-
-.record-oc-xml-list {
-  display: grid;
-  gap: 10px;
-
-  max-height: 390px;
-  overflow: auto;
-
-  padding: 4px;
-}
-
-.record-oc-xml-available-card {
-  display: grid;
-  gap: 10px;
-
-  padding: 12px;
-
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
-    #fbfdff;
-}
-
-.record-oc-xml-available-card--selected {
-  border-color: rgba(39, 170, 225, 0.65);
-  background: #f2faff;
-  box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.08);
-}
-
-.record-oc-xml-available-card--disabled {
-  opacity: 0.7;
-}
-
-.record-oc-xml-available-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-
-  small {
-    display: block;
-    margin-bottom: 2px;
-
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 800;
-  }
-
-  strong {
-    display: block;
-
-    color: var(--color-secundary);
-    font-size: 15px;
-    font-weight: 800;
-  }
-
-  button {
-    min-height: 32px;
-    border-radius: 8px !important;
-    white-space: nowrap;
-  }
-}
-
-.record-oc-xml-available-card__meta {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
-
-  div {
-    min-width: 0;
-
-    padding: 8px;
-
-    border: 1px solid rgba(148, 163, 184, 0.16);
-    border-radius: 10px;
-    background: #ffffff;
-  }
-
-  span {
-    display: block;
-    margin-bottom: 3px;
-
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 800;
-  }
-
-  strong {
-    color: var(--color-secundary);
-    font-size: 12px;
-    font-weight: 800;
-    word-break: break-word;
-  }
-}
-
-.record-oc-xml-uuid {
-  display: grid;
-  gap: 3px;
-
-  padding: 8px 10px;
-
-  border-radius: 10px;
-  background: #f8fafc;
-
-  span {
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 800;
-  }
-
-  strong {
-    color: #475569;
-    font-size: 11px;
-    font-weight: 800;
-    word-break: break-word;
-  }
-}
-
-/* =========================================================
- * PARTIDAS
- * ========================================================= */
-
-.record-oc-xml-selected {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(148, 163, 184, 0.2);
-}
-
-.record-oc-xml-selected__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-
-  margin-bottom: 10px;
-
-  h3 {
-    margin: 0;
-
-    color: var(--color-secundary);
-    font-size: 15px;
-    font-weight: 800;
-  }
-
-  p {
-    margin: 3px 0 0;
-
-    color: #64748b;
-    font-size: 12px;
-  }
-}
-
-.record-oc-xml-selected__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  button {
-    min-height: 32px;
-    border-radius: 8px !important;
-    white-space: nowrap;
-  }
-}
-
-.record-oc-xml-items {
-  display: grid;
-  gap: 8px;
-
-  max-height: 330px;
-  overflow: auto;
-
-  padding: 4px;
-}
-
-.record-oc-xml-item {
-  display: grid;
-  grid-template-columns: 28px minmax(230px, 1fr) repeat(4, minmax(92px, 0.35fr));
-  align-items: center;
-  gap: 8px;
-
-  padding: 10px;
-
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
-    #fbfdff;
-}
-
-.record-oc-xml-item--selected {
-  border-color: rgba(34, 197, 94, 0.38);
-  background: linear-gradient(180deg, #ffffff 0%, #f7fff9 100%);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.06);
-}
-
-.record-oc-xml-check {
-  display: grid;
-  place-items: center;
-
-  input {
-    width: 17px;
-    height: 17px;
-
-    cursor: pointer;
-    accent-color: var(--color-primary);
-  }
-}
-
-.record-oc-xml-item__content {
-  min-width: 0;
-
-  strong,
-  span {
-    display: block;
-  }
-
-  strong {
-    color: var(--color-secundary);
-    font-size: 13px;
-    font-weight: 800;
-    line-height: 1.25;
-  }
-
-  span {
-    margin-top: 2px;
-
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 700;
-  }
-}
-
-.record-oc-xml-item__data {
-  min-width: 0;
-
-  span {
-    display: block;
-    margin-bottom: 2px;
-
-    color: #64748b;
-    font-size: 10px;
-    font-weight: 800;
-  }
-
-  strong {
-    color: var(--color-secundary);
-    font-size: 12px;
-    font-weight: 800;
-    word-break: break-word;
-  }
-}
-
-.record-oc-xml-notes {
-  display: grid;
-  gap: 6px;
-  margin-top: 12px;
-
-  span {
-    color: var(--color-primary-strong);
-    font-size: 12px;
-    font-weight: 800;
-  }
-
-  textarea {
-    width: 100%;
-    min-height: 86px;
-    resize: vertical;
-
-    padding: 10px 12px;
-
-    border: 1px solid rgba(35, 31, 32, 0.14);
-    border-radius: 10px;
-    outline: none;
-
-    color: #111827;
-    font-family: inherit;
-    font-size: 13px;
-    line-height: 1.4;
-
-    background: #ffffff;
-
-    transition:
-      border-color 0.2s ease,
-      box-shadow 0.2s ease;
-
-    &:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
-    }
-
-    &::placeholder {
-      color: #9ca3af;
-    }
-  }
-}
-
-/* =========================================================
- * PANEL DERECHO
- * ========================================================= */
-
-.record-oc-xml-card--summary {
-  display: grid;
-  gap: 12px;
-}
-
-.record-oc-xml-summary-box {
-  display: grid;
-  gap: 10px;
-
-  padding: 12px;
-
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 12px;
-  background: #fbfdff;
-
-  div {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  span {
-    color: #64748b;
-    font-size: 13px;
-    font-weight: 700;
-  }
-
-  strong {
-    color: var(--color-secundary);
-    font-size: 13px;
-    font-weight: 800;
-    text-align: right;
-    word-break: break-word;
-  }
-}
-
-.record-oc-xml-danger {
-  color: #b91c1c !important;
-}
-
-/* =========================================================
- * RESPONSIVE
- * ========================================================= */
-
-@media screen and (max-width: 1320px) {
-  .record-oc-xml-hero {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .record-oc-xml-board {
-    grid-template-columns: 320px minmax(0, 1fr);
-  }
-
-  .record-oc-xml-column--right {
-    grid-column: 1 / -1;
-    position: static;
-  }
-
-  .record-oc-xml-item {
-    grid-template-columns: 28px minmax(230px, 1fr) repeat(2, minmax(92px, 0.35fr));
-  }
-}
-
-@media screen and (max-width: 1080px) {
-  .record-oc-xml-board {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-column--right {
-    grid-column: auto;
-    position: static;
-  }
-
-  .record-oc-xml-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .record-oc-xml-filters__actions {
-    grid-column: 1 / -1;
-  }
-}
-
-@media screen and (max-width: 760px) {
-  .record-oc-xml-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-card {
-    padding: 12px;
-  }
-
-  .record-oc-xml-card__header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .record-oc-xml-flow-chip {
-    width: fit-content;
-  }
-
-  .record-oc-xml-photo {
-    min-height: 220px;
-  }
-
-  .record-oc-xml-filters,
-  .record-oc-xml-available-card__meta {
-    grid-template-columns: 1fr;
-  }
-
-  .record-oc-xml-selected__header {
-    flex-direction: column;
-  }
-
-  .record-oc-xml-item {
-    grid-template-columns: 28px 1fr;
-  }
-
-  .record-oc-xml-item__data {
-    grid-column: 2 / -1;
-  }
-
- 
-}
-
-/* =========================================================
- * AJUSTE FILTROS XML
- * ========================================================= */
-
-.record-oc-xml-filters {
-  display: grid;
-  grid-template-columns:
-    minmax(220px, 1fr)
-    minmax(130px, 0.45fr)
-    minmax(145px, 0.45fr)
-    minmax(145px, 0.45fr);
   gap: 10px;
   align-items: end;
 
   margin-bottom: 12px;
 
   app-input-field,
-  app-input-date {
+  app-input-date,
+  app-btns-section {
     min-width: 0;
     display: block;
     width: 100%;
   }
-}
 
-.record-oc-xml-filters__actions {
-  grid-column: 1 / -1;
-
-  display: flex;
-  justify-content: flex-end;
-
-  app-btns-section {
-    display: block;
+  ::ng-deep .mat-mdc-form-field,
+  ::ng-deep .c-input,
+  ::ng-deep .w-100 {
+    width: 100%;
   }
 
   ::ng-deep .btns-action-filters {
+    width: 100%;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
   }
-
-  // ::ng-deep .btns-action-filters button {
-  //   min-height: 36px;
-  //   border-radius: 9px !important;
-  // }
-}
-
-/* =========================================================
- * FONDO GRADIENTE COMO DIRECTO SIN FACTURA
- * ========================================================= */
-
-.record-oc-xml-available-card,
-.record-oc-xml-item {
-  background:
-    radial-gradient(
-      circle at 2% 30%,
-      rgba(39, 170, 225, 0.06) 0,
-      transparent 28%
-    ),
-    #fbfdff;
 }
 
 /* =========================================================
@@ -1021,6 +530,17 @@
   padding: 4px;
 }
 
+.record-oc-xml-available-card,
+.record-oc-xml-item {
+  background:
+    radial-gradient(
+      circle at 2% 30%,
+      rgba(39, 170, 225, 0.06) 0,
+      transparent 28%
+    ),
+    #fbfdff;
+}
+
 .record-oc-xml-available-card {
   display: grid;
   gap: 10px;
@@ -1035,6 +555,10 @@
   border-color: rgba(39, 170, 225, 0.65);
   background: #f2faff;
   box-shadow: 0 0 0 3px rgba(39, 170, 225, 0.08);
+}
+
+.record-oc-xml-available-card--disabled {
+  opacity: 0.7;
 }
 
 .record-oc-xml-available-card__header {
@@ -1294,6 +818,98 @@
 }
 
 /* =========================================================
+ * NOTAS
+ * ========================================================= */
+
+.record-oc-xml-notes {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+
+  span {
+    color: var(--color-primary-strong);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 86px;
+    resize: vertical;
+
+    padding: 10px 12px;
+
+    border: 1px solid rgba(35, 31, 32, 0.14);
+    border-radius: 10px;
+    outline: none;
+
+    color: #111827;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+
+    background: #ffffff;
+
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+
+    &:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
+    }
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+  }
+}
+
+/* =========================================================
+ * PANEL DERECHO
+ * ========================================================= */
+
+.record-oc-xml-card--summary {
+  display: grid;
+  gap: 12px;
+}
+
+.record-oc-xml-summary-box {
+  display: grid;
+  gap: 10px;
+
+  padding: 12px;
+
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 12px;
+  background: #fbfdff;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    font-weight: 800;
+    text-align: right;
+    word-break: break-word;
+  }
+}
+
+.record-oc-xml-danger {
+  color: #b91c1c !important;
+}
+
+/* =========================================================
  * BOTONES PANEL DERECHO
  * ========================================================= */
 
@@ -1329,12 +945,25 @@
  * ========================================================= */
 
 @media screen and (max-width: 1320px) {
-  .record-oc-xml-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .record-oc-xml-hero {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .record-oc-xml-filters__actions {
-    justify-content: flex-start;
+  .record-oc-xml-board {
+    grid-template-columns: 320px minmax(0, 1fr);
+  }
+
+  .record-oc-xml-column--right {
+    grid-column: 1 / -1;
+    position: static;
+  }
+
+  .record-oc-xml-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    ::ng-deep .btns-action-filters {
+      justify-content: flex-start;
+    }
   }
 
   .record-oc-xml-item {
@@ -1350,7 +979,39 @@
   }
 }
 
+@media screen and (max-width: 1080px) {
+  .record-oc-xml-board {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-column--right {
+    grid-column: auto;
+    position: static;
+  }
+}
+
 @media screen and (max-width: 760px) {
+  .record-oc-xml-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .record-oc-xml-card {
+    padding: 12px;
+  }
+
+  .record-oc-xml-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-oc-xml-flow-chip {
+    width: fit-content;
+  }
+
+  .record-oc-xml-photo {
+    min-height: 220px;
+  }
+
   .record-oc-xml-filters,
   .record-oc-xml-available-card__meta,
   .record-oc-xml-item__breakdown {

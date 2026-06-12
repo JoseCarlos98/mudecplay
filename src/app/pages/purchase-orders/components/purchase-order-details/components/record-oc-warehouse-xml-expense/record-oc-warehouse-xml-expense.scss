@@ -482,42 +482,36 @@
 }
 
 /* =========================================================
- * FILTROS
+ * FILTROS XML
  * ========================================================= */
 
 .record-oc-xml-filters {
   display: grid;
-  grid-template-columns:
-    minmax(220px, 1fr)
-    minmax(130px, 0.45fr)
-    minmax(145px, 0.45fr)
-    minmax(145px, 0.45fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   align-items: end;
 
   margin-bottom: 12px;
 
   app-input-field,
-  app-input-date {
+  app-input-date,
+  app-btns-section {
     min-width: 0;
     display: block;
     width: 100%;
   }
-}
 
-.record-oc-xml-filters__actions {
-  grid-column: 1 / -1;
-
-  display: flex;
-  justify-content: flex-end;
-
-  app-btns-section {
-    display: block;
+  ::ng-deep .mat-mdc-form-field,
+  ::ng-deep .c-input,
+  ::ng-deep .w-100 {
+    width: 100%;
   }
 
   ::ng-deep .btns-action-filters {
+    width: 100%;
     display: flex;
     align-items: center;
+    justify-content: flex-start;
     gap: 8px;
   }
 }
@@ -855,7 +849,7 @@
   span {
     color: var(--color-primary-strong);
     font-size: 12px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   textarea {
@@ -930,33 +924,6 @@
   color: #b91c1c !important;
 }
 
-.record-oc-xml-actions {
-  display: block;
-
-  app-btns-section {
-    display: block;
-    width: 100%;
-  }
-
-  ::ng-deep .c-modal-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-
-    margin: 0;
-    padding: 0;
-  }
-
-  ::ng-deep .c-modal-actions button {
-    width: 100%;
-    min-height: 40px;
-    border-radius: 9px !important;
-
-    font-size: 13px;
-    font-weight: 700;
-  }
-}
-
 /* =========================================================
  * RESPONSIVE
  * ========================================================= */
@@ -977,10 +944,10 @@
 
   .record-oc-xml-filters {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
-  .record-oc-xml-filters__actions {
-    justify-content: flex-start;
+    ::ng-deep .btns-action-filters {
+      justify-content: flex-start;
+    }
   }
 
   .record-oc-xml-item {
@@ -1004,14 +971,6 @@
   .record-oc-xml-column--right {
     grid-column: auto;
     position: static;
-  }
-
-  .record-oc-xml-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .record-oc-xml-filters__actions {
-    grid-column: 1 / -1;
   }
 }
 
@@ -1054,11 +1013,5 @@
   .record-oc-xml-item__data,
   .record-oc-xml-item__breakdown {
     grid-column: 2 / -1;
-  }
-
-  .record-oc-xml-actions {
-    ::ng-deep .c-modal-actions {
-      grid-template-columns: 1fr;
-    }
   }
 }

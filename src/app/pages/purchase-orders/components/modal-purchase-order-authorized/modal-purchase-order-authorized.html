@@ -1,90 +1,128 @@
-<div class="c-modal c-modal--purchase-order-authorized">
-  <app-module-header [title]="'Autorizadores'" [config]="headerConfig" (action)="closeModal()">
+<div class="c-modal">
+  <app-module-header
+    title="Autorizadores"
+    [config]="headerConfig"
+    (action)="closeModal()">
   </app-module-header>
 
-  <div class="authorized-body">
-    <section class="authorized-info">
-      <div class="authorized-info__icon">
-        <mat-icon>verified_user</mat-icon>
-      </div>
+  <div class="authorizer-summary">
+    <div class="authorizer-summary__icon">
+      <mat-icon>verified_user</mat-icon>
+    </div>
 
+    <div class="authorizer-summary__content">
+      <h3>Configura quién puede autorizar órdenes de compra</h3>
+
+      <p>
+        Solo los empleados agregados en esta lista aparecerán como
+        <strong>autorizadores</strong>
+        al autorizar una Orden de Compra.
+      </p>
+
+      <p>
+        El usuario que registre la autorización se guardará automáticamente como
+        <strong>registrado por</strong>.
+      </p>
+    </div>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
       <div>
-        <h3>Configura quién puede autorizar órdenes de compra</h3>
-        <p>
-          Solo los empleados agregados a esta lista aparecerán como
-          <strong>Autorizado por</strong> al autorizar una Orden de Compra.
-          El usuario que registre la autorización se guardará automáticamente.
-        </p>
-      </div>
-    </section>
-
-    <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
-
-      <div class="authorized-form">
-        <app-autocomplete formControlName="employee_id" label="Empleado autorizador" placeholder="Buscar empleado"
-          catalogType="purchaseOrderAuthorizerCandidate" [remote]="true">
+        <app-autocomplete
+          formControlName="employee_id"
+          label="Empleado autorizador"
+          placeholder="Buscar empleado"
+          [remote]="true"
+          catalogType="purchaseOrderAuthorizerCandidate">
         </app-autocomplete>
+
+        <small class="field-helper">
+          Busca empleados registrados en Mano de Obra que aún no estén agregados
+          como autorizadores.
+        </small>
       </div>
-    </form>
+    </div>
+  </form>
 
-    <p class="authorized-help">
-      Busca empleados registrados en Mano de Obra que aún no estén agregados
-      como autorizadores.
-    </p>
-
-    <section class="authorized-list">
-      <div class="authorized-list__header">
-        <div>
-          <h3>Autorizadores actuales</h3>
-          <p>
-            {{ authorizers.length }}
-            {{ authorizers.length === 1 ? 'empleado autorizado' : 'empleados autorizados' }}
-          </p>
-        </div>
+  <section class="authorizers-list">
+    <div class="authorizers-list__header">
+      <div>
+        <h4>Autorizadores actuales</h4>
+        <p>
+          {{ authorizers.length }}
+          {{ authorizers.length === 1 ? 'empleado autorizado' : 'empleados autorizados' }}
+        </p>
       </div>
 
       @if (loading) {
-      <div class="authorized-empty">
-        Cargando autorizadores...
+        <span class="authorizers-list__loading">Cargando...</span>
+      }
+    </div>
+
+    @if (!loading && authorizers.length === 0) {
+      <div class="authorizers-empty">
+        <mat-icon>person_search</mat-icon>
+        <strong>Sin autorizadores configurados</strong>
+        <span>
+          Agrega empleados autorizados para que puedan seleccionarse al autorizar
+          una O.C.
+        </span>
       </div>
-      } @else if (authorizers.length === 0) {
-      <div class="authorized-empty">
-        No hay autorizadores configurados todavía.
-      </div>
-      } @else {
-      <div class="authorized-items">
+    }
+
+    @if (authorizers.length > 0) {
+      <div class="authorizer-items">
         @for (row of authorizers; track row.id) {
-        <article class="authorized-item">
-          <div class="authorized-item__avatar">
-            <mat-icon>person</mat-icon>
-          </div>
+          <article class="authorizer-item">
+            <div class="authorizer-item__avatar">
+              <mat-icon>person</mat-icon>
+            </div>
 
-          <div class="authorized-item__content">
-            <strong>
-              {{ row.employee_name || row.employee?.name || 'Empleado sin nombre' }}
-            </strong>
+            <div class="authorizer-item__content">
+              <h5>
+                {{ row.employee_name || row.employee?.name || 'Empleado sin nombre' }}
+              </h5>
 
-            <span>
-              {{ row.employee?.employee_area?.name || 'Sin área' }}
+              <p>
+                @if (row.employee?.employee_area?.name) {
+                  <span>{{ row.employee?.employee_area?.name }}</span>
+                }
 
-              @if (row.employee?.position) {
-              <span> • {{ row.employee?.position }}</span>
-              }
-            </span>
-          </div>
+                @if (row.employee?.position) {
+                  <span>{{ row.employee?.position }}</span>
+                }
 
-          <button mat-icon-button type="button" color="warn" [disabled]="saving" matTooltip="Quitar autorizador"
-            (click)="deactivateAuthorizer(row)">
-            <mat-icon>person_remove</mat-icon>
-          </button>
-        </article>
+                @if (!row.employee?.employee_area?.name && !row.employee?.position) {
+                  <span>Sin área o puesto registrado</span>
+                }
+              </p>
+            </div>
+
+            <button
+              type="button"
+              mat-icon-button
+              class="authorizer-item__remove"
+              [disabled]="saving"
+              (click)="deactivateAuthorizer(row)"
+              aria-label="Quitar autorizador">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </article>
         }
       </div>
-      }
-    </section>
-  </div>
+    }
+  </section>
 
-  <app-btns-section class="modal-actions-spacer" type="save" form="form" [saveDisabled]="form.invalid || saving"
-    (action)="onBtnsSectionAction($event)">
+  <app-btns-section
+    type="save"
+    form="form"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="form.invalid || saving">
   </app-btns-section>
 </div>

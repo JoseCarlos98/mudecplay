@@ -262,12 +262,18 @@
           </p>
         </section>
 
-        <section class="record-oc-xml-filters">
+        <section class="record-oc-xml-filters c-filters">
+          <app-input-date
+            formControlName="dateRange"
+            label="Rango de fecha"
+            mode="range">
+          </app-input-date>
+
           <app-input-field
             formControlName="search"
             label="Buscar"
             type="text"
-            placeholder="Folio, UUID, proveedor o producto">
+            >
           </app-input-field>
 
           <app-input-field
@@ -276,28 +282,11 @@
             type="money">
           </app-input-field>
 
-          <app-input-date
-            formControlName="date_from"
-            label="Desde"
-            mode="single"
-            [showClear]="true">
-          </app-input-date>
-
-          <app-input-date
-            formControlName="date_to"
-            label="Hasta"
-            mode="single"
-            [showClear]="true">
-          </app-input-date>
-
-          <div class="record-oc-xml-filters__actions">
-            <app-btns-section
-              type="search"
-              [hasActiveSearch]="!isBlockedByFlow && !hasExistingPhotoLink"
-              [hasActiveFilters]="hasActiveXmlFilters"
-              (action)="onFilterAction($event)">
-            </app-btns-section>
-          </div>
+          <app-btns-section
+            type="search"
+            [hasActiveFilters]="hasActiveXmlFilters"
+            (action)="onFilterAction($event)">
+          </app-btns-section>
         </section>
 
         <div class="record-oc-xml-list-wrapper">
@@ -517,7 +506,7 @@
 
           <textarea
             formControlName="notes"
-            placeholder="Ejemplo: XML de almacén relacionado con ticket conciliado.">
+            placeholder="Ingrese texto">
           </textarea>
         </label>
       </section>
