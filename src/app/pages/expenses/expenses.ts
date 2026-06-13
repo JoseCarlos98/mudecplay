@@ -239,11 +239,16 @@ export class Expenses implements OnInit {
   //  ACCIONES BASE
   // ==========================
   canDeleteRow = (row: entity.ExpenseResponseDto) => {
+    if (this.isPurchaseOrderLinkedExpense(row)) return false;
     if (this.isWarehouseExpense(row)) return false;
     return !row.cfdi_uuid;
   };
 
   deleteTooltip = (row: entity.ExpenseResponseDto) => {
+    if (this.isPurchaseOrderLinkedExpense(row)) {
+      return this.getPurchaseOrderLockedMessage(row, 'eliminar');
+    }
+
     if (this.isWarehouseExpense(row)) {
       return 'Los gastos de almacén se cancelan con la acción "Cancelar gasto de almacén".';
     }
@@ -265,6 +270,38 @@ export class Expenses implements OnInit {
     );
   }
 
+  private isPurchaseOrderLinkedExpense(row: entity.ExpenseResponseDto): boolean {
+    return !!row.is_purchase_order_linked || !!row.purchase_order_link;
+  }
+
+  private getPurchaseOrderFolio(row: entity.ExpenseResponseDto): string {
+    return row.purchase_order_link?.folio ?? 'una O.C.';
+  }
+
+  private getPurchaseOrderLockedMessage(
+    row: entity.ExpenseResponseDto,
+    actionLabel: 'cancelar' | 'eliminar',
+  ): string {
+    return (
+      `Este gasto ya está relacionado con la O.C. ${this.getPurchaseOrderFolio(row)}. ` +
+      `Para ${actionLabel}lo o corregirlo, entra al detalle de la Orden de Compra.`
+    );
+  }
+
+  private showPurchaseOrderLockedDialog(
+    row: entity.ExpenseResponseDto,
+    actionLabel: 'cancelar' | 'eliminar',
+  ): void {
+    this.dialogService
+      .confirm({
+        title: 'Acción no disponible',
+        message: this.getPurchaseOrderLockedMessage(row, actionLabel),
+        confirmText: 'OK',
+        cancelText: '',
+      })
+      .subscribe();
+  }
+
   getReceiptTooltip = (row: entity.ExpenseResponseDto): string => {
     return row.can_generate_receipt ? 'Descargar comprobante' : '';
   };
@@ -277,6 +314,10 @@ export class Expenses implements OnInit {
     row: entity.ExpenseResponseDto,
   ): string => {
     if (!this.isWarehouseExpense(row)) return '';
+
+    if (this.isPurchaseOrderLinkedExpense(row)) {
+      return this.getPurchaseOrderLockedMessage(row, 'cancelar');
+    }
 
     return row.cfdi_uuid
       ? 'Cancelar gasto XML de almacén'
@@ -313,6 +354,17 @@ export class Expenses implements OnInit {
     row: entity.ExpenseResponseDto,
   ): DataTableActionPopover | null => {
     if (!this.isWarehouseExpense(row)) return null;
+
+    if (this.isPurchaseOrderLinkedExpense(row)) {
+      return {
+        title: 'No se puede cancelar desde Gastos',
+        message: null,
+        items: [
+          this.getPurchaseOrderLockedMessage(row, 'cancelar'),
+        ],
+        kind: 'warning',
+      };
+    }
 
     return {
       title: 'Cancelar gasto completo de almacén',
@@ -351,7 +403,7 @@ export class Expenses implements OnInit {
       tooltip: this.getCancelWarehouseExpenseTooltip,
       popoverContent: this.getCancelWarehouseExpensePopover,
       visible: (row) => this.isWarehouseExpense(row),
-      disabled: () => false,
+      disabled: (row) => this.isPurchaseOrderLinkedExpense(row),
     },
   ];
 
@@ -385,7 +437,6 @@ export class Expenses implements OnInit {
   ngOnInit(): void {
     this.restoreFiltersFromStorage();
     this.loadCatalogs();
-    console.log('ROLES ACTUALES DEL USUARIO PARA GASTOS', this.permissionsService.roles);
   }
 
   // ==========================
@@ -608,6 +659,11 @@ export class Expenses implements OnInit {
   }
 
   onDelete(expense: entity.ExpenseResponseDto): void {
+    if (this.isPurchaseOrderLinkedExpense(expense)) {
+      this.showPurchaseOrderLockedDialog(expense, 'eliminar');
+      return;
+    }
+
     if (this.isWarehouseExpense(expense)) {
       this.openCancelWarehouseExpenseModal(expense);
       return;
@@ -632,6 +688,11 @@ export class Expenses implements OnInit {
 
   private openCancelWarehouseExpenseModal(expense: entity.ExpenseResponseDto): void {
     if (!this.isWarehouseExpense(expense)) return;
+
+    if (this.isPurchaseOrderLinkedExpense(expense)) {
+      this.showPurchaseOrderLockedDialog(expense, 'cancelar');
+      return;
+    }
 
     this.dialogService
       .open(

@@ -63,6 +63,11 @@ export interface ExpenseStatus {
   name: string;
 }
 
+export interface ExpensePurchaseOrderLink {
+  id: number;
+  folio: string;
+}
+
 export interface Project {
   id: number;
   name: string;
@@ -160,7 +165,9 @@ export interface ExpenseResponseDto {
   warehouse_assignment_status_label: string;
   warehouse_assignment_control: ExpenseWarehouseAssignmentControl;
 
-  // Campo calculado en frontend para la columna visual
+  is_purchase_order_linked?: boolean;
+  purchase_order_link?: ExpensePurchaseOrderLink | null;
+
   warehouse_assignment_status_display?: string;
 
   items: ExpenseItem[];
@@ -284,6 +291,10 @@ export interface ExpenseDetail {
   cfdi_uuid?: string | null;
 
   origin_type?: string | null;
+
+  is_purchase_order_linked?: boolean;
+  purchase_order_link?: ExpensePurchaseOrderLink | null;
+
   provider_display_name?: string | null;
 
   supplier: {
