@@ -12,6 +12,7 @@ import {
   ColumnsConfig,
   ColumnVariant,
   DataTableActionEvent,
+  DataTableActionPopover,
   DataTableExtraAction,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 
@@ -19,6 +20,7 @@ import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalSeePhoto } from '../photo-without-cost/components/modal-see-photo/modal-see-photo';
 import { PendingTicketPhotoRow } from '../../interfaces/purchase-orders.interfaces';
+import { PermissionsService } from '../../../../auth/services/permissions.service';
 
 type DetailStatusVariant =
   | 'success'
@@ -102,6 +104,7 @@ interface PurchaseOrderExpense {
 
   ticketPhotoId: number | null;
   ticketFileName: string | null;
+  linkId: number;
 }
 
 interface PurchaseOrderPaymentSummary {
@@ -215,6 +218,7 @@ export class PurchaseOrderDetails implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
   private readonly dialogService = inject(DialogService);
+  private readonly permissionsService = inject(PermissionsService);
 
   readonly pageTitle = 'Detalle de orden de compra';
   readonly headerConfig = HEADER_CONFIG;
@@ -222,6 +226,10 @@ export class PurchaseOrderDetails implements OnInit {
   readonly tablePageSizeOptions: number[] = [5, 10, 25, 50];
 
   loadingDetail = false;
+  cancellingOrder = false;
+
+  unreconcilingPhotoId: number | null = null;
+  unlinkingExpenseLinkId: number | null = null;
 
   expensesPageIndex = 0;
   expensesPageSize = 5;
@@ -292,6 +300,14 @@ export class PurchaseOrderDetails implements OnInit {
       visible: () => true,
       disabled: (row) => !row?.id,
     },
+    {
+      type: 'unlinkExpense',
+      icon: 'link_off',
+      tooltip: (row) => this.getUnlinkExpenseTooltip(row),
+      popoverContent: (row) => this.getUnlinkExpensePopover(row),
+      visible: () => true,
+      disabled: (row) => !this.canUnlinkExpense(row),
+    },
   ];
 
   readonly historyColumnsConfig: ColumnsConfig[] = [
@@ -358,6 +374,10 @@ export class PurchaseOrderDetails implements OnInit {
     switch (event.type) {
       case 'viewExpense':
         this.goToExpenseForm(event.row);
+        break;
+
+      case 'unlinkExpense':
+        this.unlinkExpense(event.row);
         break;
 
       default:
@@ -427,6 +447,200 @@ export class PurchaseOrderDetails implements OnInit {
     });
   }
 
+  canUnreconcilePhoto(photo: PurchaseOrderPhoto): boolean {
+    return (
+      !!photo?.id &&
+      photo.status === 'reconciled' &&
+      !photo.hasExpense &&
+      this.order.status !== 'cancelled'
+    );
+  }
+
+  unreconcilePhoto(photo: PurchaseOrderPhoto): void {
+    if (!this.canUnreconcilePhoto(photo)) return;
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        title: 'Desconciliar foto',
+        message:
+          `¿Quieres desconciliar la foto "${photo.fileName}" de la O.C. ${this.order.folio}?\n\n` +
+          'La foto volverá a quedar pendiente y podrá conciliarse nuevamente.',
+        confirmText: 'Desconciliar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.unreconcilingPhotoId = photo.id;
+
+        this.purchaseOrdersService
+          .unreconcileTicketPhoto(photo.id, {
+            reason: 'Desconciliación realizada desde el detalle de Orden de Compra.',
+          })
+          .pipe(
+            finalize(() => {
+              this.unreconcilingPhotoId = null;
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.reloadCurrentDetail();
+            },
+            error: (err) => {
+              console.error('Error al desconciliar foto:', err);
+
+              this.showErrorDialog(
+                this.getHttpErrorMessage(
+                  err,
+                  'No se pudo desconciliar la foto.',
+                ),
+              );
+            },
+          });
+      });
+  }
+
+  canUnlinkExpense(expense: PurchaseOrderExpense): boolean {
+    if (!this.order.id) return false;
+
+    if (!expense?.linkId) return false;
+
+    if (this.order.status === 'cancelled') return false;
+
+    if (this.unlinkingExpenseLinkId === expense.linkId) return false;
+
+    if (this.isExpensePaidOrCompleted(expense)) return false;
+
+    return true;
+  }
+
+  getUnlinkExpenseTooltip(expense: PurchaseOrderExpense): string {
+    if (this.unlinkingExpenseLinkId === expense?.linkId) {
+      return 'Desvinculando gasto...';
+    }
+
+    if (this.canUnlinkExpense(expense)) {
+      return 'Desvincular gasto de la O.C.';
+    }
+
+    return '';
+  }
+
+  getUnlinkExpensePopover(
+    expense: PurchaseOrderExpense,
+  ): DataTableActionPopover | null {
+    if (this.canUnlinkExpense(expense)) {
+      return null;
+    }
+
+    if (this.unlinkingExpenseLinkId === expense?.linkId) {
+      return null;
+    }
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: this.getUnlinkExpenseBlockReasons(expense),
+      kind: 'warning',
+    };
+  }
+
+  private getUnlinkExpenseBlockReasons(
+    expense: PurchaseOrderExpense,
+  ): string[] {
+    if (!expense?.linkId) {
+      return ['No se encontró la relación del gasto con la O.C.'];
+    }
+
+    if (this.order.status === 'cancelled') {
+      return ['No se pueden desvincular gastos de una O.C. cancelada.'];
+    }
+
+    if (this.isExpensePaidOrCompleted(expense)) {
+      return [
+        'Este gasto ya está pagado. No se puede desvincular desde este flujo.',
+      ];
+    }
+
+    return ['No se puede desvincular este gasto de la O.C.'];
+  }
+
+  private isExpensePaidOrCompleted(expense: PurchaseOrderExpense): boolean {
+    const balance = Number(expense?.balance ?? 0);
+    const statusLabel = String(expense?.statusLabel ?? '').trim().toLowerCase();
+    const statusVariant = expense?.statusVariant ?? null;
+
+    return (
+      balance <= 0 ||
+      statusLabel === 'pagado' ||
+      statusVariant === 'success'
+    );
+  }
+  private isPurchaseOrderPaymentCompleted(): boolean {
+    return (
+      this.expenses.length > 0 &&
+      this.expenses.every((expense) => Number(expense.balance ?? 0) <= 0)
+    );
+  }
+
+  shouldShowCancelPurchaseOrderButton(): boolean {
+    if (!this.order.id) return false;
+
+    if (this.order.status === 'cancelled') return false;
+
+    if (this.isPurchaseOrderPaymentCompleted()) return false;
+
+    return true;
+  }
+
+  unlinkExpense(expense: PurchaseOrderExpense): void {
+    if (!this.canUnlinkExpense(expense) || !this.order.id) return;
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        title: 'Desvincular gasto',
+        message:
+          `¿Quieres desvincular el gasto "${expense.folio}" de la O.C. ${this.order.folio}?\n\n` +
+          'El gasto seguirá existiendo en el módulo de Gastos. Esta acción solo quitará la relación con la Orden de Compra.',
+        confirmText: 'Desvincular',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed || !this.order.id) return;
+
+        this.unlinkingExpenseLinkId = expense.linkId;
+
+        this.purchaseOrdersService
+          .unlinkExpenseFromPurchaseOrder(this.order.id, expense.linkId, {
+            reason: 'Gasto desvinculado desde el detalle de Orden de Compra.',
+          })
+          .pipe(
+            finalize(() => {
+              this.unlinkingExpenseLinkId = null;
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.reloadCurrentDetail();
+            },
+            error: (err) => {
+              console.error('Error al desvincular gasto:', err);
+
+              this.showErrorDialog(
+                this.getHttpErrorMessage(
+                  err,
+                  'No se pudo desvincular el gasto de la orden de compra.',
+                ),
+              );
+            },
+          });
+      });
+  }
+
+
+
   goToExpensesList(): void {
     this.router.navigateByUrl('/gastos');
   }
@@ -444,6 +658,121 @@ export class PurchaseOrderDetails implements OnInit {
 
   goBack(): void {
     this.router.navigateByUrl('/ordenes-compra');
+  }
+
+  canCancelPurchaseOrder(): boolean {
+    if (!this.order.id) return false;
+
+    if (this.cancellingOrder) return false;
+
+    if (this.order.status === 'cancelled') return false;
+
+    const hasExpenses = this.expenses.length > 0;
+
+    const hasReconciledPhotos = this.photos.some(
+      (photo) => photo.status === 'reconciled',
+    );
+
+    if (hasExpenses || hasReconciledPhotos) return false;
+
+    if (this.order.status === 'authorized') {
+      return this.isAdminGeneral();
+    }
+
+    return (
+      this.order.status === 'in_review' ||
+      this.order.status === 'not_authorized'
+    );
+  }
+
+  getCancelPurchaseOrderTooltip(): string {
+    if (!this.order.id) {
+      return 'Orden de compra no disponible.';
+    }
+
+    if (this.order.status === 'cancelled') {
+      return 'La O.C. ya está cancelada.';
+    }
+
+    if (this.expenses.length > 0) {
+      return 'Para cancelar esta O.C., primero desvincula los gastos relacionados.';
+    }
+
+    const hasReconciledPhotos = this.photos.some(
+      (photo) => photo.status === 'reconciled',
+    );
+
+    if (hasReconciledPhotos) {
+      return 'Para cancelar esta O.C., primero desconcilia las fotos relacionadas.';
+    }
+
+    if (this.order.status === 'authorized' && !this.isAdminGeneral()) {
+      return 'Solo un administrador puede cancelar una O.C. autorizada.';
+    }
+
+    if (this.order.status === 'authorized' && this.isAdminGeneral()) {
+      return 'Cancelar O.C. autorizada como corrección administrativa.';
+    }
+
+    return 'Cancelar orden de compra.';
+  }
+
+  cancelPurchaseOrder(): void {
+    if (!this.canCancelPurchaseOrder() || !this.order.id) return;
+
+    const isAdministrativeCancel = this.order.status === 'authorized';
+
+    const message = isAdministrativeCancel
+      ? `¿Quieres cancelar la O.C. ${this.order.folio}?\n\n` +
+      'Esta O.C. ya está autorizada. La cancelación se registrará como una corrección administrativa.\n\n' +
+      'Solo debe hacerse si la O.C. fue creada o autorizada por error.'
+      : `¿Quieres cancelar la O.C. ${this.order.folio}?\n\n` +
+      'La orden quedará cancelada y ya no podrá continuar el flujo de compra.';
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        title: 'Cancelar O.C.',
+        message,
+        confirmText: 'Cancelar O.C.',
+        cancelText: 'Volver',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed || !this.order.id) return;
+
+        this.cancellingOrder = true;
+
+        this.purchaseOrdersService
+          .cancelPurchaseOrder(this.order.id, {
+            reason: isAdministrativeCancel
+              ? 'Cancelación administrativa realizada desde el detalle de Orden de Compra.'
+              : 'Cancelación realizada desde el detalle de Orden de Compra.',
+          })
+          .pipe(
+            finalize(() => {
+              this.cancellingOrder = false;
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.reloadCurrentDetail();
+            },
+            error: (err) => {
+              console.error('Error al cancelar O.C.:', err);
+
+              this.showErrorDialog(
+                this.getHttpErrorMessage(
+                  err,
+                  'No se pudo cancelar la orden de compra.',
+                ),
+              );
+            },
+          });
+      });
+  }
+
+  private isAdminGeneral(): boolean {
+    return this.permissionsService.hasAnyRole(['ADMIN_GENERAL']);
   }
 
   private loadDetail(id: number | string): void {
@@ -468,6 +797,33 @@ export class PurchaseOrderDetails implements OnInit {
           this.goBack();
         },
       });
+  }
+
+  private reloadCurrentDetail(): void {
+    if (!this.order.id) return;
+
+    this.loadDetail(this.order.id);
+  }
+
+  private showErrorDialog(message: string): void {
+    this.dialogService
+      .confirm({
+        title: 'Error',
+        message,
+        confirmText: 'OK',
+        cancelText: '',
+      })
+      .subscribe();
+  }
+
+  private getHttpErrorMessage(err: any, fallback: string): string {
+    const rawMessage = err?.error?.message ?? err?.message ?? fallback;
+
+    if (Array.isArray(rawMessage)) {
+      return rawMessage.join('\n');
+    }
+
+    return String(rawMessage || fallback);
   }
 
   private setDetailData(detail: PurchaseOrderFlowDetailResponse): void {
@@ -1227,6 +1583,18 @@ export class PurchaseOrderDetails implements OnInit {
   private mapExpenseLink(link: any): PurchaseOrderExpense {
     const expense = link.expense ?? link;
 
+    const linkId = Number(
+      link.id ??
+      link.expense_link_id ??
+      0,
+    );
+
+    const expenseId = Number(
+      expense.id ??
+      link.expense_id ??
+      0,
+    );
+
     const total = Number(
       link.amount_snapshot ??
       expense.total_amount ??
@@ -1257,12 +1625,13 @@ export class PurchaseOrderDetails implements OnInit {
     );
 
     return {
-      id: Number(expense.id ?? link.expense_id ?? link.id ?? 0),
+      id: expenseId,
+      linkId,
       folio:
         expense.internal_folio ??
         expense.folio ??
         link.expense_folio ??
-        `Gasto #${expense.id ?? link.expense_id ?? link.id ?? ''}`,
+        `Gasto #${expenseId || ''}`,
       type:
         link.registration_type_label ??
         this.getRegistrationTypeLabel(link.registration_type) ??

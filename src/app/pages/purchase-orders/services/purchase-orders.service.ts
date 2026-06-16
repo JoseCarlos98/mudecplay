@@ -414,4 +414,25 @@ export class PurchaseOrdersService {
       payload,
     );
   }
+
+  unreconcileTicketPhoto(
+  photoId: number | string,
+  payload: entity.UnreconcileTicketPhotoDto,
+): Observable<entity.UnreconcileTicketPhotoResponse> {
+  return this.http.patch<entity.UnreconcileTicketPhotoResponse>(
+    `${this.apiUrl}/ticket-photos/${photoId}/unreconcile`,
+    payload,
+  );
+}
+
+unlinkExpenseFromPurchaseOrder(
+  purchaseOrderId: number | string,
+  expenseLinkId: number | string,
+  payload: entity.UnlinkPurchaseOrderExpenseDto,
+): Observable<entity.UnlinkPurchaseOrderExpenseResponse> {
+  return this.http.patch<entity.UnlinkPurchaseOrderExpenseResponse>(
+    `${this.apiUrl}/${purchaseOrderId}/expense-links/${expenseLinkId}/unlink`,
+    payload,
+  );
+}
 }

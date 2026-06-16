@@ -120,7 +120,10 @@ export interface PurchaseOrderExpenseLinkDto {
   } | null;
 
   ticketPhoto?: PurchaseOrderTicketPhotoDto | null;
+  ticket_photo?: PurchaseOrderTicketPhotoDto | null;
+
   linkedByUser?: PurchaseOrderUserDto | null;
+  linked_by_user?: PurchaseOrderUserDto | null;
 }
 
 export interface PurchaseOrderResponseDto {
@@ -247,6 +250,34 @@ export interface RejectPurchaseOrderDto {
 
 export interface CancelPurchaseOrderDto {
   reason: string;
+}
+
+export interface UnreconcileTicketPhotoDto {
+  reason?: string | null;
+}
+
+export interface UnreconcileTicketPhotoResponse {
+  success: boolean;
+  message: string;
+  data: PurchaseOrderTicketPhotoDto;
+}
+
+export interface UnlinkPurchaseOrderExpenseDto {
+  reason?: string | null;
+}
+
+export interface UnlinkPurchaseOrderExpenseResponse {
+  success: boolean;
+  message: string;
+  data: {
+    purchase_order_id: number;
+    purchase_order_folio: string;
+    expense_link_id: number;
+    expense_id: number | null;
+    expense_folio: string | null;
+    ticket_photo_id: number | null;
+    unlinked: boolean;
+  };
 }
 
 export interface PurchaseOrderRequesterEmployeeDto {

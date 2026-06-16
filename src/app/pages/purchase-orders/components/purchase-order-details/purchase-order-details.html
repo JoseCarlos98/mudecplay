@@ -16,6 +16,22 @@
             <p>Resumen general de la solicitud, autorización y datos principales.</p>
           </div>
         </div>
+
+        @if (shouldShowCancelPurchaseOrderButton()) {
+        <span [title]="getCancelPurchaseOrderTooltip()">
+          <button type="button" class="btn-outline" [disabled]="!canCancelPurchaseOrder()"
+            (click)="cancelPurchaseOrder()">
+
+            <mat-icon>
+              {{ cancellingOrder ? 'hourglass_empty' : 'cancel' }}
+            </mat-icon>
+
+            <span>
+              {{ cancellingOrder ? 'Cancelando...' : 'Cancelar O.C.' }}
+            </span>
+          </button>
+        </span>
+        }
       </div>
 
       @if (orderInfoItems.length >= 8) {
@@ -391,6 +407,15 @@
                 (click)="openPhoto(photo)">
                 <span>Ver foto</span>
               </button>
+
+              @if (canUnreconcilePhoto(photo)) {
+              <button type="button" class="btn-outline purchase-order-photo-card__button"
+                [disabled]="unreconcilingPhotoId === photo.id" (click)="unreconcilePhoto(photo)">
+                <span>
+                  {{ unreconcilingPhotoId === photo.id ? 'Desconciliando...' : 'Desconciliar' }}
+                </span>
+              </button>
+              }
 
               @if (canRegisterExpense(photo)) {
               <button type="button" class="btn-primary purchase-order-photo-card__button"
