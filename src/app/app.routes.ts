@@ -27,12 +27,6 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: { roles: ['GASTOS_EDITOR'] },
       },
-      // {
-      //   path: 'mano-de-obra',
-      //   loadChildren: () =>
-      //     import('./pages/labour/labour.routes').then((m) => m.LABOUR_ROUTES),
-      //   canActivate: [rolesGuard],
-      // },
       {
         path: 'mano-de-obra',
         loadChildren: () =>
@@ -49,7 +43,6 @@ export const routes: Routes = [
           ],
         },
       },
-
       {
         path: 'ordenes-compra',
         loadChildren: () =>
@@ -57,7 +50,11 @@ export const routes: Routes = [
             .then((m) => m.PURCHASE_ORDERS_ROUTES),
         canActivate: [rolesGuard],
         data: {
-          roles: ['ORDENES_COMPRA_EDITOR'],
+          roles: [
+            'ORDENES_COMPRA_EDITOR',
+            'ORDENES_COMPRA_TICKETS_SUBIDOR',
+            'ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR',
+          ],
         },
       },
       {

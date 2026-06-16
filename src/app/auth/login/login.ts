@@ -82,6 +82,10 @@ export class LoginComponent implements OnInit {
           CUENTAS_POR_COBRAR_EDITOR: '/cuentas-por-cobrar',
           REPORTES_EMISOR: '/reportes',
 
+          ORDENES_COMPRA_EDITOR: '/ordenes-compra',
+          ORDENES_COMPRA_TICKETS_SUBIDOR: '/ordenes-compra/subir-ticket-gasto',
+          ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR: '/ordenes-compra/fotos-sin-gasto',
+
           PROVEEDORES_EDITOR: '/proveedores',
           PROYECTOS_EDITOR: '/proyectos',
           CLIENTES_EDITOR: '/clientes',
@@ -107,6 +111,11 @@ export class LoginComponent implements OnInit {
           'GASTOS_EDITOR',
           'ALMACEN_EDITOR',
           'CUENTAS_POR_COBRAR_EDITOR',
+
+          'ORDENES_COMPRA_EDITOR',
+          'ORDENES_COMPRA_TICKETS_SUBIDOR',
+          'ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR',
+
           'REPORTES_EMISOR',
 
           'EMPLEADOS_EDITOR',

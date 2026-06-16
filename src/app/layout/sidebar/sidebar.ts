@@ -91,6 +91,24 @@ export class Sidebar {
           route: '/mano-de-obra/llegadas-retardos',
           roles: ['LLEGADAS_RETARDOS_EDITOR'],
         },
+        // {
+        //   name: 'Horas extras',
+        //   icon: 'more_time',
+        //   route: '/mano-de-obra/horas-extras',
+        //   roles: ['HORAS_EXTRAS_EDITOR'],
+        // },
+      // {
+      //   name: 'Préstamos',
+      //   icon: 'payments',
+      //   route: '/mano-de-obra/prestamos',
+      //   roles: ['PRESTAMOS_EDITOR'],
+      // },
+      // {
+      //   name: 'Nómina',
+      //   icon: 'receipt_long',
+      //   route: '/mano-de-obra/nomina',
+      //   roles: ['NOMINA_EDITOR'],
+      // },
       ],
     },
     {
@@ -103,30 +121,18 @@ export class Sidebar {
           route: '/ordenes-compra',
           roles: ['ORDENES_COMPRA_EDITOR'],
         },
-        // {
-        //   name: 'Conciliación',
-        //   icon: 'compare_arrows',
-        //   route: '/ordenes-compra/conciliacion',
-        //   roles: ['ORDENES_COMPRA_EDITOR'],
-        // },
         {
           name: 'Subir Ticket de gasto',
           icon: 'image_search',
           route: '/ordenes-compra/subir-ticket-gasto',
-          // roles: ['ORDENES_COMPRA_EDITOR'],
+          roles: ['ORDENES_COMPRA_TICKETS_SUBIDOR'],
         },
         {
           name: 'Fotos sin gasto',
           icon: 'image_search',
           route: '/ordenes-compra/fotos-sin-gasto',
-          roles: ['ORDENES_COMPRA_EDITOR'],
+          roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'],
         },
-        // {
-        //   name: 'Tesorería',
-        //   icon: 'payments',
-        //   route: '/ordenes-compra/tesoreria',
-        //   roles: ['ORDENES_COMPRA_EDITOR'],
-        // },
       ],
     },
     {
@@ -149,7 +155,7 @@ export class Sidebar {
           name: 'Áreas',
           icon: 'grid_view',
           route: '/areas',
-          roles: ['AREA_EDITOR'],
+          roles: ['AREAS_EDITOR'],
         },
         {
           name: 'Áreas de Empleados',

@@ -91,6 +91,7 @@ const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actio
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: false,
   showUploadXml: true,
+  newRoles: ['CUENTAS_POR_COBRAR_EDITOR'],
   uploadXmlRoles: ['CUENTAS_POR_COBRAR_XML_IMPORTADOR'],
 };
 

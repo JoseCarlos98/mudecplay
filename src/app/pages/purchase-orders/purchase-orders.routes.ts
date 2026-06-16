@@ -39,7 +39,7 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
       import('./components/uploa-ticket/uploa-ticket')
         .then((m) => m.UploaTicket),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_TICKETS_SUBIDOR'] },
   },
   {
     path: 'fotos-sin-gasto',
@@ -47,7 +47,7 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
       import('./components/photo-without-cost/photo-without-cost')
         .then((m) => m.PhotoWithoutCost),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
   {
     path: 'fotos-sin-gasto/:photoId/conciliar',
@@ -55,59 +55,38 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
       import('./components/photo-without-cost/components/photo-reconcile/photo-reconcile')
         .then((m) => m.PhotoReconcile),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
-
   {
     path: 'registrar-gasto/:photoId',
     loadComponent: () =>
       import('./components/purchase-order-details/components/record-oc-expense/record-oc-expense')
         .then((m) => m.RecordOcExpense),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
-
   {
     path: 'registrar-gasto-xml/:photoId',
     loadComponent: () =>
       import('./components/purchase-order-details/components/record-oc-xml-expense/record-oc-xml-expense')
         .then((m) => m.RecordOcXmlExpense),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
-
   {
     path: 'registrar-almacen/:photoId',
     loadComponent: () =>
       import('./components/purchase-order-details/components/record-oc-warehouse-expense/record-oc-warehouse-expense')
         .then((m) => m.RecordOcWarehouseExpense),
     canActivate: [rolesGuard],
-    data: { roles: ['ORDENES_COMPRA_EDITOR'] },
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
-
   {
-  path: 'registrar-almacen-xml/:photoId',
-  loadComponent: () =>
-    import('./components/purchase-order-details/components/record-oc-warehouse-xml-expense/record-oc-warehouse-xml-expense')
-      .then((m) => m.RecordOcWarehouseXmlExpense),
-  canActivate: [rolesGuard],
-  data: { roles: ['ORDENES_COMPRA_EDITOR'] },
-},
-
-  // {
-  //   path: 'conciliacion',
-  //   loadComponent: () =>
-  //     import('./components/purchase-order-reconciliation/purchase-order-reconciliation')
-  //       .then((m) => m.PurchaseOrderReconciliation),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['ORDENES_COMPRA_EDITOR'] },
-  // },
-  // {
-  //   path: 'fotos/:photoId/registrar-gasto',
-  //   loadComponent: () =>
-  //     import('./components/purchase-order-expense-register/purchase-order-expense-register')
-  //       .then((m) => m.PurchaseOrderExpenseRegister),
-  //   canActivate: [rolesGuard],
-  //   data: { roles: ['ORDENES_COMPRA_EDITOR'] },
-  // },
+    path: 'registrar-almacen-xml/:photoId',
+    loadComponent: () =>
+      import('./components/purchase-order-details/components/record-oc-warehouse-xml-expense/record-oc-warehouse-xml-expense')
+        .then((m) => m.RecordOcWarehouseXmlExpense),
+    canActivate: [rolesGuard],
+    data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
+  },
 ];
