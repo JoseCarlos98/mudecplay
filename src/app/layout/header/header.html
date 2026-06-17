@@ -15,6 +15,62 @@
   }
 
   <div class="header-user">
-    <span class="color-secundary">Hola, {{ userName }}</span>
+    @if (isUserMenuOpen) {
+      <button
+        type="button"
+        class="header-user-backdrop"
+        aria-label="Cerrar menú de usuario"
+        (click)="closeUserMenu()">
+      </button>
+    }
+
+    <button
+      type="button"
+      class="header-user-trigger"
+      [class.header-user-trigger--open]="isUserMenuOpen"
+      [attr.aria-expanded]="isUserMenuOpen"
+      aria-haspopup="menu"
+      (click)="toggleUserMenu()">
+      <span class="header-user-trigger__text">
+        Hola, {{ userShortName }}
+      </span>
+
+      <mat-icon class="header-user-trigger__icon">
+        {{ isUserMenuOpen ? 'expand_less' : 'expand_more' }}
+      </mat-icon>
+    </button>
+
+    @if (isUserMenuOpen) {
+      <section class="header-user-menu" role="menu">
+        <div class="header-user-menu__top">
+          <div class="header-user-menu__initials">
+            {{ userInitials }}
+          </div>
+
+          <div class="header-user-menu__identity">
+            <h3>{{ userName }}</h3>
+            <p>{{ userEmail }}</p>
+          </div>
+        </div>
+
+        <div class="header-user-menu__roles">
+          <span class="header-user-menu__label">Roles</span>
+
+          @if (userRoleLabels.length > 0) {
+            <div class="header-user-menu__role-list">
+              @for (role of userRoleLabels; track role) {
+                <span class="header-user-menu__role-chip">
+                  {{ role }}
+                </span>
+              }
+            </div>
+          } @else {
+            <span class="header-user-menu__empty">
+              Sin roles asignados
+            </span>
+          }
+        </div>
+      </section>
+    }
   </div>
 </header>
