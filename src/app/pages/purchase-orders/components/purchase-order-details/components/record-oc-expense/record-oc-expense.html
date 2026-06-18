@@ -88,7 +88,7 @@
   </section>
   }
 
-  <form [formGroup]="form" (ngSubmit)="saveExpense()" id="form" class="record-oc-expense-board"> <!-- IZQUIERDA -->
+  <form [formGroup]="form" id="form" class="record-oc-expense-board">
     <aside class="record-oc-expense-column record-oc-expense-column--left">
       <section class="record-oc-expense-card">
         <div class="record-oc-expense-card__header">
@@ -240,14 +240,8 @@
             <app-input-field formControlName="concept" label="Concepto" type="text">
             </app-input-field>
 
-            <app-input-field formControlName="amount" label="Importe" type="number" (blur)="onAmountBlur(i)">
+            <app-input-field formControlName="amount" label="Importe" type="number">
             </app-input-field>
-
-            <app-input-field formControlName="payment_amount" label="Pagado" type="number" (blur)="onPaymentBlur(i)">
-            </app-input-field>
-
-            <app-input-date formControlName="payment_date" label="Fecha pago" mode="single">
-            </app-input-date>
 
             <button type="button" class="record-oc-expense-item__remove" [disabled]="itemsArray.length <= 1"
               (click)="removeItem(i)">
@@ -299,15 +293,8 @@
           </div>
 
           <div>
-            <span>Total pagado</span>
-            <strong>{{ formatMoney(totalPaid) }}</strong>
-          </div>
-
-          <div>
-            <span>Saldo</span>
-            <strong [class.record-oc-expense-danger]="balance > 0">
-              {{ formatMoney(balance) }}
-            </strong>
+            <span>Pendiente en Tesorería</span>
+            <strong>{{ formatMoney(totalAmount) }}</strong>
           </div>
         </div>
 
@@ -317,12 +304,12 @@
 
           <p>
             La foto del gasto ya fue conciliada con la O.C.
-            Ahora registra los conceptos e importes pagados.
+            Registra los conceptos e importes del gasto. El pago se gestionará desde Tesorería.
           </p>
         </div>
 
         <div class="record-oc-expense-actions">
-          <app-btns-section form="form" [saveDisabled]="!canSave" (action)="onFooterAction($event)">
+          <app-btns-section [saveDisabled]="!canSave" (action)="onFooterAction($event)">
           </app-btns-section>
         </div>
       </section>

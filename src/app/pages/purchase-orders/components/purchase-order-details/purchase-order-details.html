@@ -383,16 +383,6 @@
                     <strong>{{ photo.linkedExpenseFolio || 'Gasto registrado' }}</strong>
                   </div>
                 </div>
-
-                <div class="purchase-order-photo-card__expense-amounts">
-                  <span>Total {{ formatMoney(photo.linkedExpenseTotal) }}</span>
-                  <span>Pagado {{ formatMoney(photo.linkedExpensePaid) }}</span>
-
-                  <strong class="purchase-order-detail-chip"
-                    [ngClass]="getChipClass(photo.linkedExpenseStatusVariant ?? 'neutral')">
-                    {{ photo.linkedExpenseStatusLabel || 'Registrado' }}
-                  </strong>
-                </div>
               </div>
               } @else if (photo.status === 'reconciled') {
               <div class="purchase-order-photo-card__pending-expense">

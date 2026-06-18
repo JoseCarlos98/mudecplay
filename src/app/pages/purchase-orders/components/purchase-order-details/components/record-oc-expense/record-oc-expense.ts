@@ -39,8 +39,6 @@ type RecordExpenseItemForm = {
   product: FormControl<Catalog | number | string | null>;
   concept: FormControl<string>;
   amount: FormControl<number | null>;
-  payment_amount: FormControl<number | null>;
-  payment_date: FormControl<string | null>;
 };
 
 type RecordExpenseForm = {
@@ -165,8 +163,6 @@ export class RecordOcExpense implements OnInit {
   }
 
   get orderConcept(): string {
-    console.log(this.order);
-
     return this.order?.concept ?? 'Sin concepto';
   }
 
@@ -180,16 +176,6 @@ export class RecordOcExpense implements OnInit {
     }, 0);
   }
 
-  get totalPaid(): number {
-    return this.itemsArray.controls.reduce((total, group) => {
-      return total + Number(group.controls.payment_amount.value ?? 0);
-    }, 0);
-  }
-
-  get balance(): number {
-    return Math.max(this.totalAmount - this.totalPaid, 0);
-  }
-
   get itemsCount(): number {
     return this.itemsArray.length;
   }
@@ -200,7 +186,6 @@ export class RecordOcExpense implements OnInit {
       this.isDirectWithoutInvoice &&
       this.itemsArray.length > 0 &&
       this.totalAmount > 0 &&
-      this.arePaymentsValid() &&
       !this.saving()
     );
   }
@@ -248,10 +233,6 @@ export class RecordOcExpense implements OnInit {
         amount: this.fb.control<number | null>(null, {
           validators: [Validators.required, Validators.min(0.01)],
         }),
-        payment_amount: this.fb.control<number | null>(null, {
-          validators: [Validators.min(0)],
-        }),
-        payment_date: this.fb.control<string | null>(null),
       }),
     );
 
@@ -263,46 +244,7 @@ export class RecordOcExpense implements OnInit {
     this.itemsArray.removeAt(index);
   }
 
-  onAmountBlur(index: number): void {
-    const group = this.itemsArray.at(index);
-    const amount = Number(group.controls.amount.value ?? 0);
-    const payment = group.controls.payment_amount.value;
 
-    if (payment === null || payment === undefined) {
-      group.controls.payment_amount.setValue(amount > 0 ? amount : null);
-      group.controls.payment_date.setValue(this.form.controls.date.value ?? this.getToday());
-      return;
-    }
-
-    const paymentAmount = Number(payment ?? 0);
-
-    if (paymentAmount > amount) {
-      group.controls.payment_amount.setValue(amount);
-    }
-
-    if (Number(group.controls.payment_amount.value ?? 0) > 0 && !group.controls.payment_date.value) {
-      group.controls.payment_date.setValue(this.form.controls.date.value ?? this.getToday());
-    }
-  }
-
-  onPaymentBlur(index: number): void {
-    const group = this.itemsArray.at(index);
-
-    const amount = Number(group.controls.amount.value ?? 0);
-    const payment = Number(group.controls.payment_amount.value ?? 0);
-
-    if (payment > amount) {
-      group.controls.payment_amount.setValue(amount);
-    }
-
-    if (payment > 0 && !group.controls.payment_date.value) {
-      group.controls.payment_date.setValue(this.form.controls.date.value ?? this.getToday());
-    }
-
-    if (payment <= 0) {
-      group.controls.payment_date.setValue(null);
-    }
-  }
 
   saveExpense(): void {
     if (!this.canSave || !this.photoId) return;
@@ -442,29 +384,16 @@ export class RecordOcExpense implements OnInit {
       notes: value.notes?.trim() || null,
       items: (value.items ?? []).map((item) => {
         const amount = this.toNumberOrZero(item.amount);
-        const paymentAmount = this.toNumberOrNull(item.payment_amount);
 
         return {
           product_id: this.getCatalogId(item.product) ?? 0,
-          concept: item.concept?.trim() || null, 
+          concept: item.concept?.trim() || null,
           amount,
-          payment_amount: paymentAmount,
-          payment_date:
-            Number(paymentAmount ?? 0) > 0
-              ? item.payment_date || value.date || this.getToday()
-              : null,
+          payment_amount: 0,
+          payment_date: null,
         };
       }),
     };
-  }
-
-  private arePaymentsValid(): boolean {
-    return this.itemsArray.controls.every((group) => {
-      const amount = Number(group.controls.amount.value ?? 0);
-      const payment = Number(group.controls.payment_amount.value ?? 0);
-
-      return payment <= amount;
-    });
   }
 
   private syncProjectControl(): void {
@@ -551,16 +480,6 @@ export class RecordOcExpense implements OnInit {
     const parsed = Number(value.id);
 
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-  }
-
-  private toNumberOrNull(value: unknown): number | null {
-    if (value === null || value === undefined || value === '') {
-      return null;
-    }
-
-    const parsed = Number(value);
-
-    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private toNumberOrZero(value: unknown): number {

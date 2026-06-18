@@ -453,11 +453,9 @@
   display: grid;
   grid-template-columns:
     28px
-    minmax(180px, 1fr)
-    minmax(220px, 1.25fr)
-    minmax(110px, 0.65fr)
-    minmax(110px, 0.65fr)
-    minmax(135px, 0.75fr)
+    minmax(190px, 1fr)
+    minmax(260px, 1.35fr)
+    minmax(130px, 0.65fr)
     34px;
   align-items: start;
   gap: 8px;
@@ -467,7 +465,8 @@
   border: 1px solid rgba(148, 163, 184, 0.22);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%), #fbfdff;
+    radial-gradient(circle at 2% 30%, rgba(39, 170, 225, 0.06) 0, transparent 28%),
+    #fbfdff;
 
   app-autocomplete,
   app-input-field,
@@ -652,10 +651,6 @@
     font-weight: 700;
     text-align: right;
   }
-}
-
-.record-oc-expense-danger {
-  color: #b91c1c !important;
 }
 
 .record-oc-expense-alert {
