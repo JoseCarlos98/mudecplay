@@ -31,9 +31,8 @@
     </div>
 
     <p class="c-form-status__description">
-      Los datos de <strong>fecha</strong>, <strong>proveedor</strong>,
-      <strong>producto</strong> y <strong>monto</strong> provienen del CFDI.
-      Puedes registrar <strong>abonos</strong> y decidir si un concepto será
+      El pago de este gasto se gestionará desde <strong>Tesorería</strong>.
+      Aquí solo se registra la información del gasto y se decide si un concepto será
       <strong>gasto directo</strong> o <strong>almacén</strong>.
     </p>
   </div>
@@ -75,8 +74,8 @@
 
     <div class="c-form-alert__content">
       Este gasto ya generó existencias de almacén. Solo puedes modificar
-      <strong>fecha</strong>, <strong>proveedor</strong> y <strong>pagos</strong>.
-      Los productos, cantidades, unidades y montos se corrigen desde almacén.
+      <strong>fecha</strong> y <strong>proveedor</strong>.
+      Los pagos se gestionarán desde <strong>Tesorería</strong>.
     </div>
   </div>
   }
@@ -94,7 +93,7 @@
   }
 
 
-  <form [formGroup]="form" (ngSubmit)="expenseId ? updateData() : saveData()" id="form" class="c-form">
+  <form [formGroup]="form" id="form" class="c-form">
     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
       <!-- Fecha -->
       <div class="md:col-span-1">
@@ -176,21 +175,6 @@
           </div>
           }
 
-          @if (!isLaborAuto) {
-          <div class="bulk-group bulk-group--payment">
-            <div class="bulk-field">
-              <app-input-date [formControl]="bulkPaymentDateCtrl" label="Fecha de pago" mode="single"
-                [showClear]="true">
-              </app-input-date>
-            </div>
-
-            <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="!canApplyFullPaymentToSelection"
-              (click)="applyFullPaymentToSelected()">
-              <mat-icon>payments</mat-icon>
-              <span>Pagar</span>
-            </button>
-          </div>
-          }
         </div>
 
         <!-- Lista -->
@@ -306,53 +290,6 @@
                 </div>
               </div>
 
-              <div class="warehouse-payment-grid">
-                <div class="warehouse-payment-field">
-                  <div>
-                    <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
-      'field-invalid':
-        itemCtrl.get('amount')?.value &&
-        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-    }">
-                    </app-input-field>
-
-                    @if (isZeroCostXmlDiscountItem(itemCtrl)) {
-                    <div class="zero-cost-payment-note">
-                      <mat-icon>info</mat-icon>
-                      <span>Sin abono: producto con descuento total del CFDI.</span>
-                    </div>
-                    }
-                  </div>
-                </div>
-
-                @if (
-                itemCtrl.get('amount')?.value &&
-                itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
-                ) {
-                <div class="warehouse-payment-field">
-                  <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
-                  </app-input-date>
-                </div>
-                }
-
-                @if (itemCtrl.get('amount')?.value) {
-                <div class="warehouse-restant-box">
-                  <span class="warehouse-restant-box__label">Restante</span>
-
-                  <strong class="warehouse-restant-box__amount" [ngClass]="{
-                      'error-restant':
-                        itemCtrl.get('amount')?.value &&
-                        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                    }">
-                    {{
-                    (itemCtrl.get('amount')?.value || 0) -
-                    (itemCtrl.get('payment_amount')?.value || 0)
-                    | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
-                    }}
-                  </strong>
-                </div>
-                }
-              </div>
             </div>
             } @else {
             <!-- Gasto directo -->
@@ -388,59 +325,12 @@
                   </app-input-field>
                 </div>
 
-                <div>
-                  <div>
-                    <app-input-field formControlName="payment_amount" label="Abono / Pago" type="money" [ngClass]="{
-      'field-invalid':
-        itemCtrl.get('amount')?.value &&
-        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-    }">
-                    </app-input-field>
-
-                    @if (isZeroCostXmlDiscountItem(itemCtrl)) {
-                    <div class="zero-cost-payment-note">
-                      <mat-icon>info</mat-icon>
-                      <span>Sin abono: producto con descuento total del CFDI.</span>
-                    </div>
-                    }
-                  </div>
-                </div>
-
                 <div class="project-cell">
                   <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
                   </app-autocomplete>
                 </div>
               </div>
 
-              @if (itemCtrl.get('amount')?.value) {
-              <div class="direct-secondary-grid">
-                @if (
-                itemCtrl.get('amount')?.value &&
-                itemCtrl.get('amount')?.value == itemCtrl.get('payment_amount')?.value
-                ) {
-                <div class="direct-payment-field">
-                  <app-input-date formControlName="payment_date" label="Fecha de pago" mode="single" [showClear]="true">
-                  </app-input-date>
-                </div>
-                }
-
-                <div class="direct-restant-box">
-                  <span class="direct-restant-box__label">Restante</span>
-
-                  <strong class="direct-restant-box__amount" [ngClass]="{
-                      'error-restant':
-                        itemCtrl.get('amount')?.value &&
-                        itemCtrl.get('amount')?.value < itemCtrl.get('payment_amount')?.value
-                    }">
-                    {{
-                    (itemCtrl.get('amount')?.value || 0) -
-                    (itemCtrl.get('payment_amount')?.value || 0)
-                    | currency : 'MXN' : 'symbol-narrow' : '1.2-2'
-                    }}
-                  </strong>
-                </div>
-              </div>
-              }
             </div>
             }
           </div>
@@ -450,6 +340,6 @@
     </div>
   </form>
 
-  <app-btns-section form="form" [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
+  <app-btns-section [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
   </app-btns-section>
 </div>

@@ -107,7 +107,6 @@ export class ExpenseForm implements OnInit {
   bulkProjectSelected: Catalog | null = null;
 
   bulkAmountCtrl = this.fb.control<number | null>(null);
-  bulkPaymentDateCtrl = this.fb.control<string | null>('');
 
   form: FormGroup = this.fb.group({
     date: this.fb.control<string | null>(null, {
@@ -169,18 +168,6 @@ export class ExpenseForm implements OnInit {
       amount > 0
     );
   }
-
-  get canApplyFullPaymentToSelection(): boolean {
-    return (
-      !this.isLaborAuto &&
-      this.hasAnySelected &&
-      !!this.bulkPaymentDateCtrl.value
-    );
-  }
-
-  // ==========================
-  //  CICLO DE VIDA
-  // ==========================
 
   /**
    * Inicializa catálogos, carga gasto si viene id o continúa cola XML.
@@ -368,27 +355,7 @@ export class ExpenseForm implements OnInit {
    * Bloquea pago y fecha en productos XML con costo cero.
    */
   private syncZeroCostDiscountPaymentState(ctrl: AbstractControl): void {
-    const paymentAmountCtrl = ctrl.get('payment_amount');
-    const paymentDateCtrl = ctrl.get('payment_date');
-
-    if (!paymentAmountCtrl || !paymentDateCtrl) return;
-
-    if (this.isZeroCostXmlDiscountItem(ctrl)) {
-      paymentAmountCtrl.setValue(0, { emitEvent: false });
-      paymentAmountCtrl.disable({ emitEvent: false });
-      paymentAmountCtrl.updateValueAndValidity({ emitEvent: false });
-
-      paymentDateCtrl.setValue(null, { emitEvent: false });
-      paymentDateCtrl.disable({ emitEvent: false });
-      paymentDateCtrl.updateValueAndValidity({ emitEvent: false });
-
-      return;
-    }
-
-    if (!this.isLaborAuto) {
-      paymentAmountCtrl.enable({ emitEvent: false });
-      paymentDateCtrl.enable({ emitEvent: false });
-    }
+    this.applyTreasuryPaymentLock(ctrl);
   }
 
   /**
@@ -876,14 +843,7 @@ export class ExpenseForm implements OnInit {
       ctrl.get('amount')?.setValue(amount, { emitEvent: false });
       ctrl.get('amount')?.updateValueAndValidity({ emitEvent: false });
 
-      const paymentAmount = Number(ctrl.get('payment_amount')?.value ?? 0);
-
-      if (paymentAmount > amount) {
-        ctrl.get('payment_amount')?.setValue(null, { emitEvent: false });
-        ctrl.get('payment_date')?.setValue(this.getTodayIsoDate(), {
-          emitEvent: false,
-        });
-      }
+      this.applyTreasuryPaymentLock(ctrl);
     }
   }
 
@@ -1114,6 +1074,9 @@ export class ExpenseForm implements OnInit {
       ctrl.get('discount_amount')?.disable({ emitEvent: false });
       ctrl.get('tax_amount')?.disable({ emitEvent: false });
       ctrl.get('withheld_amount')?.disable({ emitEvent: false });
+
+      ctrl.get('payment_amount')?.disable({ emitEvent: false });
+      ctrl.get('payment_date')?.disable({ emitEvent: false });
     });
   }
 
@@ -1273,6 +1236,7 @@ export class ExpenseForm implements OnInit {
     });
 
     this.setupWarehouseItemBehaviour(group);
+    this.applyTreasuryPaymentLock(group);
 
     return group;
   }
@@ -1370,79 +1334,6 @@ export class ExpenseForm implements OnInit {
   /**
    * Marca como pagados los items seleccionados.
    */
-  applyFullPaymentToSelected(): void {
-    if (this.isLaborAuto) return;
-
-    const paymentDate = this.bulkPaymentDateCtrl.value;
-
-    if (!paymentDate) {
-      this.bulkPaymentDateCtrl.markAsTouched();
-      return;
-    }
-
-    const invalidRows: number[] = [];
-    let paidRows = 0;
-    let zeroCostRows = 0;
-
-    this.itemsFA.controls.forEach((ctrl, index) => {
-      if (!ctrl.get('selected')?.value) return;
-
-      const amount = Number(ctrl.get('amount')?.value ?? 0);
-
-      if (this.isZeroCostXmlDiscountItem(ctrl)) {
-        ctrl.get('payment_amount')?.setValue(0, { emitEvent: false });
-        ctrl.get('payment_date')?.setValue(null, { emitEvent: false });
-        zeroCostRows++;
-        return;
-      }
-
-      if (amount <= 0) {
-        invalidRows.push(index + 1);
-        return;
-      }
-
-      ctrl.get('payment_amount')?.setValue(amount);
-      ctrl.get('payment_amount')?.markAsDirty();
-      ctrl.get('payment_amount')?.markAsTouched();
-      ctrl.get('payment_amount')?.updateValueAndValidity({ emitEvent: false });
-
-      ctrl.get('payment_date')?.setValue(paymentDate);
-      ctrl.get('payment_date')?.markAsDirty();
-      ctrl.get('payment_date')?.markAsTouched();
-      ctrl.get('payment_date')?.updateValueAndValidity({ emitEvent: false });
-
-      paidRows++;
-    });
-
-    if (invalidRows.length > 0) {
-      this.dialogService
-        .confirm({
-          size: 'small',
-          title: 'Monto requerido',
-          message:
-            'Para marcar como pagado, los productos seleccionados deben tener monto mayor a $0.00.\n\n' +
-            `Revisa los productos: ${invalidRows.join(', ')}.`,
-          confirmText: 'OK',
-          cancelText: '',
-        })
-        .subscribe();
-
-      return;
-    }
-
-    if (paidRows === 0 && zeroCostRows > 0) {
-      this.dialogService
-        .confirm({
-          size: 'small',
-          title: 'Productos sin costo',
-          message:
-            'Los productos seleccionados tienen costo $0.00 por descuento total del CFDI, por eso no se registró abono.',
-          confirmText: 'OK',
-          cancelText: '',
-        })
-        .subscribe();
-    }
-  }
 
   // ==========================
   //  HEADER / FOOTER
@@ -1545,12 +1436,7 @@ export class ExpenseForm implements OnInit {
               this.toNumberOrNull(item.xml_unit_price)
             : null;
 
-        const paymentAmount = this.resolvePayloadPaymentAmount(
-          item.payment_amount,
-          amount,
-          formAmount,
-          item,
-        );
+        const paymentAmount = this.resolveFrozenPaymentAmount(item);
 
         return {
           id:
@@ -1611,10 +1497,7 @@ export class ExpenseForm implements OnInit {
 
           payment_amount: paymentAmount,
 
-          payment_date:
-            paymentAmount !== null && paymentAmount > 0
-              ? item.payment_date ?? null
-              : null,
+          payment_date: this.resolveFrozenPaymentDate(item, paymentAmount),
 
           project_id:
             isWarehouse
@@ -1636,32 +1519,8 @@ export class ExpenseForm implements OnInit {
     return {
       date: raw.date ?? undefined,
       supplier_id: toIdForm(raw.supplier_id),
-
-      items: (raw.items ?? [])
-        .filter((item: any) => !!item.id)
-        .map((item: any): entity.UpdateWarehouseExpenseSafeItem => {
-          const paymentAmount =
-            item.payment_amount !== null &&
-              item.payment_amount !== undefined &&
-              item.payment_amount !== ''
-              ? Number(item.payment_amount)
-              : null;
-
-          return {
-            id: Number(item.id),
-            payment_amount: paymentAmount,
-            payment_date:
-              paymentAmount !== null && paymentAmount > 0
-                ? item.payment_date ?? null
-                : null,
-          };
-        }),
     };
   }
-
-  // ==========================
-  //  COLA XML
-  // ==========================
 
   /**
    * Carga el siguiente XML de la cola o sale si ya no hay.
@@ -1693,7 +1552,6 @@ export class ExpenseForm implements OnInit {
     this.bulkProjectSelected = null;
 
     this.bulkAmountCtrl.setValue(null, { emitEvent: false });
-    this.bulkPaymentDateCtrl.setValue('', { emitEvent: false });
   }
 
   /**
@@ -1808,6 +1666,55 @@ export class ExpenseForm implements OnInit {
    */
   private navigateBack(): void {
     this.router.navigateByUrl(this.getReturnUrl());
+  }
+
+
+  private isExistingItem(item: any): boolean {
+    return item?.id !== null && item?.id !== undefined && item?.id !== '';
+  }
+
+  private resolveFrozenPaymentAmount(item: any): number | null {
+    /**
+     * Si es edición y el item ya existía, conservamos el pago histórico.
+     * Si es gasto nuevo o item nuevo, ya no se registra pago desde Gastos.
+     */
+    if (this.expenseId && this.isExistingItem(item)) {
+      return this.toNumberOrNull(item.payment_amount);
+    }
+
+    return 0;
+  }
+
+  private resolveFrozenPaymentDate(item: any, paymentAmount: number | null): string | null {
+    if (this.expenseId && this.isExistingItem(item)) {
+      return paymentAmount !== null && paymentAmount > 0
+        ? item.payment_date ?? null
+        : null;
+    }
+
+    return null;
+  }
+
+  private applyTreasuryPaymentLock(ctrl: AbstractControl): void {
+    const paymentAmountCtrl = ctrl.get('payment_amount');
+    const paymentDateCtrl = ctrl.get('payment_date');
+
+    if (!paymentAmountCtrl || !paymentDateCtrl) return;
+
+    /**
+     * En gasto nuevo, forzamos pendiente.
+     * En edición, conservamos el valor cargado pero bloqueado.
+     */
+    if (!this.expenseId) {
+      paymentAmountCtrl.setValue(0, { emitEvent: false });
+      paymentDateCtrl.setValue(null, { emitEvent: false });
+    }
+
+    paymentAmountCtrl.disable({ emitEvent: false });
+    paymentDateCtrl.disable({ emitEvent: false });
+
+    paymentAmountCtrl.updateValueAndValidity({ emitEvent: false });
+    paymentDateCtrl.updateValueAndValidity({ emitEvent: false });
   }
 }
 

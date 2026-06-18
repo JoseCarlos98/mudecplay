@@ -35,7 +35,6 @@
   }
 }
 
-
 /* =======================
    CHIP DE PRODUCTOS
    ======================= */
@@ -60,9 +59,8 @@
   display: grid;
   grid-template-columns:
     minmax(72px, auto)
-    minmax(330px, 1.35fr)
-    minmax(285px, 0.9fr)
-    minmax(330px, 1fr);
+    minmax(0px, 1fr)
+    minmax(420px, 1.15fr);
   align-items: end;
   gap: 0.9rem;
 
@@ -90,7 +88,7 @@
 .bulk-group {
   min-width: 0;
   display: grid;
-  align-items: center;
+  align-items: end;
   gap: 0.6rem;
 }
 
@@ -100,10 +98,6 @@
 
 .bulk-group--amount {
   grid-template-columns: minmax(145px, 1fr) auto;
-}
-
-.bulk-group--payment {
-  grid-template-columns: minmax(170px, 1fr) auto;
 }
 
 .bulk-field {
@@ -263,70 +257,69 @@
 .direct-grid {
   display: grid;
   grid-template-columns:
-    minmax(280px, 1.45fr)
-    minmax(150px, 0.72fr)
-    minmax(190px, 0.9fr)
-    minmax(260px, 1.25fr);
+    minmax(320px, 1.45fr)
+    minmax(180px, 0.65fr)
+    minmax(320px, 1.15fr);
   gap: 1rem;
   align-items: start;
 }
 
-.direct-secondary-grid {
-  display: grid;
-  grid-template-columns: minmax(250px, 320px) minmax(110px, 150px);
-  gap: 1.1rem;
-  align-items: start;
-  justify-content: start;
-}
+// .direct-secondary-grid {
+//   display: grid;
+//   grid-template-columns: minmax(250px, 320px) minmax(110px, 150px);
+//   gap: 1.1rem;
+//   align-items: start;
+//   justify-content: start;
+// }
 
-.direct-payment-field {
-  min-width: 0;
-}
+// .direct-payment-field {
+//   min-width: 0;
+// }
 
-.direct-restant-box {
-  min-height: 31px;
-  padding-top: 1.35rem;
+// .direct-restant-box {
+//   min-height: 31px;
+//   padding-top: 1.35rem;
 
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
+//   display: flex;
+//   flex-direction: column;
+//   gap: 0.2rem;
+// }
 
-.direct-restant-box__label {
-  color: #1164a3;
-  font-size: 0.84rem;
-  font-weight: 700;
-}
+// .direct-restant-box__label {
+//   color: #1164a3;
+//   font-size: 0.84rem;
+//   font-weight: 700;
+// }
 
-.direct-restant-box__amount {
-  color: #475569;
-  font-size: 0.95rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
+// .direct-restant-box__amount {
+//   color: #475569;
+//   font-size: 0.95rem;
+//   font-weight: 800;
+//   line-height: 1.2;
+// }
 
 .direct-restant-box__amount.error-restant {
   color: var(--color-error);
 }
 
 /* Compatibilidad con clases anteriores del layout directo */
-.direct-payment-cell {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
+// .direct-payment-cell {
+//   display: flex;
+//   flex-direction: column;
+//   min-width: 0;
+// }
 
-.direct-payment-date {
-  margin-top: 0.65rem;
-}
+// .direct-payment-date {
+//   margin-top: 0.65rem;
+// }
 
-.direct-restant {
-  display: inline-flex;
-  margin-top: 0.45rem;
-  color: #6b7280;
-  font-size: 0.82rem;
-  font-weight: 700;
-}
+// .direct-restant {
+//   display: inline-flex;
+//   margin-top: 0.45rem;
+//   color: #6b7280;
+//   font-size: 0.82rem;
+//   font-weight: 700;
+// }
 
 .direct-restant.error-restant {
   color: var(--color-error);
@@ -341,11 +334,11 @@
 .warehouse-grid {
   display: grid;
   grid-template-columns:
-    minmax(280px, 1.55fr)
-    minmax(130px, 0.6fr)
-    minmax(130px, 0.6fr)
-    minmax(155px, 0.72fr)
-    minmax(155px, 0.72fr);
+    minmax(250px, 1.55fr)
+    minmax(140px, 0.6fr)
+    minmax(140px, 0.6fr)
+    minmax(145px, 0.6fr)
+    minmax(145px, 0.6fr);
   gap: 1rem;
   align-items: start;
 }
@@ -354,12 +347,15 @@
   margin-top: 0.85rem;
 
   display: grid;
-  grid-template-columns: minmax(480px, 1fr) minmax(520px, 0.95fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: center;
 }
 
+// aqui
 .warehouse-status-strip {
+  width: fit-content;
+  max-width: 100%;
   min-height: 44px;
   padding: 0.55rem 0.75rem;
 
@@ -502,17 +498,8 @@
     grid-template-columns: minmax(72px, auto) 1fr 1fr;
   }
 
-  .bulk-group--payment {
-    grid-column: 2 / -1;
-  }
-
   .direct-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .direct-secondary-grid {
-    grid-template-columns: minmax(220px, 1fr) minmax(110px, 160px);
-    max-width: 520px;
   }
 
   .warehouse-grid {
@@ -521,10 +508,6 @@
 
   .warehouse-secondary-grid {
     grid-template-columns: 1fr;
-  }
-
-  .warehouse-payment-grid {
-    max-width: 760px;
   }
 }
 
@@ -538,33 +521,18 @@
   }
 
   .bulk-group--project,
-  .bulk-group--amount,
-  .bulk-group--payment {
+  .bulk-group--amount {
     grid-template-columns: minmax(220px, 1fr) auto;
-  }
-
-  .bulk-group--payment {
-    grid-column: auto;
   }
 
   .warehouse-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .warehouse-payment-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: none;
-  }
-
-  .warehouse-restant-box {
-    padding-top: 0;
-  }
 }
 
 @media (max-width: 720px) {
   .bulk-group--project,
-  .bulk-group--amount,
-  .bulk-group--payment {
+  .bulk-group--amount {
     grid-template-columns: 1fr;
   }
 
@@ -573,10 +541,8 @@
   }
 
   .direct-grid,
-  .direct-secondary-grid,
   .warehouse-grid,
-  .warehouse-secondary-grid,
-  .warehouse-payment-grid {
+  .warehouse-secondary-grid {
     grid-template-columns: 1fr;
     max-width: none;
   }
