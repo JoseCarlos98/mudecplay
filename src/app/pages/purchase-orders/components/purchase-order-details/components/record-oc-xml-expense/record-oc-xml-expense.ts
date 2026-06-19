@@ -64,6 +64,7 @@ export class RecordOcXmlExpense implements OnInit {
   readonly loadingPage = signal(false);
   readonly loadingPhoto = signal(false);
   readonly loadingXmlExpenses = signal(false);
+  readonly saving = signal(false);
 
   photoId: number | null = null;
 
@@ -211,21 +212,6 @@ export class RecordOcXmlExpense implements OnInit {
     );
   }
 
-  get selectedPaidAmount(): number {
-    return this.round2(
-      this.selectedItems.reduce(
-        (sum, item) => sum + Number(item.payment_amount ?? 0),
-        0,
-      ),
-    );
-  }
-
-  get selectedBalance(): number {
-    return this.round2(
-      Math.max(this.selectedAmount - this.selectedPaidAmount, 0),
-    );
-  }
-
   get amountDifference(): number {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
@@ -237,7 +223,8 @@ export class RecordOcXmlExpense implements OnInit {
       this.selectedItemIds.length > 0 &&
       this.selectedAmount > 0 &&
       this.isDirectWithInvoice &&
-      !this.hasExistingPhotoLink
+      !this.hasExistingPhotoLink &&
+      !this.saving()
     );
   }
 
@@ -348,6 +335,8 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   saveExpense(): void {
+    if (this.saving()) return;
+
     if (!this.canSave || !this.photoId || !this.selectedXmlExpense) {
       this.form.markAllAsTouched();
       return;
@@ -362,9 +351,11 @@ export class RecordOcXmlExpense implements OnInit {
     };
 
     this.errorMessage = null;
+    this.saving.set(true);
 
     this.purchaseOrdersService
       .linkExistingXmlExpenseToTicketPhoto(this.photoId, payload)
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: (response) => {
           const purchaseOrderId =
@@ -419,11 +410,6 @@ export class RecordOcXmlExpense implements OnInit {
     return item.product?.name ?? item.concept ?? 'Partida sin nombre';
   }
 
-  getItemBalance(item: AvailableXmlExpenseItemDto): number {
-    return this.round2(
-      Math.max(Number(item.amount ?? 0) - Number(item.payment_amount ?? 0), 0),
-    );
-  }
 
   private loadInitialData(): void {
     if (!this.photoId) return;
