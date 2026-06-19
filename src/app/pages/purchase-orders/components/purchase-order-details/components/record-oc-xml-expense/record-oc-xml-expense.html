@@ -404,17 +404,6 @@
                     <strong>{{ formatMoney(item.amount) }}</strong>
                   </div>
 
-                  <div class="record-oc-xml-item__data">
-                    <span>Pagado</span>
-                    <strong>{{ formatMoney(item.payment_amount) }}</strong>
-                  </div>
-
-                  <div class="record-oc-xml-item__data">
-                    <span>Saldo</span>
-                    <strong [class.record-oc-xml-danger]="getItemBalance(item) > 0">
-                      {{ formatMoney(getItemBalance(item)) }}
-                    </strong>
-                  </div>
 
                   <div class="record-oc-xml-item__breakdown">
                     <span>
@@ -500,15 +489,8 @@
           </div>
 
           <div>
-            <span>Total pagado</span>
-            <strong>{{ formatMoney(selectedPaidAmount) }}</strong>
-          </div>
-
-          <div>
-            <span>Saldo</span>
-            <strong [class.record-oc-xml-danger]="selectedBalance > 0">
-              {{ formatMoney(selectedBalance) }}
-            </strong>
+            <span>Pendiente en Tesorería</span>
+            <strong>{{ formatMoney(selectedAmount) }}</strong>
           </div>
         </div>
 
