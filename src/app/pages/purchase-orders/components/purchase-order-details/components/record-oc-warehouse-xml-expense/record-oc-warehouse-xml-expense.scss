@@ -723,11 +723,8 @@
   display: grid;
   grid-template-columns:
     28px
-    minmax(220px, 1fr)
-    minmax(90px, 0.35fr)
-    minmax(90px, 0.35fr)
-    minmax(90px, 0.35fr)
-    minmax(90px, 0.35fr);
+    minmax(240px, 1fr)
+    repeat(2, minmax(120px, 0.45fr));
   align-items: center;
   gap: 8px;
 
@@ -918,10 +915,6 @@
     text-align: right;
     word-break: break-word;
   }
-}
-
-.record-oc-xml-danger {
-  color: #b91c1c !important;
 }
 
 /* =========================================================

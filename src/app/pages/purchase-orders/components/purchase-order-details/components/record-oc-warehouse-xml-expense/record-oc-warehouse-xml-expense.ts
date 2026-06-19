@@ -63,6 +63,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   readonly loadingPage = signal(false);
   readonly loadingPhoto = signal(false);
   readonly loadingXmlExpenses = signal(false);
+  readonly saving = signal(false);
 
   photoId: number | null = null;
 
@@ -226,26 +227,13 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     );
   }
 
-  get selectedPaidAmount(): number {
-    return this.round2(
-      this.selectedItems.reduce(
-        (sum, item) => sum + Number(item.payment_amount ?? 0),
-        0,
-      ),
-    );
-  }
-
-  get selectedBalance(): number {
-    return this.round2(Math.max(this.selectedAmount - this.selectedPaidAmount, 0));
-  }
-
   get amountDifference(): number {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
 
   abs(value: number): number {
-  return Math.abs(Number(value ?? 0));
-}
+    return Math.abs(Number(value ?? 0));
+  }
 
   get canSave(): boolean {
     return (
@@ -254,7 +242,8 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
       this.selectedItemIds.length > 0 &&
       this.hasSelectedWarehouseQuantity &&
       this.isWarehouseWithInvoice &&
-      !this.hasExistingPhotoLink
+      !this.hasExistingPhotoLink &&
+      !this.saving()
     );
   }
 
@@ -388,6 +377,8 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   saveRelation(): void {
+    if (this.saving()) return;
+
     if (!this.canSave || !this.photoId || !this.selectedWarehouseXmlExpense) {
       this.form.markAllAsTouched();
       return;
@@ -402,9 +393,11 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     };
 
     this.errorMessage = null;
+    this.saving.set(true);
 
     this.purchaseOrdersService
       .linkExistingWarehouseXmlExpenseToTicketPhoto(this.photoId, payload)
+      .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: (response) => {
           const purchaseOrderId = response?.data?.purchase_order_id ?? this.order?.id;
@@ -448,12 +441,6 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
 
   getAvailableItemName(item: AvailableWarehouseXmlExpenseItemDto): string {
     return item.product?.name ?? item.concept ?? 'Partida sin nombre';
-  }
-
-  getItemBalance(item: AvailableWarehouseXmlExpenseItemDto): number {
-    return this.round2(
-      Math.max(Number(item.amount ?? 0) - Number(item.payment_amount ?? 0), 0),
-    );
   }
 
   getItemUnitText(item: AvailableWarehouseXmlExpenseItemDto): string {

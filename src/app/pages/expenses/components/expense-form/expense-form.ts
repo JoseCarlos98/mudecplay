@@ -279,6 +279,10 @@ export class ExpenseForm implements OnInit {
     return Math.abs(n1 - n2) <= 0.01;
   }
 
+  private shouldUseXmlFiscalRecalculation(): boolean {
+    return this.isXmlImport && !this.expenseId;
+  }
+
   /**
    * Asigna valor sin disparar eventos y deja el control limpio.
    */
@@ -469,9 +473,14 @@ export class ExpenseForm implements OnInit {
 
   /**
    * Sincroniza monto y precio unitario desde valores fiscales XML.
+   *
+   * Importante:
+   * - En XML nuevo sí recalculamos desde CFDI.
+   * - En edición de XML ya guardado NO recalculamos, porque el backend
+   *   puede haber normalizado amount con costo promedio.
    */
   private syncXmlFiscalValues(ctrl: AbstractControl): void {
-    if (!this.isXmlImport) return;
+    if (!this.shouldUseXmlFiscalRecalculation()) return;
 
     const raw = ctrl.getRawValue?.() ?? {};
     const xmlAmount = this.resolveXmlAmountFromRawItem(raw);
@@ -829,8 +838,16 @@ export class ExpenseForm implements OnInit {
   private recalculateWarehouseAmount(ctrl: AbstractControl): void {
     if (!this.isWarehouseItem(ctrl)) return;
 
+    /**
+     * En XML nuevo dejamos que el cálculo venga del CFDI.
+     * En XML ya guardado no recalculamos porque amount/unit_price
+     * pueden venir normalizados desde backend por costo promedio.
+     */
     if (this.isXmlImport) {
-      this.syncXmlFiscalValues(ctrl);
+      if (this.shouldUseXmlFiscalRecalculation()) {
+        this.syncXmlFiscalValues(ctrl);
+      }
+
       return;
     }
 
@@ -995,7 +1012,9 @@ export class ExpenseForm implements OnInit {
     this.form.get('supplier_id')?.disable();
 
     this.itemsFA.controls.forEach((ctrl) => {
-      this.syncXmlFiscalValues(ctrl);
+      if (this.shouldUseXmlFiscalRecalculation()) {
+        this.syncXmlFiscalValues(ctrl);
+      }
 
       ctrl.get('product_id')?.disable();
       ctrl.get('amount')?.disable();
@@ -1396,6 +1415,8 @@ export class ExpenseForm implements OnInit {
         const itemType: entity.ExpenseItemType = item.item_type ?? 'direct';
         const isWarehouse = itemType === 'warehouse';
         const isXml = !!this.cfdiUuidFromXml;
+        const shouldUseXmlFiscalRecalculation =
+          isXml && !this.expenseId;
 
         const xmlQuantity = isXml
           ? this.toNumberOrNull(item.quantity) ??
@@ -1413,7 +1434,7 @@ export class ExpenseForm implements OnInit {
         const xmlUnit = String(item.unit ?? item.xml_unit ?? '').trim();
         const unit = isWarehouse ? null : isXml && xmlUnit ? xmlUnit : null;
 
-        const fiscalAmount = isXml
+        const fiscalAmount = shouldUseXmlFiscalRecalculation
           ? this.resolveXmlAmountFromRawItem(item)
           : null;
 

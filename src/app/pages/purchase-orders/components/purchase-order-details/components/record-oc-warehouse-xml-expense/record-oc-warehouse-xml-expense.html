@@ -239,7 +239,8 @@
           <p>
             Este flujo no crea un gasto nuevo. Solo relaciona la O.C. y la foto
             con un XML existente de almacén. La compra queda como inventario; el
-            proyecto se impacta después al asignar material desde almacén.
+            proyecto se impacta después al asignar material desde almacén. El pago
+            se gestionará desde Tesorería.
           </p>
         </section>
 
@@ -395,18 +396,6 @@
                 <strong>{{ formatMoney(item.amount) }}</strong>
               </div>
 
-              <div class="record-oc-xml-item__data">
-                <span>Pagado</span>
-                <strong>{{ formatMoney(item.payment_amount) }}</strong>
-              </div>
-
-              <div class="record-oc-xml-item__data">
-                <span>Saldo</span>
-                <strong [class.record-oc-xml-danger]="getItemBalance(item) > 0">
-                  {{ formatMoney(getItemBalance(item)) }}
-                </strong>
-              </div>
-
               <div class="record-oc-xml-item__breakdown">
                 <span>
                   Base:
@@ -488,15 +477,8 @@
           </div>
 
           <div>
-            <span>Total pagado</span>
-            <strong>{{ formatMoney(selectedPaidAmount) }}</strong>
-          </div>
-
-          <div>
-            <span>Saldo</span>
-            <strong [class.record-oc-xml-danger]="selectedBalance > 0">
-              {{ formatMoney(selectedBalance) }}
-            </strong>
+            <span>Pendiente en Tesorería</span>
+            <strong>{{ formatMoney(selectedAmount) }}</strong>
           </div>
         </div>
 
@@ -522,11 +504,11 @@
           <p>
             Este proceso no crea un gasto nuevo. Solo relaciona la O.C. y la foto
             con un XML de almacén ya creado desde Gastos. El proyecto se impactará
-            después con la salida del material.
+            después con la salida del material. El pago se gestionará desde Tesorería.
           </p>
         </div>
 
-        <app-btns-section form="form" type="save" cancelLabel="Cancelar" saveLabel="Relacionar XML almacén"
+        <app-btns-section type="save" cancelLabel="Cancelar" saveLabel="Relacionar XML almacén"
           [saveDisabled]="!canSave" (action)="onFooterAction($event)">
         </app-btns-section>
       </section>
