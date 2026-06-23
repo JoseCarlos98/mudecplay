@@ -204,6 +204,7 @@ export interface PurchaseOrderFilters {
   destination_type?: PurchaseOrderDestinationType | null;
   will_have_invoice?: boolean | null;
   project_id?: number | null;
+  ticket_filter?: 'all' | 'with_photo' | 'without_photo';
 }
 
 export interface PurchaseOrderUiFilters {

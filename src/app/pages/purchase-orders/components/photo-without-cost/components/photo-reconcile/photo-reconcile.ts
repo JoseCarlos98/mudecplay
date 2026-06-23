@@ -32,15 +32,26 @@ import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/load
 import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
+import { InputSelect } from '../../../../../../shared/ui/input-select/input-select';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };
 
+type TicketFilter = 'all' | 'with_photo' | 'without_photo';
+
 type ReconcilePurchaseOrderFilters = PurchaseOrderFilters & {
   date_from?: string | null;
   date_to?: string | null;
+  ticket_filter?: TicketFilter;
 };
+
+const TICKET_FILTER_OPTIONS: Catalog[] = [
+  { id: 'all', name: 'Todos' },
+  { id: 'with_photo', name: 'Con foto' },
+  { id: 'without_photo', name: 'Sin foto' },
+];
+
 
 type ReconcileOrderRow = PurchaseOrderResponseDto & {
   selected: boolean;
@@ -64,16 +75,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
       row.selected ? 'O.C. seleccionada' : 'Seleccionar O.C.',
   },
   {
-    key: 'folio',
-    label: 'Folio',
-  },
-  {
     key: 'project_name',
     label: 'Proyecto',
-  },
-  {
-    key: 'requested_by_display',
-    label: 'Solicitó',
   },
   {
     key: 'concept',
@@ -84,18 +87,6 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Importe',
     type: 'money',
     align: 'right',
-  },
-  {
-    key: 'destination_name',
-    label: 'Destino',
-    type: 'chip',
-    typeVariant: 'chip-neutral',
-  },
-  {
-    key: 'invoice_name',
-    label: 'Factura',
-    type: 'chip',
-    typeVariant: 'chip-neutral',
   },
   {
     key: 'created_at_date',
@@ -133,6 +124,7 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     BtnsSection,
     LoadingOverlay,
     SearchMultiSelect,
+    InputSelect,
 
     // Material
     MatIconModule,
@@ -164,6 +156,8 @@ export class PhotoReconcile implements OnInit {
    */
   readonly extraActions: DataTableExtraAction<ReconcileOrderRow>[] = [];
 
+  readonly ticketFilterOptions = TICKET_FILTER_OPTIONS;
+
   photoId: number | null = null;
   data: PendingTicketPhotoRow | null = null;
 
@@ -183,6 +177,7 @@ export class PhotoReconcile implements OnInit {
     project_id: null,
     date_from: null,
     date_to: null,
+    ticket_filter: 'without_photo',
   };
 
   ordersTableData: ReconcileOrdersTableData = {
@@ -197,6 +192,7 @@ export class PhotoReconcile implements OnInit {
     dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string>(''),
     projects: this.fb.control<Catalog[]>([]),
+    ticket_filter: this.fb.control<TicketFilter>('without_photo'),
   });
 
   ngOnInit(): void {
@@ -259,10 +255,12 @@ export class PhotoReconcile implements OnInit {
       value.dateRange?.startDate ||
       value.dateRange?.endDate
     );
+
     const hasSearch = !!value.search?.trim();
     const hasProjectChanged = selectedProjectId !== initialProjectId;
+    const hasTicketFilter = value.ticket_filter !== 'all';
 
-    return hasDates || hasSearch || hasProjectChanged;
+    return hasDates || hasSearch || hasProjectChanged || hasTicketFilter;
   }
 
   private getPhotoIdFromRoute(): number | null {
@@ -514,6 +512,7 @@ export class PhotoReconcile implements OnInit {
         dateRange: null,
         search: '',
         projects: this.getInitialProjects(),
+        ticket_filter: 'all',
       },
       { emitEvent: false },
     );
@@ -538,6 +537,7 @@ export class PhotoReconcile implements OnInit {
       project_id: this.resolveSelectedProjectId(value.projects ?? []),
       date_from: value.dateRange?.startDate ?? null,
       date_to: value.dateRange?.endDate ?? null,
+      ticket_filter: value.ticket_filter ?? 'all',
     };
   }
 

@@ -4,6 +4,10 @@
 
 .photo-reconcile-page {
   min-height: unset;
+
+  .c-form-layout--with-aside {
+    grid-template-columns: minmax(0, 1fr) 450px!important;
+  }
 }
 
 .photo-reconcile-form {

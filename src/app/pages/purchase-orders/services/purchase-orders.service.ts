@@ -107,43 +107,47 @@ export class PurchaseOrdersService {
     );
   }
 
-  getAvailableForReconciliation(
-    filters?: entity.PurchaseOrderFilters,
-  ): Observable<entity.PurchaseOrdersPaginatedResponse> {
-    let params = new HttpParams();
+getAvailableForReconciliation(
+  filters?: entity.PurchaseOrderFilters,
+): Observable<entity.PurchaseOrdersPaginatedResponse> {
+  let params = new HttpParams();
 
-    if (filters) {
-      params = params.set('page', String(filters.page));
-      params = params.set('limit', String(filters.limit));
+  if (filters) {
+    params = params.set('page', String(filters.page));
+    params = params.set('limit', String(filters.limit));
 
-      if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
-      }
-
-      if (filters.destination_type) {
-        params = params.set('destination_type', filters.destination_type);
-      }
-
-      if (
-        filters.will_have_invoice !== undefined &&
-        filters.will_have_invoice !== null
-      ) {
-        params = params.set(
-          'will_have_invoice',
-          String(filters.will_have_invoice),
-        );
-      }
-
-      if (filters.project_id) {
-        params = params.set('project_id', String(filters.project_id));
-      }
+    if (filters.search?.trim()) {
+      params = params.set('search', filters.search.trim());
     }
 
-    return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
-      `${this.apiUrl}/available-for-reconciliation`,
-      { params },
-    );
+    if (filters.destination_type) {
+      params = params.set('destination_type', filters.destination_type);
+    }
+
+    if (
+      filters.will_have_invoice !== undefined &&
+      filters.will_have_invoice !== null
+    ) {
+      params = params.set(
+        'will_have_invoice',
+        String(filters.will_have_invoice),
+      );
+    }
+
+    if (filters.project_id) {
+      params = params.set('project_id', String(filters.project_id));
+    }
+
+    if (filters.ticket_filter) {
+      params = params.set('ticket_filter', filters.ticket_filter);
+    }
   }
+
+  return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
+    `${this.apiUrl}/available-for-reconciliation`,
+    { params },
+  );
+}
 
   getFlowDetail(id: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/flow-detail`);
