@@ -1,0 +1,68 @@
+<div class="c-modal c-modal--change-project">
+  <app-module-header
+    [title]="'Cambiar proyecto'"
+    [config]="headerConfig"
+    (action)="close(false)">
+  </app-module-header>
+
+  <div class="change-project-body c-loading-host">
+
+    <section class="c-info-card c-info-card--info mb-0">
+      <div class="c-info-card__icon">
+        <mat-icon>folder_open</mat-icon>
+      </div>
+
+      <div class="c-info-card__content">
+        <h3 class="c-info-card__title">
+          {{ fileName }}
+        </h3>
+
+        <div class="c-info-card__grid">
+          <span class="c-info-card__item">
+            Proyecto actual:
+            <strong>{{ currentProjectName }}</strong>
+          </span>
+
+          <span class="c-info-card__item">
+            Subido por:
+            <strong>{{ uploadedByName }}</strong>
+          </span>
+        </div>
+      </div>
+    </section>
+
+    @if (errorMessage) {
+      <div class="c-form-alert c-form-alert--danger mb-0">
+        <mat-icon>error</mat-icon>
+
+        <div class="c-form-alert__content">
+          <strong>{{ errorMessage }}</strong>
+        </div>
+      </div>
+    }
+
+    <form [formGroup]="form" class="change-project-form">
+      <app-autocomplete
+        formControlName="project"
+        label="Seleccionar nuevo proyecto"
+        [remote]="true"
+        catalogType="project">
+      </app-autocomplete>
+    </form>
+
+    <app-btns-section
+      class="modal-actions-spacer"
+      type="save"
+      saveLabel="Actualizar proyecto"
+      cancelLabel="Cancelar"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+
+    <app-loading-overlay
+      [visible]="saving()"
+      [fullscreen]="false"
+      text="Actualizando proyecto...">
+    </app-loading-overlay>
+  </div>
+</div>

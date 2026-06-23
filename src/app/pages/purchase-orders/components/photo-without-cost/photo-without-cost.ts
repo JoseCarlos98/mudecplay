@@ -27,6 +27,7 @@ import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/a
 import { LocalStorageService } from '../../../../shared/services/local-storage.service';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
+import { AuthService } from '../../../../auth/services/auth.service';
 
 // Interfaces
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
@@ -34,11 +35,15 @@ import * as entity from '../../interfaces/purchase-orders.interfaces';
 
 // Componentes
 import { ModalSeePhoto } from './components/modal-see-photo/modal-see-photo';
+import { ChangeProyect } from './components/change-proyect/change-proyect';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
 // ==========================
 const PHOTO_WITHOUT_COST_FILTERS_KEY = 'mp_purchase_order_pending_photos_filters_v1';
+
+const PHOTOS_WITHOUT_EXPENSE_ROLE = 'ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR';
+const ADMIN_GENERAL_ROLE = 'ADMIN_GENERAL';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
@@ -139,6 +144,7 @@ export class PhotoWithoutCost implements OnInit {
   private readonly storage = inject(LocalStorageService);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
+  private readonly auth = inject(AuthService);
 
   // ==========================
   //  CONFIG UI
@@ -159,11 +165,25 @@ export class PhotoWithoutCost implements OnInit {
       disabled: (row) => !row.public_url,
     },
     {
+      type: 'changeProject',
+      icon: 'edit',
+      tooltip: () => 'Cambiar proyecto',
+      visible: (row) => this.canChangePhotoProject(row),
+      disabled: (row) => row.status !== 'pending',
+    },
+    {
       type: 'reconcilePhoto',
       icon: 'fact_check',
       tooltip: () => 'Conciliar con O.C.',
       visible: () => true,
-      disabled: () => false,
+      disabled: (row) => row.status !== 'pending',
+    },
+    {
+      type: 'deletePhoto',
+      icon: 'delete',
+      tooltip: () => 'Eliminar foto',
+      visible: () => this.isAdminGeneral,
+      disabled: (row) => row.status !== 'pending',
     },
   ];
 
@@ -210,6 +230,10 @@ export class PhotoWithoutCost implements OnInit {
 
   get totalPhotos(): number {
     return this.photoTicketsTableData?.total ?? 0;
+  }
+
+  get isAdminGeneral(): boolean {
+    return this.hasRole(ADMIN_GENERAL_ROLE);
   }
 
   // ==========================
@@ -314,12 +338,29 @@ export class PhotoWithoutCost implements OnInit {
         photo.uploadedByUser?.name ??
         photo.user?.name ??
         'Sin dato',
+      uploaded_by_user_id:
+        photo.uploaded_by_user?.id ??
+        photo.uploadedByUser?.id ??
+        photo.user?.id ??
+        null,
       status: photo.status ?? 'pending',
       status_label: this.getPhotoStatusLabel(photo.status ?? 'pending'),
       project_id: photo.project?.id ?? null,
       created_at: createdAt,
       created_at_date: createdAt,
       public_url: publicUrl,
+    };
+  }
+
+  private removePhotoFromCurrentTable(photoId: number): void {
+    const nextData = this.photos.filter(
+      (photo) => Number(photo.id) !== Number(photoId),
+    );
+
+    this.photoTicketsTableData = {
+      ...this.photoTicketsTableData,
+      data: nextData,
+      total: Math.max(Number(this.photoTicketsTableData.total ?? 0) - 1, 0),
     };
   }
 
@@ -375,8 +416,16 @@ export class PhotoWithoutCost implements OnInit {
         this.viewPhoto(event.row);
         break;
 
+      case 'changeProject':
+        this.changeProject(event.row);
+        break;
+
       case 'reconcilePhoto':
         this.reconcilePhoto(event.row);
+        break;
+
+      case 'deletePhoto':
+        this.deletePhoto(event.row);
         break;
 
       default:
@@ -390,12 +439,67 @@ export class PhotoWithoutCost implements OnInit {
     this.dialogService.open(ModalSeePhoto, row, 'medium');
   }
 
+  private changeProject(row: entity.PendingTicketPhotoRow): void {
+    if (!row?.id || !this.canChangePhotoProject(row)) return;
+
+    this.dialogService
+      .open(ChangeProyect, row, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (!result) return;
+
+        this.loadPhotos();
+      });
+  }
+
   private reconcilePhoto(row: entity.PendingTicketPhotoRow): void {
     if (!row?.id) return;
 
     this.router.navigateByUrl(
       `/ordenes-compra/fotos-sin-gasto/${row.id}/conciliar`,
     );
+  }
+
+  private deletePhoto(row: entity.PendingTicketPhotoRow): void {
+    if (!row?.id || !this.isAdminGeneral) return;
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        message: `¿Quieres eliminar la foto:\n"${row.file_name}"?\n\nEsta acción eliminará la foto del sistema.`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.purchaseOrdersService.deleteTicketPhoto(row.id).subscribe({
+          next: () => {
+            if (this.photos.length === 1 && this.filters.page > 1) {
+              this.filters.page = this.filters.page - 1;
+              this.saveFiltersToStorage();
+            }
+
+            this.removePhotoFromCurrentTable(row.id);
+            this.loadPhotos();
+          },
+          error: (err) => {
+            console.error('Error al eliminar foto:', err);
+
+            this.dialogService
+              .confirm({
+                size: 'small',
+                title: 'No se pudo eliminar',
+                message:
+                  err?.error?.message ||
+                  'Ocurrió un error al eliminar la foto.',
+                confirmText: 'OK',
+                cancelText: '',
+              })
+              .subscribe();
+          },
+        });
+      });
   }
 
   // ==========================
@@ -440,6 +544,69 @@ export class PhotoWithoutCost implements OnInit {
       limit: this.filters.limit,
       project_id: this.filters.project_id ?? null,
     });
+  }
+
+  // ==========================
+  //  PERMISOS
+  // ==========================
+  private canChangePhotoProject(row: entity.PendingTicketPhotoRow): boolean {
+    if (!row || row.status !== 'pending') {
+      return false;
+    }
+
+    if (this.isAdminGeneral) {
+      return true;
+    }
+
+    if (!this.hasRole(PHOTOS_WITHOUT_EXPENSE_ROLE)) {
+      return false;
+    }
+
+    const currentUserId = this.getCurrentUserId();
+    const uploadedByUserId = Number(row.uploaded_by_user_id ?? 0);
+
+    return (
+      !!currentUserId &&
+      uploadedByUserId > 0 &&
+      uploadedByUserId === currentUserId
+    );
+  }
+
+  private hasRole(roleCode: string): boolean {
+    const roles = this.auth.currentUser()?.roles ?? [];
+
+    return roles.some((role: any) => {
+      if (!role) return false;
+
+      if (typeof role === 'string') {
+        return role.trim().toUpperCase() === roleCode;
+      }
+
+      const value =
+        role.code ??
+        role.name ??
+        role.role ??
+        role.roleCode ??
+        role.role_code ??
+        null;
+
+      return String(value || '').trim().toUpperCase() === roleCode;
+    });
+  }
+
+  private getCurrentUserId(): number | null {
+    const user: any = this.auth.currentUser();
+
+    const rawId =
+      user?.id ??
+      user?.userId ??
+      user?.user_id ??
+      user?.sub ??
+      null;
+
+    const userId = Number(rawId);
+
+    return Number.isFinite(userId) && userId > 0 ? userId : null;
   }
 
   // ==========================

@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.c-modal--change-project {
+  // width: min(540px, 94vw);
+  // max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.change-project-body {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+}
+
+.change-project-description {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.change-project-form {
+  display: block;
+  min-width: 0;
+
+  app-autocomplete {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.c-modal--change-project {
+  .c-info-card__item strong {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .c-modal--change-project {
+    width: 94vw;
+  }
+
+  .change-project-body {
+    gap: 14px;
+    padding: 14px;
+  }
+
+  .change-project-description {
+    font-size: 12.5px;
+  }
+}

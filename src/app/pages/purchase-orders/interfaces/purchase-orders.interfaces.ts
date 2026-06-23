@@ -414,6 +414,7 @@ export interface PendingTicketPhotoRow {
   created_at_date: string;
   public_url: string | null;
   purchase_order?: TicketPhotoPurchaseOrderMiniDto | null;
+  uploaded_by_user_id?: number | null;
 }
 
 export interface TicketPhotoViewUrlResponse {
@@ -710,5 +711,26 @@ export interface LinkExistingWarehouseXmlExpenseResponse {
     cfdi_uuid: string;
     selected_item_ids: number[];
     amount_snapshot: number;
+  };
+}
+
+
+export interface UpdateTicketPhotoProjectDto {
+  project_id: number;
+}
+
+export interface UpdateTicketPhotoProjectResponse {
+  success: boolean;
+  message: string;
+  data: PurchaseOrderTicketPhotoDto;
+}
+
+export interface DeleteTicketPhotoResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    file_name: string | null;
+    deleted: boolean;
   };
 }
