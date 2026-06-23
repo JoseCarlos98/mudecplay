@@ -410,6 +410,57 @@ export class RecordOcXmlExpense implements OnInit {
     return item.product?.name ?? item.concept ?? 'Partida sin nombre';
   }
 
+hasPendingProjectExpense(expense: AvailableXmlExpenseDto): boolean {
+  return (expense.available_items ?? []).some((item) => !item.project?.id);
+}
+
+getExpenseProjectLabel(expense: AvailableXmlExpenseDto): string {
+  const items = expense.available_items ?? [];
+
+  const projectNames = Array.from(
+    new Set(
+      items
+        .map((item) => item.project?.name)
+        .filter((name): name is string => !!name),
+    ),
+  );
+
+  const hasPendingProject = this.hasPendingProjectExpense(expense);
+
+  if (hasPendingProject && projectNames.length === 0) {
+    return 'Proyecto pendiente';
+  }
+
+  if (hasPendingProject) {
+    return 'Proyecto mixto';
+  }
+
+  return projectNames[0] ?? this.projectName;
+}
+
+getExpenseProjectHelp(expense: AvailableXmlExpenseDto): string {
+  if (this.hasPendingProjectExpense(expense)) {
+    return `Se asignará a: ${this.projectName}`;
+  }
+
+  return 'Ya pertenece al proyecto de la O.C.';
+}
+
+isPendingProjectItem(item: AvailableXmlExpenseItemDto): boolean {
+  return !item.project?.id;
+}
+
+getAvailableItemProjectLabel(item: AvailableXmlExpenseItemDto): string {
+  return item.project?.name ?? 'Proyecto pendiente';
+}
+
+getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
+  if (this.isPendingProjectItem(item)) {
+    return `Se asignará a: ${this.projectName}`;
+  }
+
+  return 'Ya pertenece al proyecto de la O.C.';
+} 
 
   private loadInitialData(): void {
     if (!this.photoId) return;

@@ -348,49 +348,6 @@ $shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.035);
   }
 }
 
-.purchase-order-amount-warning {
-  min-height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 12px;
-  padding: 10px 14px;
-  border-radius: 11px;
-  border: 1px solid rgba(245, 158, 11, 0.34);
-  background:
-    radial-gradient(circle at 100% 0%, rgba(245, 158, 11, 0.08) 0, transparent 26%),
-    linear-gradient(180deg, #fffdf6 0%, #fffbeb 100%);
-  color: #92400e;
-  box-shadow: 0 6px 16px rgba(146, 64, 14, 0.045);
-
-  mat-icon {
-    @include size(19px, true);
-    font-size: 19px;
-  }
-
-  div {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  strong {
-    color: #92400e;
-    font-size: 12.8px;
-    font-weight: 700;
-    line-height: 1.2;
-  }
-
-  span {
-    color: #78350f;
-    font-size: 12.2px;
-    font-weight: 600;
-    line-height: 1.25;
-  }
-}
-
 .purchase-order-info-panels {
   display: grid;
   grid-template-columns: minmax(0, 0.85fr) minmax(0, 0.95fr) minmax(330px, 1.15fr);
@@ -997,31 +954,7 @@ $chip-variants: (
     }
   }
 
-  &__expense-amounts {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
 
-    > span {
-      max-width: 100%;
-      padding: 3px 7px;
-      border: 1px solid rgba(148, 163, 184, 0.22);
-      border-radius: 999px;
-      background: $white;
-      color: $text;
-      font-size: 10.8px;
-      font-weight: 700;
-      line-height: 1;
-      white-space: nowrap;
-    }
-
-    > .purchase-order-detail-chip {
-      padding: 3px 8px;
-      font-size: 10.8px !important;
-    }
-  }
 
   &__pending-expense {
     width: fit-content;
@@ -1107,19 +1040,6 @@ $chip-variants: (
   }
 }
 
-.purchase-order-table-action {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 10px;
-
-  &__button {
-    height: 30px;
-    padding-inline: 12px !important;
-    font-size: 12px;
-    font-weight: 800;
-  }
-}
-
 @media screen and (max-width: 1400px) {
   .purchase-order-info-summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1193,14 +1113,6 @@ $chip-variants: (
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .purchase-order-amount-warning {
-    align-items: flex-start;
-
-    div {
-      display: grid;
-      gap: 3px;
-    }
-  }
 }
 
 @media screen and (max-width: 875px) {
