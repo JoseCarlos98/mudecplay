@@ -40,7 +40,7 @@
       </div>
     </div>
 
-    <section class="see-photo-preview">
+    <section #photoViewport class="see-photo-preview">
       @if (loadingPhoto()) {
         <app-loading-overlay
           [visible]="true"
@@ -50,16 +50,54 @@
       }
 
       @if (!loadingPhoto() && photoUrl && !imageError) {
+        <div class="see-photo-preview__toolbar">
+          <button
+            type="button"
+            class="see-photo-preview__tool"
+            title="Alejar"
+            aria-label="Alejar imagen"
+            [disabled]="!zoomReady()"
+            (click)="zoomOut()">
+            <mat-icon>remove</mat-icon>
+          </button>
+
+          <button
+            type="button"
+            class="see-photo-preview__tool see-photo-preview__tool--reset"
+            title="Restablecer"
+            aria-label="Restablecer imagen"
+            [disabled]="!zoomReady()"
+            (click)="resetZoom()">
+            <mat-icon>center_focus_strong</mat-icon>
+            <span>Restablecer</span>
+          </button>
+
+          <button
+            type="button"
+            class="see-photo-preview__tool"
+            title="Acercar"
+            aria-label="Acercar imagen"
+            [disabled]="!zoomReady()"
+            (click)="zoomIn()">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
         <img
+          #photoImage
           [src]="photoUrl"
           [alt]="fileName"
+          draggable="false"
+          (load)="onImageLoaded()"
           (error)="onImageError()" />
       }
 
       @if (!loadingPhoto() && (!photoUrl || imageError || errorMessage)) {
         <div class="see-photo-preview__empty">
           <mat-icon>broken_image</mat-icon>
+
           <strong>No se pudo mostrar la imagen</strong>
+
           <p>
             {{ errorMessage || 'La foto no está disponible.' }}
           </p>

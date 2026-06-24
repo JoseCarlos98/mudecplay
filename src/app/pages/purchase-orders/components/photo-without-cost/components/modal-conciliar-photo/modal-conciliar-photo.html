@@ -1,5 +1,8 @@
 <div class="c-modal c-modal--conciliar-photo">
-  <app-module-header [title]="'Conciliar foto con O.C.'" [config]="headerConfig" (action)="closeModal()">
+  <app-module-header
+    [title]="'Conciliar foto con O.C.'"
+    [config]="headerConfig"
+    (action)="closeModal()">
   </app-module-header>
 
   <div class="conciliar-photo-body">
@@ -21,20 +24,40 @@
 
         <div class="conciliar-photo-preview">
           @if (loadingPhoto()) {
-          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Cargando foto...">
-          </app-loading-overlay>
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando foto...">
+            </app-loading-overlay>
           }
 
           @if (!loadingPhoto() && photoUrl && !imageError) {
-          <img [src]="photoUrl" [alt]="fileName" (error)="onImageError()" />
+            <button
+              type="button"
+              class="conciliar-photo-preview__button"
+              title="Ampliar imagen"
+              aria-label="Ampliar imagen"
+              (click)="openPhotoModal()"
+              (keydown)="onPreviewKeydown($event)">
+              <img
+                [src]="photoUrl"
+                [alt]="fileName"
+                draggable="false"
+                (error)="onImageError()" />
+
+              <span class="conciliar-photo-preview__hint">
+                <mat-icon>zoom_in</mat-icon>
+                <span>Click para ampliar</span>
+              </span>
+            </button>
           }
 
           @if (!loadingPhoto() && (!photoUrl || imageError || errorMessage)) {
-          <div class="conciliar-photo-preview__empty">
-            <mat-icon>broken_image</mat-icon>
-            <strong>No se pudo mostrar la foto</strong>
-            <p>{{ errorMessage || 'La foto no está disponible.' }}</p>
-          </div>
+            <div class="conciliar-photo-preview__empty">
+              <mat-icon>broken_image</mat-icon>
+              <strong>No se pudo mostrar la foto</strong>
+              <p>{{ errorMessage || 'La foto no está disponible.' }}</p>
+            </div>
           }
         </div>
 
@@ -63,10 +86,10 @@
         <button
           type="button"
           class="btn-outline conciliar-photo-view-button"
-          [disabled]="!photoUrl"
-          (click)="openPhotoInNewTab()">
-          <mat-icon>open_in_new</mat-icon>
-          <span>Abrir imagen</span>
+          [disabled]="!photoUrl || imageError"
+          (click)="openPhotoModal()">
+          <mat-icon>zoom_in</mat-icon>
+          <span>Ampliar imagen</span>
         </button>
       </aside>
 
@@ -81,16 +104,23 @@
           </div>
 
           <span class="conciliar-photo-count">
-            {{ totalOrders }} disponible{{totalOrders === 1 ? '' : 's' }}
+            {{ totalOrders }} disponible{{ totalOrders === 1 ? '' : 's' }}
           </span>
         </div>
 
         <form [formGroup]="formFilters">
           <div class="c-filters conciliar-photo-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
-            <app-input-date formControlName="dateRange" label="Fecha O.C." mode="range">
+            <app-input-date
+              formControlName="dateRange"
+              label="Fecha O.C."
+              mode="range">
             </app-input-date>
 
-            <app-input-field formControlName="search" label="Buscar O.C." type="text" [isFilter]="true">
+            <app-input-field
+              formControlName="search"
+              label="Buscar O.C."
+              type="text"
+              [isFilter]="true">
             </app-input-field>
 
             <app-autocomplete-multiple
@@ -111,83 +141,86 @@
 
         <div class="conciliar-photo-table">
           @if (loadingOrders()) {
-          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Cargando O.C. disponibles...">
-          </app-loading-overlay>
+            <app-loading-overlay
+              [visible]="true"
+              [fullscreen]="false"
+              text="Cargando O.C. disponibles...">
+            </app-loading-overlay>
           }
 
           @if (!loadingOrders() && orders.length === 0) {
-          <div class="conciliar-photo-empty">
-            <mat-icon>assignment_late</mat-icon>
-            <strong>No hay O.C. disponibles</strong>
-            <p>
-              No se encontraron órdenes autorizadas para conciliar con esta foto.
-            </p>
-          </div>
+            <div class="conciliar-photo-empty">
+              <mat-icon>assignment_late</mat-icon>
+              <strong>No hay O.C. disponibles</strong>
+              <p>
+                No se encontraron órdenes autorizadas para conciliar con esta foto.
+              </p>
+            </div>
           }
 
           @if (!loadingOrders() && orders.length > 0) {
-          <div class="conciliar-photo-table__content">
-            <app-data-table
-              class="conciliar-photo-table__data"
-              [data]="orders"
-              [columnsConfig]="columnsConfig"
-              [displayedColumns]="displayedColumns"
-              [extraActions]="extraActions"
-              [actionPermissions]="{
-                showEdit: false,
-                showDelete: false
-              }"
-              (action)="onTableAction($event)">
-            </app-data-table>
+            <div class="conciliar-photo-table__content">
+              <app-data-table
+                class="conciliar-photo-table__data"
+                [data]="orders"
+                [columnsConfig]="columnsConfig"
+                [displayedColumns]="displayedColumns"
+                [extraActions]="extraActions"
+                [actionPermissions]="{
+                  showEdit: false,
+                  showDelete: false
+                }"
+                (action)="onTableAction($event)">
+              </app-data-table>
 
-            <mat-paginator
-              [length]="ordersTableData.total"
-              [pageSize]="filters.limit"
-              [pageIndex]="filters.page - 1"
-              [pageSizeOptions]="pageSizeOptions"
-              (page)="onPageChange($event)"
-              showFirstLastButtons>
-            </mat-paginator>
-          </div>
+              <mat-paginator
+                [length]="ordersTableData.total"
+                [pageSize]="filters.limit"
+                [pageIndex]="filters.page - 1"
+                [pageSizeOptions]="pageSizeOptions"
+                (page)="onPageChange($event)"
+                showFirstLastButtons>
+              </mat-paginator>
+            </div>
           }
         </div>
       </section>
     </section>
 
     @if (selectedOrder) {
-    <section class="c-info-card c-info-card--success conciliar-photo-selected">
-      <div class="c-info-card__icon">
-        <mat-icon>task_alt</mat-icon>
-      </div>
-
-      <div class="c-info-card__content">
-        <h3 class="c-info-card__title">
-          O.C. seleccionada
-        </h3>
-
-        <div class="c-info-card__grid">
-          <span class="c-info-card__item">
-            Folio:
-            <strong>{{ selectedOrder.folio }}</strong>
-          </span>
-
-          <span class="c-info-card__item">
-            Proyecto:
-            <strong>{{ selectedOrder.project_name }}</strong>
-          </span>
-
-          <span class="c-info-card__item">
-            Solicitó:
-            <strong>{{ selectedOrder.requested_by_display }}</strong>
-          </span>
-
-          <span class="c-info-card__item">
-            Importe:
-            <strong>{{ selectedOrder.requested_amount | currency:'$ ':'symbol':'1.2-2' }}</strong>
-          </span>
+      <section class="c-info-card c-info-card--success conciliar-photo-selected">
+        <div class="c-info-card__icon">
+          <mat-icon>task_alt</mat-icon>
         </div>
-      </div>
-    </section>
+
+        <div class="c-info-card__content">
+          <h3 class="c-info-card__title">
+            O.C. seleccionada
+          </h3>
+
+          <div class="c-info-card__grid">
+            <span class="c-info-card__item">
+              Folio:
+              <strong>{{ selectedOrder.folio }}</strong>
+            </span>
+
+            <span class="c-info-card__item">
+              Proyecto:
+              <strong>{{ selectedOrder.project_name }}</strong>
+            </span>
+
+            <span class="c-info-card__item">
+              Solicitó:
+              <strong>{{ selectedOrder.requested_by_display }}</strong>
+            </span>
+
+            <span class="c-info-card__item">
+              Importe:
+              <strong>{{ selectedOrder.requested_amount | currency:'$ ':'symbol':'1.2-2' }}</strong>
+            </span>
+          </div>
+        </div>
+      </section>
     }
 
     <app-btns-section

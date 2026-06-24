@@ -1993,25 +1993,60 @@ body {
    - En modales anchos se ve como el de Movimientos del lote.
    - En modales más angostos, como Asignar material, evita que se sienta apretado.
 */
+// .c-info-card__grid {
+//   display: grid;
+//   grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
+//   gap: 0.3rem 0.85rem;
+// }
+
 .c-info-card__grid {
+  width: 100%;
+  min-width: 0;
+
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 185px), 1fr));
-  gap: 0.3rem 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+  gap: 0.35rem 1rem;
+  align-items: center;
 }
 
 .c-info-card__item {
   min-width: 0;
-  display: block;
+
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+
   color: #64748b;
   font-size: 0.8rem;
   line-height: 1.25;
+
+  overflow: hidden;
 }
 
+// .c-info-card__item {
+//   min-width: 0;
+//   display: block;
+//   color: #64748b;
+//   font-size: 0.8rem;
+//   line-height: 1.25;
+// }
+
 .c-info-card__item strong {
+  min-width: 0;
+
   color: #334155;
   font-weight: 800;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+// .c-info-card__item strong {
+//   color: #334155;
+//   font-weight: 800;
+//   white-space: nowrap;
+// }
 
 /* Compatibilidad por si algún modal todavía usa párrafos */
 .c-info-card__text {
@@ -2070,6 +2105,16 @@ body {
 
 /* Responsive */
 
+// @media (max-width: 640px) {
+//   .c-info-card {
+//     gap: 0.65rem;
+//   }
+
+//   .c-info-card__grid {
+//     grid-template-columns: 1fr;
+//   }
+// }
+
 @media (max-width: 640px) {
   .c-info-card {
     gap: 0.65rem;
@@ -2078,8 +2123,18 @@ body {
   .c-info-card__grid {
     grid-template-columns: 1fr;
   }
-}
 
+  .c-info-card__item {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .c-info-card__item strong {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+  }
+}
 
 /* =========================================================
  * GLOBAL: LAYOUT DE FORMULARIOS FULL PAGE

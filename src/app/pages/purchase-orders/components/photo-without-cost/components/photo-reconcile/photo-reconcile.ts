@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { finalize } from 'rxjs';
@@ -30,9 +31,10 @@ import { InputField } from '../../../../../../shared/ui/input-field/input-field'
 import { BtnsSection } from '../../../../../../shared/ui/btns-section/btns-section';
 import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
 import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
+import { InputSelect } from '../../../../../../shared/ui/input-select/input-select';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
-import { InputSelect } from '../../../../../../shared/ui/input-select/input-select';
+import { ModalSeePhoto } from '../modal-see-photo/modal-see-photo';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -51,7 +53,6 @@ const TICKET_FILTER_OPTIONS: Catalog[] = [
   { id: 'with_photo', name: 'Con foto' },
   { id: 'without_photo', name: 'Sin foto' },
 ];
-
 
 type ReconcileOrderRow = PurchaseOrderResponseDto & {
   selected: boolean;
@@ -116,7 +117,6 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     CommonModule,
     ReactiveFormsModule,
 
-    // UI
     ModuleHeader,
     DataTable,
     InputDate,
@@ -126,7 +126,6 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     SearchMultiSelect,
     InputSelect,
 
-    // Material
     MatIconModule,
     MatPaginatorModule,
     MatDatepickerModule,
@@ -138,6 +137,7 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
 export class PhotoReconcile implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
   private readonly fb = inject(FormBuilder);
 
@@ -151,11 +151,7 @@ export class PhotoReconcile implements OnInit {
   readonly loadingOrders = signal(false);
   readonly saving = signal(false);
 
-  /**
-   * Se deja vacío porque la selección real vive en la columna type: 'select'.
-   */
   readonly extraActions: DataTableExtraAction<ReconcileOrderRow>[] = [];
-
   readonly ticketFilterOptions = TICKET_FILTER_OPTIONS;
 
   photoId: number | null = null;
@@ -341,9 +337,7 @@ export class PhotoReconcile implements OnInit {
     this.filters = this.buildFiltersFromForm(1, this.filters.limit);
   }
 
-  private mapTicketPhotoToRow(
-    photo: any,
-  ): PendingTicketPhotoRow {
+  private mapTicketPhotoToRow(photo: any): PendingTicketPhotoRow {
     const createdAt = photo.created_at ?? photo.createdAt ?? '';
 
     const publicUrl =
@@ -444,10 +438,16 @@ export class PhotoReconcile implements OnInit {
     this.errorMessage = 'No se pudo mostrar la imagen.';
   }
 
-  openPhotoInNewTab(): void {
-    if (!this.photoUrl) return;
+  openPhotoModal(): void {
+    if (!this.data?.id || !this.photoUrl || this.imageError) return;
 
-    window.open(this.photoUrl, '_blank', 'noopener,noreferrer');
+    this.dialog.open(ModalSeePhoto, {
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      data: this.data,
+      autoFocus: false,
+    });
   }
 
   loadAvailableOrders(): void {

@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -30,6 +34,7 @@ import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/load
 import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
+import { ModalSeePhoto } from '../modal-see-photo/modal-see-photo';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true,
@@ -123,7 +128,6 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     CommonModule,
     ReactiveFormsModule,
 
-    // UI
     ModuleHeader,
     DataTable,
     InputDate,
@@ -132,7 +136,6 @@ type ReconcileOrderAction = DataTableActionEvent<ReconcileOrderRow>;
     LoadingOverlay,
     SearchMultiSelect,
 
-    // Material
     MatIconModule,
     MatPaginatorModule,
     MatDatepickerModule,
@@ -145,6 +148,7 @@ export class ModalConciliarPhoto implements OnInit {
   readonly data = inject<PendingTicketPhotoRow>(MAT_DIALOG_DATA);
 
   private readonly dialogRef = inject(MatDialogRef<ModalConciliarPhoto>);
+  private readonly dialog = inject(MatDialog);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
   private readonly fb = inject(FormBuilder);
 
@@ -157,11 +161,6 @@ export class ModalConciliarPhoto implements OnInit {
   readonly loadingOrders = signal(false);
   readonly saving = signal(false);
 
-  /**
-   * Se deja vacío para no romper el HTML si todavía tienes
-   * [extraActions]="extraActions" en app-data-table.
-   * La selección real ahora vive en la columna type: 'select'.
-   */
   readonly extraActions: DataTableExtraAction<ReconcileOrderRow>[] = [];
 
   photoUrl: string | null = null;
@@ -289,10 +288,23 @@ export class ModalConciliarPhoto implements OnInit {
     this.errorMessage = 'No se pudo mostrar la imagen.';
   }
 
-  openPhotoInNewTab(): void {
-    if (!this.photoUrl) return;
+  openPhotoModal(): void {
+    if (!this.data?.id || !this.photoUrl || this.imageError) return;
 
-    window.open(this.photoUrl, '_blank', 'noopener,noreferrer');
+    this.dialog.open(ModalSeePhoto, {
+      width: '900px',
+      maxWidth: '95vw',
+      maxHeight: '95vh',
+      data: this.data,
+      autoFocus: false,
+    });
+  }
+
+  onPreviewKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+
+    event.preventDefault();
+    this.openPhotoModal();
   }
 
   loadAvailableOrders(): void {
