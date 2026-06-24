@@ -8,6 +8,24 @@ export type PurchaseOrderStatus =
 
 export type PurchaseOrderDestinationType = 'direct' | 'warehouse';
 
+export type PurchaseOrderTrackingStatus =
+  | 'created'
+  | 'authorized'
+  | 'ticket_uploaded'
+  | 'ticket_reconciled'
+  | 'expense_registered'
+  | 'payment_completed'
+  | 'not_authorized'
+  | 'cancelled';
+
+export type PurchaseOrderTrackingVariant =
+  | 'success'
+  | 'warning'
+  | 'danger'
+  | 'info'
+  | 'neutral'
+  | 'primary';
+
 export type PurchaseOrderHistoryEventType =
   | 'created'
   | 'updated'
@@ -133,6 +151,13 @@ export interface PurchaseOrderResponseDto {
 
   project: PurchaseOrderProjectDto | null;
 
+  tracking_status?: PurchaseOrderTrackingStatus | string | null;
+  tracking_status_label?: string | null;
+  tracking_status_detail?: string | null;
+  tracking_status_icon?: string | null;
+  tracking_status_variant?: PurchaseOrderTrackingVariant | string | null;
+  tracking_step?: number | null;
+
   requested_by_employee?: PurchaseOrderEmployeeDto | null;
 
   destination_type: PurchaseOrderDestinationType;
@@ -205,6 +230,7 @@ export interface PurchaseOrderFilters {
   will_have_invoice?: boolean | null;
   project_id?: number | null;
   ticket_filter?: 'all' | 'with_photo' | 'without_photo';
+  tracking_status?: PurchaseOrderTrackingStatus | string | null;
 }
 
 export interface PurchaseOrderUiFilters {
@@ -212,7 +238,8 @@ export interface PurchaseOrderUiFilters {
   limit: number;
 
   search?: string | null;
-  status?: PurchaseOrderStatus | '' | null;
+  tracking_status: PurchaseOrderTrackingStatus | string | '';
+  // status?: PurchaseOrderStatus | '' | null;
   destination_type?: PurchaseOrderDestinationType | '' | null;
   will_have_invoice?: 'true' | 'false' | '' | null;
 

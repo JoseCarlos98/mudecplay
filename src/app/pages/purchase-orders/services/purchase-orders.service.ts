@@ -27,8 +27,12 @@ export class PurchaseOrdersService {
         params = params.set('search', filters.search.trim());
       }
 
-      if (filters.status) {
-        params = params.set('status', filters.status);
+      // if (filters.status) {
+      //   params = params.set('status', filters.status);
+      // }
+
+      if (filters.tracking_status) {
+        params = params.set('tracking_status', String(filters.tracking_status));
       }
 
       if (filters.destination_type) {

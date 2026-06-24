@@ -163,14 +163,14 @@
           @if (!isXmlImport && !isLaborAuto && !isWarehouseSafeExpense) {
           <div class="bulk-group bulk-group--amount">
             <div class="bulk-field">
-              <app-input-field [formControl]="bulkAmountCtrl" label="Monto global" type="money">
+              <app-input-field [formControl]="bulkAmountCtrl" label="Importe global" type="money">
               </app-input-field>
             </div>
 
             <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="!canApplyAmountToSelection"
               (click)="applyAmountToSelected()">
               <mat-icon>price_check</mat-icon>
-              <span>Aplicar monto</span>
+              <span>Aplicar Importe</span>
             </button>
           </div>
           }
@@ -245,7 +245,7 @@
               </div>
 
               <div>
-                <app-input-field formControlName="unit_price" label="Precio unitario" type="money">
+                <app-input-field formControlName="unit_price" label="Importe" type="money">
                 </app-input-field>
               </div>
 
@@ -264,7 +264,7 @@
                 </span>
                 }
 
-                <app-input-field formControlName="amount" label="Monto" type="money">
+                <app-input-field formControlName="amount" label="Importe" type="money">
                 </app-input-field>
               </div>
             </div>
@@ -321,7 +321,7 @@
                   </span>
                   }
 
-                  <app-input-field formControlName="amount" label="Monto" type="money">
+                  <app-input-field formControlName="amount" label="Importe" type="money">
                   </app-input-field>
                 </div>
 

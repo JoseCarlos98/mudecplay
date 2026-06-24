@@ -303,15 +303,13 @@
                   <app-input-field
                     formControlName="concept"
                     label="Concepto"
-                    type="text"
-                    placeholder="Ej. material comprado según ticket">
+                    type="text">
                   </app-input-field>
 
                   <app-input-field
                     formControlName="quantity"
                     label="Cantidad"
                     type="number"
-                    placeholder="0"
                     (input)="onQuantityOrPriceChange(i)"
                     (blur)="onQuantityOrPriceChange(i)">
                   </app-input-field>
@@ -326,7 +324,6 @@
                     formControlName="unit_price"
                     label="Precio unitario"
                     type="money"
-                    placeholder="0"
                     (input)="onQuantityOrPriceChange(i)"
                     (blur)="onQuantityOrPriceChange(i)">
                   </app-input-field>
@@ -334,8 +331,7 @@
                   <app-input-field
                     formControlName="amount"
                     label="Importe calculado"
-                    type="money"
-                    placeholder="0">
+                    type="money">
                   </app-input-field>
                 </section>
 

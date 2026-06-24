@@ -52,9 +52,13 @@ import * as entity from './interfaces/purchase-orders.interfaces';
 
 const PURCHASE_ORDERS_FILTERS_KEY = 'mp_purchase_orders_filters_v1';
 
-const STATUS_OPTIONS: Catalog[] = [
-  { id: 'in_review', name: 'En revisión' },
-  { id: 'authorized', name: 'Autorizada' },
+const TRACKING_STATUS_OPTIONS: Catalog[] = [
+  { id: 'created', name: 'Pendiente de autorización' },
+  { id: 'authorized', name: 'Pendiente de foto' },
+  { id: 'ticket_uploaded', name: 'Foto subida' },
+  { id: 'ticket_reconciled', name: 'Foto conciliada' },
+  { id: 'expense_registered', name: 'Gasto registrado' },
+  { id: 'payment_completed', name: 'Pago completado' },
   { id: 'not_authorized', name: 'No autorizada' },
   { id: 'cancelled', name: 'Cancelada' },
 ];
@@ -71,11 +75,11 @@ const INVOICE_OPTIONS: Catalog[] = [
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
-    key: 'status_name',
-    label: 'Estatus O.C.',
+    key: 'tracking_status_label',
+    label: 'Seguimiento',
     type: 'chip',
     variantResolver: (row: entity.PurchaseOrderResponseDto) =>
-      resolvePurchaseOrderStatusVariant(row),
+      resolvePurchaseOrderTrackingVariant(row),
   },
   { key: 'folio', label: 'Folio' },
   { key: 'created_at_date', label: 'Fecha', type: 'date' },
@@ -104,22 +108,24 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'authorized_at_date', label: 'Fecha autorización', type: 'date' },
 ];
 
-function resolvePurchaseOrderStatusVariant(
+function resolvePurchaseOrderTrackingVariant(
   row: entity.PurchaseOrderResponseDto,
 ): ColumnVariant {
-  switch (row.status) {
-    case 'authorized':
+  const variant = String(row.tracking_status_variant ?? 'neutral');
+
+  switch (variant) {
+    case 'success':
       return 'chip-success';
 
-    case 'in_review':
+    case 'warning':
       return 'chip-warning';
 
-    case 'not_authorized':
-      return 'chip-warning';
-
-    case 'cancelled':
+    case 'danger':
       return 'chip-danger';
 
+    case 'info':
+    case 'primary':
+    case 'neutral':
     default:
       return 'chip-neutral';
   }
@@ -185,7 +191,7 @@ export class PurchaseOrders implements OnInit {
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
 
-  readonly statusOptions = STATUS_OPTIONS;
+  readonly trackingStatusOptions = TRACKING_STATUS_OPTIONS;
   readonly destinationTypeOptions = DESTINATION_TYPE_OPTIONS;
   readonly invoiceOptions = INVOICE_OPTIONS;
 
@@ -199,6 +205,7 @@ export class PurchaseOrders implements OnInit {
     limit: 5,
     search: '',
     status: null,
+    tracking_status: null,
     destination_type: null,
     will_have_invoice: null,
     project_id: null,
@@ -208,7 +215,7 @@ export class PurchaseOrders implements OnInit {
 
   formFilters = this.fb.group({
     search: this.fb.control<string>(''),
-    status: this.fb.control<entity.PurchaseOrderStatus | ''>(''),
+    tracking_status: this.fb.control<Catalog | string | null>(null),
     destination_type:
       this.fb.control<entity.PurchaseOrderDestinationType | ''>(''),
     will_have_invoice: this.fb.control<'true' | 'false' | ''>(''),
@@ -256,19 +263,6 @@ export class PurchaseOrders implements OnInit {
     },
   ];
 
-  private cancelPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
-    if (!row?.id || !this.canCancel(row)) return;
-
-    this.dialogService
-      .open(ModalPurchaseCancel, row, 'small')
-      .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
-  }
-
   // ==========================
   //  CICLO DE VIDA
   // ==========================
@@ -277,16 +271,44 @@ export class PurchaseOrders implements OnInit {
   }
 
   // ==========================
+  //  GETTERS UI
+  // ==========================
+  get canManageRequesters(): boolean {
+    return this.hasRole('ADMIN_GENERAL');
+  }
+
+  get hasActiveFilters(): boolean {
+    const form = this.formFilters.getRawValue();
+
+    const hasSearch = !!form.search?.trim();
+    const hasTrackingStatus = !!this.getCatalogValue(
+      form.tracking_status ?? null,
+    );
+    const hasDestinationType = !!form.destination_type;
+    const hasInvoice = !!form.will_have_invoice;
+
+    return hasSearch || hasTrackingStatus || hasDestinationType || hasInvoice;
+  }
+
+  // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
   private buildBackendFiltersFromUi(
     ui: entity.PurchaseOrderUiFilters,
   ): entity.PurchaseOrderFilters {
+    const trackingStatus = String(ui.tracking_status ?? '').trim();
+
     return {
       page: ui.page,
       limit: ui.limit,
       search: ui.search?.trim() || '',
-      status: ui.status || null,
+
+      // Importante:
+      // status real de la O.C. ya no se usa para el filtro visual.
+      // Se conserva en null para no afectar reglas internas.
+      status: null,
+
+      tracking_status: trackingStatus || null,
       destination_type: ui.destination_type || null,
       will_have_invoice:
         ui.will_have_invoice === 'true'
@@ -296,11 +318,6 @@ export class PurchaseOrders implements OnInit {
             : null,
       project_id: null,
     };
-  }
-
-  get canManageRequesters(): boolean {
-    const roles = this.auth.currentUser()?.roles ?? [];
-    return roles.includes('ADMIN_GENERAL');
   }
 
   private mapPurchaseOrderRow(
@@ -315,7 +332,10 @@ export class PurchaseOrders implements OnInit {
         'Sin solicitante',
       destination_name: row.destination_type_label,
       invoice_name: row.will_have_invoice_label,
-      status_name: row.status_label,
+      tracking_status_label:
+        row.tracking_status_label ??
+        row.status_label ??
+        'Sin seguimiento',
       created_at_date: row.created_at,
       authorized_at_date: row.authorized_at ?? null,
       authorized_by_name: row.authorized_by_name,
@@ -480,7 +500,8 @@ export class PurchaseOrders implements OnInit {
 
     const uiState: entity.PurchaseOrderUiFilters = {
       search: value.search?.trim() || '',
-      status: value.status || '',
+      tracking_status:
+        (this.getCatalogValue(value.tracking_status ?? null) as string) || '',
       destination_type: value.destination_type || '',
       will_have_invoice: value.will_have_invoice || '',
       page: 1,
@@ -489,6 +510,32 @@ export class PurchaseOrders implements OnInit {
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadPurchaseOrders();
+  }
+
+  clearAllAndSearch(): void {
+    this.formFilters.reset(
+      {
+        search: '',
+        tracking_status: null,
+        destination_type: '',
+        will_have_invoice: '',
+      },
+      { emitEvent: false },
+    );
+
+    this.filters = {
+      page: 1,
+      limit: this.filters.limit,
+      search: '',
+      status: null,
+      tracking_status: null,
+      destination_type: null,
+      will_have_invoice: null,
+      project_id: null,
+    };
+
+    this.storage.removeItem(PURCHASE_ORDERS_FILTERS_KEY);
     this.loadPurchaseOrders();
   }
 
@@ -511,7 +558,9 @@ export class PurchaseOrders implements OnInit {
             data,
           };
         },
-        error: (err) => console.error('Error al cargar órdenes de compra:', err),
+        error: (err) => {
+          console.error('Error al cargar órdenes de compra:', err);
+        },
       });
   }
 
@@ -552,6 +601,9 @@ export class PurchaseOrders implements OnInit {
       case 'clean':
         this.clearAllAndSearch();
         break;
+
+      default:
+        break;
     }
   }
 
@@ -582,12 +634,7 @@ export class PurchaseOrders implements OnInit {
         this.cancelPurchaseOrder(ev.row);
         break;
 
-      case 'rejectPurchaseOrder':
-        this.rejectPurchaseOrder(ev.row);
-        break;
-
-      case 'cancelPurchaseOrder':
-        this.cancelPurchaseOrder(ev.row);
+      default:
         break;
     }
   }
@@ -619,7 +666,6 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
-
   private rejectPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
     if (!row?.id || !this.canReject(row)) return;
 
@@ -633,43 +679,17 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
-  // ==========================
-  //  ESTADO DE FILTROS
-  // ==========================
-  get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
+  private cancelPurchaseOrder(row: entity.PurchaseOrderResponseDto): void {
+    if (!row?.id || !this.canCancel(row)) return;
 
-    const hasSearch = !!(form.search && form.search.trim() !== '');
-    const hasStatus = !!form.status;
-    const hasDestinationType = !!form.destination_type;
-    const hasInvoice = !!form.will_have_invoice;
-
-    return hasSearch || hasStatus || hasDestinationType || hasInvoice;
-  }
-
-  clearAllAndSearch(): void {
-    this.formFilters.reset(
-      {
-        search: '',
-        status: '',
-        destination_type: '',
-        will_have_invoice: '',
-      },
-      { emitEvent: false },
-    );
-
-    this.filters = {
-      page: 1,
-      limit: this.filters.limit,
-      search: '',
-      status: null,
-      destination_type: null,
-      will_have_invoice: null,
-      project_id: null,
-    };
-
-    this.storage.removeItem(PURCHASE_ORDERS_FILTERS_KEY);
-    this.loadPurchaseOrders();
+    this.dialogService
+      .open(ModalPurchaseCancel, row, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadPurchaseOrders();
+        }
+      });
   }
 
   openRequestersModal(): void {
@@ -697,6 +717,7 @@ export class PurchaseOrders implements OnInit {
         }
       });
   }
+
   // ==========================
   //  LOCAL STORAGE
   // ==========================
@@ -706,14 +727,14 @@ export class PurchaseOrders implements OnInit {
     );
 
     if (!saved) {
-      this.searchWithFilters();
+      this.loadPurchaseOrders();
       return;
     }
 
     this.formFilters.patchValue(
       {
         search: saved.search ?? '',
-        status: saved.status ?? '',
+        tracking_status: saved.tracking_status ?? null,
         destination_type: saved.destination_type ?? '',
         will_have_invoice: saved.will_have_invoice ?? '',
       },
@@ -722,6 +743,7 @@ export class PurchaseOrders implements OnInit {
 
     this.filters = this.buildBackendFiltersFromUi({
       ...saved,
+      tracking_status: saved.tracking_status ?? '',
       page: saved.page ?? 1,
       limit: saved.limit ?? this.filters.limit,
     });
@@ -735,7 +757,8 @@ export class PurchaseOrders implements OnInit {
 
       state = {
         search: value.search?.trim() || '',
-        status: value.status || '',
+        tracking_status:
+          (this.getCatalogValue(value.tracking_status ?? null) as string) || '',
         destination_type: value.destination_type || '',
         will_have_invoice: value.will_have_invoice || '',
         page: this.filters.page,
@@ -744,5 +767,45 @@ export class PurchaseOrders implements OnInit {
     }
 
     this.storage.setItem(PURCHASE_ORDERS_FILTERS_KEY, state);
+  }
+
+  // ==========================
+  //  HELPERS
+  // ==========================
+  private getCatalogValue(
+    value: Catalog | number | string | null,
+  ): string | number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    if (typeof value === 'number' || typeof value === 'string') {
+      return value;
+    }
+
+    return value.id;
+  }
+
+  private hasRole(roleCode: string): boolean {
+    const expectedRole = String(roleCode || '').trim().toUpperCase();
+    const roles = this.auth.currentUser()?.roles ?? [];
+
+    return roles.some((role: any) => {
+      if (!role) return false;
+
+      if (typeof role === 'string') {
+        return role.trim().toUpperCase() === expectedRole;
+      }
+
+      const value =
+        role.code ??
+        role.name ??
+        role.role ??
+        role.roleCode ??
+        role.role_code ??
+        null;
+
+      return String(value || '').trim().toUpperCase() === expectedRole;
+    });
   }
 }

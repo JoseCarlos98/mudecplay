@@ -221,9 +221,6 @@
           <app-autocomplete formControlName="supplier" label="Proveedor" placeholder="Buscar proveedor" [remote]="true"
             catalogType="supplier">
           </app-autocomplete>
-
-          <app-input-field formControlName="project" label="Proyecto" type="text">
-          </app-input-field>
         </div>
 
         <div formArrayName="items" class="record-oc-expense-items">
@@ -240,7 +237,7 @@
             <app-input-field formControlName="concept" label="Concepto" type="text">
             </app-input-field>
 
-            <app-input-field formControlName="amount" label="Importe" type="number">
+            <app-input-field formControlName="amount" label="Importe" type="money">
             </app-input-field>
 
             <button type="button" class="record-oc-expense-item__remove" [disabled]="itemsArray.length <= 1"
