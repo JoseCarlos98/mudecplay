@@ -54,7 +54,6 @@ interface PurchaseOrderHistoryEventResponse {
   created_at: string;
 }
 
-
 interface PurchaseOrderDetailInfoItem {
   label: string;
   value: string;
@@ -105,6 +104,15 @@ interface PurchaseOrderExpense {
   ticketPhotoId: number | null;
   ticketFileName: string | null;
   linkId: number;
+
+  registrationType: string | null;
+  cfdiUuid: string | null;
+  originType: string | null;
+  sourceModule: string | null;
+  sourceRecordId: number | null;
+
+  hasXml: boolean;
+  hasWarehouseItems: boolean;
 }
 
 interface PurchaseOrderPaymentSummary {
@@ -256,7 +264,8 @@ export class PurchaseOrderDetails implements OnInit {
     {
       key: 'type',
       label: 'Tipo',
-      type: 'chip', typeVariant: 'chip-neutral'
+      type: 'chip',
+      typeVariant: 'chip-neutral',
     },
     {
       key: 'total',
@@ -302,7 +311,7 @@ export class PurchaseOrderDetails implements OnInit {
     },
     {
       type: 'unlinkExpense',
-      icon: 'link_off',
+      icon: 'delete_outline',
       tooltip: (row) => this.getUnlinkExpenseTooltip(row),
       popoverContent: (row) => this.getUnlinkExpensePopover(row),
       visible: () => true,
@@ -418,6 +427,7 @@ export class PurchaseOrderDetails implements OnInit {
 
     this.router.navigateByUrl(`/ordenes-compra/registrar-almacen/${photo.id}`);
   }
+
   canRegisterWarehouseXmlExpense(photo: PurchaseOrderPhoto): boolean {
     return (
       !!photo?.id &&
@@ -510,21 +520,28 @@ export class PurchaseOrderDetails implements OnInit {
 
     if (this.unlinkingExpenseLinkId === expense.linkId) return false;
 
-    if (this.isExpensePaidOrCompleted(expense)) return false;
+    if (
+      this.shouldDeleteExpenseFromPurchaseOrder(expense) &&
+      this.isExpensePaidOrCompleted(expense)
+    ) {
+      return false;
+    }
 
     return true;
   }
 
   getUnlinkExpenseTooltip(expense: PurchaseOrderExpense): string {
     if (this.unlinkingExpenseLinkId === expense?.linkId) {
-      return 'Desvinculando gasto...';
+      return this.shouldDeleteExpenseFromPurchaseOrder(expense)
+        ? 'Eliminando gasto relacionado...'
+        : 'Quitando relación...';
     }
 
     if (this.canUnlinkExpense(expense)) {
-      return 'Desvincular gasto de la O.C.';
+      return this.getExpenseRemoveActionLabel(expense);
     }
 
-    return '';
+    return this.getUnlinkExpenseBlockReasons(expense).join(' ');
   }
 
   getUnlinkExpensePopover(
@@ -554,29 +571,99 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     if (this.order.status === 'cancelled') {
-      return ['No se pueden desvincular gastos de una O.C. cancelada.'];
+      return ['No se pueden quitar gastos de una O.C. cancelada.'];
     }
 
-    if (this.isExpensePaidOrCompleted(expense)) {
+    if (
+      this.shouldDeleteExpenseFromPurchaseOrder(expense) &&
+      this.isExpensePaidOrCompleted(expense)
+    ) {
       return [
-        'Este gasto ya está pagado. No se puede desvincular desde este flujo.',
+        'Este gasto fue creado desde la O.C. y ya tiene pagos registrados. No se puede eliminar desde este flujo.',
       ];
     }
 
-    return ['No se puede desvincular este gasto de la O.C.'];
+    return ['No se puede quitar este gasto de la O.C.'];
+  }
+
+  private shouldDeleteExpenseFromPurchaseOrder(
+    expense: PurchaseOrderExpense,
+  ): boolean {
+    return (
+      expense.originType === 'purchase_order' &&
+      expense.sourceModule === 'purchase_orders' &&
+      Number(expense.sourceRecordId) === Number(this.order.id) &&
+      !expense.hasXml
+    );
+  }
+
+  private getExpenseRemoveActionLabel(
+    expense: PurchaseOrderExpense,
+  ): string {
+    return this.shouldDeleteExpenseFromPurchaseOrder(expense)
+      ? 'Eliminar gasto relacionado'
+      : 'Quitar relación con gasto/XML';
+  }
+
+  private getExpenseRemoveConfirmTitle(
+    expense: PurchaseOrderExpense,
+  ): string {
+    return this.shouldDeleteExpenseFromPurchaseOrder(expense)
+      ? 'Eliminar gasto relacionado'
+      : 'Quitar relación';
+  }
+
+  private getExpenseRemoveConfirmText(
+    expense: PurchaseOrderExpense,
+  ): string {
+    return this.shouldDeleteExpenseFromPurchaseOrder(expense)
+      ? 'Eliminar gasto'
+      : 'Quitar relación';
+  }
+
+  private getExpenseRemoveReason(
+    expense: PurchaseOrderExpense,
+  ): string {
+    return this.shouldDeleteExpenseFromPurchaseOrder(expense)
+      ? 'Gasto relacionado eliminado desde el detalle de Orden de Compra.'
+      : 'Relación con gasto/XML quitada desde el detalle de Orden de Compra.';
+  }
+
+  private getExpenseRemoveConfirmMessage(
+    expense: PurchaseOrderExpense,
+  ): string {
+    if (this.shouldDeleteExpenseFromPurchaseOrder(expense)) {
+      const warehouseWarning = expense.hasWarehouseItems
+        ? '\n\nSi este gasto de almacén ya tiene salidas o movimientos relacionados, el sistema bloqueará la eliminación.'
+        : '';
+
+      return (
+        `¿Quieres eliminar el gasto "${expense.folio}" relacionado con la O.C. ${this.order.folio}?\n\n` +
+        'El gasto se eliminará del módulo de Gastos y la foto seguirá conciliada con la O.C. para poder registrar nuevamente el gasto con el destino correcto.' +
+        warehouseWarning
+      );
+    }
+
+    return (
+      `¿Quieres quitar la relación del gasto/XML "${expense.folio}" con la O.C. ${this.order.folio}?\n\n` +
+      'El gasto seguirá existiendo en el módulo de Gastos. Esta acción solo quitará la relación con la Orden de Compra.'
+    );
   }
 
   private isExpensePaidOrCompleted(expense: PurchaseOrderExpense): boolean {
+    const paid = Number(expense?.paid ?? 0);
     const balance = Number(expense?.balance ?? 0);
     const statusLabel = String(expense?.statusLabel ?? '').trim().toLowerCase();
     const statusVariant = expense?.statusVariant ?? null;
 
     return (
+      paid > 0 ||
       balance <= 0 ||
       statusLabel === 'pagado' ||
       statusVariant === 'success'
     );
   }
+
   private isPurchaseOrderPaymentCompleted(): boolean {
     return (
       this.expenses.length > 0 &&
@@ -600,11 +687,9 @@ export class PurchaseOrderDetails implements OnInit {
     this.dialogService
       .confirm({
         size: 'mini',
-        title: 'Desvincular gasto',
-        message:
-          `¿Quieres desvincular el gasto "${expense.folio}" de la O.C. ${this.order.folio}?\n\n` +
-          'El gasto seguirá existiendo en el módulo de Gastos. Esta acción solo quitará la relación con la Orden de Compra.',
-        confirmText: 'Desvincular',
+        title: this.getExpenseRemoveConfirmTitle(expense),
+        message: this.getExpenseRemoveConfirmMessage(expense),
+        confirmText: this.getExpenseRemoveConfirmText(expense),
         cancelText: 'Cancelar',
       })
       .subscribe((confirmed) => {
@@ -614,7 +699,7 @@ export class PurchaseOrderDetails implements OnInit {
 
         this.purchaseOrdersService
           .unlinkExpenseFromPurchaseOrder(this.order.id, expense.linkId, {
-            reason: 'Gasto desvinculado desde el detalle de Orden de Compra.',
+            reason: this.getExpenseRemoveReason(expense),
           })
           .pipe(
             finalize(() => {
@@ -626,20 +711,18 @@ export class PurchaseOrderDetails implements OnInit {
               this.reloadCurrentDetail();
             },
             error: (err) => {
-              console.error('Error al desvincular gasto:', err);
+              console.error('Error al quitar/eliminar gasto relacionado:', err);
 
               this.showErrorDialog(
                 this.getHttpErrorMessage(
                   err,
-                  'No se pudo desvincular el gasto de la orden de compra.',
+                  'No se pudo quitar o eliminar el gasto relacionado.',
                 ),
               );
             },
           });
       });
   }
-
-
 
   goToExpensesList(): void {
     this.router.navigateByUrl('/gastos');
@@ -695,7 +778,7 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     if (this.expenses.length > 0) {
-      return 'Para cancelar esta O.C., primero desvincula los gastos relacionados.';
+      return 'Para cancelar esta O.C., primero quita o elimina los gastos relacionados.';
     }
 
     const hasReconciledPhotos = this.photos.some(
@@ -832,7 +915,6 @@ export class PurchaseOrderDetails implements OnInit {
     this.photos = (detail.ticket_photos ?? [])
       .map((photo) => this.mapPhoto(photo, expenseLinks))
       .sort((a, b) => {
-        // Primero las fotos conciliadas que aún NO tienen gasto registrado
         const aCanRegister = a.status === 'reconciled' && !a.hasExpense;
         const bCanRegister = b.status === 'reconciled' && !b.hasExpense;
 
@@ -840,12 +922,10 @@ export class PurchaseOrderDetails implements OnInit {
           return aCanRegister ? -1 : 1;
         }
 
-        // Después las fotos sin gasto, aunque no estén conciliadas
         if (a.hasExpense !== b.hasExpense) {
           return a.hasExpense ? 1 : -1;
         }
 
-        // Mantiene el orden original dentro del mismo grupo
         return 0;
       });
 
@@ -1489,20 +1569,6 @@ export class PurchaseOrderDetails implements OnInit {
     return link ? this.mapExpenseLink(link) : null;
   }
 
-  private photoHasExpense(photoId: number, expenseLinks: any[]): boolean {
-    if (!photoId || !Array.isArray(expenseLinks)) return false;
-
-    return expenseLinks.some((link) => {
-      const linkedPhotoId =
-        link.ticket_photo_id ??
-        link.ticketPhoto?.id ??
-        link.ticket_photo?.id ??
-        null;
-
-      return Number(linkedPhotoId) === photoId;
-    });
-  }
-
   private loadPhotoPreviewUrls(): void {
     const photosWithId = this.photos.filter((photo) => photo.id > 0);
 
@@ -1603,11 +1669,13 @@ export class PurchaseOrderDetails implements OnInit {
       0,
     );
 
+    const items = Array.isArray(expense.items) ? expense.items : [];
+
     const paid = Number(
       expense.paid_amount ??
       expense.total_paid ??
       expense.payment_amount ??
-      this.getPaidFromExpenseItems(expense.items) ??
+      this.getPaidFromExpenseItems(items) ??
       0,
     );
 
@@ -1624,6 +1692,53 @@ export class PurchaseOrderDetails implements OnInit {
       0,
     );
 
+    const registrationType =
+      link.registration_type ??
+      link.registrationType ??
+      null;
+
+    const cfdiUuid =
+      expense.cfdi_uuid ??
+      expense.cfdiUuid ??
+      null;
+
+    const originType =
+      expense.origin_type ??
+      expense.originType ??
+      null;
+
+    const sourceModule =
+      expense.source_module ??
+      expense.sourceModule ??
+      null;
+
+    const rawSourceRecordId =
+      expense.source_record_id ??
+      expense.sourceRecordId ??
+      null;
+
+    const parsedSourceRecordId =
+      rawSourceRecordId !== null && rawSourceRecordId !== undefined
+        ? Number(rawSourceRecordId)
+        : null;
+
+    const sourceRecordId =
+      parsedSourceRecordId !== null && Number.isFinite(parsedSourceRecordId)
+        ? parsedSourceRecordId
+        : null;
+
+    const hasWarehouseItems = items.some((item: any) => {
+      const itemType = String(
+        item.item_type ??
+        item.itemType ??
+        '',
+      ).trim();
+
+      return itemType === 'warehouse';
+    });
+
+    const hasXml = !!String(cfdiUuid ?? '').trim();
+
     return {
       id: expenseId,
       linkId,
@@ -1634,7 +1749,7 @@ export class PurchaseOrderDetails implements OnInit {
         `Gasto #${expenseId || ''}`,
       type:
         link.registration_type_label ??
-        this.getRegistrationTypeLabel(link.registration_type) ??
+        this.getRegistrationTypeLabel(registrationType) ??
         'Gasto',
       total,
       paid,
@@ -1658,6 +1773,15 @@ export class PurchaseOrderDetails implements OnInit {
         ticketPhoto?.file_name ??
         ticketPhoto?.fileName ??
         null,
+
+      registrationType,
+      cfdiUuid,
+      originType,
+      sourceModule,
+      sourceRecordId,
+
+      hasXml,
+      hasWarehouseItems,
     };
   }
 

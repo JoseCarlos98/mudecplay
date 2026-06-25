@@ -123,19 +123,42 @@ export interface PurchaseOrderExpenseLinkDto {
 
   expense?: {
     id: number;
+
     folio?: string | null;
     internal_folio?: string | null;
+
+    date?: string | null;
+
     total?: number | string | null;
     amount?: number | string | null;
     total_amount?: number | string | null;
+
     paid_amount?: number | string | null;
     total_paid?: number | string | null;
     payment_amount?: number | string | null;
-    items?: Array<{
-      payment_amount?: number | string | null;
-      paid_amount?: number | string | null;
-    }>;
+
+    cfdi_uuid?: string | null;
+
+    origin_type?: string | null;
+    source_module?: string | null;
+    source_record_id?: number | string | null;
+
+    supplier?: {
+      id: number;
+      company_name?: string | null;
+      name?: string | null;
+    } | null;
+
+    status?: {
+      id: number;
+      name: string;
+    } | null;
+
+    items?: PurchaseOrderExpenseItemDetailDto[];
   } | null;
+
+  linked_items?: PurchaseOrderExpenseLinkedItemDto[];
+  linked_item_ids?: number[];
 
   ticketPhoto?: PurchaseOrderTicketPhotoDto | null;
   ticket_photo?: PurchaseOrderTicketPhotoDto | null;
@@ -294,18 +317,41 @@ export interface UnlinkPurchaseOrderExpenseDto {
   reason?: string | null;
 }
 
+export type PurchaseOrderExpenseRelationAction =
+  | 'expense_deleted'
+  | 'link_removed';
+
+export interface UnlinkPurchaseOrderExpenseResponseData {
+  purchase_order_id: number;
+  purchase_order_folio: string;
+
+  expense_link_id: number;
+
+  expense_id: number | null;
+  expense_folio: string | null;
+
+  ticket_photo_id: number | null;
+
+  unlinked: boolean;
+
+  /**
+   * true:
+   * - El gasto fue creado desde O.C. sin XML.
+   * - Se eliminó/soft-deleteó del módulo Gastos.
+   *
+   * false:
+   * - Era XML existente o gasto externo.
+   * - Solo se quitó la relación con la O.C.
+   */
+  expense_deleted: boolean;
+
+  action: PurchaseOrderExpenseRelationAction;
+}
+
 export interface UnlinkPurchaseOrderExpenseResponse {
   success: boolean;
   message: string;
-  data: {
-    purchase_order_id: number;
-    purchase_order_folio: string;
-    expense_link_id: number;
-    expense_id: number | null;
-    expense_folio: string | null;
-    ticket_photo_id: number | null;
-    unlinked: boolean;
-  };
+  data: UnlinkPurchaseOrderExpenseResponseData;
 }
 
 export interface PurchaseOrderRequesterEmployeeDto {
@@ -460,13 +506,6 @@ export interface ReconcileTicketPhotoResponse {
   success: boolean;
   message: string;
   data: PurchaseOrderTicketPhotoDto;
-}
-
-export interface TicketPhotoViewUrlResponse {
-  id: number;
-  file_name: string | null;
-  url: string;
-  expiresIn: number;
 }
 
 export interface TicketPhotoPurchaseOrderMiniDto {

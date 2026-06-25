@@ -1,8 +1,5 @@
 <div class="card-content-form">
-  <app-module-header
-    [title]="pageTitle"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)">
+  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
   <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
@@ -19,46 +16,30 @@
 
         <div class="c-form-grid c-form-grid--three">
           <div class="c-form-grid__field">
-            <app-autocomplete
-              formControlName="project_id"
-              label="Proyecto"
-              placeholder="Buscar proyecto"
-              [remote]="true"
-              catalogType="project">
+            <app-autocomplete formControlName="project_id" label="Proyecto" placeholder="Buscar proyecto"
+              [remote]="true" catalogType="project">
             </app-autocomplete>
           </div>
 
           <div class="c-form-grid__field">
-            <app-input-select
-              formControlName="destination_type"
-              label="Destino"
-              [options]="destinationTypeOptions">
+            <app-input-select formControlName="destination_type" label="Destino" [options]="destinationTypeOptions">
             </app-input-select>
           </div>
 
           <div class="c-form-grid__field">
-            <app-input-select
-              formControlName="will_have_invoice"
-              label="¿Tendrá factura?"
-              [options]="invoiceOptions">
+            <app-input-select formControlName="will_have_invoice" label="¿Tendrá factura?" [options]="invoiceOptions">
             </app-input-select>
           </div>
         </div>
 
         <div class="c-form-grid c-form-grid--two-wide">
           <div class="c-form-grid__field">
-            <app-input-field
-              formControlName="requested_amount"
-              label="Monto solicitado"
-              type="money">
+            <app-input-field formControlName="requested_amount" label="Monto solicitado" type="money">
             </app-input-field>
           </div>
 
           <div class="c-form-grid__field">
-            <app-input-field
-              formControlName="concept"
-              label="Concepto"
-              type="text">
+            <app-input-field formControlName="concept" label="Concepto" type="text">
             </app-input-field>
           </div>
         </div>
@@ -74,31 +55,27 @@
           </div>
         </div>
 
-        @if (isLocked) {
-          <div class="c-form-alert c-form-alert--danger">
-            <mat-icon class="c-form-alert__icon">lock</mat-icon>
+        @if (showFormStatusAlert) {
+        <div class="c-form-alert" [ngClass]="formStatusAlertClass">
+          <mat-icon class="c-form-alert__icon">
+            {{ formStatusAlertIcon }}
+          </mat-icon>
 
-            <div class="c-form-alert__content">
-              Esta orden de compra ya no se puede editar porque está
-              <strong>autorizada</strong> o <strong>cancelada</strong>.
-            </div>
+          <div class="c-form-alert__content">
+            {{ formStatusAlertMessage }}
           </div>
+        </div>
         }
 
         <div class="c-form-grid c-form-grid--two">
           <div class="c-form-grid__field">
-            <app-input-select
-              formControlName="requested_by_employee_id"
-              label="Solicitante"
+            <app-input-select formControlName="requested_by_employee_id" label="Solicitante"
               [options]="requesterOptions">
             </app-input-select>
           </div>
 
           <div class="c-form-grid__field">
-            <app-input-field
-              formControlName="captured_by"
-              label="Capturado por"
-              type="text">
+            <app-input-field formControlName="captured_by" label="Capturado por" type="text">
             </app-input-field>
 
             <small class="c-form-field-helper">
@@ -109,10 +86,7 @@
 
         <div class="c-form-grid c-form-grid--one">
           <div class="c-form-grid__field">
-            <app-input-field
-              formControlName="notes"
-              label="Notas"
-              type="text">
+            <app-input-field formControlName="notes" label="Notas" type="text">
             </app-input-field>
           </div>
         </div>
@@ -128,9 +102,6 @@
     </div>
   </form>
 
-  <app-btns-section
-    form="form"
-    [saveDisabled]="saveDisabled"
-    (action)="onFooterAction($event)">
+  <app-btns-section form="form" [saveDisabled]="saveDisabled" (action)="onFooterAction($event)">
   </app-btns-section>
 </div>

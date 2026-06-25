@@ -45,6 +45,7 @@ import { ModalPurchaseCancel } from './components/modal-purchase-cancel/modal-pu
 // Interfaces
 import { Catalog } from '../../shared/interfaces/general-interfaces';
 import * as entity from './interfaces/purchase-orders.interfaces';
+import { PermissionsService } from '../../auth/services/permissions.service';
 
 // ==========================
 //  CONSTANTES DEL MÓDULO
@@ -190,6 +191,8 @@ export class PurchaseOrders implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
+  private readonly permissionsService = inject(PermissionsService);
+
 
   readonly trackingStatusOptions = TRACKING_STATUS_OPTIONS;
   readonly destinationTypeOptions = DESTINATION_TYPE_OPTIONS;
@@ -346,7 +349,35 @@ export class PurchaseOrders implements OnInit {
   //  REGLAS UI
   // ==========================
   private canEdit(row: entity.PurchaseOrderResponseDto): boolean {
-    return row.status === 'in_review' || row.status === 'not_authorized';
+    if (!row?.id) return false;
+
+    if (row.status === 'cancelled') return false;
+
+    if (row.status === 'in_review' || row.status === 'not_authorized') {
+      return true;
+    }
+
+    if (row.status === 'authorized') {
+      return this.canEditAuthorizedPurchaseOrder(row);
+    }
+
+    return false;
+  }
+
+  private canEditAuthorizedPurchaseOrder(
+    row: entity.PurchaseOrderResponseDto,
+  ): boolean {
+    if (!this.isAdminGeneral()) return false;
+
+    const trackingStatus = String(row.tracking_status ?? '').trim();
+
+    const editableTrackingStatuses = [
+      'authorized',
+      'ticket_uploaded',
+      'ticket_reconciled',
+    ];
+
+    return editableTrackingStatuses.includes(trackingStatus);
   }
 
   private canAuthorize(row: entity.PurchaseOrderResponseDto): boolean {
@@ -362,7 +393,15 @@ export class PurchaseOrders implements OnInit {
   }
 
   private getEditTooltip(row: entity.PurchaseOrderResponseDto): string {
-    return this.canEdit(row) ? 'Editar orden' : '';
+    if (this.canEdit(row)) {
+      if (row.status === 'authorized') {
+        return 'Editar O.C. autorizada sin gasto relacionado';
+      }
+
+      return 'Editar orden';
+    }
+
+    return this.getUnavailableEditReason(row);
   }
 
   private getAuthorizeTooltip(row: entity.PurchaseOrderResponseDto): string {
@@ -428,20 +467,37 @@ export class PurchaseOrders implements OnInit {
       kind: 'warning',
     };
   }
+  private isAdminGeneral(): boolean {
+    return this.permissionsService.hasAnyRole(['ADMIN_GENERAL']);
+  }
 
   private getUnavailableEditReason(
     row: entity.PurchaseOrderResponseDto,
   ): string {
-    switch (row.status) {
-      case 'authorized':
-        return 'Esta orden ya fue autorizada y no se puede editar desde este flujo.';
-
-      case 'cancelled':
-        return 'Esta orden fue cancelada y ya no se puede editar.';
-
-      default:
-        return 'Solo se puede editar una orden en revisión o no autorizada.';
+    if (row.status === 'cancelled') {
+      return 'Esta orden fue cancelada y ya no se puede editar.';
     }
+
+    if (row.status === 'authorized') {
+      if (!this.isAdminGeneral()) {
+        return 'Solo un administrador puede editar una O.C. autorizada.';
+      }
+
+      const trackingStatus = String(row.tracking_status ?? '').trim();
+
+      switch (trackingStatus) {
+        case 'expense_registered':
+          return 'Esta O.C. ya tiene gasto registrado. Primero elimina o quita el gasto relacionado desde el detalle.';
+
+        case 'payment_completed':
+          return 'Esta O.C. ya tiene el pago completado y no se puede editar.';
+
+        default:
+          return 'Esta O.C. autorizada no se puede editar desde este flujo.';
+      }
+    }
+
+    return 'Solo se puede editar una orden en revisión, no autorizada o autorizada sin gasto relacionado.';
   }
 
   private getUnavailableAuthorizeReason(

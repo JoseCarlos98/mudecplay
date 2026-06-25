@@ -833,7 +833,7 @@ export class DailyAssistance implements OnInit {
 
   private getProjectsCatalog(): Observable<ProjectOption[]> {
     return this.catalogsService
-      .projectsCatalog('', { statusProject: 'open' })
+      .projectsCatalog('')
       .pipe(
         map((rows: any[]) =>
           (rows ?? []).map((row) => ({

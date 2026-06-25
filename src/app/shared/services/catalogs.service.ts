@@ -49,6 +49,10 @@ export class CatalogsService {
 
     if (extraParams) {
       for (const [key, value] of Object.entries(extraParams)) {
+        // El catálogo operativo de proyectos siempre debe traer solo abiertos.
+        // Los cerrados solo se consultan desde la tabla de proyectos.
+        if (key === 'statusProject') continue;
+
         if (value === undefined || value === null) continue;
         if (typeof value === 'string' && value.trim() === '') continue;
 

@@ -30,6 +30,7 @@ import { toIdForm } from '../../../../shared/helpers/general-helpers';
 import { AuthService } from '../../../../auth/services/auth.service';
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 import * as entity from '../../interfaces/purchase-orders.interfaces';
+import { PermissionsService } from '../../../../auth/services/permissions.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -61,6 +62,7 @@ export class PurchaseOrderForm implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
+  private readonly permissionsService = inject(PermissionsService);
 
   readonly headerConfig = HEADER_CONFIG;
 
@@ -70,6 +72,8 @@ export class PurchaseOrderForm implements OnInit {
   isLocked = false;
 
   purchaseOrderId = 0;
+  currentOrderStatus: string | null = null;
+  currentExpenseLinksCount = 0;
 
   requesterOptions: Catalog[] = [];
 
@@ -85,8 +89,8 @@ export class PurchaseOrderForm implements OnInit {
 
   form = this.fb.group({
     project_id: this.fb.control<Catalog | number | string | null>(null, {
-  validators: [Validators.required],
-}),
+      validators: [Validators.required],
+    }),
     destination_type: this.fb.control<entity.PurchaseOrderDestinationType | null>(
       'direct',
       {
@@ -115,22 +119,22 @@ export class PurchaseOrderForm implements OnInit {
     notes: this.fb.control<string | null>(null),
   });
 
-ngOnInit(): void {
-  this.setCapturedByUser();
-  this.watchDestinationType();
+  ngOnInit(): void {
+    this.setCapturedByUser();
+    this.watchDestinationType();
 
-  // Como el destino inicia en "direct", el proyecto debe ser requerido desde el inicio.
-  this.applyProjectValidator(this.destinationType);
+    // Como el destino inicia en "direct", el proyecto debe ser requerido desde el inicio.
+    this.applyProjectValidator(this.destinationType);
 
-  const idParam = this.route.snapshot.paramMap.get('id');
+    const idParam = this.route.snapshot.paramMap.get('id');
 
-  if (idParam) {
-    this.purchaseOrderId = Number(idParam);
-    this.isEditMode = true;
+    if (idParam) {
+      this.purchaseOrderId = Number(idParam);
+      this.isEditMode = true;
+    }
+
+    this.loadInitialData();
   }
-
-  this.loadInitialData();
-}
 
   get pageTitle(): string {
     return this.isEditMode ? 'Editar orden de compra' : 'Nueva orden de compra';
@@ -142,7 +146,7 @@ ngOnInit(): void {
       this.isSaving ||
       this.isLoading ||
       this.isLocked ||
-      this.requesterOptions.length === 0
+      (!this.isAuthorizedCorrectionMode && this.requesterOptions.length === 0)
     );
   }
 
@@ -154,6 +158,48 @@ ngOnInit(): void {
     return this.destinationType === 'warehouse'
       ? 'En almacén, el proyecto funciona como referencia de la solicitud.'
       : 'En directo, el proyecto es obligatorio porque el gasto irá al proyecto.';
+  }
+
+  get isAuthorizedCorrectionMode(): boolean {
+    return (
+      this.isEditMode &&
+      this.currentOrderStatus === 'authorized' &&
+      this.currentExpenseLinksCount === 0 &&
+      this.isAdminGeneral() &&
+      !this.isLocked
+    );
+  }
+
+  get showFormStatusAlert(): boolean {
+    return this.isEditMode && (this.isLocked || this.isAuthorizedCorrectionMode);
+  }
+
+  get formStatusAlertClass(): string {
+    return this.isLocked ? 'c-form-alert--danger' : 'c-form-alert--info';
+  }
+
+  get formStatusAlertIcon(): string {
+    return this.isLocked ? 'lock' : 'info';
+  }
+
+  get formStatusAlertMessage(): string {
+    if (this.currentOrderStatus === 'cancelled') {
+      return 'Esta orden de compra está cancelada y ya no se puede editar.';
+    }
+
+    if (this.currentOrderStatus === 'authorized' && !this.isAdminGeneral()) {
+      return 'Esta O.C. ya está autorizada. Solo un administrador puede editarla como corrección.';
+    }
+
+    if (this.currentOrderStatus === 'authorized' && this.currentExpenseLinksCount > 0) {
+      return 'Esta O.C. ya tiene gasto relacionado. Para cambiar destino o factura, primero elimina o quita el gasto relacionado desde el detalle.';
+    }
+
+    if (this.isAuthorizedCorrectionMode) {
+      return 'Esta O.C. está autorizada, pero no tiene gasto relacionado. Como administrador puedes corregir destino, factura, monto, concepto y notas. El proyecto y solicitante se conservan bloqueados.';
+    }
+
+    return '';
   }
 
   onHeaderAction(action: ModuleHeaderAction | string): void {
@@ -193,7 +239,9 @@ ngOnInit(): void {
         this.purchaseOrderId,
         payload as entity.UpdatePurchaseOrderDto,
       )
-      : this.purchaseOrdersService.createPurchaseOrder(payload);
+      : this.purchaseOrdersService.createPurchaseOrder(
+        payload as entity.CreatePurchaseOrderDto,
+      );
 
     request$
       .pipe(
@@ -249,8 +297,10 @@ ngOnInit(): void {
   }
 
   private patchOrder(order: entity.PurchaseOrderResponseDto): void {
-    this.isLocked =
-      order.status === 'authorized' || order.status === 'cancelled';
+    this.currentOrderStatus = order.status ?? null;
+    this.currentExpenseLinksCount = Number(order.expense_links_count ?? 0);
+
+    this.isLocked = this.shouldLockOrderForm(order);
 
     this.ensureRequesterOption(order);
 
@@ -270,12 +320,52 @@ ngOnInit(): void {
       notes: order.notes ?? null,
     });
 
-    if (this.isLocked) {
-      this.form.disable({ emitEvent: false });
-    }
+    this.applyFormControlState();
   }
 
-  private buildPayload(): entity.CreatePurchaseOrderDto | null {
+  private shouldLockOrderForm(order: entity.PurchaseOrderResponseDto): boolean {
+    if (order.status === 'cancelled') return true;
+
+    if (order.status === 'authorized' && !this.isAdminGeneral()) {
+      return true;
+    }
+
+    if (
+      order.status === 'authorized' &&
+      Number(order.expense_links_count ?? 0) > 0
+    ) {
+      return true;
+    }
+
+    return false;
+  }
+
+  private isAdminGeneral(): boolean {
+    return this.permissionsService.hasAnyRole(['ADMIN_GENERAL']);
+  }
+
+  private applyFormControlState(): void {
+    if (this.isLocked) {
+      this.form.disable({ emitEvent: false });
+      return;
+    }
+
+    this.form.enable({ emitEvent: false });
+
+    this.form.get('captured_by')?.disable({ emitEvent: false });
+
+    if (this.isAuthorizedCorrectionMode) {
+      this.form.get('project_id')?.disable({ emitEvent: false });
+      this.form.get('requested_by_employee_id')?.disable({ emitEvent: false });
+    }
+
+    this.applyProjectValidator(this.form.get('destination_type')?.value);
+  }
+
+  private buildPayload():
+    | entity.CreatePurchaseOrderDto
+    | entity.UpdatePurchaseOrderDto
+    | null {
     const raw = this.form.getRawValue();
 
     const destinationType = raw.destination_type;
@@ -291,18 +381,6 @@ ngOnInit(): void {
       return null;
     }
 
-    if (destinationType === 'direct' && !projectId) {
-      this.form.get('project_id')?.setErrors({ required: true });
-      this.form.get('project_id')?.markAsTouched();
-      return null;
-    }
-
-    if (!requesterId) {
-      this.form.get('requested_by_employee_id')?.setErrors({ required: true });
-      this.form.get('requested_by_employee_id')?.markAsTouched();
-      return null;
-    }
-
     if (!concept) {
       this.form.get('concept')?.setErrors({ required: true });
       this.form.get('concept')?.markAsTouched();
@@ -312,6 +390,28 @@ ngOnInit(): void {
     if (!requestedAmount || requestedAmount <= 0) {
       this.form.get('requested_amount')?.setErrors({ required: true });
       this.form.get('requested_amount')?.markAsTouched();
+      return null;
+    }
+
+    if (this.isAuthorizedCorrectionMode) {
+      return {
+        destination_type: destinationType,
+        will_have_invoice: willHaveInvoice,
+        concept,
+        requested_amount: requestedAmount,
+        notes: raw.notes?.trim() || null,
+      };
+    }
+
+    if (destinationType === 'direct' && !projectId) {
+      this.form.get('project_id')?.setErrors({ required: true });
+      this.form.get('project_id')?.markAsTouched();
+      return null;
+    }
+
+    if (!requesterId) {
+      this.form.get('requested_by_employee_id')?.setErrors({ required: true });
+      this.form.get('requested_by_employee_id')?.markAsTouched();
       return null;
     }
 
@@ -325,6 +425,7 @@ ngOnInit(): void {
       notes: raw.notes?.trim() || null,
     };
   }
+
   private watchDestinationType(): void {
     this.form
       .get('destination_type')

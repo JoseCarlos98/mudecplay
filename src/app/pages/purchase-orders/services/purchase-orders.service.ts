@@ -433,16 +433,16 @@ export class PurchaseOrdersService {
     );
   }
 
-  unlinkExpenseFromPurchaseOrder(
-    purchaseOrderId: number | string,
-    expenseLinkId: number | string,
-    payload: entity.UnlinkPurchaseOrderExpenseDto,
-  ): Observable<entity.UnlinkPurchaseOrderExpenseResponse> {
-    return this.http.patch<entity.UnlinkPurchaseOrderExpenseResponse>(
-      `${this.apiUrl}/${purchaseOrderId}/expense-links/${expenseLinkId}/unlink`,
-      payload,
-    );
-  }
+ unlinkExpenseFromPurchaseOrder(
+  purchaseOrderId: number | string,
+  linkId: number | string,
+  payload: entity.UnlinkPurchaseOrderExpenseDto,
+): Observable<entity.UnlinkPurchaseOrderExpenseResponse> {
+  return this.http.patch<entity.UnlinkPurchaseOrderExpenseResponse>(
+    `${this.apiUrl}/${purchaseOrderId}/expense-links/${linkId}/unlink`,
+    payload,
+  );
+}
 
   updateTicketPhotoProject(
     photoId: number | string,
