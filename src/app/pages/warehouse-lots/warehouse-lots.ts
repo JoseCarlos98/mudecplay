@@ -72,7 +72,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'product_name_snapshot', label: 'Producto' },
   { key: 'expense_folio_snapshot', label: 'Folio gasto' },
   { key: 'supplier_name_snapshot', label: 'Proveedor' },
-  { key: 'purchase_date', label: 'Compra', type: 'date' },
+  { key: 'purchase_date_display', label: 'Compra', type: 'date' },
   { key: 'original_quantity_text', label: 'Cantidad original', align: 'right' },
   { key: 'available_quantity_text', label: 'Disponible', align: 'right' },
   { key: 'used_quantity_text', label: 'Usado', align: 'right' },
@@ -221,23 +221,24 @@ export class WarehouseLots implements OnInit {
     };
   }
 
-  private mapWarehouseLotRow(
-    row: entity.WarehouseLotResponseDto,
-  ): entity.WarehouseLotResponseDto {
-    return {
-      ...row,
-      status_name: this.getStatusLabel(row.status),
-      original_quantity_text: this.formatQuantity(
-        row.original_quantity,
-        row.unit,
-      ),
-      available_quantity_text: this.formatQuantity(
-        row.available_quantity,
-        row.unit,
-      ),
-      used_quantity_text: this.formatQuantity(row.used_quantity, row.unit),
-    };
-  }
+private mapWarehouseLotRow(
+  row: entity.WarehouseLotResponseDto,
+): entity.WarehouseLotResponseDto {
+  return {
+    ...row,
+    status_name: this.getStatusLabel(row.status),
+    purchase_date_display: this.formatDateOnly(row.purchase_date),
+    original_quantity_text: this.formatQuantity(
+      row.original_quantity,
+      row.unit,
+    ),
+    available_quantity_text: this.formatQuantity(
+      row.available_quantity,
+      row.unit,
+    ),
+    used_quantity_text: this.formatQuantity(row.used_quantity, row.unit),
+  };
+}
 
   private getStatusLabel(status: entity.WarehouseLotStatus): string {
     const option = STATUS_OPTIONS.find((s) => s.id === status);
@@ -252,6 +253,27 @@ export class WarehouseLots implements OnInit {
 
     return `${quantity} ${unit ?? ''}`.trim();
   }
+
+  private formatDateOnly(value: string | Date | null | undefined): string {
+  if (!value) return '-';
+
+  const raw = typeof value === 'string' ? value : value.toISOString();
+  const datePart = raw.substring(0, 10);
+
+  const [year, month, day] = datePart.split('-').map(Number);
+
+  if (!year || !month || !day) return '-';
+
+  const localDate = new Date(year, month - 1, day);
+
+  return new Intl.DateTimeFormat('es-MX', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+    .format(localDate)
+    .replace('.', '');
+}
 
   private canAssignLot(row: entity.WarehouseLotResponseDto): boolean {
     return (

@@ -67,6 +67,7 @@ export interface WarehouseLotResponseDto {
   original_quantity_text?: string;
   available_quantity_text?: string;
   used_quantity_text?: string;
+  purchase_date_display?: string | null;
 }
 
 export interface AssignWarehouseLotDto {

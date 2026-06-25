@@ -79,11 +79,73 @@ export class ModalSeePhoto implements OnInit, OnDestroy {
   }
 
   get createdAt(): string {
-    return this.data?.created_at_date || this.data?.created_at || 'Sin fecha';
+    return this.formatDateTime(
+      this.data?.created_at_date || this.data?.created_at,
+    );
   }
 
   get statusLabel(): string {
     return this.data?.status_label || 'Sin estatus';
+  }
+
+  private formatDateTime(value: string | Date | null | undefined): string {
+    if (!value) return 'Sin fecha';
+
+    if (value instanceof Date) {
+      return this.formatValidDate(value);
+    }
+
+    const raw = String(value).trim();
+
+    if (!raw) return 'Sin fecha';
+
+    /**
+     * Si ya viene formateada desde otro mapper,
+     * la dejamos igual para no romper pantallas existentes.
+     */
+    const isDateLike = /^\d{4}-\d{2}-\d{2}/.test(raw);
+
+    if (!isDateLike) {
+      return raw;
+    }
+
+    /**
+     * Si llega como fecha simple: 2026-06-22
+     * se crea local para evitar desfase por zona horaria.
+     */
+    if (raw.length === 10) {
+      const [year, month, day] = raw.split('-').map(Number);
+
+      if (!year || !month || !day) return 'Sin fecha';
+
+      return this.formatValidDate(new Date(year, month - 1, day), false);
+    }
+
+    /**
+     * Si llega como timestamp ISO: 2026-06-22T16:49:27.000Z
+     * sí se muestra como fecha/hora local.
+     */
+    const date = new Date(raw);
+
+    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+    return this.formatValidDate(date, true);
+  }
+
+  private formatValidDate(date: Date, withTime = true): string {
+    return new Intl.DateTimeFormat('es-MX', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      ...(withTime
+        ? {
+          hour: '2-digit',
+          minute: '2-digit',
+        }
+        : {}),
+    })
+      .format(date)
+      .replace(/\./g, '');
   }
 
   onBtnsSectionAction(action: string): void {
