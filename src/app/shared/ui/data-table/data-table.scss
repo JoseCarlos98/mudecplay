@@ -99,8 +99,94 @@
     border-bottom: none;
   }
 
+  // .c-actions-cells {
+  //   padding-left: 8px !important;
+
+  //   .popover-action-trigger {
+  //     display: inline-flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //   }
+
+  //   button.is-action-disabled {
+  //     opacity: 0.62;
+  //     filter: grayscale(1);
+  //     transform: none !important;
+
+  //     mat-icon {
+  //       color: #6b7280 !important;
+  //     }
+  //   }
+
+  //   button.is-action-disabled:hover {
+  //     color: #6b7280 !important;
+  //     background: transparent !important;
+  //     box-shadow: none !important;
+  //   }
+
+  //   > div {
+  //     display: flex;
+  //     align-items: center;
+  //     gap: 10px;
+  //     white-space: nowrap;
+  //   }
+
+  //   button {
+  //     color: #555;
+  //     transition: all 0.25s ease;
+
+  //     width: 36px !important;
+  //     height: 36px !important;
+  //     min-height: unset !important;
+  //     padding: 0 !important;
+
+  //     display: flex !important;
+  //     align-items: center !important;
+  //     justify-content: center !important;
+
+  //     mat-icon {
+  //       font-size: 21px;
+  //       margin-top: 3px;
+  //     }
+  //   }
+
+  //   .edit-btn:hover {
+  //     color: #27aae1;
+  //   }
+  // }
+
+.c-actions-header,
+.c-actions-cells {
+  position: sticky !important;
+  right: 0 !important;
+  background: #ffffff;
+  border-left: 1px solid rgba(35, 31, 32, 0.08);
+  z-index: 4;
+  min-width: 132px;
+  white-space: nowrap;
+  box-shadow: -8px 0 12px rgba(15, 23, 42, 0.06);
+}
+
+.c-actions-header::before,
+.c-actions-cells::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -14px;
+  width: 14px;
+  height: 100%;
+  pointer-events: none;
+  background: linear-gradient(to left, rgba(15, 23, 42, 0.08), transparent);
+}
+
+  .c-actions-header {
+    z-index: 7;
+    text-align: center;
+  }
+
   .c-actions-cells {
-    padding-left: 8px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
 
     .popover-action-trigger {
       display: inline-flex;
@@ -125,9 +211,14 @@
     }
 
     > div {
+      width: max-content;
+      min-width: 100%;
+
       display: flex;
       align-items: center;
+      justify-content: end;
       gap: 10px;
+
       white-space: nowrap;
     }
 
@@ -153,6 +244,19 @@
     .edit-btn:hover {
       color: #27aae1;
     }
+  }
+
+  /* Para que la columna sticky no se vea blanca encima de filas grises */
+  tr.mat-mdc-row:nth-child(even) .c-actions-cells {
+    background: #f8f8f9;
+  }
+
+  tr.mat-mdc-row:nth-child(odd) .c-actions-cells {
+    background: #ffffff;
+  }
+
+  tr.mat-mdc-row:hover .c-actions-cells {
+    background: #f3f4f6;
   }
 
   .table-chip {
@@ -306,7 +410,15 @@
       }
     }
 
+    .c-actions-header,
     .c-actions-cells {
+      min-width: 118px;
+    }
+
+    .c-actions-cells {
+      padding-left: 8px !important;
+      padding-right: 8px !important;
+
       > div {
         gap: 6px;
       }
