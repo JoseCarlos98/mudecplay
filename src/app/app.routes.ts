@@ -44,6 +44,25 @@ export const routes: Routes = [
         },
       },
       {
+        path: 'tesoreria',
+        loadChildren: () =>
+          import('./pages/treasury/treasury.routes').then((m) => m.TREASURY_ROUTES),
+        canActivate: [rolesGuard],
+        data: {
+          roles: [
+            'ADMIN_GENERAL',
+
+            'TESORERIA_CUENTAS_BANCARIAS_EDITOR',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
+            'TESORERIA_CUENTAS_POR_PAGAR_EDITOR',
+            'TESORERIA_CUENTAS_POR_COBRAR_EDITOR',
+            'TESORERIA_FLUJO_EFECTIVO_CONSULTOR',
+            'TESORERIA_REPORTES_EMISOR',
+          ],
+        },
+      },
+      {
         path: 'ordenes-compra',
         loadChildren: () =>
           import('./pages/purchase-orders/purchase-orders.routes')
