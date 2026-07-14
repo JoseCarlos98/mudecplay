@@ -11,6 +11,17 @@
     </p>
   </div>
 
+  @if (identityLocked) {
+  <div class="c-modal-help c-modal-help--warning">
+    <mat-icon>lock</mat-icon>
+
+    <div class="c-modal-help__content">
+      Esta cuenta ya tiene importaciones o movimientos relacionados.
+      Por seguridad solo puedes editar <strong>alias, moneda y estatus</strong>.
+    </div>
+  </div>
+}
+
   <form
     [formGroup]="form"
     (ngSubmit)="saveData()"
@@ -38,7 +49,7 @@
         <app-input-field
           formControlName="account_identifier"
           label="Cuenta / Identificador"
-          type="text">
+          type="number">
         </app-input-field>
 
         <small class="c-form-field-helper">

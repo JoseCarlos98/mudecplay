@@ -77,8 +77,18 @@ export class TreasuryService {
     );
   }
 
+  // =========================================================
+  // TESORERÍA: CUENTAS BANCARIAS - ELIMINAR
+  // =========================================================
 
-  
+  deleteBankAccount(
+    id: number | string,
+  ): Observable<entity.TreasuryBankAccountSaveResponse> {
+    return this.http.delete<entity.TreasuryBankAccountSaveResponse>(
+      `${this.apiUrl}/bank-accounts/${id}`,
+    );
+  }
+
 }
 
 

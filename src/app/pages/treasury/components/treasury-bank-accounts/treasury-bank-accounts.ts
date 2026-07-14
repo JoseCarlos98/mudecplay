@@ -187,6 +187,13 @@ export class TreasuryBankAccounts implements OnInit {
       visible: (row) => !row.is_active,
       disabled: () => false,
     },
+    {
+      type: 'deleteBankAccount',
+      icon: 'delete',
+      tooltip: (row) => this.getDeleteTooltip(row),
+      popoverContent: (row) => this.getDeletePopover(row),
+      disabled: (row) => !this.canDeleteBankAccount(row),
+    },
   ];
 
   // =========================================================
@@ -326,6 +333,14 @@ export class TreasuryBankAccounts implements OnInit {
   ): entity.TreasuryBankAccountTableRow {
     const isActive = Boolean(row.is_active ?? row.isActive ?? false);
 
+    const hasMovementsOrFiles = Boolean(
+      row.has_movements_or_files ?? row.hasMovementsOrFiles ?? false,
+    );
+
+    const identityLocked = Boolean(
+      row.identity_locked ?? row.identityLocked ?? hasMovementsOrFiles,
+    );
+
     return {
       ...row,
       account_identifier:
@@ -334,6 +349,10 @@ export class TreasuryBankAccounts implements OnInit {
       currency: row.currency || 'MXN',
       is_active: isActive,
       is_active_label: isActive ? 'Activa' : 'Inactiva',
+
+      has_movements_or_files: hasMovementsOrFiles,
+      identity_locked: identityLocked,
+
       company_name: row.company?.name ?? 'Sin empresa',
       bank_name: row.bank?.name ?? 'Sin banco',
       bank_parser_code: row.bank?.parser_code ?? '',
@@ -431,9 +450,118 @@ export class TreasuryBankAccounts implements OnInit {
         this.activateBankAccount(ev.row);
         break;
 
+      case 'deleteBankAccount':
+        this.onDeleteBankAccount(ev.row);
+        break;
+
       default:
         break;
     }
+  }
+
+  // =========================================================
+  // ACCIONES TABLA: ELIMINAR CUENTA BANCARIA
+  // =========================================================
+
+  private onDeleteBankAccount(
+    row: entity.TreasuryBankAccountTableRow,
+  ): void {
+    if (!row?.id) return;
+
+    if (!this.canDeleteBankAccount(row)) {
+      this.dialogService
+        .confirm({
+          title: 'Acción no disponible',
+          message:
+            'Esta cuenta bancaria ya tiene importaciones o movimientos relacionados. Para conservar el historial, puedes desactivarla en lugar de eliminarla.',
+          confirmText: 'OK',
+          cancelText: '',
+        })
+        .subscribe();
+
+      return;
+    }
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        message: `¿Quieres eliminar la cuenta bancaria:\n"${row.alias_display}"?`,
+        confirmText: 'Eliminar',
+        cancelText: 'Cancelar',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) return;
+
+        this.loadingTable.set(true);
+
+        this.treasuryService
+          .deleteBankAccount(row.id)
+          .subscribe({
+            next: (response) => {
+              if (response?.success !== false) {
+                // Importante:
+                // apagar antes de recargar, porque loadBankAccounts()
+                // tiene guard: if (this.loadingTable()) return;
+                this.loadingTable.set(false);
+                this.loadBankAccounts();
+                return;
+              }
+
+              this.loadingTable.set(false);
+            },
+            error: (err) => {
+              this.loadingTable.set(false);
+
+              console.error('Error eliminando cuenta bancaria:', err);
+
+              this.dialogService
+                .confirm({
+                  title: 'Error',
+                  message:
+                    err?.error?.message ??
+                    'No se pudo eliminar la cuenta bancaria.',
+                  confirmText: 'OK',
+                  cancelText: '',
+                })
+                .subscribe();
+            },
+          });
+      });
+  }
+
+  private canDeleteBankAccount(
+    row: entity.TreasuryBankAccountTableRow,
+  ): boolean {
+    if (!row?.id) return false;
+
+    return !Boolean(row.has_movements_or_files || row.identity_locked);
+  }
+
+  private getDeleteTooltip(
+    row: entity.TreasuryBankAccountTableRow,
+  ): string {
+
+    if (this.canDeleteBankAccount(row)) {
+      return 'Eliminar cuenta bancaria';
+    }
+
+    return 'No se puede eliminar';
+  }
+
+  private getDeletePopover(
+    row: entity.TreasuryBankAccountTableRow,
+  ): DataTableActionPopover | null {
+    if (this.canDeleteBankAccount(row)) return null;
+
+    return {
+      title: 'No disponible',
+      message: null,
+      items: [
+        'Esta cuenta ya tiene importaciones o movimientos bancarios relacionados.',
+        'Para conservar el historial, puedes desactivarla en lugar de eliminarla.',
+      ],
+      kind: 'warning',
+    };
   }
 
   private getDeactivateTooltip(

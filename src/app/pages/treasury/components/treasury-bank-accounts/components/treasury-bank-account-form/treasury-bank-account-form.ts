@@ -190,24 +190,34 @@ export class TreasuryBankAccountForm implements OnInit {
       });
   }
 
-  private patchBankAccount(
-    bankAccount: entity.TreasuryBankAccountTableRow,
-  ): void {
-    this.ensureCompanyOption(bankAccount);
-    this.ensureBankOption(bankAccount);
+ private patchBankAccount(
+  bankAccount: entity.TreasuryBankAccountTableRow,
+): void {
+  this.ensureCompanyOption(bankAccount);
+  this.ensureBankOption(bankAccount);
 
-    this.form.patchValue(
-      {
-        company_id: bankAccount.company?.id ?? null,
-        bank_id: bankAccount.bank?.id ?? null,
-        account_identifier: bankAccount.account_identifier ?? '',
-        alias: bankAccount.alias ?? null,
-        currency: bankAccount.currency || 'MXN',
-        is_active: bankAccount.is_active ? 'true' : 'false',
-      },
-      { emitEvent: false },
-    );
+  this.form.patchValue(
+    {
+      company_id: bankAccount.company?.id ?? null,
+      bank_id: bankAccount.bank?.id ?? null,
+      account_identifier: bankAccount.account_identifier ?? '',
+      alias: bankAccount.alias ?? null,
+      currency: bankAccount.currency || 'MXN',
+      is_active: bankAccount.is_active ? 'true' : 'false',
+    },
+    { emitEvent: false },
+  );
+
+  if (this.identityLocked) {
+    this.lockIdentityControls();
   }
+}
+
+private lockIdentityControls(): void {
+  this.form.get('company_id')?.disable({ emitEvent: false });
+  this.form.get('bank_id')?.disable({ emitEvent: false });
+  this.form.get('account_identifier')?.disable({ emitEvent: false });
+}
 
   // =========================================================
   // GUARDADO
@@ -262,54 +272,62 @@ export class TreasuryBankAccountForm implements OnInit {
       });
   }
 
-  private buildPayload():
-    | entity.CreateTreasuryBankAccountPayload
-    | entity.UpdateTreasuryBankAccountPayload
-    | null {
-    const raw = this.form.getRawValue();
+private buildPayload():
+  | entity.CreateTreasuryBankAccountPayload
+  | entity.UpdateTreasuryBankAccountPayload
+  | null {
+  const raw = this.form.getRawValue();
 
-    const companyId = this.getNumberId(raw.company_id);
-    const bankId = this.getNumberId(raw.bank_id);
-    const accountIdentifier = String(raw.account_identifier ?? '').trim();
-    const alias = String(raw.alias ?? '').trim() || null;
-    const currency = String(raw.currency ?? 'MXN').trim() || 'MXN';
-    const isActive = String(raw.is_active) === 'true';
+  const companyId = this.getNumberId(raw.company_id);
+  const bankId = this.getNumberId(raw.bank_id);
+  const accountIdentifier = String(raw.account_identifier ?? '').trim();
+  const alias = String(raw.alias ?? '').trim() || null;
+  const currency = String(raw.currency ?? 'MXN').trim() || 'MXN';
+  const isActive = String(raw.is_active) === 'true';
 
-    if (!companyId) {
-      this.form.get('company_id')?.setErrors({ required: true });
-      this.form.get('company_id')?.markAsTouched();
-      return null;
-    }
-
-    if (!bankId) {
-      this.form.get('bank_id')?.setErrors({ required: true });
-      this.form.get('bank_id')?.markAsTouched();
-      return null;
-    }
-
-    if (!accountIdentifier) {
-      this.form.get('account_identifier')?.setErrors({ required: true });
-      this.form.get('account_identifier')?.markAsTouched();
-      return null;
-    }
-
-    const basePayload = {
-      company_id: companyId,
-      bank_id: bankId,
-      account_identifier: accountIdentifier,
+  if (this.isEditMode && this.identityLocked) {
+    return {
       alias,
       currency,
+      is_active: isActive,
     };
-
-    if (this.isEditMode) {
-      return {
-        ...basePayload,
-        is_active: isActive,
-      };
-    }
-
-    return basePayload;
   }
+
+  if (!companyId) {
+    this.form.get('company_id')?.setErrors({ required: true });
+    this.form.get('company_id')?.markAsTouched();
+    return null;
+  }
+
+  if (!bankId) {
+    this.form.get('bank_id')?.setErrors({ required: true });
+    this.form.get('bank_id')?.markAsTouched();
+    return null;
+  }
+
+  if (!accountIdentifier) {
+    this.form.get('account_identifier')?.setErrors({ required: true });
+    this.form.get('account_identifier')?.markAsTouched();
+    return null;
+  }
+
+  const basePayload = {
+    company_id: companyId,
+    bank_id: bankId,
+    account_identifier: accountIdentifier,
+    alias,
+    currency,
+  };
+
+  if (this.isEditMode) {
+    return {
+      ...basePayload,
+      is_active: isActive,
+    };
+  }
+
+  return basePayload;
+}
 
   // =========================================================
   // ACCIONES FOOTER
@@ -403,6 +421,13 @@ export class TreasuryBankAccountForm implements OnInit {
 
     return id;
   }
+
+  get identityLocked(): boolean {
+  return Boolean(
+    this.data?.bankAccount?.identity_locked ||
+    this.data?.bankAccount?.has_movements_or_files,
+  );
+}
 
   // =========================================================
   // CIERRE

@@ -24,6 +24,10 @@ export interface TreasuryBank {
 // TESORERÍA: CUENTAS BANCARIAS
 // =========================================================
 
+// =========================================================
+// TESORERÍA: CUENTAS BANCARIAS
+// =========================================================
+
 export interface TreasuryBankAccount {
   id: number;
 
@@ -31,6 +35,9 @@ export interface TreasuryBankAccount {
   alias: string | null;
   currency: string;
   is_active: boolean;
+
+  has_movements_or_files?: boolean;
+  identity_locked?: boolean;
 
   company: TreasuryCompany | null;
   bank: TreasuryBank | null;
@@ -41,6 +48,8 @@ export interface TreasuryBankAccount {
   // Por si algún endpoint regresa camelCase accidentalmente
   accountIdentifier?: string;
   isActive?: boolean;
+  hasMovementsOrFiles?: boolean;
+  identityLocked?: boolean;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -101,4 +110,12 @@ export type TreasuryBankAccountFormMode = 'create' | 'edit';
 export interface TreasuryBankAccountFormData {
   mode: TreasuryBankAccountFormMode;
   bankAccount?: TreasuryBankAccountTableRow | null;
+}
+
+// =========================================================
+// TESORERÍA: MODAL ELIMINAR CUENTA BANCARIA
+// =========================================================
+
+export interface TreasuryDeleteBankAccountModalData {
+  bankAccount: TreasuryBankAccountTableRow;
 }
