@@ -1380,10 +1380,305 @@ body {
   }
 }
 
+/* =========================================================
+ * GLOBAL: MODALES BASE
+ * Uso:
+ * <div class="c-modal">
+ *   <app-module-header></app-module-header>
+ *
+ *   Opcional:
+ *   <div class="c-modal-intro">
+ *     <h3 class="c-modal-intro__title">Título interno</h3>
+ *     <p class="c-modal-intro__desc">Texto de ayuda...</p>
+ *   </div>
+ *
+ *   <form class="c-form">
+ *     <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+ *       ...
+ *     </div>
+ *   </form>
+ *
+ *   Opcional:
+ *   <div class="c-modal-help c-modal-help--info">...</div>
+ *
+ *   <app-btns-section></app-btns-section>
+ * </div>
+ * ========================================================= */
+
 .c-modal {
-  .c-input-field {
-    height: 65px !important;
-    margin-bottom: 15px;
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100dvh - 32px);
+
+  display: flex;
+  flex-direction: column;
+
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* Header fijo arriba */
+.c-modal > app-module-header {
+  flex: 0 0 auto;
+}
+
+/* Form dentro de modal:
+   conserva tu comportamiento actual, pero evita alturas raras */
+.c-modal > form.c-form {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
+  padding: 10px 15px 0 15px;
+}
+
+/* Grid compacto clásico de modales tipo proveedor */
+.c-modal .c-content-form {
+  width: 100%;
+  min-width: 0;
+  column-gap: 30px !important;
+  row-gap: 8px;
+}
+
+/* Mantiene el alto actual de tus inputs en modales */
+.c-modal .c-input-field {
+  height: 65px !important;
+  margin-bottom: 15px;
+}
+
+/* Footer del modal */
+.c-modal > app-btns-section {
+  flex: 0 0 auto;
+  margin-top: 12px;
+}
+
+/* =========================================================
+ * GLOBAL: INTRO OPCIONAL PARA MODALES
+ * Uso para formularios cortos que necesitan contexto:
+ * cuentas bancarias, importaciones, confirmaciones, etc.
+ * ========================================================= */
+
+.c-modal-intro {
+  margin: 0 15px 4px 15px;
+  padding: 4px 0 2px 0;
+}
+
+.c-modal-intro__title {
+  margin: 0;
+  color: var(--color-secundary);
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.c-modal-intro__desc {
+  margin: 0.35rem 0 0 0;
+  color: #6b7280;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+/* Variante compacta por si quieres menos aire */
+.c-modal-intro--compact {
+  margin-bottom: 0;
+}
+
+.c-modal-intro--compact .c-modal-intro__desc {
+  margin-top: 0.2rem;
+}
+
+/* =========================================================
+ * GLOBAL: AYUDAS / NOTAS OPCIONALES EN MODALES
+ * Más ligero que .c-form-alert.
+ * Uso:
+ * <div class="c-modal-help c-modal-help--info">
+ *   <mat-icon>info</mat-icon>
+ *   <span>Texto...</span>
+ * </div>
+ * ========================================================= */
+
+.c-modal-help {
+  margin: 0.5rem 15px 0 15px;
+  padding: 0.72rem 0.82rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+
+  color: #334155;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.c-modal-help mat-icon,
+.c-modal-help__icon {
+  flex: 0 0 auto;
+  width: 19px !important;
+  height: 19px !important;
+  font-size: 19px !important;
+  line-height: 19px !important;
+}
+
+.c-modal-help__content {
+  min-width: 0;
+}
+
+.c-modal-help strong {
+  font-weight: 800;
+}
+
+/* Variantes */
+
+.c-modal-help--info {
+  background: #f4fbff;
+  border-color: rgba(17, 100, 163, 0.22);
+}
+
+.c-modal-help--info mat-icon,
+.c-modal-help--info .c-modal-help__icon {
+  color: #1164a3;
+}
+
+.c-modal-help--warning {
+  background: #fff8ed;
+  border-color: rgba(180, 83, 9, 0.25);
+}
+
+.c-modal-help--warning mat-icon,
+.c-modal-help--warning .c-modal-help__icon {
+  color: #b45309;
+}
+
+.c-modal-help--danger {
+  background: #fef2f2;
+  border-color: rgba(185, 28, 28, 0.22);
+}
+
+.c-modal-help--danger mat-icon,
+.c-modal-help--danger .c-modal-help__icon {
+  color: #b91c1c;
+}
+
+.c-modal-help--success {
+  background: #f0fdf4;
+  border-color: rgba(40, 115, 72, 0.22);
+}
+
+.c-modal-help--success mat-icon,
+.c-modal-help--success .c-modal-help__icon {
+  color: #287348;
+}
+
+.c-modal-help--neutral {
+  background: #f8fafc;
+  border-color: #e5e7eb;
+}
+
+.c-modal-help--neutral mat-icon,
+.c-modal-help--neutral .c-modal-help__icon {
+  color: #64748b;
+}
+
+/* =========================================================
+ * GLOBAL: RESUMEN SIMPLE EN MODALES
+ * Alternativa limpia para confirmaciones como archivar,
+ * activar/desactivar, cancelar, etc.
+ * ========================================================= */
+
+.c-modal-summary {
+  margin: 0 15px;
+  padding: 0.9rem 1rem;
+
+  display: grid;
+  gap: 0.45rem;
+
+  border-radius: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.c-modal-summary__item {
+  color: #374151;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.c-modal-summary__item strong {
+  color: #111827;
+  font-weight: 800;
+}
+
+.c-modal-message {
+  margin: 1rem 15px 0 15px;
+  color: #374151;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.c-modal-message strong {
+  font-weight: 800;
+}
+
+/* =========================================================
+ * GLOBAL: VARIANTES DE TAMAÑO INTERNO
+ * No cambian el tamaño del MatDialog, solo el layout interno.
+ * ========================================================= */
+
+.c-modal--compact > form.c-form {
+  padding-top: 6px;
+}
+
+.c-modal--compact .c-content-form {
+  row-gap: 4px;
+}
+
+.c-modal--comfortable > form.c-form {
+  padding-top: 12px;
+}
+
+.c-modal--comfortable .c-content-form {
+  row-gap: 12px;
+}
+
+/* =========================================================
+ * RESPONSIVE MODALES
+ * ========================================================= */
+
+@media screen and (max-width: 640px) {
+  .c-modal {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .c-modal > form.c-form {
+    overflow: auto;
+    height: auto !important;
+    max-height: calc(100dvh - 170px);
+    padding: 8px 12px 0 12px;
+  }
+
+  .c-modal .c-content-form {
+    row-gap: 4px;
+    column-gap: 0 !important;
+  }
+
+  .c-modal-intro,
+  .c-modal-help,
+  .c-modal-summary,
+  .c-modal-message {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .c-modal-intro__title {
+    font-size: 0.92rem;
+  }
+
+  .c-modal-intro__desc,
+  .c-modal-help {
+    font-size: 0.8rem;
   }
 }
 

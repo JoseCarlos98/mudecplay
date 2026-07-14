@@ -37,6 +37,7 @@ import * as entity from '../../interfaces/treasury.interfaces';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalBankAccountStatus, ModalBankAccountStatusData } from './components/modal-bank-account-status/modal-bank-account-status';
+import { TreasuryBankAccountForm } from './components/treasury-bank-account-form/treasury-bank-account-form';
 
 // =========================================================
 // TESORERÍA: CUENTAS BANCARIAS - CONSTANTES
@@ -356,8 +357,39 @@ export class TreasuryBankAccounts implements OnInit {
   }
 
   private openCreateBankAccountForm(): void {
-    // Se conecta en el siguiente paso con treasury-bank-account-form.
-    console.warn('Pendiente conectar formulario de nueva cuenta bancaria.');
+    const data: entity.TreasuryBankAccountFormData = {
+      mode: 'create',
+      bankAccount: null,
+    };
+
+    this.dialogService
+      .open(TreasuryBankAccountForm, data, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadBankAccounts();
+        }
+      });
+  }
+
+  private openEditBankAccountForm(
+    row: entity.TreasuryBankAccountTableRow,
+  ): void {
+    if (!row?.id) return;
+
+    const data: entity.TreasuryBankAccountFormData = {
+      mode: 'edit',
+      bankAccount: row,
+    };
+
+    this.dialogService
+      .open(TreasuryBankAccountForm, data, 'small')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadBankAccounts();
+        }
+      });
   }
 
   // =========================================================
@@ -402,15 +434,6 @@ export class TreasuryBankAccounts implements OnInit {
       default:
         break;
     }
-  }
-
-  private openEditBankAccountForm(
-    row: entity.TreasuryBankAccountTableRow,
-  ): void {
-    if (!row?.id) return;
-
-    // Se conecta en el siguiente paso con treasury-bank-account-form.
-    console.warn('Pendiente conectar formulario de edición:', row);
   }
 
   private getDeactivateTooltip(
@@ -517,6 +540,8 @@ export class TreasuryBankAccounts implements OnInit {
         }
       });
   }
+
+
 
   // =========================================================
   // HELPERS

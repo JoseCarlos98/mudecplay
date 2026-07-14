@@ -90,3 +90,15 @@ export interface TreasuryBankAccountSaveResponse {
   success: boolean;
   message: string;
 }
+
+
+// =========================================================
+// TESORERÍA: FORMULARIO DE CUENTA BANCARIA
+// =========================================================
+
+export type TreasuryBankAccountFormMode = 'create' | 'edit';
+
+export interface TreasuryBankAccountFormData {
+  mode: TreasuryBankAccountFormMode;
+  bankAccount?: TreasuryBankAccountTableRow | null;
+}

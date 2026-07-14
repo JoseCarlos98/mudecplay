@@ -1,0 +1,94 @@
+<div class="c-modal c-modal--compact">
+  <app-module-header
+    [title]="title"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="c-modal-intro">
+    <p class="c-modal-intro__desc">
+      {{ introText }}
+    </p>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="treasury-bank-account-form"
+    class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-2 sm:grid-cols-1">
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="company_id"
+          label="Empresa"
+          [options]="companyOptions">
+        </app-input-select>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="bank_id"
+          label="Banco"
+          [options]="bankOptions">
+        </app-input-select>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="account_identifier"
+          label="Cuenta / Identificador"
+          type="text">
+        </app-input-field>
+
+        <small class="c-form-field-helper">
+          Puede ser número de cuenta, últimos dígitos o identificador usado por el banco.
+        </small>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field
+          formControlName="alias"
+          label="Alias"
+          type="text">
+        </app-input-field>
+
+        <small class="c-form-field-helper">
+          Nombre interno para identificar esta cuenta.
+        </small>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="currency"
+          label="Moneda"
+          [options]="currencyOptions">
+        </app-input-select>
+      </div>
+
+      @if (isEditMode) {
+        <div class="md:col-span-1">
+          <app-input-select
+            formControlName="is_active"
+            label="Estatus"
+            [options]="activeStatusOptions">
+          </app-input-select>
+        </div>
+      }
+    </div>
+  </form>
+
+  <div class="c-modal-help c-modal-help--info">
+    <mat-icon>info</mat-icon>
+
+    <div class="c-modal-help__content">
+      Esta cuenta se usará para importar archivos bancarios y clasificar movimientos de Tesorería.
+    </div>
+  </div>
+
+  <app-btns-section
+    type="save"
+    [saveDisabled]="saveDisabled"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>
