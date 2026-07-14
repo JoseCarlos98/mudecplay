@@ -1,0 +1,54 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="title"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="bank-account-status-body">
+    <div class="bank-account-status-summary">
+      <div>
+        <strong>Empresa:</strong> {{ companyName }}
+      </div>
+
+      <div>
+        <strong>Banco:</strong> {{ bankName }}
+      </div>
+
+      <div>
+        <strong>Cuenta / Identificador:</strong> {{ accountIdentifier }}
+      </div>
+
+      <div>
+        <strong>Alias:</strong> {{ alias }}
+      </div>
+
+      <div>
+        <strong>Moneda:</strong> {{ currency }}
+      </div>
+
+      <div>
+        <strong>Estatus actual:</strong> {{ statusText }}
+      </div>
+    </div>
+
+    <div class="bank-account-status-message">
+      ¿Seguro que deseas
+      <strong>{{ actionText }}</strong>
+      esta cuenta bancaria?
+    </div>
+
+    @if (isDeactivateMode) {
+      <div class="bank-account-status-warning">
+        La cuenta no se eliminará. Solo quedará inactiva para operaciones nuevas.
+      </div>
+    }
+  </div>
+
+  <app-btns-section
+    class="modal-actions-spacer"
+    type="save"
+    [saveDisabled]="saving"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

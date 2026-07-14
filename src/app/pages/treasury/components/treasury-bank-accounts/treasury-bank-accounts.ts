@@ -35,6 +35,8 @@ import { TreasuryService } from '../../services/treasury.service';
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import * as entity from '../../interfaces/treasury.interfaces';
 import { CatalogsService } from '../../../../shared/services/catalogs.service';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalBankAccountStatus, ModalBankAccountStatusData } from './components/modal-bank-account-status/modal-bank-account-status';
 
 // =========================================================
 // TESORERÍA: CUENTAS BANCARIAS - CONSTANTES
@@ -125,7 +127,7 @@ export class TreasuryBankAccounts implements OnInit {
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
-
+  private readonly dialogService = inject(DialogService);
   // =========================================================
   // CONFIG UI
   // =========================================================
@@ -411,58 +413,6 @@ export class TreasuryBankAccounts implements OnInit {
     console.warn('Pendiente conectar formulario de edición:', row);
   }
 
-  private deactivateBankAccount(
-    row: entity.TreasuryBankAccountTableRow,
-  ): void {
-    if (!row?.id || !row.is_active) return;
-
-    const confirmed = window.confirm(
-      `¿Seguro que deseas desactivar la cuenta "${row.alias_display}"?`,
-    );
-
-    if (!confirmed) return;
-
-    this.loadingTable.set(true);
-
-    this.treasuryService
-      .deactivateBankAccount(row.id)
-      .pipe(finalize(() => this.loadingTable.set(false)))
-      .subscribe({
-        next: () => {
-          this.loadBankAccounts();
-        },
-        error: (err) => {
-          console.error('Error desactivando cuenta bancaria:', err);
-        },
-      });
-  }
-
-  private activateBankAccount(
-    row: entity.TreasuryBankAccountTableRow,
-  ): void {
-    if (!row?.id || row.is_active) return;
-
-    const confirmed = window.confirm(
-      `¿Seguro que deseas reactivar la cuenta "${row.alias_display}"?`,
-    );
-
-    if (!confirmed) return;
-
-    this.loadingTable.set(true);
-
-    this.treasuryService
-      .updateBankAccount(row.id, { is_active: true })
-      .pipe(finalize(() => this.loadingTable.set(false)))
-      .subscribe({
-        next: () => {
-          this.loadBankAccounts();
-        },
-        error: (err) => {
-          console.error('Error reactivando cuenta bancaria:', err);
-        },
-      });
-  }
-
   private getDeactivateTooltip(
     row: entity.TreasuryBankAccountTableRow,
   ): string {
@@ -531,6 +481,41 @@ export class TreasuryBankAccounts implements OnInit {
     }
 
     this.storage.setItem(TREASURY_BANK_ACCOUNTS_FILTERS_KEY, state);
+  }
+
+  private deactivateBankAccount(
+    row: entity.TreasuryBankAccountTableRow,
+  ): void {
+    if (!row?.id || !row.is_active) return;
+
+    this.openBankAccountStatusModal(row, 'deactivate');
+  }
+
+  private activateBankAccount(
+    row: entity.TreasuryBankAccountTableRow,
+  ): void {
+    if (!row?.id || row.is_active) return;
+
+    this.openBankAccountStatusModal(row, 'activate');
+  }
+
+  private openBankAccountStatusModal(
+    row: entity.TreasuryBankAccountTableRow,
+    mode: 'activate' | 'deactivate',
+  ): void {
+    const data: ModalBankAccountStatusData = {
+      mode,
+      bankAccount: row,
+    };
+
+    this.dialogService
+      .open(ModalBankAccountStatus, data, 'mini')
+      .afterClosed()
+      .subscribe((result) => {
+        if (result) {
+          this.loadBankAccounts();
+        }
+      });
   }
 
   // =========================================================
