@@ -162,4 +162,38 @@ export class CatalogsService {
       ),
     );
   }
+
+  // =========================================================
+  // TESORERÍA
+  // =========================================================
+
+  treasuryCompaniesCatalog(): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/treasury/companies`;
+
+    return this.http.get<any[]>(url).pipe(
+      map((rows) =>
+        (rows ?? [])
+          .filter((row) => row.is_active)
+          .map((row) => ({
+            id: row.id,
+            name: row.name,
+          })),
+      ),
+    );
+  }
+
+  treasuryBanksCatalog(): Observable<Catalog[]> {
+    const url = `${this.apiUrl}/treasury/banks`;
+
+    return this.http.get<any[]>(url).pipe(
+      map((rows) =>
+        (rows ?? [])
+          .filter((row) => row.is_active)
+          .map((row) => ({
+            id: row.id,
+            name: row.name,
+          })),
+      ),
+    );
+  }
 }
