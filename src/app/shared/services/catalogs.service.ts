@@ -196,4 +196,33 @@ export class CatalogsService {
       ),
     );
   }
+
+  // =========================================================
+// TESORERÍA
+// =========================================================
+
+treasuryBankAccountsCatalog(): Observable<Catalog[]> {
+  const url = `${this.apiUrl}/treasury/bank-accounts`;
+
+  const params = new HttpParams().set('is_active', 'true');
+
+  return this.http.get<any[]>(url, { params }).pipe(
+    map((rows) =>
+      (rows ?? []).map((row) => {
+        const companyName = row.company?.name ?? 'Sin empresa';
+        const bankName = row.bank?.name ?? 'Sin banco';
+        const alias = row.alias ?? 'Sin alias';
+        const accountIdentifier =
+          row.account_identifier ?? row.accountIdentifier ?? 'Sin cuenta';
+
+        return {
+          id: row.id,
+          name: `${companyName} · ${bankName} · ${alias} · ${accountIdentifier}`,
+        };
+      }),
+    ),
+  );
+}
+
+
 }

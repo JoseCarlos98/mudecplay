@@ -1,1 +1,173 @@
-<p>treasury-bank-movement-upload works!</p>
+<div class="treasury-upload-page">
+  <div class="card-content-form treasury-upload-header">
+    <app-module-header
+      title="Cargar movimientos bancarios"
+      [config]="headerConfig">
+    </app-module-header>
+
+    <p class="treasury-upload-header__desc">
+      Importa archivos TXT bancarios para registrar movimientos en Tesorería.
+    </p>
+  </div>
+
+  <div class="treasury-upload-layout">
+    <section class="card-content-form treasury-upload-card">
+      <div class="treasury-upload-card__title-row">
+        <div>
+          <h3 class="treasury-upload-card__title">
+            Cargar archivo TXT
+          </h3>
+
+          <p class="treasury-upload-card__desc">
+            Selecciona la cuenta bancaria correspondiente y sube el archivo TXT exportado del banco.
+          </p>
+        </div>
+      </div>
+
+      <form [formGroup]="form" class="c-form treasury-upload-form">
+        <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
+          <div class="md:col-span-1">
+            <app-input-select
+              formControlName="bank_account_id"
+              label="Cuenta bancaria"
+              [options]="bankAccountOptions">
+            </app-input-select>
+          </div>
+
+          <div class="md:col-span-1">
+            <label class="treasury-file-label">
+              Archivo TXT <span class="required">*</span>
+            </label>
+
+            <input
+              #fileInput
+              type="file"
+              accept=".txt"
+              class="treasury-file-input"
+              (change)="onFileSelected($event)" />
+
+            <div
+              class="treasury-dropzone"
+              [class.treasury-dropzone--dragging]="isDragging()"
+              [class.treasury-dropzone--selected]="!!selectedFile"
+              (dragover)="onDragOver($event)"
+              (dragleave)="onDragLeave($event)"
+              (drop)="onDrop($event)"
+              (click)="openFileSelector()">
+
+              <div class="treasury-dropzone__icon">
+                <mat-icon>cloud_upload</mat-icon>
+              </div>
+
+              <div class="treasury-dropzone__content">
+                <strong>Arrastra y suelta tu archivo TXT aquí</strong>
+                <span>o selecciona un archivo desde tu equipo</span>
+              </div>
+
+              <button
+                type="button"
+                class="btn-outline treasury-dropzone__button"
+                (click)="$event.stopPropagation(); openFileSelector()">
+                <mat-icon>description</mat-icon>
+                <span>Seleccionar archivo</span>
+              </button>
+            </div>
+
+            @if (selectedFile) {
+              <div class="treasury-selected-file">
+                <div class="treasury-selected-file__icon">
+                  <mat-icon>insert_drive_file</mat-icon>
+                </div>
+
+                <div class="treasury-selected-file__content">
+                  <strong>{{ selectedFileName }}</strong>
+                  <span>{{ selectedFileSize }}</span>
+                </div>
+
+                <mat-icon class="treasury-selected-file__success">
+                  check_circle
+                </mat-icon>
+
+                <button
+                  type="button"
+                  class="treasury-selected-file__remove"
+                  (click)="removeSelectedFile()"
+                  [disabled]="uploading()">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            }
+
+            <small class="c-form-field-helper">
+              Solo se permiten archivos .txt.
+            </small>
+          </div>
+        </div>
+      </form>
+
+      <div class="treasury-upload-actions">
+        <button
+          type="button"
+          class="btn-outline"
+          (click)="clearForm()"
+          [disabled]="uploading()">
+          Cancelar
+        </button>
+
+        <button
+          type="button"
+          class="btn-primary treasury-upload-actions__import"
+          (click)="importMovements()"
+          [disabled]="importDisabled">
+          <mat-icon>upload</mat-icon>
+          <span>Importar movimientos</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="card-content-form treasury-result-card">
+      @if (importResult) {
+        <app-treasury-import-result-card
+          [result]="importResult">
+        </app-treasury-import-result-card>
+
+        <div class="treasury-result-card__actions">
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="goToImportFiles()">
+            <mat-icon>folder_open</mat-icon>
+            <span>Ver importaciones</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn-outline"
+            (click)="goToBankMovements()">
+            <mat-icon>receipt_long</mat-icon>
+            <span>Ver movimientos</span>
+          </button>
+        </div>
+      } @else {
+        <div class="treasury-result-empty">
+          <div class="treasury-result-empty__icon">
+            <mat-icon>fact_check</mat-icon>
+          </div>
+
+          <h3>Resultado de importación</h3>
+
+          <p>
+            Después de importar un archivo TXT, aquí verás el resumen con filas procesadas,
+            duplicadas, omitidas y errores.
+          </p>
+        </div>
+      }
+    </section>
+  </div>
+</div>
+
+<app-loading-overlay
+  [visible]="loadingPage() || uploading()"
+  [fullscreen]="true"
+  [text]="uploading() ? 'Importando movimientos bancarios...' : 'Cargando cuentas bancarias...'">
+</app-loading-overlay>

@@ -89,6 +89,54 @@ export class TreasuryService {
     );
   }
 
+
+  // =========================================================
+  // TESORERÍA: IMPORTACIÓN DE MOVIMIENTOS BANCARIOS
+  // =========================================================
+
+  importBankMovements(
+    formData: FormData,
+  ): Observable<entity.TreasuryImportBankMovementsResponse> {
+    return this.http.post<entity.TreasuryImportBankMovementsResponse>(
+      `${this.apiUrl}/bank-movements/import`,
+      formData,
+    );
+  }
+
+  getImportFiles(
+    filters?: entity.TreasuryImportFileFilters,
+  ): Observable<entity.TreasuryPaginatedResponse<entity.TreasuryImportFile>> {
+    let params = new HttpParams();
+
+    if (filters) {
+      params = params.set('page', String(filters.page));
+      params = params.set('limit', String(filters.limit));
+
+      if (filters.company_id) {
+        params = params.set('company_id', String(filters.company_id));
+      }
+
+      if (filters.bank_account_id) {
+        params = params.set(
+          'bank_account_id',
+          String(filters.bank_account_id),
+        );
+      }
+
+      if (filters.bank_id) {
+        params = params.set('bank_id', String(filters.bank_id));
+      }
+
+      if (filters.status) {
+        params = params.set('status', String(filters.status));
+      }
+    }
+
+    return this.http.get<
+      entity.TreasuryPaginatedResponse<entity.TreasuryImportFile>
+    >(`${this.apiUrl}/import-files`, { params });
+  }
+
 }
 
 
