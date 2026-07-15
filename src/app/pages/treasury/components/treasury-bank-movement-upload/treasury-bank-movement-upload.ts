@@ -293,18 +293,30 @@ export class TreasuryBankMovementUpload implements OnInit {
         next: (response) => {
           this.importResult = response;
 
-          if (response?.success !== true) {
-            this.dialogService
-              .confirm({
-                title: 'Importación no completada',
-                message:
-                  response?.message ??
-                  'No se pudo completar la importación del archivo.',
-                confirmText: 'OK',
-                cancelText: '',
-              })
-              .subscribe();
+          if (response?.success === true) {
+            /**
+             * Importante:
+             * Después de una importación correcta se limpia solo el archivo.
+             * La cuenta bancaria se mantiene seleccionada para poder subir otro TXT
+             * de la misma cuenta sin volver a elegirla.
+             *
+             * Como selectedFile queda null, el botón "Importar movimientos"
+             * vuelve a quedar bloqueado hasta seleccionar otro archivo.
+             */
+            this.removeSelectedFile();
+            return;
           }
+
+          this.dialogService
+            .confirm({
+              title: 'Importación no completada',
+              message:
+                response?.message ??
+                'No se pudo completar la importación del archivo.',
+              confirmText: 'OK',
+              cancelText: '',
+            })
+            .subscribe();
         },
         error: (err) => {
           console.error('Error importando movimientos bancarios:', err);
