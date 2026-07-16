@@ -468,13 +468,23 @@
           </div>
         </div>
 
-        @if (selectedXmlExpense && amountDifference !== 0) {
+        @if (shouldShowAmountDifferenceWarning) {
         <div class="record-oc-xml-alert record-oc-xml-alert--warning record-oc-xml-alert--inline">
           <mat-icon>info</mat-icon>
 
           <p>
             Diferencia contra el monto solicitado:
             {{ formatMoney(amountDifference) }}.
+          </p>
+        </div>
+        }
+
+        @if (shouldShowZeroAmountXmlInfo) {
+        <div class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline">
+          <mat-icon>info</mat-icon>
+
+          <p>
+            XML en $0.00 permitido para esta O.C. La orden fue creada con $0.01 solo como referencia operativa.
           </p>
         </div>
         }

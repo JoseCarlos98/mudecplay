@@ -214,3 +214,120 @@ export interface TreasuryImportFileFilters {
   page: number;
   limit: number;
 }
+
+
+// =========================================================
+// TESORERÍA: MOVIMIENTOS BANCARIOS
+// =========================================================
+
+export type TreasuryBankMovementType = 'inflow' | 'outflow';
+
+export type TreasuryBankMovementStatus =
+  | 'unmatched'
+  | 'partially_matched'
+  | 'matched'
+  | 'classified'
+  | 'ignored'
+  | 'internal_transfer'
+  | 'manually_closed'
+  | 'cancelled';
+
+export interface TreasuryBankMovement {
+  id: string;
+
+  movement_date: string;
+  movement_time: string | null;
+  movement_type: TreasuryBankMovementType | string;
+  classification: string | null;
+
+  description_original: string;
+  bank_reference: string | null;
+  receipt_number: string | null;
+  tracking_key: string | null;
+
+  counterparty_name: string | null;
+  counterparty_account: string | null;
+
+  charge_amount: number;
+  credit_amount: number;
+  amount: number;
+  available_amount: number;
+  bank_balance: number | null;
+
+  status: TreasuryBankMovementStatus | string;
+  notes: string | null;
+
+  created_at: string;
+  updated_at: string;
+
+  company: TreasuryCompany | null;
+  bank: TreasuryBank | null;
+
+  bank_account: {
+    id: number;
+    account_identifier: string;
+    alias: string | null;
+  } | null;
+
+  import_file: {
+    id: number;
+    original_file_name: string;
+  } | null;
+}
+
+export interface TreasuryBankMovementTableRow extends TreasuryBankMovement {
+  company_name: string;
+  bank_name: string;
+  bank_account_display: string;
+
+  movement_time_display: string;
+  movement_type_label: string;
+
+  classification_label: string;
+  status_label: string;
+
+  reference_display: string;
+  counterparty_display: string;
+  import_file_name: string;
+}
+
+export interface TreasuryBankMovementFilters {
+  company_id?: number | null;
+  bank_account_id?: number | null;
+  bank_id?: number | null;
+
+  date_from?: string | null;
+  date_to?: string | null;
+
+  movement_type?: TreasuryBankMovementType | string | null;
+  status?: TreasuryBankMovementStatus | string | null;
+
+  search?: string;
+
+  page: number;
+  limit: number;
+}
+
+export interface TreasuryBankMovementDateRange {
+  startDate: string | null;
+  endDate: string | null;
+}
+
+export interface TreasuryBankMovementUiFilters {
+  dateRange: TreasuryBankMovementDateRange | null;
+
+  company_id: Catalog | number | string | null;
+  bank_account_id: Catalog | number | string | null;
+  bank_id: Catalog | number | string | null;
+
+  movement_type: TreasuryBankMovementType | '';
+  status: TreasuryBankMovementStatus | '';
+
+  search: string;
+
+  page: number;
+  limit: number;
+}
+
+export type TreasuryBankMovementsPaginatedResponse =
+  TreasuryPaginatedResponse<TreasuryBankMovement>;

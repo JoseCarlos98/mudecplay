@@ -137,6 +137,73 @@ export class TreasuryService {
     >(`${this.apiUrl}/import-files`, { params });
   }
 
+// =========================================================
+// TESORERÍA: MOVIMIENTOS BANCARIOS
+// =========================================================
+
+getBankMovements(
+  filters?: entity.TreasuryBankMovementFilters,
+): Observable<entity.TreasuryBankMovementsPaginatedResponse> {
+  let params = new HttpParams();
+
+  if (filters) {
+    params = params.set('page', String(filters.page));
+    params = params.set('limit', String(filters.limit));
+
+    if (filters.company_id) {
+      params = params.set('company_id', String(filters.company_id));
+    }
+
+    if (filters.bank_account_id) {
+      params = params.set('bank_account_id', String(filters.bank_account_id));
+    }
+
+    if (filters.bank_id) {
+      params = params.set('bank_id', String(filters.bank_id));
+    }
+
+    if (filters.date_from) {
+      params = params.set('date_from', String(filters.date_from));
+    }
+
+    if (filters.date_to) {
+      params = params.set('date_to', String(filters.date_to));
+    }
+
+    if (filters.movement_type) {
+      params = params.set('movement_type', String(filters.movement_type));
+    }
+
+    if (filters.status) {
+      params = params.set('status', String(filters.status));
+    }
+
+    if (filters.search?.trim()) {
+      params = params.set('search', filters.search.trim());
+    }
+  }
+
+  return this.http.get<entity.TreasuryBankMovementsPaginatedResponse>(
+    `${this.apiUrl}/bank-movements`,
+    { params },
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
 }
 
 

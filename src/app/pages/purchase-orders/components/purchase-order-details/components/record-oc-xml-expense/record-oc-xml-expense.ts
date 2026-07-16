@@ -216,17 +216,21 @@ export class RecordOcXmlExpense implements OnInit {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
 
-  get canSave(): boolean {
-    return (
-      !!this.photoId &&
-      !!this.selectedXmlExpense &&
-      this.selectedItemIds.length > 0 &&
-      this.selectedAmount > 0 &&
-      this.isDirectWithInvoice &&
-      !this.hasExistingPhotoLink &&
-      !this.saving()
-    );
-  }
+get canSave(): boolean {
+  const hasValidAmount =
+    this.selectedAmount > 0 || this.isZeroAmountXmlSpecialCase;
+
+  return (
+    !!this.photoId &&
+    !!this.selectedXmlExpense &&
+    !!this.selectedXmlExpense.can_select &&
+    this.selectedItemIds.length > 0 &&
+    hasValidAmount &&
+    this.isDirectWithInvoice &&
+    !this.hasExistingPhotoLink &&
+    !this.saving()
+  );
+}
 
   onHeaderAction(action: string): void {
     switch (action) {
@@ -703,4 +707,29 @@ getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
       currency: 'MXN',
     });
   }
+
+  get isZeroAmountXmlSpecialCase(): boolean {
+  const requestedAmount = this.round2(this.requestedAmount);
+  const selectedAmount = this.round2(this.selectedAmount);
+
+  return (
+    this.isDirectWithInvoice &&
+    !!this.selectedXmlExpense?.can_select &&
+    this.selectedItemIds.length > 0 &&
+    requestedAmount <= 0.01 &&
+    selectedAmount === 0
+  );
+}
+
+get shouldShowAmountDifferenceWarning(): boolean {
+  return (
+    !!this.selectedXmlExpense &&
+    this.amountDifference !== 0 &&
+    !this.isZeroAmountXmlSpecialCase
+  );
+}
+
+get shouldShowZeroAmountXmlInfo(): boolean {
+  return this.isZeroAmountXmlSpecialCase;
+}
 }
