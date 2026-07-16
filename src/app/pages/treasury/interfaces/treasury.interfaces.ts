@@ -21,8 +21,20 @@ export interface TreasuryBank {
 }
 
 // =========================================================
-// TESORERÍA: CUENTAS BANCARIAS
+// TESORERÍA: PAGINACIÓN BASE
 // =========================================================
+
+export interface TreasuryPaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface TreasuryPaginatedResponse<T> {
+  data: T[];
+  meta: TreasuryPaginationMeta;
+}
 
 // =========================================================
 // TESORERÍA: CUENTAS BANCARIAS
@@ -100,7 +112,6 @@ export interface TreasuryBankAccountSaveResponse {
   message: string;
 }
 
-
 // =========================================================
 // TESORERÍA: FORMULARIO DE CUENTA BANCARIA
 // =========================================================
@@ -120,8 +131,6 @@ export interface TreasuryDeleteBankAccountModalData {
   bankAccount: TreasuryBankAccountTableRow;
 }
 
-
-
 // =========================================================
 // TESORERÍA: IMPORTACIÓN DE MOVIMIENTOS BANCARIOS
 // =========================================================
@@ -130,18 +139,6 @@ export type TreasuryImportFileStatus =
   | 'processed'
   | 'processed_with_errors'
   | 'rejected';
-
-export interface TreasuryPaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  total_pages: number;
-}
-
-export interface TreasuryPaginatedResponse<T> {
-  data: T[];
-  meta: TreasuryPaginationMeta;
-}
 
 export interface TreasuryImportBankMovementsResponse {
   success: boolean;
@@ -158,6 +155,10 @@ export interface TreasuryImportBankMovementsResponse {
   message: string;
 }
 
+// =========================================================
+// TESORERÍA: ARCHIVOS IMPORTADOS
+// =========================================================
+
 export interface TreasuryImportFileMetadataSummary {
   bank_format?: string | null;
   parsed_movements?: number | null;
@@ -171,21 +172,24 @@ export interface TreasuryImportFile {
   id: number;
 
   original_file_name: string;
+  file_hash?: string | null;
   parser_code: string;
+
   status: TreasuryImportFileStatus | string;
 
   total_rows: number;
   inserted_rows: number;
   duplicate_rows: number;
   error_rows: number;
-  error_message: string | null;
 
+  error_message: string | null;
   metadata_summary?: TreasuryImportFileMetadataSummary | null;
 
   created_at: string;
 
   company: TreasuryCompany | null;
   bank: TreasuryBank | null;
+
   bank_account: {
     id: number;
     account_identifier: string;
@@ -194,16 +198,24 @@ export interface TreasuryImportFile {
 
   uploaded_by_user?: {
     id: number;
+    name?: string | null;
+    email?: string | null;
   } | null;
 }
 
 export interface TreasuryImportFileTableRow extends TreasuryImportFile {
-  company_name: string;
-  bank_name: string;
-  bank_account_display: string;
+  company_name: string | null;
+  bank_name: string | null;
+  bank_account_display: string | null;
+
   status_label: string;
+  parser_label: string;
+
   created_at_date: string | null;
   rows_summary: string;
+
+  uploaded_by_display: string | null;
+  error_message_display: string | null;
 }
 
 export interface TreasuryImportFileFilters {
@@ -211,10 +223,23 @@ export interface TreasuryImportFileFilters {
   bank_account_id?: number | null;
   bank_id?: number | null;
   status?: TreasuryImportFileStatus | string | null;
+
   page: number;
   limit: number;
 }
 
+export interface TreasuryImportFileUiFilters {
+  company_id: Catalog | number | string | null;
+  bank_account_id: Catalog | number | string | null;
+  bank_id: Catalog | number | string | null;
+  status: TreasuryImportFileStatus | '';
+
+  page: number;
+  limit: number;
+}
+
+export type TreasuryImportFilesPaginatedResponse =
+  TreasuryPaginatedResponse<TreasuryImportFile>;
 
 // =========================================================
 // TESORERÍA: MOVIMIENTOS BANCARIOS
@@ -241,6 +266,7 @@ export interface TreasuryBankMovement {
   classification: string | null;
 
   description_original: string;
+
   bank_reference: string | null;
   receipt_number: string | null;
   tracking_key: string | null;
@@ -276,19 +302,18 @@ export interface TreasuryBankMovement {
 }
 
 export interface TreasuryBankMovementTableRow extends TreasuryBankMovement {
-  company_name: string;
-  bank_name: string;
-  bank_account_display: string;
+  company_name: string | null;
+  bank_name: string | null;
+  bank_account_display: string | null;
 
-  movement_time_display: string | null;
   movement_type_label: string;
 
   classification_label: string;
   status_label: string;
 
-  reference_display: string;
-  counterparty_display: string;
-  import_file_name: string;
+  reference_display: string | null;
+  counterparty_display: string | null;
+  import_file_name: string | null;
 }
 
 export interface TreasuryBankMovementFilters {

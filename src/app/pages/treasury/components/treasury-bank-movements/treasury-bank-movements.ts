@@ -65,7 +65,7 @@ const MOVEMENT_STATUS_OPTIONS: Catalog[] = [
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'movement_date', label: 'Fecha', type: 'date' },
-  { key: 'movement_time_display', label: 'Hora' },
+  { key: 'movement_time', label: 'Hora' },
   {
     key: 'movement_type_label',
     label: 'Tipo',
@@ -389,37 +389,36 @@ export class TreasuryBankMovements implements OnInit {
     };
   }
 
-  private mapBankMovementRow(
-    row: entity.TreasuryBankMovement,
-  ): entity.TreasuryBankMovementTableRow {
-    return {
-      ...row,
+private mapBankMovementRow(
+  row: entity.TreasuryBankMovement,
+): entity.TreasuryBankMovementTableRow {
+  return {
+    ...row,
 
-      company_name: row.company?.name ?? 'Sin empresa',
-      bank_name: row.bank?.name ?? 'Sin banco',
-      bank_account_display: this.getBankAccountDisplay(row),
+    company_name: row.company?.name ?? null,
+    bank_name: row.bank?.name ?? null,
+    bank_account_display: this.getBankAccountDisplay(row),
 
-      movement_time_display: row.movement_time,
-      movement_type_label: this.getMovementTypeLabel(row.movement_type),
+    movement_type_label: this.getMovementTypeLabel(row.movement_type),
 
-      classification_label: this.getClassificationLabel(row.classification),
-      status_label: this.getStatusLabel(row.status),
+    classification_label: this.getClassificationLabel(row.classification),
+    status_label: this.getStatusLabel(row.status),
 
-      reference_display:
-        row.bank_reference ??
-        row.receipt_number ??
-        row.tracking_key ??
-        'Sin referencia',
+    reference_display:
+      row.bank_reference ??
+      row.receipt_number ??
+      row.tracking_key ??
+      null,
 
-      counterparty_display:
-        row.counterparty_name ??
-        row.counterparty_account ??
-        'Sin contraparte',
+    counterparty_display:
+      row.counterparty_name ??
+      row.counterparty_account ??
+      null,
 
-      import_file_name:
-        row.import_file?.original_file_name ?? 'Sin archivo',
-    };
-  }
+    import_file_name:
+      row.import_file?.original_file_name ?? null,
+  };
+}
 
   // =========================================================
   // PAGINACIÓN
