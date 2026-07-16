@@ -399,7 +399,7 @@ export class TreasuryBankMovements implements OnInit {
       bank_name: row.bank?.name ?? 'Sin banco',
       bank_account_display: this.getBankAccountDisplay(row),
 
-      movement_time_display: row.movement_time || '—',
+      movement_time_display: row.movement_time,
       movement_type_label: this.getMovementTypeLabel(row.movement_type),
 
       classification_label: this.getClassificationLabel(row.classification),

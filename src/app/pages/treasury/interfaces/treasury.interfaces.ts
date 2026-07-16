@@ -280,7 +280,7 @@ export interface TreasuryBankMovementTableRow extends TreasuryBankMovement {
   bank_name: string;
   bank_account_display: string;
 
-  movement_time_display: string;
+  movement_time_display: string | null;
   movement_type_label: string;
 
   classification_label: string;
