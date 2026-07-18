@@ -103,6 +103,12 @@ export class PurchaseOrderForm implements OnInit {
     requested_amount: this.fb.control<string | number | null>(null, {
       validators: [Validators.required],
     }),
+    is_zero_amount_invoice: this.fb.control<boolean>(false, {
+      nonNullable: true,
+    }),
+    zero_amount_reason: this.fb.control<string | null>(null, {
+      validators: [Validators.maxLength(255)],
+    }),
     concept: this.fb.control<string>('', {
       nonNullable: true,
       validators: [Validators.required, Validators.maxLength(500)],
@@ -122,6 +128,8 @@ export class PurchaseOrderForm implements OnInit {
   ngOnInit(): void {
     this.setCapturedByUser();
     this.watchDestinationType();
+    this.watchZeroAmountInvoice();
+    this.watchWillHaveInvoice();
 
     // Como el destino inicia en "direct", el proyecto debe ser requerido desde el inicio.
     this.applyProjectValidator(this.destinationType);
@@ -134,6 +142,14 @@ export class PurchaseOrderForm implements OnInit {
     }
 
     this.loadInitialData();
+  }
+
+  get isZeroAmountInvoice(): boolean {
+    return Boolean(this.form.get('is_zero_amount_invoice')?.value);
+  }
+
+  get zeroAmountInvoiceHelpText(): string {
+    return 'Usar solo cuando el proveedor emite un XML/factura en $0.00. Se requiere motivo obligatorio.';
   }
 
   get pageTitle(): string {
@@ -314,6 +330,8 @@ export class PurchaseOrderForm implements OnInit {
       destination_type: order.destination_type,
       will_have_invoice: String(Boolean(order.will_have_invoice)),
       requested_amount: Number(order.requested_amount ?? 0),
+      is_zero_amount_invoice: Boolean(order.is_zero_amount_invoice),
+      zero_amount_reason: order.zero_amount_reason ?? null,
       concept: order.concept ?? '',
       requested_by_employee_id: order.requested_by_employee?.id ?? null,
       captured_by: order.created_by_user?.name ?? this.getCurrentUserName(),
@@ -374,6 +392,8 @@ export class PurchaseOrderForm implements OnInit {
     const concept = String(raw.concept ?? '').trim();
     const requestedAmount = this.parseMoney(raw.requested_amount);
     const willHaveInvoice = String(raw.will_have_invoice) === 'true';
+    const isZeroAmountInvoice = Boolean(raw.is_zero_amount_invoice);
+    const zeroAmountReason = String(raw.zero_amount_reason ?? '').trim();
 
     if (!destinationType) {
       this.form.get('destination_type')?.setErrors({ required: true });
@@ -387,10 +407,30 @@ export class PurchaseOrderForm implements OnInit {
       return null;
     }
 
-    if (!requestedAmount || requestedAmount <= 0) {
-      this.form.get('requested_amount')?.setErrors({ required: true });
-      this.form.get('requested_amount')?.markAsTouched();
-      return null;
+    if (isZeroAmountInvoice) {
+      if (!willHaveInvoice) {
+        this.form.get('will_have_invoice')?.setErrors({ required: true });
+        this.form.get('will_have_invoice')?.markAsTouched();
+        return null;
+      }
+
+      if (requestedAmount !== 0) {
+        this.form.get('requested_amount')?.setErrors({ zeroAmountRequired: true });
+        this.form.get('requested_amount')?.markAsTouched();
+        return null;
+      }
+
+      if (!zeroAmountReason) {
+        this.form.get('zero_amount_reason')?.setErrors({ required: true });
+        this.form.get('zero_amount_reason')?.markAsTouched();
+        return null;
+      }
+    } else {
+      if (!requestedAmount || requestedAmount <= 0) {
+        this.form.get('requested_amount')?.setErrors({ required: true });
+        this.form.get('requested_amount')?.markAsTouched();
+        return null;
+      }
     }
 
     if (this.isAuthorizedCorrectionMode) {
@@ -399,6 +439,8 @@ export class PurchaseOrderForm implements OnInit {
         will_have_invoice: willHaveInvoice,
         concept,
         requested_amount: requestedAmount,
+        is_zero_amount_invoice: isZeroAmountInvoice,
+        zero_amount_reason: isZeroAmountInvoice ? zeroAmountReason : null,
         notes: raw.notes?.trim() || null,
       };
     }
@@ -421,6 +463,8 @@ export class PurchaseOrderForm implements OnInit {
       will_have_invoice: willHaveInvoice,
       concept,
       requested_amount: requestedAmount,
+      is_zero_amount_invoice: isZeroAmountInvoice,
+      zero_amount_reason: isZeroAmountInvoice ? zeroAmountReason : null,
       requested_by_employee_id: requesterId,
       notes: raw.notes?.trim() || null,
     };
@@ -433,6 +477,52 @@ export class PurchaseOrderForm implements OnInit {
       .subscribe((value) => {
         this.applyProjectValidator(value);
       });
+  }
+
+  private watchZeroAmountInvoice(): void {
+    this.form
+      .get('is_zero_amount_invoice')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.applyZeroAmountInvoiceState(Boolean(value));
+      });
+  }
+
+  private watchWillHaveInvoice(): void {
+    this.form
+      .get('will_have_invoice')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        const willHaveInvoice = String(value) === 'true';
+
+        if (!willHaveInvoice && this.isZeroAmountInvoice) {
+          this.form.get('is_zero_amount_invoice')?.setValue(false, {
+            emitEvent: true,
+          });
+        }
+      });
+  }
+
+  private applyZeroAmountInvoiceState(isZeroAmountInvoice: boolean): void {
+    const amountControl = this.form.get('requested_amount');
+    const invoiceControl = this.form.get('will_have_invoice');
+    const reasonControl = this.form.get('zero_amount_reason');
+
+    if (isZeroAmountInvoice) {
+      invoiceControl?.setValue('true', { emitEvent: false });
+      amountControl?.setValue(0, { emitEvent: false });
+
+      reasonControl?.setValidators([
+        Validators.required,
+        Validators.maxLength(255),
+      ]);
+    } else {
+      reasonControl?.setValue(null, { emitEvent: false });
+      reasonControl?.setValidators([Validators.maxLength(255)]);
+    }
+
+    reasonControl?.updateValueAndValidity({ emitEvent: false });
+    amountControl?.updateValueAndValidity({ emitEvent: false });
   }
 
   private applyProjectValidator(

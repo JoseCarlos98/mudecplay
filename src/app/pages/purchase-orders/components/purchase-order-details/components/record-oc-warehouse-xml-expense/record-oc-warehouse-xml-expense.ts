@@ -227,6 +227,33 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     );
   }
 
+  get isZeroAmountWarehouseXmlSpecialCase(): boolean {
+    const selectedAmount = this.round2(this.selectedAmount);
+
+    return (
+      this.isWarehouseWithInvoice &&
+      Boolean(this.order?.is_zero_amount_invoice) &&
+      !!this.selectedWarehouseXmlExpense?.can_select &&
+      this.selectedItemIds.length > 0 &&
+      this.hasSelectedWarehouseQuantity &&
+      selectedAmount === 0
+    );
+  }
+
+  get shouldShowAmountDifferenceWarning(): boolean {
+    return (
+      !!this.selectedWarehouseXmlExpense &&
+      this.amountDifference !== 0 &&
+      !this.isZeroAmountWarehouseXmlSpecialCase
+    );
+  }
+
+  get shouldShowZeroAmountXmlInfo(): boolean {
+    return this.isZeroAmountWarehouseXmlSpecialCase;
+  }
+
+
+
   get amountDifference(): number {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
@@ -236,11 +263,16 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   get canSave(): boolean {
+    const hasValidAmount =
+      this.selectedAmount > 0 || this.isZeroAmountWarehouseXmlSpecialCase;
+
     return (
       !!this.photoId &&
       !!this.selectedWarehouseXmlExpense &&
+      !!this.selectedWarehouseXmlExpense.can_select &&
       this.selectedItemIds.length > 0 &&
       this.hasSelectedWarehouseQuantity &&
+      hasValidAmount &&
       this.isWarehouseWithInvoice &&
       !this.hasExistingPhotoLink &&
       !this.saving()

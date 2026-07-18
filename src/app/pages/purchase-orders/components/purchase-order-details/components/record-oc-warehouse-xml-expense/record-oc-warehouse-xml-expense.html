@@ -434,9 +434,7 @@
         <label class="record-oc-xml-notes">
           <span>Notas de la relación</span>
 
-          <textarea
-            formControlName="notes"
-            placeholder="Ejemplo: entrada registrada desde ticket conciliado.">
+          <textarea formControlName="notes" placeholder="Ejemplo: entrada registrada desde ticket conciliado.">
           </textarea>
         </label>
       </section>
@@ -484,7 +482,7 @@
           </div>
         </div>
 
-        @if (selectedWarehouseXmlExpense && selectedAmount > 0 && amountDifference !== 0) {
+        @if (shouldShowAmountDifferenceWarning) {
         <div class="record-oc-xml-alert record-oc-xml-alert--warning record-oc-xml-alert--inline">
           <mat-icon>info</mat-icon>
 
@@ -496,6 +494,16 @@
             Sobrante contra el monto solicitado:
             {{ formatMoney(abs(amountDifference)) }}
             }
+          </p>
+        </div>
+        }
+
+        @if (shouldShowZeroAmountXmlInfo) {
+        <div class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline">
+          <mat-icon>info</mat-icon>
+
+          <p>
+            XML de almacén en $0.00 permitido para esta O.C. La orden está marcada como XML/factura en cero.
           </p>
         </div>
         }

@@ -191,6 +191,8 @@ export interface PurchaseOrderResponseDto {
 
   concept: string;
   requested_amount: number;
+  is_zero_amount_invoice: boolean;
+  zero_amount_reason: string | null;
 
   status: PurchaseOrderStatus;
   status_label: string;
@@ -276,6 +278,8 @@ export interface CreatePurchaseOrderDto {
   will_have_invoice: boolean;
   concept: string;
   requested_amount: number;
+  is_zero_amount_invoice?: boolean;
+  zero_amount_reason?: string | null;
   requested_by_employee_id: number;
   notes?: string | null;
 }
@@ -286,6 +290,8 @@ export interface UpdatePurchaseOrderDto {
   will_have_invoice?: boolean;
   concept?: string;
   requested_amount?: number;
+  is_zero_amount_invoice?: boolean;
+  zero_amount_reason?: string | null;
   requested_by_employee_id?: number | null;
   notes?: string | null;
 }

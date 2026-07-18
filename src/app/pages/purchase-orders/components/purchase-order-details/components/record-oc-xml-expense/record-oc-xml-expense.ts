@@ -216,21 +216,21 @@ export class RecordOcXmlExpense implements OnInit {
     return this.round2(this.selectedAmount - this.requestedAmount);
   }
 
-get canSave(): boolean {
-  const hasValidAmount =
-    this.selectedAmount > 0 || this.isZeroAmountXmlSpecialCase;
+  get canSave(): boolean {
+    const hasValidAmount =
+      this.selectedAmount > 0 || this.isZeroAmountXmlSpecialCase;
 
-  return (
-    !!this.photoId &&
-    !!this.selectedXmlExpense &&
-    !!this.selectedXmlExpense.can_select &&
-    this.selectedItemIds.length > 0 &&
-    hasValidAmount &&
-    this.isDirectWithInvoice &&
-    !this.hasExistingPhotoLink &&
-    !this.saving()
-  );
-}
+    return (
+      !!this.photoId &&
+      !!this.selectedXmlExpense &&
+      !!this.selectedXmlExpense.can_select &&
+      this.selectedItemIds.length > 0 &&
+      hasValidAmount &&
+      this.isDirectWithInvoice &&
+      !this.hasExistingPhotoLink &&
+      !this.saving()
+    );
+  }
 
   onHeaderAction(action: string): void {
     switch (action) {
@@ -414,57 +414,57 @@ get canSave(): boolean {
     return item.product?.name ?? item.concept ?? 'Partida sin nombre';
   }
 
-hasPendingProjectExpense(expense: AvailableXmlExpenseDto): boolean {
-  return (expense.available_items ?? []).some((item) => !item.project?.id);
-}
-
-getExpenseProjectLabel(expense: AvailableXmlExpenseDto): string {
-  const items = expense.available_items ?? [];
-
-  const projectNames = Array.from(
-    new Set(
-      items
-        .map((item) => item.project?.name)
-        .filter((name): name is string => !!name),
-    ),
-  );
-
-  const hasPendingProject = this.hasPendingProjectExpense(expense);
-
-  if (hasPendingProject && projectNames.length === 0) {
-    return 'Proyecto pendiente';
+  hasPendingProjectExpense(expense: AvailableXmlExpenseDto): boolean {
+    return (expense.available_items ?? []).some((item) => !item.project?.id);
   }
 
-  if (hasPendingProject) {
-    return 'Proyecto mixto';
+  getExpenseProjectLabel(expense: AvailableXmlExpenseDto): string {
+    const items = expense.available_items ?? [];
+
+    const projectNames = Array.from(
+      new Set(
+        items
+          .map((item) => item.project?.name)
+          .filter((name): name is string => !!name),
+      ),
+    );
+
+    const hasPendingProject = this.hasPendingProjectExpense(expense);
+
+    if (hasPendingProject && projectNames.length === 0) {
+      return 'Proyecto pendiente';
+    }
+
+    if (hasPendingProject) {
+      return 'Proyecto mixto';
+    }
+
+    return projectNames[0] ?? this.projectName;
   }
 
-  return projectNames[0] ?? this.projectName;
-}
+  getExpenseProjectHelp(expense: AvailableXmlExpenseDto): string {
+    if (this.hasPendingProjectExpense(expense)) {
+      return `Se asignará a: ${this.projectName}`;
+    }
 
-getExpenseProjectHelp(expense: AvailableXmlExpenseDto): string {
-  if (this.hasPendingProjectExpense(expense)) {
-    return `Se asignará a: ${this.projectName}`;
+    return 'Ya pertenece al proyecto de la O.C.';
   }
 
-  return 'Ya pertenece al proyecto de la O.C.';
-}
-
-isPendingProjectItem(item: AvailableXmlExpenseItemDto): boolean {
-  return !item.project?.id;
-}
-
-getAvailableItemProjectLabel(item: AvailableXmlExpenseItemDto): string {
-  return item.project?.name ?? 'Proyecto pendiente';
-}
-
-getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
-  if (this.isPendingProjectItem(item)) {
-    return `Se asignará a: ${this.projectName}`;
+  isPendingProjectItem(item: AvailableXmlExpenseItemDto): boolean {
+    return !item.project?.id;
   }
 
-  return 'Ya pertenece al proyecto de la O.C.';
-} 
+  getAvailableItemProjectLabel(item: AvailableXmlExpenseItemDto): string {
+    return item.project?.name ?? 'Proyecto pendiente';
+  }
+
+  getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
+    if (this.isPendingProjectItem(item)) {
+      return `Se asignará a: ${this.projectName}`;
+    }
+
+    return 'Ya pertenece al proyecto de la O.C.';
+  }
 
   private loadInitialData(): void {
     if (!this.photoId) return;
@@ -709,27 +709,26 @@ getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
   }
 
   get isZeroAmountXmlSpecialCase(): boolean {
-  const requestedAmount = this.round2(this.requestedAmount);
-  const selectedAmount = this.round2(this.selectedAmount);
+    const selectedAmount = this.round2(this.selectedAmount);
 
-  return (
-    this.isDirectWithInvoice &&
-    !!this.selectedXmlExpense?.can_select &&
-    this.selectedItemIds.length > 0 &&
-    requestedAmount <= 0.01 &&
-    selectedAmount === 0
-  );
-}
+    return (
+      this.isDirectWithInvoice &&
+      Boolean(this.order?.is_zero_amount_invoice) &&
+      !!this.selectedXmlExpense?.can_select &&
+      this.selectedItemIds.length > 0 &&
+      selectedAmount === 0
+    );
+  }
 
-get shouldShowAmountDifferenceWarning(): boolean {
-  return (
-    !!this.selectedXmlExpense &&
-    this.amountDifference !== 0 &&
-    !this.isZeroAmountXmlSpecialCase
-  );
-}
+  get shouldShowAmountDifferenceWarning(): boolean {
+    return (
+      !!this.selectedXmlExpense &&
+      this.amountDifference !== 0 &&
+      !this.isZeroAmountXmlSpecialCase
+    );
+  }
 
-get shouldShowZeroAmountXmlInfo(): boolean {
-  return this.isZeroAmountXmlSpecialCase;
-}
+  get shouldShowZeroAmountXmlInfo(): boolean {
+    return this.isZeroAmountXmlSpecialCase;
+  }
 }

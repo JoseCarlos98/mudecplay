@@ -86,10 +86,37 @@
 
         <div class="c-form-grid c-form-grid--one">
           <div class="c-form-grid__field">
-            <app-input-field formControlName="notes" label="Notas" type="text">
+            <label class="c-form-check">
+              <input type="checkbox" formControlName="is_zero_amount_invoice" />
+
+              <span>
+                XML/factura en $0.00
+              </span>
+            </label>
+
+            <small class="c-form-field-helper">
+              {{ zeroAmountInvoiceHelpText }}
+            </small>
+          </div>
+        </div>
+
+        @if (isZeroAmountInvoice) {
+        <div class="c-form-grid c-form-grid--one">
+          <div class="c-form-grid__field">
+            <app-input-field formControlName="zero_amount_reason" label="Motivo del XML/factura en cero" type="text">
             </app-input-field>
           </div>
         </div>
+
+        <div class="c-form-alert c-form-alert--info purchase-order-form-alert">
+          <mat-icon class="c-form-alert__icon">info</mat-icon>
+
+          <div class="c-form-alert__content">
+            Esta opción solo aplica para XML/facturas emitidas en $0.00. El monto solicitado se guardará en cero y el
+            motivo será obligatorio.
+          </div>
+        </div>
+        }
 
         <div class="c-form-alert c-form-alert--info purchase-order-form-alert mt-5 ">
           <mat-icon class="c-form-alert__icon">info</mat-icon>
