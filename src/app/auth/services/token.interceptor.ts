@@ -1,16 +1,17 @@
 import { inject, Injectable } from '@angular/core';
 import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandler,
   HttpInterceptor,
   HttpRequest,
-  HttpHandler,
-  HttpEvent,
   HttpResponse,
-  HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, catchError, tap, throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Observable, catchError, tap, throwError } from 'rxjs';
+
 import { environment } from '../../../environments/environment';
-import { AuthService } from '../../auth/services/auth.service';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -18,8 +19,12 @@ export class AuthInterceptor implements HttpInterceptor {
   private readonly auth = inject(AuthService);
 
   private isHandlingUnauthorized = false;
+  private isHandlingScheduleRestriction = false;
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+  intercept(
+    req: HttpRequest<unknown>,
+    next: HttpHandler,
+  ): Observable<HttpEvent<unknown>> {
     const apiBase = (environment.apiUrl || '').replace(/\/+$/, '');
     const isOurApi = !!apiBase && req.url.startsWith(apiBase);
 
@@ -28,9 +33,10 @@ export class AuthInterceptor implements HttpInterceptor {
       req.url.includes('cloudfront.net') ||
       req.url.includes('X-Amz-Algorithm');
 
-    const isLoginEndpoint = !!apiBase && req.url === `${apiBase}/auth/login`;
+    const isLoginEndpoint =
+      !!apiBase && req.url === `${apiBase}/auth/login`;
 
-    // No agregar token a requests externas o presigned URLs
+    // No agregar token a servicios externos ni URLs firmadas de AWS.
     if (!isOurApi || isPresignedAws) {
       return next.handle(req);
     }
@@ -47,52 +53,124 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       tap((event) => {
-        if (event instanceof HttpResponse) {
-          const body = event.body as any;
-
-          if (body?.success) {
-            let fallbackMsg = '';
-
-            switch (req.method) {
-              case 'POST':
-                fallbackMsg = 'Registro creado correctamente.';
-                break;
-              case 'PATCH':
-              case 'PUT':
-                fallbackMsg = 'Registro actualizado correctamente.';
-                break;
-              case 'DELETE':
-                fallbackMsg = 'Registro eliminado correctamente.';
-                break;
-            }
-
-            this.snackBar.open(body.message ?? fallbackMsg, '', {
-              horizontalPosition: 'end',
-              verticalPosition: 'top',
-              duration: 3000,
-              panelClass: ['snackbar-success'],
-            });
-          }
-        }
-      }),
-      catchError((err: HttpErrorResponse) => {
-        if (err.status === 401 && !isLoginEndpoint && !this.isHandlingUnauthorized) {
-          this.isHandlingUnauthorized = true;
-          this.auth.logout();
-          setTimeout(() => {
-            this.isHandlingUnauthorized = false;
-          }, 0);
-        } else if (err.status === 403) {
-          this.snackBar.open('No tienes permisos para realizar esta acción.', '', {
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            duration: 3500,
-            panelClass: ['snackbar-error'],
-          });
+        if (!(event instanceof HttpResponse)) {
+          return;
         }
 
-        return throwError(() => err);
+        const body = event.body as {
+          success?: boolean;
+          message?: string;
+        } | null;
+
+        if (!body?.success) {
+          return;
+        }
+
+        let fallbackMessage = '';
+
+        switch (req.method) {
+          case 'POST':
+            fallbackMessage = 'Registro creado correctamente.';
+            break;
+
+          case 'PATCH':
+          case 'PUT':
+            fallbackMessage = 'Registro actualizado correctamente.';
+            break;
+
+          case 'DELETE':
+            fallbackMessage = 'Registro eliminado correctamente.';
+            break;
+        }
+
+        this.snackBar.open(body.message ?? fallbackMessage, '', {
+          horizontalPosition: 'end',
+          verticalPosition: 'top',
+          duration: 3000,
+          panelClass: ['snackbar-success'],
+        });
       }),
+      catchError((error: HttpErrorResponse) => {
+        const errorCode = error.error?.code;
+        const isScheduleRestriction =
+          error.status === 403 &&
+          errorCode === 'WORK_SCHEDULE_ACCESS_DENIED';
+
+        if (isScheduleRestriction) {
+          this.handleScheduleRestriction(error, isLoginEndpoint);
+          return throwError(() => error);
+        }
+
+        if (
+          error.status === 401 &&
+          !isLoginEndpoint &&
+          !this.isHandlingUnauthorized
+        ) {
+          this.handleUnauthorized();
+          return throwError(() => error);
+        }
+
+        if (error.status === 403) {
+          this.showPermissionDeniedMessage();
+        }
+
+        return throwError(() => error);
+      }),
+    );
+  }
+
+  private handleScheduleRestriction(
+    error: HttpErrorResponse,
+    isLoginEndpoint: boolean,
+  ): void {
+    /*
+     * Durante el login no mostramos snackbar ni ejecutamos logout.
+     * LoginComponent ya mostrará error.error.message dentro del formulario.
+     */
+    if (isLoginEndpoint || this.isHandlingScheduleRestriction) {
+      return;
+    }
+
+    this.isHandlingScheduleRestriction = true;
+
+    const message =
+      error.error?.message ??
+      'Tu acceso se encuentra fuera del horario laboral permitido.';
+
+    this.snackBar.open(message, '', {
+      horizontalPosition: 'end',
+      verticalPosition: 'top',
+      duration: 6000,
+      panelClass: ['snackbar-error'],
+    });
+
+    this.auth.logout();
+
+    setTimeout(() => {
+      this.isHandlingScheduleRestriction = false;
+    }, 1000);
+  }
+
+  private handleUnauthorized(): void {
+    this.isHandlingUnauthorized = true;
+
+    this.auth.logout();
+
+    setTimeout(() => {
+      this.isHandlingUnauthorized = false;
+    }, 0);
+  }
+
+  private showPermissionDeniedMessage(): void {
+    this.snackBar.open(
+      'No tienes permisos para realizar esta acción.',
+      '',
+      {
+        horizontalPosition: 'end',
+        verticalPosition: 'top',
+        duration: 3500,
+        panelClass: ['snackbar-error'],
+      },
     );
   }
 }
