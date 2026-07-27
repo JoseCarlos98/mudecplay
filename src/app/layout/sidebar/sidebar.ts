@@ -69,70 +69,70 @@ export class Sidebar {
       route: '/reportes',
       roles: ['REPORTES_EMISOR'],
     },
-    // {
-    //   name: 'Tesorería',
-    //   icon: 'account_balance_wallet',
-    //   children: [
-    //     {
-    //       name: 'Cuentas bancarias',
-    //       icon: 'account_balance',
-    //       route: '/tesoreria/cuentas-bancarias',
-    //       roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_BANCARIAS_EDITOR'],
-    //     },
-    //     {
-    //       name: 'Cargar movimientos',
-    //       icon: 'upload_file',
-    //       route: '/tesoreria/cargar-movimientos',
-    //       roles: ['ADMIN_GENERAL', 'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR'],
-    //     },
-    //     {
-    //       name: 'Movimientos bancarios',
-    //       icon: 'receipt_long',
-    //       route: '/tesoreria/movimientos-bancarios',
-    //       roles: [
-    //         'ADMIN_GENERAL',
-    //         'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
-    //         'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
-    //       ],
-    //     },
-    //     {
-    //       name: 'Importaciones',
-    //       icon: 'folder_copy',
-    //       route: '/tesoreria/importaciones',
-    //       roles: [
-    //         'ADMIN_GENERAL',
-    //         'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
-    //         'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
-    //       ],
-    //     },
+    {
+      name: 'Tesorería',
+      icon: 'account_balance_wallet',
+      children: [
+        {
+          name: 'Cuentas bancarias',
+          icon: 'account_balance',
+          route: '/tesoreria/cuentas-bancarias',
+          roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_BANCARIAS_EDITOR'],
+        },
+        {
+          name: 'Cargar movimientos',
+          icon: 'upload_file',
+          route: '/tesoreria/cargar-movimientos',
+          roles: ['ADMIN_GENERAL', 'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR'],
+        },
+        {
+          name: 'Movimientos bancarios',
+          icon: 'receipt_long',
+          route: '/tesoreria/movimientos-bancarios',
+          roles: [
+            'ADMIN_GENERAL',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+          ],
+        },
+        {
+          name: 'Importaciones',
+          icon: 'folder_copy',
+          route: '/tesoreria/importaciones',
+          roles: [
+            'ADMIN_GENERAL',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
+            'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+          ],
+        },
 
-    //     // Fases siguientes: las activamos cuando exista backend/frontend.
-    //     // {
-    //     //   name: 'Cuentas por pagar',
-    //     //   icon: 'payments',
-    //     //   route: '/tesoreria/cuentas-por-pagar',
-    //     //   roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_PAGAR_EDITOR'],
-    //     // },
-    //     // {
-    //     //   name: 'Cuentas por cobrar',
-    //     //   icon: 'request_quote',
-    //     //   route: '/tesoreria/cuentas-por-cobrar',
-    //     //   roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_COBRAR_EDITOR'],
-    //     // },
-    //     // {
-    //     //   name: 'Flujo de efectivo',
-    //     //   icon: 'trending_up',
-    //     //   route: '/tesoreria/flujo-efectivo',
-    //     //   roles: ['ADMIN_GENERAL', 'TESORERIA_FLUJO_EFECTIVO_CONSULTOR'],
-    //     // },
-    //     // {
-    //     //   name: 'Reportes',
-    //     //   icon: 'bar_chart',
-    //     //   route: '/tesoreria/reportes',
-    //     //   roles: ['ADMIN_GENERAL', 'TESORERIA_REPORTES_EMISOR'],
-    //     // },
-    //   ],
-    // },
+        // Fases siguientes: las activamos cuando exista backend/frontend.
+        {
+          name: 'Cuentas por pagar',
+          icon: 'payments',
+          route: '/tesoreria/cuentas-por-pagar',
+          roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_PAGAR_EDITOR'],
+        },
+        // {
+        //   name: 'Cuentas por cobrar',
+        //   icon: 'request_quote',
+        //   route: '/tesoreria/cuentas-por-cobrar',
+        //   roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_COBRAR_EDITOR'],
+        // },
+        // {
+        //   name: 'Flujo de efectivo',
+        //   icon: 'trending_up',
+        //   route: '/tesoreria/flujo-efectivo',
+        //   roles: ['ADMIN_GENERAL', 'TESORERIA_FLUJO_EFECTIVO_CONSULTOR'],
+        // },
+        // {
+        //   name: 'Reportes',
+        //   icon: 'bar_chart',
+        //   route: '/tesoreria/reportes',
+        //   roles: ['ADMIN_GENERAL', 'TESORERIA_REPORTES_EMISOR'],
+        // },
+      ],
+    },
     {
       name: 'Mano de obra',
       icon: 'engineering',
