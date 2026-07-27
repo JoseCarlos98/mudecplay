@@ -67,8 +67,8 @@ export const TREASURY_ROUTES: Routes = [
   {
     path: 'cuentas-por-pagar',
     loadComponent: () =>
-      import('./components/treasury-accounts-receivable/treasury-accounts-receivable').then(
-        (m) => m.TreasuryAccountsReceivable,
+      import('./components/treasury-accounts-payable/treasury-accounts-payable').then(
+        (m) => m.TreasuryAccountsPayable,
       ),
     canActivate: [rolesGuard],
     data: {
