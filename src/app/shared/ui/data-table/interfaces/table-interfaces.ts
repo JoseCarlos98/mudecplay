@@ -92,6 +92,14 @@ export interface DataTableExtraAction<T> {
   /** Clase opcional para el botón */
   buttonClass?: string;
 
-  /** Clase opcional para el ícono */
-  iconClass?: string;
+/**
+ * Clase opcional para el ícono.
+ *
+ * Puede ser:
+ * - Una clase fija para todas las filas.
+ * - Una función para resolver la clase según cada fila.
+ *
+ * Si no se envía, conserva el color neutro actual.
+ */
+iconClass?: string | ((row: T) => string | null);
 }

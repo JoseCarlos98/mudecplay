@@ -188,24 +188,43 @@ export class DataTable<T> implements OnChanges {
   }
 
   isRowSelected(col: ColumnsConfig, row: T): boolean {
-  return col.selectedResolver ? col.selectedResolver(row) : false;
-}
-
-isSelectDisabled(col: ColumnsConfig, row: T): boolean {
-  return col.selectDisabledResolver ? col.selectDisabledResolver(row) : false;
-}
-
-getSelectTooltip(col: ColumnsConfig, row: T): string {
-  if (!col.selectTooltip) return '';
-
-  if (typeof col.selectTooltip === 'function') {
-    return col.selectTooltip(row) ?? '';
+    return col.selectedResolver ? col.selectedResolver(row) : false;
   }
 
-  return col.selectTooltip;
-}
+  isSelectDisabled(col: ColumnsConfig, row: T): boolean {
+    return col.selectDisabledResolver ? col.selectDisabledResolver(row) : false;
+  }
 
-onSelectColumn(col: ColumnsConfig, row: T): void {
-  this.onRowAction(col.selectActionType || 'select', row);
-}
+  getSelectTooltip(col: ColumnsConfig, row: T): string {
+    if (!col.selectTooltip) return '';
+
+    if (typeof col.selectTooltip === 'function') {
+      return col.selectTooltip(row) ?? '';
+    }
+
+    return col.selectTooltip;
+  }
+
+  onSelectColumn(col: ColumnsConfig, row: T): void {
+    this.onRowAction(col.selectActionType || 'select', row);
+  }
+
+  /**
+   * Resuelve la clase visual del ícono.
+   *
+   * Permite recibir una clase fija o calcularla
+   * dinámicamente de acuerdo con la fila.
+   */
+  getExtraActionIconClass(
+    action: DataTableExtraAction<T>,
+    row: T,
+  ): string {
+    if (!action.iconClass) return '';
+
+    if (typeof action.iconClass === 'function') {
+      return action.iconClass(row) ?? '';
+    }
+
+    return action.iconClass;
+  }
 }

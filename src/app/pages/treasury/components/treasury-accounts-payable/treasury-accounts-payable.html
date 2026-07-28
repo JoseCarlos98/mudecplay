@@ -1,4 +1,5 @@
-<div class="c-table-page treasury-accounts-payable">
+<!-- <div class="c-table-page treasury-accounts-payable"> -->
+  <div class="treasury-accounts-payable">
   <div class="card-content shadow-md">
     <app-module-header
       title="Cuentas por pagar"
@@ -144,7 +145,7 @@
         </div>
 
         <form [formGroup]="outflowFilterForm">
-          <div class="c-filters grid grid-cols-2 lg:grid-cols-3">
+          <div class="c-filters accounts-payable-filters">
             <app-input-date
               formControlName="dateRange"
               label="Fecha"
@@ -326,12 +327,7 @@
         </div>
 
         @if (!selectedMovement()) {
-          <div class="accounts-payable-message">
-            <mat-icon>info</mat-icon>
-
-            Primero selecciona una salida
-            bancaria disponible.
-          </div>
+          
         } @else {
           <div class="accounts-payable-message accounts-payable-message--success">
             <mat-icon>account_balance</mat-icon>
@@ -360,7 +356,7 @@
         }
 
         <form [formGroup]="pendingItemFilterForm">
-          <div class="c-filters grid grid-cols-2 lg:grid-cols-3">
+          <div class="c-filters accounts-payable-filters">
             <app-input-date
               formControlName="dateRange"
               label="Fecha"
@@ -503,7 +499,7 @@
       </div>
 
       <form [formGroup]="historicalFilterForm">
-        <div class="c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+        <div class="c-filters accounts-payable-filters">
           <app-input-date
             formControlName="dateRange"
             label="Fecha de pago"
@@ -587,3 +583,4 @@
   [fullscreen]="true"
   text="Cargando cuentas por pagar...">
 </app-loading-overlay>
+

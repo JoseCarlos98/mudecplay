@@ -147,6 +147,7 @@ const MISSING_PAYMENT_DATE_OPTIONS: Catalog[] = [
 
 // =========================================================
 // COLUMNAS: MOVIMIENTOS
+// Ordenadas según su importancia para la conciliación.
 // =========================================================
 
 const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
@@ -156,8 +157,14 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     type: 'date',
   },
   {
-    key: 'company_name',
-    label: 'Empresa',
+    key: 'available_amount',
+    label: 'Disponible',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'description_original',
+    label: 'Descripción',
   },
   {
     key: 'bank_name',
@@ -168,8 +175,8 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     label: 'Cuenta',
   },
   {
-    key: 'description_original',
-    label: 'Descripción',
+    key: 'company_name',
+    label: 'Empresa',
   },
   {
     key: 'reference_display',
@@ -177,13 +184,7 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
   },
   {
     key: 'amount',
-    label: 'Monto',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'available_amount',
-    label: 'Disponible',
+    label: 'Monto original',
     type: 'money',
     align: 'right',
   },
@@ -210,8 +211,18 @@ const AVAILABLE_OUTFLOW_DISPLAYED_COLUMNS = [
 
 const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
   {
-    key: 'internal_folio',
-    label: 'Folio',
+    key: 'pending_amount',
+    label: 'Pendiente',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'supplier_display_name',
+    label: 'Proveedor',
+  },
+  {
+    key: 'concept',
+    label: 'Concepto',
   },
   {
     key: 'expense_date',
@@ -219,16 +230,12 @@ const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
     type: 'date',
   },
   {
-    key: 'supplier_display_name',
-    label: 'Proveedor',
+    key: 'internal_folio',
+    label: 'Folio',
   },
   {
     key: 'project_name',
     label: 'Proyecto',
-  },
-  {
-    key: 'concept',
-    label: 'Concepto',
   },
   {
     key: 'item_type_label',
@@ -247,12 +254,6 @@ const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
   {
     key: 'paid_amount',
     label: 'Pagado',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'pending_amount',
-    label: 'Pendiente',
     type: 'money',
     align: 'right',
   },
@@ -756,7 +757,7 @@ export class TreasuryAccountsPayable
 
       return Math.max(
         Number(movement.available_amount) -
-          this.selectedApplicationsTotal(),
+        this.selectedApplicationsTotal(),
         0,
       );
     });
@@ -775,7 +776,7 @@ export class TreasuryAccountsPayable
         amount > 0 &&
         this.selectedApplicationsCount() > 0 &&
         amount <=
-          Number(movement.available_amount)
+        Number(movement.available_amount)
       );
     });
 
@@ -791,6 +792,27 @@ export class TreasuryAccountsPayable
         type: 'selectMovement',
         icon: 'check_circle',
         tooltip: 'Seleccionar movimiento',
+
+        /*
+         * El icono para seleccionar solamente aparece
+         * cuando esta fila todavía no está seleccionada.
+         */
+        visible: (row) =>
+          this.selectedMovement()?.id !== row.id,
+      },
+      {
+        type: 'clearMovementSelection',
+        icon: 'cancel',
+        tooltip: 'Deseleccionar movimiento',
+
+        /*
+         * La X roja solamente aparece en el movimiento
+         * que se encuentra seleccionado actualmente.
+         */
+        iconClass: 'table-action-icon--danger',
+
+        visible: (row) =>
+          this.selectedMovement()?.id === row.id,
       },
       {
         type: 'movementHistory',
@@ -801,6 +823,7 @@ export class TreasuryAccountsPayable
         type: 'manualClose',
         icon: 'lock',
         tooltip: 'Cerrar saldo disponible',
+
         visible: (row) =>
           Number(row.available_amount) > 0,
       },
@@ -814,6 +837,10 @@ export class TreasuryAccountsPayable
         type: 'addExpenseItem',
         icon: 'add_circle',
         tooltip: 'Agregar al pago',
+
+        // Agregar es una acción positiva.
+        iconClass: 'table-action-icon--success',
+
         visible: (row) =>
           !this.selectedApplications().has(
             row.expense_item_id,
@@ -823,6 +850,10 @@ export class TreasuryAccountsPayable
         type: 'removeExpenseItem',
         icon: 'remove_circle',
         tooltip: 'Quitar del pago',
+
+        // Quitar es una acción de reversa.
+        iconClass: 'table-action-icon--danger',
+
         visible: (row) =>
           this.selectedApplications().has(
             row.expense_item_id,
@@ -1193,7 +1224,7 @@ export class TreasuryAccountsPayable
 
       regularization_status_label:
         row.regularization_status ===
-        'regularized'
+          'regularized'
           ? 'Regularizado'
           : 'Pendiente',
 
@@ -1214,25 +1245,25 @@ export class TreasuryAccountsPayable
 
     const uiState:
       entity.TreasuryAvailableOutflowUiFilters = {
-        dateRange:
-          value.dateRange ?? null,
+      dateRange:
+        value.dateRange ?? null,
 
-        search:
-          value.search?.trim() || '',
+      search:
+        value.search?.trim() || '',
 
-        company_id:
-          value.company_id ?? null,
+      company_id:
+        value.company_id ?? null,
 
-        bank_id:
-          value.bank_id ?? null,
+      bank_id:
+        value.bank_id ?? null,
 
-        bank_account_id:
-          value.bank_account_id ?? null,
+      bank_account_id:
+        value.bank_account_id ?? null,
 
-        page: 1,
-        limit:
-          this.outflowFilters.limit,
-      };
+      page: 1,
+      limit:
+        this.outflowFilters.limit,
+    };
 
     this.outflowFilters =
       this.buildOutflowBackendFiltersFromUi(
@@ -1361,25 +1392,25 @@ export class TreasuryAccountsPayable
 
     const uiState:
       entity.TreasuryPendingExpenseItemUiFilters = {
-        dateRange:
-          value.dateRange ?? null,
+      dateRange:
+        value.dateRange ?? null,
 
-        search:
-          value.search?.trim() || '',
+      search:
+        value.search?.trim() || '',
 
-        supplier_id:
-          value.supplier_id ?? null,
+      supplier_id:
+        value.supplier_id ?? null,
 
-        project_id:
-          value.project_id ?? null,
+      project_id:
+        value.project_id ?? null,
 
-        item_type:
-          value.item_type || '',
+      item_type:
+        value.item_type || '',
 
-        page: 1,
-        limit:
-          this.pendingItemFilters.limit,
-      };
+      page: 1,
+      limit:
+        this.pendingItemFilters.limit,
+    };
 
     this.pendingItemFilters =
       this.buildPendingItemsBackendFiltersFromUi(
@@ -1504,34 +1535,34 @@ export class TreasuryAccountsPayable
 
     const uiState:
       entity.TreasuryHistoricalPaymentUiFilters = {
-        dateRange:
-          value.dateRange ?? null,
+      dateRange:
+        value.dateRange ?? null,
 
-        search:
-          value.search?.trim() || '',
+      search:
+        value.search?.trim() || '',
 
-        supplier_id:
-          value.supplier_id ?? null,
+      supplier_id:
+        value.supplier_id ?? null,
 
-        project_id:
-          value.project_id ?? null,
+      project_id:
+        value.project_id ?? null,
 
-        regularization_status:
-          value.regularization_status ||
-          '',
+      regularization_status:
+        value.regularization_status ||
+        '',
 
-        regularization_type:
-          value.regularization_type ||
-          '',
+      regularization_type:
+        value.regularization_type ||
+        '',
 
-        missing_payment_date:
-          value.missing_payment_date ||
-          '',
+      missing_payment_date:
+        value.missing_payment_date ||
+        '',
 
-        page: 1,
-        limit:
-          this.historicalFilters.limit,
-      };
+      page: 1,
+      limit:
+        this.historicalFilters.limit,
+    };
 
     this.historicalFilters =
       this.buildHistoricalBackendFiltersFromUi(
@@ -1627,10 +1658,10 @@ export class TreasuryAccountsPayable
 
       missing_payment_date:
         ui.missing_payment_date ===
-        'true'
+          'true'
           ? true
           : ui.missing_payment_date ===
-              'false'
+            'false'
             ? false
             : null,
 
@@ -1672,7 +1703,7 @@ export class TreasuryAccountsPayable
         value.project_id,
       ) ||
       value.regularization_status !==
-        'pending' ||
+      'pending' ||
       value.regularization_type ||
       value.missing_payment_date,
     );
@@ -1737,34 +1768,36 @@ export class TreasuryAccountsPayable
   // ACCIONES: MOVIMIENTOS
   // =========================================================
 
-  onOutflowTableAction(
-    event: DataTableActionEvent<
-      entity.TreasuryAvailableOutflowTableRow
-    >,
-  ): void {
-    switch (event.type) {
-      case 'selectMovement':
-        this.selectMovement(
-          event.row,
-        );
-        break;
+onOutflowTableAction(
+  event: DataTableActionEvent<
+    entity.TreasuryAvailableOutflowTableRow
+  >,
+): void {
+  switch (event.type) {
+    case 'selectMovement':
+      this.selectMovement(event.row);
+      break;
 
-      case 'movementHistory':
-        this.openMovementHistory(
-          event.row,
-        );
-        break;
+    case 'clearMovementSelection':
+      /*
+       * Limpia el movimiento y también los conceptos
+       * que estaban asociados a la selección.
+       */
+      this.clearPaymentSelection();
+      break;
 
-      case 'manualClose':
-        this.openManualClose(
-          event.row,
-        );
-        break;
+    case 'movementHistory':
+      this.openMovementHistory(event.row);
+      break;
 
-      default:
-        break;
-    }
+    case 'manualClose':
+      this.openManualClose(event.row);
+      break;
+
+    default:
+      break;
   }
+}
 
   private selectMovement(
     movement:
@@ -1929,26 +1962,26 @@ export class TreasuryAccountsPayable
 
     const payload:
       entity.TreasuryApplyBankMovementPayload = {
-        bank_movement_id:
-          movement.id,
+      bank_movement_id:
+        movement.id,
 
-        applications:
-          Array
-            .from(
-              this.selectedApplications().entries(),
-            )
-            .map(
-              ([
+      applications:
+        Array
+          .from(
+            this.selectedApplications().entries(),
+          )
+          .map(
+            ([
+              expenseItemId,
+              amount,
+            ]) => ({
+              expense_item_id:
                 expenseItemId,
-                amount,
-              ]) => ({
-                expense_item_id:
-                  expenseItemId,
 
-                amount,
-              }),
-            ),
-      };
+              amount,
+            }),
+          ),
+    };
 
     console.log(
       'Pendiente: abrir confirmación para aplicar pago',
@@ -2476,10 +2509,10 @@ export class TreasuryAccountsPayable
     const raw =
       this.getCatalogValue(
         value as
-          | Catalog
-          | number
-          | string
-          | null,
+        | Catalog
+        | number
+        | string
+        | null,
       );
 
     const id =

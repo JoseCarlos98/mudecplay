@@ -189,7 +189,7 @@
 
       <!-- Columna de acciones -->
       <ng-container matColumnDef="actions" [stickyEnd]="true">
-  <th mat-header-cell *matHeaderCellDef class="text-center c-actions-header">
+        <th mat-header-cell *matHeaderCellDef class="text-center c-actions-header">
           Acciones
         </th>
 
@@ -209,7 +209,7 @@
                 <button mat-icon-button [class]="extra.buttonClass || ''"
                   [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
                   [disabled]="isExtraActionDisabled(extra, element)" (click)="onRowAction(extra.type, element)">
-                  <mat-icon [class]="extra.iconClass || ''">
+                  <mat-icon [ngClass]="getExtraActionIconClass(extra, element)">
                     {{ extra.icon }}
                   </mat-icon>
                 </button>
@@ -222,7 +222,7 @@
               <button mat-icon-button [class]="extra.buttonClass || ''"
                 [class.is-action-disabled]="isExtraActionDisabled(extra, element)"
                 [disabled]="isExtraActionDisabled(extra, element)" (click)="onRowAction(extra.type, element)">
-                <mat-icon [class]="extra.iconClass || ''">
+                <mat-icon [ngClass]="getExtraActionIconClass(extra, element)">
                   {{ extra.icon }}
                 </mat-icon>
               </button>

@@ -1,6 +1,24 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
 .treasury-accounts-payable {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   display: grid;
   gap: 1rem;
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 // =========================================================
@@ -137,6 +155,11 @@
 // =========================================================
 
 .accounts-payable-workspace {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
   display: grid;
 
   grid-template-columns:
@@ -148,7 +171,11 @@
 }
 
 .accounts-payable-panel {
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
+  padding-bottom: 15px;
 
   display: grid;
   gap: 1rem;
@@ -197,6 +224,52 @@
       color: var(--primary-color);
       font-size: 0.9rem;
     }
+  }
+}
+
+// =========================================================
+// FILTROS Y CONTENCIÓN DE TABLAS
+// =========================================================
+
+.accounts-payable-filters {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(10.5rem, 1fr)
+    );
+
+  > * {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.c-module-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+
+  app-data-table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  mat-paginator {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 
@@ -470,5 +543,15 @@
 
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .accounts-payable-filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .payment-preparation__summary {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
