@@ -104,14 +104,26 @@ export function appendArray(
   return p;
 }
 
+
 /**
- * Convierte string numérico a number o retorna null si no es válido.
- * - No limpia separadores, asume que 'v' ya está saneado (solo dígitos y punto).
+ * Convierte un string numérico a un importe redondeado.
+ * Retorna null cuando el valor no es válido.
  */
-export function normalizeMoney(v: string): number | null {
-  if (!v) return null;
-  const n = Number(v);
-  return Number.isNaN(n) ? null : n;
+export function normalizeMoney(
+  value: string,
+  decimals = 2,
+): number | null {
+  if (!value?.trim()) {
+    return null;
+  }
+
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return null;
+  }
+
+  return roundMoney(amount, decimals);
 }
 
 /**
@@ -121,4 +133,32 @@ export function normalizeMoney(v: string): number | null {
  */
 export function normalizeTextOnBlur(v: string): string {
   return v.replace(/\s+/g, ' ').trim();
+}
+
+
+
+/**
+ * Redondea un importe monetario a la cantidad de decimales indicada.
+ *
+ * Evita residuos de punto flotante como:
+ * 94.78999999999996 -> 94.79
+ *
+ * Por defecto utiliza 2 decimales.
+ */
+export function roundMoney(
+  value: number,
+  decimals = 2,
+): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  const factor = 10 ** decimals;
+
+  return (
+    Math.round(
+      (value + Math.sign(value) * Number.EPSILON) *
+        factor,
+    ) / factor
+  );
 }

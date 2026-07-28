@@ -314,4 +314,20 @@ export class TreasuryAccountsPayableService {
       `${this.apiUrl}/historical-payments/${paymentId}/history`,
     );
   }
+
+
+  // =========================================================
+// CUENTAS POR PAGAR: APLICAR MOVIMIENTO BANCARIO
+// =========================================================
+
+applyBankMovement(
+  payload: entity.TreasuryApplyBankMovementPayload,
+) {
+  return this.http.post<
+    entity.TreasuryApplyBankMovementResponse
+  >(
+    `${this.apiUrl}/apply-bank-movement`,
+    payload,
+  );
+}
 }

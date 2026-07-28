@@ -69,6 +69,9 @@ import * as entity from './interfaces/treasury-accounts-payable.interfaces';
 import {
   TreasuryAccountsPayableService,
 } from './services/treasury-accounts-payable.service';
+import { roundMoney } from '../../../../shared/helpers/general-helpers';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalTreasuryAccountsPayable } from './components/modal-treasury-accounts-payable/modal-treasury-accounts-payable';
 
 // =========================================================
 // STORAGE
@@ -431,6 +434,8 @@ export class TreasuryAccountsPayable
   // INYECCIONES
   // =========================================================
 
+  private readonly dialogService = inject(DialogService);
+
   private readonly accountsPayableService =
     inject(TreasuryAccountsPayableService);
 
@@ -730,6 +735,19 @@ export class TreasuryAccountsPayable
       new Map<number, number>(),
     );
 
+  readonly selectedExpenseItems =
+    signal<
+      Map<
+        number,
+        entity.TreasuryPendingExpenseItemTableRow
+      >
+    >(
+      new Map<
+        number,
+        entity.TreasuryPendingExpenseItemTableRow
+      >(),
+    );
+
   readonly selectedApplicationsCount =
     computed(
       () => this.selectedApplications().size,
@@ -737,7 +755,7 @@ export class TreasuryAccountsPayable
 
   readonly selectedApplicationsTotal =
     computed(() => {
-      return Array
+      const total = Array
         .from(
           this.selectedApplications().values(),
         )
@@ -746,6 +764,8 @@ export class TreasuryAccountsPayable
             sum + Number(amount || 0),
           0,
         );
+
+      return roundMoney(total);
     });
 
   readonly selectedMovementRemaining =
@@ -753,12 +773,21 @@ export class TreasuryAccountsPayable
       const movement =
         this.selectedMovement();
 
-      if (!movement) return 0;
+      if (!movement) {
+        return 0;
+      }
 
-      return Math.max(
-        Number(movement.available_amount) -
-        this.selectedApplicationsTotal(),
-        0,
+      const available =
+        roundMoney(
+          Number(movement.available_amount),
+        );
+
+      const remaining =
+        available -
+        this.selectedApplicationsTotal();
+
+      return roundMoney(
+        Math.max(remaining, 0),
       );
     });
 
@@ -837,21 +866,24 @@ export class TreasuryAccountsPayable
         type: 'addExpenseItem',
         icon: 'add_circle',
         tooltip: 'Agregar al pago',
-
-        // Agregar es una acción positiva.
         iconClass: 'table-action-icon--success',
 
         visible: (row) =>
           !this.selectedApplications().has(
             row.expense_item_id,
           ),
+
+        /*
+         * El botón permanece visible, pero deshabilitado
+         * mientras no exista un movimiento seleccionado.
+         */
+        disabled: () =>
+          !this.selectedMovement(),
       },
       {
         type: 'removeExpenseItem',
         icon: 'remove_circle',
         tooltip: 'Quitar del pago',
-
-        // Quitar es una acción de reversa.
         iconClass: 'table-action-icon--danger',
 
         visible: (row) =>
@@ -1768,56 +1800,61 @@ export class TreasuryAccountsPayable
   // ACCIONES: MOVIMIENTOS
   // =========================================================
 
-onOutflowTableAction(
-  event: DataTableActionEvent<
-    entity.TreasuryAvailableOutflowTableRow
-  >,
-): void {
-  switch (event.type) {
-    case 'selectMovement':
-      this.selectMovement(event.row);
-      break;
+  onOutflowTableAction(
+    event: DataTableActionEvent<
+      entity.TreasuryAvailableOutflowTableRow
+    >,
+  ): void {
+    switch (event.type) {
+      case 'selectMovement':
+        this.selectMovement(event.row);
+        break;
 
-    case 'clearMovementSelection':
-      /*
-       * Limpia el movimiento y también los conceptos
-       * que estaban asociados a la selección.
-       */
-      this.clearPaymentSelection();
-      break;
+      case 'clearMovementSelection':
+        /*
+         * Limpia el movimiento y también los conceptos
+         * que estaban asociados a la selección.
+         */
+        this.clearPaymentSelection();
+        break;
 
-    case 'movementHistory':
-      this.openMovementHistory(event.row);
-      break;
+      case 'movementHistory':
+        this.openMovementHistory(event.row);
+        break;
 
-    case 'manualClose':
-      this.openManualClose(event.row);
-      break;
+      case 'manualClose':
+        this.openManualClose(event.row);
+        break;
 
-    default:
-      break;
+      default:
+        break;
+    }
   }
-}
 
   private selectMovement(
-    movement:
+    row:
       entity.TreasuryAvailableOutflowTableRow,
   ): void {
     const current =
       this.selectedMovement();
 
     if (
-      current?.id !==
-      movement.id
+      current &&
+      current.id !== row.id
     ) {
       this.selectedApplications.set(
         new Map<number, number>(),
       );
+
+      this.selectedExpenseItems.set(
+        new Map<
+          number,
+          entity.TreasuryPendingExpenseItemTableRow
+        >(),
+      );
     }
 
-    this.selectedMovement.set(
-      movement,
-    );
+    this.selectedMovement.set(row);
   }
 
   openMovementHistory(
@@ -1879,6 +1916,15 @@ onOutflowTableAction(
     }
   }
 
+  private reloadPaymentTables(): void {
+    /*
+     * Ambos métodos reutilizan los filtros y páginas
+     * actualmente seleccionados.
+     */
+    this.loadAvailableOutflows();
+    this.loadPendingExpenseItems();
+  }
+
   private addExpenseItem(
     row:
       entity.TreasuryPendingExpenseItemTableRow,
@@ -1886,35 +1932,73 @@ onOutflowTableAction(
     const movement =
       this.selectedMovement();
 
+    /*
+     * Validación defensiva.
+     * Normalmente no podrá ejecutarse porque el botón
+     * estará deshabilitado.
+     */
     if (!movement) {
       return;
     }
 
-    const remaining =
-      this.selectedMovementRemaining();
-
-    const amount =
-      Math.min(
-        Number(row.pending_amount),
-        remaining,
-      );
-
-    if (amount <= 0) {
+    if (
+      this.selectedApplications().has(
+        row.expense_item_id,
+      )
+    ) {
       return;
     }
 
-    const next =
-      new Map(
-        this.selectedApplications(),
+    const movementRemaining =
+      roundMoney(
+        this.selectedMovementRemaining(),
       );
 
-    next.set(
-      row.expense_item_id,
-      amount,
+    const itemPending =
+      roundMoney(
+        Number(
+          row.pending_amount || 0,
+        ),
+      );
+
+    const amountToApply =
+      roundMoney(
+        Math.min(
+          movementRemaining,
+          itemPending,
+        ),
+      );
+
+    if (amountToApply <= 0) {
+      return;
+    }
+
+    this.selectedApplications.update(
+      (current) => {
+        const next =
+          new Map(current);
+
+        next.set(
+          row.expense_item_id,
+          amountToApply,
+        );
+
+        return next;
+      },
     );
 
-    this.selectedApplications.set(
-      next,
+    this.selectedExpenseItems.update(
+      (current) => {
+        const next =
+          new Map(current);
+
+        next.set(
+          row.expense_item_id,
+          row,
+        );
+
+        return next;
+      },
     );
   }
 
@@ -1922,17 +2006,30 @@ onOutflowTableAction(
     row:
       entity.TreasuryPendingExpenseItemTableRow,
   ): void {
-    const next =
-      new Map(
-        this.selectedApplications(),
-      );
+    this.selectedApplications.update(
+      (current) => {
+        const next =
+          new Map(current);
 
-    next.delete(
-      row.expense_item_id,
+        next.delete(
+          row.expense_item_id,
+        );
+
+        return next;
+      },
     );
 
-    this.selectedApplications.set(
-      next,
+    this.selectedExpenseItems.update(
+      (current) => {
+        const next =
+          new Map(current);
+
+        next.delete(
+          row.expense_item_id,
+        );
+
+        return next;
+      },
     );
   }
 
@@ -1960,45 +2057,124 @@ onOutflowTableAction(
       return;
     }
 
-    const payload:
-      entity.TreasuryApplyBankMovementPayload = {
-      bank_movement_id:
-        movement.id,
+    const selectedRows =
+      this.selectedExpenseItems();
 
-      applications:
-        Array
-          .from(
-            this.selectedApplications().entries(),
-          )
-          .map(
-            ([
-              expenseItemId,
-              amount,
-            ]) => ({
-              expense_item_id:
+    const applications:
+      entity.TreasuryApplyBankMovementModalApplication[] =
+      Array.from(
+        this.selectedApplications()
+          .entries(),
+      )
+        .map(
+          ([
+            expenseItemId,
+            amount,
+          ]) => {
+            const item =
+              selectedRows.get(
                 expenseItemId,
+              );
 
-              amount,
-            }),
-          ),
+            if (!item) {
+              return null;
+            }
+
+            return {
+              item,
+              amount:
+                roundMoney(
+                  amount,
+                ),
+            };
+          },
+        )
+        .filter(
+          (
+            application,
+          ): application is
+            entity.TreasuryApplyBankMovementModalApplication =>
+            application !== null,
+        );
+
+    if (
+      applications.length !==
+      this.selectedApplicationsCount()
+    ) {
+      this.dialogService
+        .confirm({
+          title:
+            'Selección incompleta',
+
+          message:
+            'No fue posible recuperar todos los conceptos seleccionados. Quita la selección y vuelve a intentarlo.',
+
+          confirmText:
+            'Aceptar',
+
+          cancelText:
+            '',
+        })
+        .subscribe();
+
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryApplyBankMovementModalData = {
+      movement,
+      applications,
     };
 
-    console.log(
-      'Pendiente: abrir confirmación para aplicar pago',
-      payload,
-    );
+    this.dialogService
+      .open(
+        ModalTreasuryAccountsPayable,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryApplyBankMovementResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryApplyPaymentComponent.
+          this.clearPaymentSelection();
+
+          /*
+           * Recarga movimientos y conceptos pendientes.
+           * No limpia formularios, páginas ni LocalStorage.
+           */
+          this.reloadPaymentTables();
+
+          this.dialogService
+            .confirm({
+              title: 'Pago aplicado',
+              message: result.message,
+              confirmText: 'Aceptar',
+              cancelText: '',
+            })
+            .subscribe();
+        },
+      );
   }
 
   clearPaymentSelection(): void {
-    this.selectedMovement.set(
-      null,
-    );
+    this.selectedMovement.set(null);
 
     this.selectedApplications.set(
       new Map<number, number>(),
+    );
+
+    this.selectedExpenseItems.set(
+      new Map<
+        number,
+        entity.TreasuryPendingExpenseItemTableRow
+      >(),
     );
   }
 

@@ -569,3 +569,60 @@ export interface TreasuryHistoricalPaymentHistoryResponse {
     actions_count: number;
   };
 }
+
+
+// =========================================================
+// MODAL: CONFIRMAR APLICACIÓN DE PAGO
+// =========================================================
+
+export interface TreasuryApplyBankMovementModalApplication {
+  item: TreasuryPendingExpenseItemTableRow;
+  amount: number;
+}
+
+export interface TreasuryApplyBankMovementModalData {
+  movement: TreasuryAvailableOutflowTableRow;
+  applications: TreasuryApplyBankMovementModalApplication[];
+}
+
+// =========================================================
+// RESPUESTA: APLICAR MOVIMIENTO BANCARIO
+// =========================================================
+
+export interface TreasuryApplyBankMovementResponse {
+  success: boolean;
+  message: string;
+
+  payment: {
+    id: string;
+    amount: number;
+    payment_date: string;
+    payment_method: string;
+    reference: string;
+    notes: string | null;
+  };
+
+  bank_movement: {
+    id: string;
+    previous_available_amount: number;
+    applied_amount: number;
+    available_amount: number;
+    status: TreasuryBankMovementStatus;
+
+    company: {
+      id: number;
+      code: string;
+      name: string;
+    };
+  };
+
+  applications: Array<{
+    id: string;
+    expense_item_id: number;
+    expense_id: number;
+    applied_amount: number;
+    previous_paid_amount: number;
+    previous_pending_amount: number;
+    new_pending_amount: number;
+  }>;
+}
