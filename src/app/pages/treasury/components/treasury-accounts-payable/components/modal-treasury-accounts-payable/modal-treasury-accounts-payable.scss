@@ -5,7 +5,7 @@
 }
 
 .treasury-payment-modal {
-    display: flex;
+  display: flex;
   flex-direction: column;
 
   width: 100%;
@@ -33,35 +33,35 @@
    * Permite recorrer todo el contenido cuando la pantalla
    * tiene poca altura.
    */
-.treasury-payment-modal__body {
-  /*
+  .treasury-payment-modal__body {
+    /*
    * No obliga al cuerpo a llenar toda la altura.
    * Puede reducirse o crecer según el contenido.
    */
-  flex: 0 1 auto;
+    flex: 0 1 auto;
 
-  min-width: 0;
-  min-height: 0;
+    min-width: 0;
+    min-height: 0;
 
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-auto-rows: max-content;
-  align-content: start;
-  gap: 1rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 1rem;
 
-  /*
+    /*
    * Si la pantalla es demasiado baja,
    * el contenido completo mantiene su scroll.
    */
-  overflow-x: hidden;
-  overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
 
-  padding-right: 0.4rem;
-  padding-bottom: 1rem;
-}
+    padding-right: 0.4rem;
+    padding-bottom: 10px;
+  }
 
   // =====================================================
   // MOVIMIENTO BANCARIO
@@ -234,31 +234,31 @@
    * su altura natural y nunca se compriman ni se sobrepongan.
    */
 
-.payment-applications__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  .payment-applications__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 
-  width: 100%;
-  min-width: 0;
+    width: 100%;
+    min-width: 0;
 
-  /*
+    /*
    * Crece según la cantidad de filas,
    * pero no supera 27rem.
    */
-  height: auto;
-  min-height: 0;
-  max-height: 27rem;
+    height: auto;
+    min-height: 0;
+    max-height: 27rem;
 
-  overflow-x: hidden;
-  overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
 
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: auto;
 
-  padding-right: 0.3rem;
-  box-sizing: border-box;
-}
+    padding-right: 0.3rem;
+    box-sizing: border-box;
+  }
 
   .payment-application {
     flex: 0 0 auto;

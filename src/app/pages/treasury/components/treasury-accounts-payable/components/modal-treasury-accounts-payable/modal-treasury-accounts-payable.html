@@ -1,8 +1,5 @@
 <div class="c-modal treasury-payment-modal">
-  <app-module-header
-    title="Aplicar pago bancario"
-    [config]="headerConfig"
-    (action)="closeModal()">
+  <app-module-header title="Aplicar pago bancario" [config]="headerConfig" (action)="closeModal()">
   </app-module-header>
 
   <div class="treasury-payment-modal__body">
@@ -17,9 +14,9 @@
 
         <span>
           {{
-            movement.company_name ||
-            movement.company?.name ||
-            'Empresa no identificada'
+          movement.company_name ||
+          movement.company?.name ||
+          'Empresa no identificada'
           }}
         </span>
       </div>
@@ -29,9 +26,9 @@
 
         <span>
           {{
-            movement.bank_name ||
-            movement.bank?.name ||
-            'Sin banco'
+          movement.bank_name ||
+          movement.bank?.name ||
+          'Sin banco'
           }}
         </span>
       </div>
@@ -49,8 +46,8 @@
 
         <span>
           {{
-            movement.movement_date
-              | date:'dd/MM/yyyy'
+          movement.movement_date
+          | date:'dd/MM/yyyy'
           }}
         </span>
       </div>
@@ -68,8 +65,8 @@
 
         <span class="payment-summary__money">
           {{
-            movement.available_amount
-              | currency:'MXN':'symbol':'1.2-2'
+          movement.available_amount
+          | currency:'MXN':'symbol':'1.2-2'
           }}
         </span>
       </div>
@@ -79,8 +76,8 @@
 
         <span>
           {{
-            movement.description_original ||
-            'Sin descripción'
+          movement.description_original ||
+          'Sin descripción'
           }}
         </span>
       </div>
@@ -104,8 +101,8 @@
 
         <strong class="payment-totals__applied">
           {{
-            totalToApply
-              | currency:'MXN':'symbol':'1.2-2'
+          totalToApply
+          | currency:'MXN':'symbol':'1.2-2'
           }}
         </strong>
       </div>
@@ -115,8 +112,8 @@
 
         <strong>
           {{
-            remainingMovementAmount
-              | currency:'MXN':'symbol':'1.2-2'
+          remainingMovementAmount
+          | currency:'MXN':'symbol':'1.2-2'
           }}
         </strong>
       </div>
@@ -145,91 +142,91 @@
 
       <div class="payment-applications__list">
         @for (
-          application of data.applications;
-          track application.item.expense_item_id
+        application of data.applications;
+        track application.item.expense_item_id
         ) {
-          <article class="payment-application">
-            <div class="payment-application__main">
-              <div>
-                <span class="payment-application__folio">
-                  {{
-                    application.item.internal_folio ||
-                    'Sin folio'
-                  }}
-                </span>
+        <article class="payment-application">
+          <div class="payment-application__main">
+            <div>
+              <span class="payment-application__folio">
+                {{
+                application.item.internal_folio ||
+                'Sin folio'
+                }}
+              </span>
 
-                <strong>
-                  {{
-                    application.item.concept ||
-                    'Sin concepto'
-                  }}
-                </strong>
+              <strong>
+                {{
+                application.item.concept ||
+                'Sin concepto'
+                }}
+              </strong>
 
-                <small>
-                  {{
-                    application.item.supplier_display_name ||
-                    application.item.supplier?.display_name ||
-                    'Sin proveedor'
-                  }}
-                </small>
-              </div>
-
-              <div class="payment-application__amount">
-                <span>
-                  Aplicar
-                </span>
-
-                <strong>
-                  {{
-                    application.amount
-                      | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
-              </div>
+              <small>
+                {{
+                application.item.supplier_display_name ||
+                application.item.supplier?.display_name ||
+                'Sin proveedor'
+                }}
+              </small>
             </div>
 
-            <div class="payment-application__balances">
-              <div>
-                <span>
-                  Pendiente actual
-                </span>
+            <div class="payment-application__amount">
+              <span>
+                Aplicar
+              </span>
 
-                <strong>
-                  {{
-                    application.item.pending_amount
-                      | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Pendiente después
-                </span>
-
-                <strong>
-                  {{
-                    getPendingAfter(application)
-                      | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
-              </div>
-
-              <div>
-                <span>
-                  Proyecto
-                </span>
-
-                <strong>
-                  {{
-                    application.item.project_name ||
-                    application.item.project?.name ||
-                    'Sin proyecto'
-                  }}
-                </strong>
-              </div>
+              <strong>
+                {{
+                application.amount
+                | currency:'MXN':'symbol':'1.2-2'
+                }}
+              </strong>
             </div>
-          </article>
+          </div>
+
+          <div class="payment-application__balances">
+            <div>
+              <span>
+                Pendiente actual
+              </span>
+
+              <strong>
+                {{
+                application.item.pending_amount
+                | currency:'MXN':'symbol':'1.2-2'
+                }}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Pendiente después
+              </span>
+
+              <strong>
+                {{
+                getPendingAfter(application)
+                | currency:'MXN':'symbol':'1.2-2'
+                }}
+              </strong>
+            </div>
+
+            <div>
+              <span>
+                Proyecto
+              </span>
+
+              <strong>
+                {{
+                application.item.project_name ||
+                application.item.project?.name ||
+                'Sin proyecto'
+                }}
+              </strong>
+            </div>
+          </div>
+        </article>
         }
       </div>
     </section>
@@ -239,16 +236,9 @@
          =============================================== -->
 
     <section class="payment-confirmation-row">
-      <form
-        id="form"
-        class="payment-notes-form"
-        [formGroup]="form"
-        (ngSubmit)="applyPayment()">
+      <form id="form" class="payment-notes-form" [formGroup]="form" (ngSubmit)="applyPayment()">
 
-        <app-input-field
-          formControlName="notes"
-          label="Notas"
-          type="text">
+        <app-input-field formControlName="notes" label="Notas" type="text">
         </app-input-field>
       </form>
 
@@ -258,11 +248,7 @@
         seleccionados.
       </div>
     </section>
-    <app-btns-section
-      class="modal-actions-spacer"
-      type="save"
-      form="form"
-      [saveDisabled]="!canApplyPayment"
+    <app-btns-section class="modal-actions-spacer" type="save" form="form" [saveDisabled]="!canApplyPayment"
       (action)="onBtnsSectionAction($event)">
     </app-btns-section>
   </div>

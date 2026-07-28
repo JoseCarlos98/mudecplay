@@ -20,7 +20,7 @@ export class ExpenseService {
   private xmlDraftQueue: entity.XmlExpenseDraftDto[] = [];
   private xmlDraftQueueIndex = 0;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   getExpenses(filters?: entity.FiltersExpenses) {
     const url = `${this.apiUrl}`;
@@ -31,10 +31,28 @@ export class ExpenseService {
       params = setScalar(params, 'limit', filters.limit);
       params = setScalar(params, 'startDate', filters.startDate);
       params = setScalar(params, 'endDate', filters.endDate);
-      params = appendArray(params, 'suppliersIds', filters.suppliersIds ?? []);
-      params = appendArray(params, 'projectIds', filters.projectIds ?? []);
+      params = setScalar(params, 'totalAmount', filters.totalAmount);
+
+      params = appendArray(
+        params,
+        'suppliersIds',
+        filters.suppliersIds ?? [],
+      );
+
+      params = appendArray(
+        params,
+        'projectIds',
+        filters.projectIds ?? [],
+      );
+
       params = setScalar(params, 'statusId', filters.status_id);
-      params = setScalar(params, 'paymentStatus', filters.paymentStatus?.trim());
+
+      params = setScalar(
+        params,
+        'paymentStatus',
+        filters.paymentStatus?.trim(),
+      );
+
       params = setScalar(
         params,
         'warehouseAssignmentStatus',
@@ -42,10 +60,12 @@ export class ExpenseService {
       );
     }
 
-    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(url, {
-      params,
-    });
+    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(
+      url,
+      { params },
+    );
   }
+
 
   getById(id: number): Observable<entity.ExpenseDetail> {
     const url = `${this.apiUrl}/${id}`;

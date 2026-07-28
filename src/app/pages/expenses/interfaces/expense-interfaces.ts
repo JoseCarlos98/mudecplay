@@ -40,9 +40,10 @@ export type WarehouseAssignmentStatusFilter =
 export interface FiltersExpenses {
   startDate?: string | null;
   endDate?: string | null;
+  totalAmount?: number | null;
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
-  paymentStatus?: "paid" | "unpaid" | null;
+  paymentStatus?: 'paid' | 'unpaid' | null;
   status_id?: number | string | null;
   warehouseAssignmentStatus?: WarehouseAssignmentStatusFilter | null;
   limit: number;
@@ -340,15 +341,15 @@ export interface ExpenseItemForm {
 
 export interface ExpensesUiFilters {
   dateRange: DateRangeValue | null;
+  totalAmount: number | null;
   suppliersIds: any[];
   projectIds: any[];
   status_id: string | number | null;
-  paymentStatus: "paid" | "unpaid" | null;
+  paymentStatus: 'paid' | 'unpaid' | null;
   warehouseAssignmentStatus: WarehouseAssignmentStatusFilter | null;
   page: number;
   limit: number;
 }
-
 /* =====================================================
  *  XML PREVIEW
  * ===================================================== */

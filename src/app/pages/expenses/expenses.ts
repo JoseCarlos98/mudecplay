@@ -415,6 +415,7 @@ export class Expenses implements OnInit {
   filters: entity.FiltersExpenses = {
     page: 1,
     limit: 5,
+    totalAmount: null,
     warehouseAssignmentStatus: 'all',
   };
 
@@ -422,6 +423,7 @@ export class Expenses implements OnInit {
 
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
+    totalAmount: this.fb.control<number | null>(null),
     suppliersIds: this.fb.control<any[]>([]),
     projectIds: this.fb.control<any[]>([]),
     concept: this.fb.control<string>(''),
@@ -457,12 +459,15 @@ export class Expenses implements OnInit {
   // ==========================
   //  HELPER: UI → FILTROS BACKEND
   // ==========================
-  private buildBackendFiltersFromUi(ui: entity.ExpensesUiFilters): entity.FiltersExpenses {
+  private buildBackendFiltersFromUi(
+    ui: entity.ExpensesUiFilters,
+  ): entity.FiltersExpenses {
     return {
       page: ui.page,
       limit: ui.limit,
       startDate: ui.dateRange?.startDate ?? null,
       endDate: ui.dateRange?.endDate ?? null,
+      totalAmount: ui.totalAmount ?? null,
       suppliersIds: (ui.suppliersIds ?? []).map((s: any) => s.id),
       projectIds: (ui.projectIds ?? []).map((p: any) => p.id),
       status_id: ui.status_id ?? null,
@@ -470,7 +475,6 @@ export class Expenses implements OnInit {
       warehouseAssignmentStatus: ui.warehouseAssignmentStatus ?? 'all',
     };
   }
-
   private mapExpenseRow(row: entity.ExpenseResponseDto): entity.ExpenseResponseDto {
     const mapped: entity.ExpenseResponseDto = {
       ...row,
@@ -503,6 +507,7 @@ export class Expenses implements OnInit {
 
     const uiState: entity.ExpensesUiFilters = {
       dateRange: value.dateRange ?? null,
+      totalAmount: value.totalAmount ?? null,
       suppliersIds: value.suppliersIds ?? [],
       projectIds: value.projectIds ?? [],
       status_id: value.status_id ?? null,
@@ -716,18 +721,25 @@ export class Expenses implements OnInit {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasDates = !!(form.dateRange?.startDate || form.dateRange?.endDate);
+    const hasDates = !!(
+      form.dateRange?.startDate ||
+      form.dateRange?.endDate
+    );
+
+    const hasTotalAmount = form.totalAmount !== null;
     const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
     const hasProjects = (form.projectIds?.length ?? 0) > 0;
     const hasStatus = form.status_id !== '';
     const hasConcept = !!(form.concept && form.concept.trim() !== '');
     const hasPaymentStatus = !!form.paymentStatus;
+
     const hasWarehouseAssignment =
       !!form.warehouseAssignmentStatus &&
       form.warehouseAssignmentStatus !== 'all';
 
     return (
       hasDates ||
+      hasTotalAmount ||
       hasSuppliers ||
       hasProjects ||
       hasStatus ||
@@ -741,6 +753,7 @@ export class Expenses implements OnInit {
     this.formFilters.reset(
       {
         dateRange: null,
+        totalAmount: null,
         suppliersIds: [],
         projectIds: [],
         status_id: '',
@@ -756,6 +769,7 @@ export class Expenses implements OnInit {
       limit: this.filters.limit,
       startDate: null,
       endDate: null,
+      totalAmount: null,
       paymentStatus: null,
       suppliersIds: [],
       projectIds: [],
@@ -783,7 +797,10 @@ export class Expenses implements OnInit {
   //  LOCAL STORAGE (FILTROS)
   // ==========================
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.ExpensesUiFilters>(EXPENSES_FILTERS_KEY);
+    const saved =
+      this.storage.getItem<entity.ExpensesUiFilters>(
+        EXPENSES_FILTERS_KEY,
+      );
 
     if (!saved) {
       this.searchWithFilters();
@@ -793,34 +810,42 @@ export class Expenses implements OnInit {
     this.formFilters.patchValue(
       {
         dateRange: saved.dateRange ?? null,
+        totalAmount: saved.totalAmount ?? null,
         suppliersIds: saved.suppliersIds ?? [],
         projectIds: saved.projectIds ?? [],
         status_id: saved.status_id ?? 1,
         paymentStatus: saved.paymentStatus ?? null,
-        warehouseAssignmentStatus: saved.warehouseAssignmentStatus ?? 'all',
+        warehouseAssignmentStatus:
+          saved.warehouseAssignmentStatus ?? 'all',
       },
       { emitEvent: false },
     );
 
     this.filters = this.buildBackendFiltersFromUi({
       ...saved,
-      warehouseAssignmentStatus: saved.warehouseAssignmentStatus ?? 'all',
+      totalAmount: saved.totalAmount ?? null,
+      warehouseAssignmentStatus:
+        saved.warehouseAssignmentStatus ?? 'all',
     });
 
     this.loadExpenses();
   }
 
-  private saveFiltersToStorage(state?: entity.ExpensesUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.ExpensesUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
       state = {
         dateRange: value.dateRange ?? null,
+        totalAmount: value.totalAmount ?? null,
         suppliersIds: value.suppliersIds ?? [],
         projectIds: value.projectIds ?? [],
         status_id: value.status_id ?? null,
         paymentStatus: value.paymentStatus ?? null,
-        warehouseAssignmentStatus: value.warehouseAssignmentStatus ?? 'all',
+        warehouseAssignmentStatus:
+          value.warehouseAssignmentStatus ?? 'all',
         page: this.filters.page,
         limit: this.filters.limit,
       };

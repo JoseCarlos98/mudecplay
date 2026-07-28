@@ -207,6 +207,7 @@ export class PurchaseOrders implements OnInit {
     page: 1,
     limit: 5,
     search: '',
+    requested_amount: null,
     status: null,
     tracking_status: null,
     destination_type: null,
@@ -218,10 +219,13 @@ export class PurchaseOrders implements OnInit {
 
   formFilters = this.fb.group({
     search: this.fb.control<string>(''),
-    tracking_status: this.fb.control<Catalog | string | null>(null),
+    requested_amount: this.fb.control<number | null>(null),
+    tracking_status:
+      this.fb.control<Catalog | string | null>(null),
     destination_type:
       this.fb.control<entity.PurchaseOrderDestinationType | ''>(''),
-    will_have_invoice: this.fb.control<'true' | 'false' | ''>(''),
+    will_have_invoice:
+      this.fb.control<'true' | 'false' | ''>(''),
   });
 
   readonly extraActions: PurchaseOrderTableExtraAction[] = [
@@ -284,13 +288,26 @@ export class PurchaseOrders implements OnInit {
     const form = this.formFilters.getRawValue();
 
     const hasSearch = !!form.search?.trim();
+    const hasRequestedAmount =
+      form.requested_amount !== null;
+
     const hasTrackingStatus = !!this.getCatalogValue(
       form.tracking_status ?? null,
     );
-    const hasDestinationType = !!form.destination_type;
-    const hasInvoice = !!form.will_have_invoice;
 
-    return hasSearch || hasTrackingStatus || hasDestinationType || hasInvoice;
+    const hasDestinationType =
+      !!form.destination_type;
+
+    const hasInvoice =
+      !!form.will_have_invoice;
+
+    return (
+      hasSearch ||
+      hasRequestedAmount ||
+      hasTrackingStatus ||
+      hasDestinationType ||
+      hasInvoice
+    );
   }
 
   // ==========================
@@ -299,26 +316,31 @@ export class PurchaseOrders implements OnInit {
   private buildBackendFiltersFromUi(
     ui: entity.PurchaseOrderUiFilters,
   ): entity.PurchaseOrderFilters {
-    const trackingStatus = String(ui.tracking_status ?? '').trim();
+    const trackingStatus = String(
+      ui.tracking_status ?? '',
+    ).trim();
 
     return {
       page: ui.page,
       limit: ui.limit,
       search: ui.search?.trim() || '',
+      requested_amount: ui.requested_amount ?? null,
 
-      // Importante:
-      // status real de la O.C. ya no se usa para el filtro visual.
-      // Se conserva en null para no afectar reglas internas.
+      // El status real de la O.C. no se usa
+      // para el filtro visual.
       status: null,
 
       tracking_status: trackingStatus || null,
-      destination_type: ui.destination_type || null,
+      destination_type:
+        ui.destination_type || null,
+
       will_have_invoice:
         ui.will_have_invoice === 'true'
           ? true
           : ui.will_have_invoice === 'false'
             ? false
             : null,
+
       project_id: null,
     };
   }
@@ -556,15 +578,27 @@ export class PurchaseOrders implements OnInit {
 
     const uiState: entity.PurchaseOrderUiFilters = {
       search: value.search?.trim() || '',
+      requested_amount:
+        value.requested_amount ?? null,
+
       tracking_status:
-        (this.getCatalogValue(value.tracking_status ?? null) as string) || '',
-      destination_type: value.destination_type || '',
-      will_have_invoice: value.will_have_invoice || '',
+        (this.getCatalogValue(
+          value.tracking_status ?? null,
+        ) as string) || '',
+
+      destination_type:
+        value.destination_type || '',
+
+      will_have_invoice:
+        value.will_have_invoice || '',
+
       page: 1,
       limit: this.filters.limit,
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
+    this.filters =
+      this.buildBackendFiltersFromUi(uiState);
+
     this.saveFiltersToStorage(uiState);
     this.loadPurchaseOrders();
   }
@@ -573,6 +607,7 @@ export class PurchaseOrders implements OnInit {
     this.formFilters.reset(
       {
         search: '',
+        requested_amount: null,
         tracking_status: null,
         destination_type: '',
         will_have_invoice: '',
@@ -584,6 +619,7 @@ export class PurchaseOrders implements OnInit {
       page: 1,
       limit: this.filters.limit,
       search: '',
+      requested_amount: null,
       status: null,
       tracking_status: null,
       destination_type: null,
@@ -591,7 +627,10 @@ export class PurchaseOrders implements OnInit {
       project_id: null,
     };
 
-    this.storage.removeItem(PURCHASE_ORDERS_FILTERS_KEY);
+    this.storage.removeItem(
+      PURCHASE_ORDERS_FILTERS_KEY,
+    );
+
     this.loadPurchaseOrders();
   }
 
@@ -778,9 +817,10 @@ export class PurchaseOrders implements OnInit {
   //  LOCAL STORAGE
   // ==========================
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.PurchaseOrderUiFilters>(
-      PURCHASE_ORDERS_FILTERS_KEY,
-    );
+    const saved =
+      this.storage.getItem<entity.PurchaseOrderUiFilters>(
+        PURCHASE_ORDERS_FILTERS_KEY,
+      );
 
     if (!saved) {
       this.loadPurchaseOrders();
@@ -790,39 +830,63 @@ export class PurchaseOrders implements OnInit {
     this.formFilters.patchValue(
       {
         search: saved.search ?? '',
-        tracking_status: saved.tracking_status ?? null,
-        destination_type: saved.destination_type ?? '',
-        will_have_invoice: saved.will_have_invoice ?? '',
+        requested_amount:
+          saved.requested_amount ?? null,
+        tracking_status:
+          saved.tracking_status ?? null,
+        destination_type:
+          saved.destination_type ?? '',
+        will_have_invoice:
+          saved.will_have_invoice ?? '',
       },
       { emitEvent: false },
     );
 
     this.filters = this.buildBackendFiltersFromUi({
       ...saved,
-      tracking_status: saved.tracking_status ?? '',
+      requested_amount:
+        saved.requested_amount ?? null,
+      tracking_status:
+        saved.tracking_status ?? '',
       page: saved.page ?? 1,
-      limit: saved.limit ?? this.filters.limit,
+      limit:
+        saved.limit ?? this.filters.limit,
     });
 
     this.loadPurchaseOrders();
   }
 
-  private saveFiltersToStorage(state?: entity.PurchaseOrderUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.PurchaseOrderUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
       state = {
         search: value.search?.trim() || '',
+        requested_amount:
+          value.requested_amount ?? null,
+
         tracking_status:
-          (this.getCatalogValue(value.tracking_status ?? null) as string) || '',
-        destination_type: value.destination_type || '',
-        will_have_invoice: value.will_have_invoice || '',
+          (this.getCatalogValue(
+            value.tracking_status ?? null,
+          ) as string) || '',
+
+        destination_type:
+          value.destination_type || '',
+
+        will_have_invoice:
+          value.will_have_invoice || '',
+
         page: this.filters.page,
         limit: this.filters.limit,
       };
     }
 
-    this.storage.setItem(PURCHASE_ORDERS_FILTERS_KEY, state);
+    this.storage.setItem(
+      PURCHASE_ORDERS_FILTERS_KEY,
+      state,
+    );
   }
 
   // ==========================

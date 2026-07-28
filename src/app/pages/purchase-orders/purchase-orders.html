@@ -4,8 +4,11 @@
     </app-module-header>
 
     <form [formGroup]="formFilters">
-      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
         <app-input-field formControlName="search" label="Folio o concepto" type="text" [isFilter]="true">
+        </app-input-field>
+
+        <app-input-field formControlName="requested_amount" label="Importe solicitado" type="money" [isFilter]="true">
         </app-input-field>
 
         <app-input-select formControlName="tracking_status" label="Seguimiento" [options]="trackingStatusOptions">

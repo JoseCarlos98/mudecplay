@@ -250,6 +250,7 @@ export interface PurchaseOrderFilters {
   limit: number;
 
   search?: string | null;
+  requested_amount?: number | null;
   status?: PurchaseOrderStatus | null;
   destination_type?: PurchaseOrderDestinationType | null;
   will_have_invoice?: boolean | null;
@@ -263,12 +264,10 @@ export interface PurchaseOrderUiFilters {
   limit: number;
 
   search?: string | null;
+  requested_amount: number | null;
   tracking_status: PurchaseOrderTrackingStatus | string | '';
-  // status?: PurchaseOrderStatus | '' | null;
   destination_type?: PurchaseOrderDestinationType | '' | null;
   will_have_invoice?: 'true' | 'false' | '' | null;
-
-  // Para futuro si usamos autocomplete de proyecto
   projects?: Catalog[];
 }
 

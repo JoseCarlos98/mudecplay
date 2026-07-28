@@ -6,6 +6,7 @@ import { environment } from '../../../../environments/environment';
 import { ApiSuccess } from '../../../shared/interfaces/general-interfaces';
 
 import * as entity from '../interfaces/purchase-orders.interfaces';
+import { setScalar } from '../../../shared/helpers/general-helpers';
 
 @Injectable({
   providedIn: 'root',
@@ -20,38 +21,53 @@ export class PurchaseOrdersService {
     let params = new HttpParams();
 
     if (filters) {
-      params = params.set('page', String(filters.page));
-      params = params.set('limit', String(filters.limit));
+      params = setScalar(
+        params,
+        'page',
+        filters.page,
+      );
 
-      if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
-      }
+      params = setScalar(
+        params,
+        'limit',
+        filters.limit,
+      );
 
-      // if (filters.status) {
-      //   params = params.set('status', filters.status);
-      // }
+      params = setScalar(
+        params,
+        'search',
+        filters.search?.trim(),
+      );
 
-      if (filters.tracking_status) {
-        params = params.set('tracking_status', String(filters.tracking_status));
-      }
+      params = setScalar(
+        params,
+        'requested_amount',
+        filters.requested_amount,
+      );
 
-      if (filters.destination_type) {
-        params = params.set('destination_type', filters.destination_type);
-      }
+      params = setScalar(
+        params,
+        'tracking_status',
+        filters.tracking_status,
+      );
 
-      if (
-        filters.will_have_invoice !== undefined &&
-        filters.will_have_invoice !== null
-      ) {
-        params = params.set(
-          'will_have_invoice',
-          String(filters.will_have_invoice),
-        );
-      }
+      params = setScalar(
+        params,
+        'destination_type',
+        filters.destination_type,
+      );
 
-      if (filters.project_id) {
-        params = params.set('project_id', String(filters.project_id));
-      }
+      params = setScalar(
+        params,
+        'will_have_invoice',
+        filters.will_have_invoice,
+      );
+
+      params = setScalar(
+        params,
+        'project_id',
+        filters.project_id,
+      );
     }
 
     return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
@@ -433,16 +449,16 @@ export class PurchaseOrdersService {
     );
   }
 
- unlinkExpenseFromPurchaseOrder(
-  purchaseOrderId: number | string,
-  linkId: number | string,
-  payload: entity.UnlinkPurchaseOrderExpenseDto,
-): Observable<entity.UnlinkPurchaseOrderExpenseResponse> {
-  return this.http.patch<entity.UnlinkPurchaseOrderExpenseResponse>(
-    `${this.apiUrl}/${purchaseOrderId}/expense-links/${linkId}/unlink`,
-    payload,
-  );
-}
+  unlinkExpenseFromPurchaseOrder(
+    purchaseOrderId: number | string,
+    linkId: number | string,
+    payload: entity.UnlinkPurchaseOrderExpenseDto,
+  ): Observable<entity.UnlinkPurchaseOrderExpenseResponse> {
+    return this.http.patch<entity.UnlinkPurchaseOrderExpenseResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/expense-links/${linkId}/unlink`,
+      payload,
+    );
+  }
 
   updateTicketPhotoProject(
     photoId: number | string,

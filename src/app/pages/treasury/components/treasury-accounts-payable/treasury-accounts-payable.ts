@@ -2151,14 +2151,6 @@ export class TreasuryAccountsPayable
            */
           this.reloadPaymentTables();
 
-          this.dialogService
-            .confirm({
-              title: 'Pago aplicado',
-              message: result.message,
-              confirmText: 'Aceptar',
-              cancelText: '',
-            })
-            .subscribe();
         },
       );
   }
