@@ -274,6 +274,9 @@ export interface TreasuryBankMovement {
   counterparty_name: string | null;
   counterparty_account: string | null;
 
+  manual_closed_amount: number;
+  applied_amount: number;
+
   charge_amount: number;
   credit_amount: number;
   amount: number;
@@ -292,7 +295,8 @@ export interface TreasuryBankMovement {
   bank_account: {
     id: number;
     account_identifier: string;
-    alias: string | null;
+    alias: string | null; 
+    currency: string;
   } | null;
 
   import_file: {
@@ -356,3 +360,10 @@ export interface TreasuryBankMovementUiFilters {
 
 export type TreasuryBankMovementsPaginatedResponse =
   TreasuryPaginatedResponse<TreasuryBankMovement>;
+
+// Respuesta ya preparada para DataTable
+export type TreasuryBankMovementsTablePaginatedResponse =
+  TreasuryPaginatedResponse<TreasuryBankMovementTableRow>;
+
+
+  

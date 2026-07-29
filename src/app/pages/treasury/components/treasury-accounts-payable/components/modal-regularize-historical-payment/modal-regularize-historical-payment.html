@@ -1,0 +1,378 @@
+<div class="c-modal regularize-historical-payment-modal">
+
+  <app-module-header
+    title="Regularizar pago histórico"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="regularize-historical-payment-modal__body">
+
+    <!-- ===============================================
+         PAGO HISTÓRICO
+         =============================================== -->
+
+    <section class="historical-payment-card">
+
+      <div class="historical-payment-card__header">
+
+        <div class="historical-payment-card__identity">
+
+          <div class="historical-payment-card__icon">
+            <mat-icon>history</mat-icon>
+          </div>
+
+          <div>
+            <span>Pago histórico</span>
+
+            <strong>
+              {{ folioDisplay }}
+            </strong>
+          </div>
+
+        </div>
+
+        <span class="historical-payment-status">
+          Pendiente de regularización
+        </span>
+
+      </div>
+
+      <div class="historical-payment-card__grid">
+
+        <div>
+          <span>Fecha de pago</span>
+
+          <strong>
+            {{ paymentDateDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Proveedor</span>
+
+          <strong>
+            {{ supplierDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Proyecto</span>
+
+          <strong>
+            {{ projectDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Importe pagado</span>
+
+          <strong class="historical-payment-amount">
+            {{
+              paymentAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="historical-payment-card__concept">
+
+        <span>Concepto</span>
+
+        <strong>
+          {{ conceptDisplay }}
+        </strong>
+
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         INFORMACIÓN
+         =============================================== -->
+
+    <section class="regularization-information">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <div>
+        <strong>
+          El pago ya está aplicado al gasto
+        </strong>
+
+        <p>
+          Esta operación únicamente identificará
+          cómo se realizó el pago histórico.
+          No modificará el importe pagado ni el
+          saldo pendiente del concepto.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+    <form
+      id="form"
+      class="regularization-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-select
+        formControlName="regularization_type"
+        label="Forma de pago"
+        [options]="regularizationTypeOptions">
+      </app-input-select>
+
+      <!-- =============================================
+           TRANSFERENCIA CONCILIADA
+           ============================================= -->
+
+      @if (isMatchedTransfer) {
+
+        <section class="regularization-dynamic-section">
+
+          <div class="regularization-dynamic-section__header">
+
+            <mat-icon>
+              account_balance
+            </mat-icon>
+
+            <div>
+              <strong>
+                Movimiento bancario
+              </strong>
+
+              <span>
+                El importe del pago se descontará
+                del saldo disponible del movimiento.
+              </span>
+            </div>
+
+          </div>
+
+          <app-input-select
+            formControlName="bank_movement_id"
+            label="Movimiento bancario"
+            [options]="bankMovementOptions">
+          </app-input-select>
+
+          @if (
+            !loadingMovements() &&
+            bankMovementOptions.length === 0
+          ) {
+            <div class="regularization-empty-message">
+
+              <mat-icon>
+                search_off
+              </mat-icon>
+
+              <span>
+                No existen movimientos bancarios
+                disponibles para conciliar.
+              </span>
+
+            </div>
+          }
+
+          @if (selectedBankMovement; as movement) {
+
+            <article class="selected-regularization-movement">
+
+              <div class="selected-regularization-movement__title">
+
+                <div>
+                  <span>Movimiento seleccionado</span>
+
+                  <strong>
+                    {{ selectedMovementReference }}
+                  </strong>
+                </div>
+
+                <strong class="selected-regularization-movement__amount">
+                  {{
+                    movement.available_amount
+                      | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                  }}
+                </strong>
+
+              </div>
+
+              <div class="selected-regularization-movement__grid">
+
+                <div>
+                  <span>Empresa</span>
+
+                  <strong>
+                    {{
+                      movement.company?.name ||
+                      'Empresa no identificada'
+                    }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Banco</span>
+
+                  <strong>
+                    {{
+                      movement.bank?.name ||
+                      'Sin banco'
+                    }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Cuenta</span>
+
+                  <strong>
+                    {{ selectedMovementAccount }}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Fecha</span>
+
+                  <strong>
+                    {{
+                      formatDate(
+                        movement.movement_date
+                      )
+                    }}
+                  </strong>
+                </div>
+
+              </div>
+
+              @if (
+                movement.available_amount <
+                paymentAmount
+              ) {
+                <div class="regularization-balance-warning">
+
+                  <mat-icon>
+                    warning
+                  </mat-icon>
+
+                  <span>
+                    Este movimiento no tiene saldo
+                    suficiente para cubrir el pago de
+                    <strong>
+                      {{
+                        paymentAmount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                      }}
+                    </strong>.
+                  </span>
+
+                </div>
+              }
+
+            </article>
+          }
+
+        </section>
+      }
+
+      <!-- =============================================
+           TRANSFERENCIA SIN MOVIMIENTO / EFECTIVO
+           ============================================= -->
+
+      @if (showCompanySelector) {
+
+        <section class="regularization-dynamic-section">
+
+          <div class="regularization-dynamic-section__header">
+
+            <mat-icon>
+              business
+            </mat-icon>
+
+            <div>
+              <strong>
+                Empresa de origen
+              </strong>
+
+              <span>
+                Selecciona la empresa cuando sea
+                posible identificarla. Puede dejarse
+                sin seleccionar para registros antiguos.
+              </span>
+            </div>
+
+          </div>
+
+          <app-input-select
+            formControlName="company_id"
+            label="Empresa"
+            [options]="companyOptions">
+          </app-input-select>
+
+        </section>
+      }
+
+      <div class="regularization-form__fields">
+
+        <app-input-field
+          formControlName="reference"
+          label="Referencia del pago"
+          type="text">
+        </app-input-field>
+
+        <app-input-field
+          formControlName="reason"
+          label="Motivo de la regularización"
+          type="text">
+        </app-input-field>
+
+      </div>
+
+    </form>
+
+  </div>
+
+  <!-- ===============================================
+       FOOTER
+       =============================================== -->
+
+  <app-btns-section
+    class="regularize-historical-payment-modal__footer"
+    type="save"
+    form="form"
+    cancelLabel="Cerrar"
+    saveLabel="Regularizar pago"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="
+      loadingCatalogs() ||
+      loadingMovements() ||
+      saving()
+    "
+    [fullscreen]="false"
+    [text]="
+      saving()
+        ? 'Regularizando pago...'
+        : 'Cargando información...'
+    ">
+  </app-loading-overlay>
+
+</div>

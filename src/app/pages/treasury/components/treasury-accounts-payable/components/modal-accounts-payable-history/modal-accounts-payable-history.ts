@@ -12,6 +12,7 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 import { finalize } from 'rxjs';
@@ -29,6 +30,11 @@ import {
   LoadingOverlay,
 } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
 
+import {
+  BtnsSection,
+  ModuleFooterAction,
+} from '../../../../../../shared/ui/btns-section/btns-section';
+
 // Servicios compartidos
 import {
   DialogService,
@@ -40,8 +46,14 @@ import * as entity from '../../interfaces/treasury-accounts-payable.interfaces';
 import {
   TreasuryAccountsPayableService,
 } from '../../services/treasury-accounts-payable.service';
-import { TreasuryBankMovementStatus } from '../../../../interfaces/treasury.interfaces';
-import { BtnsSection, ModuleFooterAction } from '../../../../../../shared/ui/btns-section/btns-section';
+
+import {
+  TreasuryBankMovementStatus,
+} from '../../../../interfaces/treasury.interfaces';
+
+import {
+  ModalAccountsPayableReversePayment,
+} from '../modal-accounts-payable-reverse-payment/modal-accounts-payable-reverse-payment';
 
 // =========================================================
 // HEADER
@@ -56,11 +68,13 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   standalone: true,
   imports: [
     CommonModule,
+
     MatIconModule,
+    MatButtonModule,
 
     ModuleHeader,
     LoadingOverlay,
-    BtnsSection
+    BtnsSection,
   ],
   templateUrl: './modal-accounts-payable-history.html',
   styleUrl: './modal-accounts-payable-history.scss',
@@ -79,7 +93,10 @@ export class ModalAccountsPayableHistory
 
   private readonly dialogRef =
     inject(
-      MatDialogRef<ModalAccountsPayableHistory>,
+      MatDialogRef<
+        ModalAccountsPayableHistory,
+        boolean
+      >,
     );
 
   private readonly accountsPayableService =
@@ -97,6 +114,13 @@ export class ModalAccountsPayableHistory
 
   readonly loading =
     signal(false);
+
+  readonly historyChanged =
+    signal(false);
+
+  // =========================================================
+  // DATA
+  // =========================================================
 
   historyResponse:
     entity.TreasuryBankMovementHistoryResponse | null =
@@ -128,7 +152,8 @@ export class ModalAccountsPayableHistory
   get movementAmount(): number {
     return Number(
       this.historyResponse
-        ?.movement?.amount ??
+        ?.movement
+        ?.amount ??
       this.movement.amount ??
       0,
     );
@@ -137,7 +162,8 @@ export class ModalAccountsPayableHistory
   get availableAmount(): number {
     return Number(
       this.historyResponse
-        ?.movement?.available_amount ??
+        ?.movement
+        ?.available_amount ??
       this.movement.available_amount ??
       0,
     );
@@ -146,7 +172,8 @@ export class ModalAccountsPayableHistory
   get appliedAmount(): number {
     return Number(
       this.historyResponse
-        ?.movement?.applied_amount ??
+        ?.movement
+        ?.applied_amount ??
       this.movement.applied_amount ??
       0,
     );
@@ -155,7 +182,8 @@ export class ModalAccountsPayableHistory
   get manualClosedAmount(): number {
     return Number(
       this.historyResponse
-        ?.movement?.manual_closed_amount ??
+        ?.movement
+        ?.manual_closed_amount ??
       this.movement.manual_closed_amount ??
       0,
     );
@@ -165,7 +193,8 @@ export class ModalAccountsPayableHistory
     TreasuryBankMovementStatus {
     return (
       this.historyResponse
-        ?.movement?.status ??
+        ?.movement
+        ?.status ??
       this.movement.status
     );
   }
@@ -195,8 +224,17 @@ export class ModalAccountsPayableHistory
 
   get accountDisplay(): string {
     return (
+      this.historyResponse
+        ?.movement
+        ?.bank_account
+        ?.alias ||
+      this.historyResponse
+        ?.movement
+        ?.bank_account
+        ?.account_identifier ||
       this.movement.bank_account_display ||
-      this.movement.bank_account?.alias ||
+      this.movement.bank_account
+        ?.alias ||
       this.movement.bank_account
         ?.account_identifier ||
       'Sin cuenta'
@@ -292,6 +330,10 @@ export class ModalAccountsPayableHistory
       });
   }
 
+  // =========================================================
+  // FOOTER
+  // =========================================================
+
   onFooterAction(
     action: ModuleFooterAction,
   ): void {
@@ -306,7 +348,82 @@ export class ModalAccountsPayableHistory
   }
 
   // =========================================================
-  // LABELS
+  // REVERSIÓN DE PAGO
+  // =========================================================
+
+  canReversePayment(
+    payment:
+      entity.TreasuryBankMovementHistoryPayment,
+  ): boolean {
+    const hasActiveApplication =
+      (
+        payment.applications ??
+        []
+      ).some(
+        (application) =>
+          application.status ===
+          'active',
+      );
+
+    return (
+      payment.status === 'active' &&
+      Boolean(payment.payment_id) &&
+      Number(payment.amount ?? 0) > 0 &&
+      hasActiveApplication
+    );
+  }
+
+  openReversePayment(
+    payment:
+      entity.TreasuryBankMovementHistoryPayment,
+  ): void {
+    const currentMovement =
+      this.historyResponse?.movement;
+
+    if (
+      !currentMovement ||
+      !this.canReversePayment(
+        payment,
+      )
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryReversePaymentModalData = {
+      payment,
+      movement:
+        currentMovement,
+    };
+
+    this.dialogService
+      .open(
+        ModalAccountsPayableReversePayment,
+        modalData,
+        'large',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryReversePaymentResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          this.historyChanged.set(
+            true,
+          );
+
+          this.loadHistory();
+        },
+      );
+  }
+
+  // =========================================================
+  // LABELS DE ACCIONES
   // =========================================================
 
   getActionLabel(
@@ -323,6 +440,7 @@ export class ModalAccountsPayableHistory
       case 'manual_close':
         return 'Saldo cerrado manualmente';
 
+      case 'manual_reopen':
       case 'manual_close_reopened':
       case 'reopen_manual_close':
         return 'Cierre manual reabierto';
@@ -348,6 +466,7 @@ export class ModalAccountsPayableHistory
       case 'manual_close':
         return 'lock';
 
+      case 'manual_reopen':
       case 'manual_close_reopened':
       case 'reopen_manual_close':
         return 'lock_open';
@@ -371,6 +490,7 @@ export class ModalAccountsPayableHistory
       case 'manual_close':
         return 'history-event--warning';
 
+      case 'manual_reopen':
       case 'manual_close_reopened':
       case 'reopen_manual_close':
         return 'history-event--info';
@@ -379,6 +499,10 @@ export class ModalAccountsPayableHistory
         return 'history-event--neutral';
     }
   }
+
+  // =========================================================
+  // LABELS DE PAGOS
+  // =========================================================
 
   getPaymentStatusLabel(
     status:
@@ -418,6 +542,10 @@ export class ModalAccountsPayableHistory
     }
   }
 
+  // =========================================================
+  // LABELS DE APLICACIONES
+  // =========================================================
+
   getExpenseFolio(
     application:
       entity.TreasuryBankMovementHistoryApplication,
@@ -425,9 +553,10 @@ export class ModalAccountsPayableHistory
     return (
       application.expense
         ?.internal_folio ||
-      `Gasto #${application.expense_id ??
-      application.expense?.id ??
-      '—'
+      `Gasto #${
+        application.expense_id ??
+        application.expense?.id ??
+        '—'
       }`
     );
   }
@@ -438,7 +567,8 @@ export class ModalAccountsPayableHistory
   ): string {
     return (
       application.expense_item
-        ?.concept?.trim() ||
+        ?.concept
+        ?.trim() ||
       'Sin concepto'
     );
   }
@@ -460,7 +590,8 @@ export class ModalAccountsPayableHistory
   ): string {
     return (
       application.project
-        ?.name?.trim() ||
+        ?.name
+        ?.trim() ||
       'Sin proyecto'
     );
   }
@@ -479,7 +610,7 @@ export class ModalAccountsPayableHistory
 
   getStatusLabel(
     status:
-      TreasuryBankMovementStatus
+      | TreasuryBankMovementStatus
       | null
       | undefined,
   ): string {
@@ -502,11 +633,13 @@ export class ModalAccountsPayableHistory
   }
 
   // =========================================================
-  // ACCIONES
+  // MODAL
   // =========================================================
 
   closeModal(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(
+      this.historyChanged(),
+    );
   }
 
   // =========================================================
@@ -526,7 +659,9 @@ export class ModalAccountsPayableHistory
       .filter(Boolean)
       .map(
         (part) =>
-          part.charAt(0).toUpperCase() +
+          part
+            .charAt(0)
+            .toUpperCase() +
           part.slice(1),
       )
       .join(' ');
@@ -539,8 +674,8 @@ export class ModalAccountsPayableHistory
       error as {
         error?: {
           message?:
-          | string
-          | string[];
+            | string
+            | string[];
         };
 
         message?: string;
@@ -554,12 +689,13 @@ export class ModalAccountsPayableHistory
         backendMessage,
       )
     ) {
-      return backendMessage.join(' ');
+      return backendMessage
+        .join(' ');
     }
 
     if (
       typeof backendMessage ===
-      'string' &&
+        'string' &&
       backendMessage.trim()
     ) {
       return backendMessage;

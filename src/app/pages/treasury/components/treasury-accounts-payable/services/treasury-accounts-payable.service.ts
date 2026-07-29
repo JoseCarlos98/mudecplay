@@ -384,6 +384,37 @@ export class TreasuryAccountsPayableService {
       payload,
     );
   }
+  // =========================================================
+  // REVERTIR PAGO BANCARIO
+  // =========================================================
+
+  reversePayment(
+    paymentId: string | number,
+    payload: entity.TreasuryReversePaymentPayload,
+  ): Observable<entity.TreasuryReversePaymentResponse> {
+    return this.http.patch<entity.TreasuryReversePaymentResponse>(
+      `${this.apiUrl}/payments/${paymentId}/reverse`,
+      payload,
+    );
+  }
+  // =========================================================
+  // REGULARIZAR PAGO HISTÓRICO
+  // =========================================================
+
+  regularizeHistoricalPayment(
+    paymentId: string | number,
+    payload:
+      entity.TreasuryRegularizeHistoricalPaymentPayload,
+  ): Observable<
+    entity.TreasuryRegularizeHistoricalPaymentResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryRegularizeHistoricalPaymentResponse
+    >(
+      `${this.apiUrl}/historical-payments/${paymentId}/regularize`,
+      payload,
+    );
+  }
 }
 
 

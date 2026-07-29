@@ -19,6 +19,8 @@ import { DataTable } from '../../../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   ColumnVariant,
+  DataTableActionEvent,
+  DataTableExtraAction,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
@@ -37,6 +39,10 @@ import { TreasuryService } from '../../services/treasury.service';
 // Interfaces
 import { Catalog } from '../../../../shared/interfaces/general-interfaces';
 import * as entity from '../../interfaces/treasury.interfaces';
+import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalAccountsPayableManualReopen } from '../treasury-accounts-payable/components/modal-accounts-payable-manual-reopen/modal-accounts-payable-manual-reopen';
+import { TreasuryBankMovementHistoryCurrentMovement, TreasuryManualReopenBankMovementModalData, TreasuryManualReopenBankMovementResponse } from '../treasury-accounts-payable/interfaces/treasury-accounts-payable.interfaces';
+import { roundMoney } from '../../../../shared/helpers/general-helpers';
 
 // =========================================================
 // TESORERÍA: MOVIMIENTOS BANCARIOS - CONSTANTES
@@ -104,7 +110,12 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
 ];
 
-const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map((column) => column.key);
+const DISPLAYED_COLUMNS: string[] = [
+  ...COLUMNS_CONFIG.map(
+    (column) => column.key,
+  ),
+  'actions',
+];
 
 function resolveMovementTypeVariant(
   row: entity.TreasuryBankMovementTableRow,
@@ -175,6 +186,7 @@ export class TreasuryBankMovements implements OnInit {
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
+  private readonly dialogService =   inject(DialogService);
 
   // =========================================================
   // CONFIG UI
@@ -211,7 +223,7 @@ export class TreasuryBankMovements implements OnInit {
     status: null,
   };
 
-  bankMovementsTableData!: entity.TreasuryBankMovementsPaginatedResponse;
+  bankMovementsTableData!: entity.TreasuryBankMovementsTablePaginatedResponse;
 
   formFilters = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
@@ -631,4 +643,220 @@ private mapBankMovementRow(
       endDate: dateRange.endDate ?? null,
     };
   }
+
+  readonly bankMovementExtraActions:
+  DataTableExtraAction<
+    entity.TreasuryBankMovementTableRow
+  >[] = [
+    {
+      type: 'manualReopen',
+
+      icon: 'lock_open',
+
+      tooltip:
+        'Reabrir movimiento',
+
+      iconClass:
+        'table-action-icon--info',
+
+      roles: [
+        'ADMIN_GENERAL',
+      ],
+
+      visible: (row) =>
+        row.movement_type ===
+          'outflow' &&
+        row.status ===
+          'manually_closed' &&
+        Number(
+          row.manual_closed_amount ??
+          0,
+        ) > 0,
+    },
+  ];
+
+  onBankMovementTableAction(
+  event:
+    DataTableActionEvent<
+      entity.TreasuryBankMovementTableRow
+    >,
+): void {
+  switch (event.type) {
+    case 'manualReopen':
+      this.openManualReopen(
+        event.row,
+      );
+      break;
+
+    default:
+      break;
+  }
+}
+
+openManualReopen(
+  row:
+    entity.TreasuryBankMovementTableRow,
+): void {
+  const manualClosedAmount =
+    Number(
+      row.manual_closed_amount ??
+      0,
+    );
+
+  if (
+    !row?.id ||
+    row.movement_type !==
+      'outflow' ||
+    row.status !==
+      'manually_closed' ||
+    manualClosedAmount <= 0
+  ) {
+    return;
+  }
+
+  const amount =
+    Number(row.amount ?? 0);
+
+  const availableAmount =
+    Number(
+      row.available_amount ??
+      0,
+    );
+
+  const appliedAmount =
+    roundMoney(
+      Number(
+        row.applied_amount ??
+        (
+          amount -
+          availableAmount -
+          manualClosedAmount
+        ),
+      ),
+    );
+
+  const movement:
+    TreasuryBankMovementHistoryCurrentMovement = {
+    id:
+      String(row.id),
+
+    movement_date:
+      row.movement_date,
+
+    movement_time:
+      row.movement_time ??
+      null,
+
+    movement_type:
+      row.movement_type,
+
+    amount,
+
+    available_amount:
+      availableAmount,
+
+    applied_amount:
+      appliedAmount,
+
+    manual_closed_amount:
+      manualClosedAmount,
+
+    status:
+      row.status,
+
+    classification:
+      row.classification ??
+      null,
+
+    description_original:
+      row.description_original ??
+      '',
+
+    bank_reference:
+      row.bank_reference ??
+      null,
+
+    receipt_number:
+      row.receipt_number ??
+      null,
+
+    tracking_key:
+      row.tracking_key ??
+      null,
+
+    company:
+      row.company
+        ? {
+            id:
+              row.company.id,
+
+            code:
+              row.company.code,
+
+            name:
+              row.company.name,
+          }
+        : null,
+
+    bank:
+      row.bank
+        ? {
+            id:
+              row.bank.id,
+
+            code:
+              row.bank.code,
+
+            name:
+              row.bank.name,
+          }
+        : null,
+
+    bank_account:
+      row.bank_account
+        ? {
+            id:
+              row.bank_account.id,
+
+            account_identifier:
+              row.bank_account
+                .account_identifier,
+
+            alias:
+              row.bank_account.alias,
+
+            currency:
+              row.bank_account
+                .currency ||
+              'MXN',
+          }
+        : null,
+  };
+
+  const modalData:
+    TreasuryManualReopenBankMovementModalData = {
+    movement,
+  };
+
+  this.dialogService
+    .open(
+      ModalAccountsPayableManualReopen,
+      modalData,
+      'medium',
+    )
+    .afterClosed()
+    .subscribe(
+      (
+        result:
+          | TreasuryManualReopenBankMovementResponse
+          | null,
+      ) => {
+        if (!result?.success) {
+          return;
+        }
+
+        this.loadBankMovements();
+      },
+    );
+}
 }

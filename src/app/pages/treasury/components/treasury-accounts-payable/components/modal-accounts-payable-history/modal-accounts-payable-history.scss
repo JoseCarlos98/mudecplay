@@ -674,3 +674,48 @@
     }
   }
 }
+
+/* =========================================================
+ * ACCIÓN: REVERTIR PAGO
+ * ========================================================= */
+
+.payment-history-card {
+  &__amount {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.35rem;
+  }
+
+  &__reverse-button {
+    min-height: 2rem;
+    padding-inline: 0.65rem;
+
+    border-color: #fecaca;
+    color: #b91c1c;
+
+    font-size: 0.7rem;
+    line-height: 1;
+
+    mat-icon {
+      width: 1rem;
+      height: 1rem;
+
+      margin-right: 0.25rem;
+
+      font-size: 1rem;
+    }
+
+    &:hover:not(:disabled) {
+      background: #fef2f2;
+    }
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .payment-history-card {
+    &__amount {
+      align-items: flex-start;
+    }
+  }
+}

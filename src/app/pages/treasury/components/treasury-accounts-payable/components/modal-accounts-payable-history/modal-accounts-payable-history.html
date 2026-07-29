@@ -1,5 +1,9 @@
 <div class="c-modal accounts-payable-history-modal">
-  <app-module-header title="Historial del movimiento" [config]="headerConfig" (action)="closeModal()">
+
+  <app-module-header
+    title="Historial del movimiento"
+    [config]="headerConfig"
+    (action)="closeModal()">
   </app-module-header>
 
   <div class="accounts-payable-history-modal__body">
@@ -9,7 +13,9 @@
          ================================================= -->
 
     <section class="movement-summary">
+
       <div class="movement-summary__header">
+
         <div>
           <span>Referencia bancaria</span>
 
@@ -18,21 +24,26 @@
           </strong>
         </div>
 
-        <span class="movement-status" [ngClass]="movementStatusClass">
+        <span
+          class="movement-status"
+          [ngClass]="movementStatusClass">
 
           {{ movementStatusLabel }}
+
         </span>
+
       </div>
 
       <div class="movement-summary__information">
+
         <div>
           <span>Empresa</span>
 
           <strong>
             {{
-            movement.company_name ||
-            movement.company?.name ||
-            'Empresa no identificada'
+              movement.company_name ||
+              movement.company?.name ||
+              'Empresa no identificada'
             }}
           </strong>
         </div>
@@ -42,9 +53,9 @@
 
           <strong>
             {{
-            movement.bank_name ||
-            movement.bank?.name ||
-            'Sin banco'
+              movement.bank_name ||
+              movement.bank?.name ||
+              'Sin banco'
             }}
           </strong>
         </div>
@@ -62,85 +73,119 @@
 
           <strong>
             {{
-            movement.movement_date
-            | date:'dd/MM/yyyy'
+              movement.movement_date
+              | date:'dd/MM/yyyy'
             }}
           </strong>
         </div>
 
         <div class="movement-summary__description">
+
           <span>Descripción</span>
 
           <strong>
             {{
-            movement.description_original ||
-            'Sin descripción'
+              movement.description_original ||
+              'Sin descripción'
             }}
           </strong>
+
         </div>
+
       </div>
 
       <div class="movement-summary__amounts">
+
         <article>
-          <mat-icon>account_balance_wallet</mat-icon>
+
+          <mat-icon>
+            account_balance_wallet
+          </mat-icon>
 
           <div>
             <span>Monto original</span>
 
             <strong>
               {{
-              movementAmount
-              | currency:'MXN':'symbol':'1.2-2'
+                movementAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
               }}
             </strong>
           </div>
+
         </article>
 
         <article>
-          <mat-icon>payments</mat-icon>
+
+          <mat-icon>
+            payments
+          </mat-icon>
 
           <div>
             <span>Total aplicado</span>
 
             <strong class="amount-success">
               {{
-              appliedAmount
-              | currency:'MXN':'symbol':'1.2-2'
+                appliedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
               }}
             </strong>
           </div>
+
         </article>
 
         <article>
-          <mat-icon>lock</mat-icon>
+
+          <mat-icon>
+            lock
+          </mat-icon>
 
           <div>
             <span>Cerrado manualmente</span>
 
             <strong class="amount-warning">
               {{
-              manualClosedAmount
-              | currency:'MXN':'symbol':'1.2-2'
+                manualClosedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
               }}
             </strong>
           </div>
+
         </article>
 
         <article>
-          <mat-icon>account_balance</mat-icon>
+
+          <mat-icon>
+            account_balance
+          </mat-icon>
 
           <div>
             <span>Disponible actual</span>
 
             <strong>
               {{
-              availableAmount
-              | currency:'MXN':'symbol':'1.2-2'
+                availableAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
               }}
             </strong>
           </div>
+
         </article>
+
       </div>
+
     </section>
 
     <!-- =================================================
@@ -148,9 +193,13 @@
          ================================================= -->
 
     <section class="history-section">
+
       <header class="history-section__header">
+
         <div>
-          <h3>Pagos relacionados</h3>
+          <h3>
+            Pagos relacionados
+          </h3>
 
           <p>
             Aplicaciones registradas contra este movimiento.
@@ -158,170 +207,278 @@
         </div>
 
         <div class="history-section__counters">
+
           <span>
             Pagos:
-            <strong>{{ payments.length }}</strong>
+            <strong>
+              {{ payments.length }}
+            </strong>
           </span>
 
           <span>
             Aplicaciones:
-            <strong>{{ totalApplications }}</strong>
+            <strong>
+              {{ totalApplications }}
+            </strong>
           </span>
+
         </div>
+
       </header>
 
       @if (payments.length > 0) {
-      <div class="payment-history-list">
-        @for (
-        payment of payments;
-        track payment.payment_id
-        ) {
-        <article class="payment-history-card">
-          <header class="payment-history-card__header">
-            <div class="payment-history-card__identity">
-              <span class="payment-history-card__icon">
-                <mat-icon>payments</mat-icon>
-              </span>
 
-              <div>
-                <strong>
-                  Pago #{{ payment.payment_id }}
-                </strong>
+        <div class="payment-history-list">
 
-                <span>
-                  {{
-                  payment.payment_date
-                  | date:'dd/MM/yyyy'
-                  }}
-                </span>
-              </div>
-            </div>
+          @for (
+            payment of payments;
+            track payment.payment_id
+          ) {
 
-            <div class="payment-history-card__amount">
-              <strong>
-                {{
-                payment.amount
-                | currency:'MXN':'symbol':'1.2-2'
-                }}
-              </strong>
+            <article class="payment-history-card">
 
-              <span class="payment-status" [ngClass]="
+              <header class="payment-history-card__header">
+
+                <div class="payment-history-card__identity">
+
+                  <span class="payment-history-card__icon">
+                    <mat-icon>
+                      payments
+                    </mat-icon>
+                  </span>
+
+                  <div>
+
+                    <strong>
+                      Pago #{{ payment.payment_id }}
+                    </strong>
+
+                    <span>
+                      {{
+                        payment.payment_date
+                        | date:'dd/MM/yyyy'
+                      }}
+                    </span>
+
+                  </div>
+
+                </div>
+
+                <div class="payment-history-card__amount">
+
+                  <strong>
+                    {{
+                      payment.amount
+                      | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                    }}
+                  </strong>
+
+                  <span
+                    class="payment-status"
+                    [ngClass]="
                       getPaymentStatusClass(
                         payment.status
                       )
                     ">
 
-                {{
-                getPaymentStatusLabel(
-                payment.status
-                )
-                }}
-              </span>
-            </div>
-          </header>
+                    {{
+                      getPaymentStatusLabel(
+                        payment.status
+                      )
+                    }}
 
-          <div class="payment-history-card__details">
-            <div>
-              <span>Referencia</span>
+                  </span>
 
-              <strong>
-                {{
-                payment.reference ||
-                movement.reference_display
-                }}
-              </strong>
-            </div>
+                  @if (
+                    canReversePayment(
+                      payment
+                    )
+                  ) {
 
-            <div>
-              <span>Registrado por</span>
+                    <button
+                      type="button"
+                      mat-stroked-button
+                      class="payment-history-card__reverse-button"
+                      [disabled]="loading()"
+                      (click)="
+                        openReversePayment(
+                          payment
+                        )
+                      ">
 
-              <strong>
-                {{
-                getUserName(
-                payment.created_by_user
-                )
-                }}
-              </strong>
-            </div>
+                      <mat-icon>
+                        undo
+                      </mat-icon>
 
-            @if (payment.notes) {
-            <div class="payment-history-card__notes">
-              <span>Notas</span>
+                      <span>
+                        Revertir pago
+                      </span>
 
-              <strong>
-                {{ payment.notes }}
-              </strong>
-            </div>
-            }
-          </div>
+                    </button>
 
-          @if (
-          payment.applications &&
-          payment.applications.length > 0
-          ) {
-          <div class="payment-applications-table">
-            <div class="payment-applications-table__header">
-              <span>Folio</span>
-              <span>Concepto</span>
-              <span>Proveedor</span>
-              <span>Proyecto</span>
-              <span>Aplicado</span>
-              <span>Pendiente actual</span>
-            </div>
+                  }
 
-            @for (
-            application of payment.applications;
-            track application.application_id
-            ) {
-            <div class="payment-applications-table__row">
-              <span>
-                {{ getExpenseFolio(application) }}
-              </span>
+                </div>
 
-              <span>
-                {{ getExpenseConcept(application) }}
-              </span>
+              </header>
 
-              <span>
-                {{ getSupplierName(application) }}
-              </span>
+              <div class="payment-history-card__details">
 
-              <span>
-                {{ getProjectName(application) }}
-              </span>
+                <div>
+                  <span>Referencia</span>
 
-              <strong>
-                {{
-                application.applied_amount
-                | currency:'MXN':'symbol':'1.2-2'
-                }}
-              </strong>
+                  <strong>
+                    {{
+                      payment.reference ||
+                      movement.reference_display
+                    }}
+                  </strong>
+                </div>
 
-              <strong>
-                {{
-                application.new_pending_amount ??
-                0
-                | currency:'MXN':'symbol':'1.2-2'
-                }}
-              </strong>
-            </div>
-            }
-          </div>
+                <div>
+                  <span>Registrado por</span>
+
+                  <strong>
+                    {{
+                      getUserName(
+                        payment.created_by_user
+                      )
+                    }}
+                  </strong>
+                </div>
+
+                @if (payment.notes) {
+
+                  <div class="payment-history-card__notes">
+
+                    <span>Notas</span>
+
+                    <strong>
+                      {{ payment.notes }}
+                    </strong>
+
+                  </div>
+
+                }
+
+              </div>
+
+              @if (
+                payment.applications &&
+                payment.applications.length > 0
+              ) {
+
+                <div class="payment-applications-table">
+
+                  <div class="payment-applications-table__header">
+                    <span>Folio</span>
+                    <span>Concepto</span>
+                    <span>Proveedor</span>
+                    <span>Proyecto</span>
+                    <span>Aplicado</span>
+                    <span>Pendiente actual</span>
+                  </div>
+
+                  @for (
+                    application of payment.applications;
+                    track application.application_id
+                  ) {
+
+                    <div class="payment-applications-table__row">
+
+                      <span>
+                        {{
+                          getExpenseFolio(
+                            application
+                          )
+                        }}
+                      </span>
+
+                      <span>
+                        {{
+                          getExpenseConcept(
+                            application
+                          )
+                        }}
+                      </span>
+
+                      <span>
+                        {{
+                          getSupplierName(
+                            application
+                          )
+                        }}
+                      </span>
+
+                      <span>
+                        {{
+                          getProjectName(
+                            application
+                          )
+                        }}
+                      </span>
+
+                      <strong>
+                        {{
+                          application.applied_amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                        }}
+                      </strong>
+
+                      <strong>
+                        {{
+                          (
+                            application
+                              .new_pending_amount ??
+                            0
+                          )
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                        }}
+                      </strong>
+
+                    </div>
+
+                  }
+
+                </div>
+
+              }
+
+            </article>
+
           }
-        </article>
-        }
-      </div>
+
+        </div>
+
       } @else if (!loading()) {
-      <div class="history-empty-state">
-        <mat-icon>payments</mat-icon>
 
-        <strong>Sin pagos relacionados</strong>
+        <div class="history-empty-state">
 
-        <span>
-          Este movimiento todavía no tiene pagos registrados.
-        </span>
-      </div>
+          <mat-icon>
+            payments
+          </mat-icon>
+
+          <strong>
+            Sin pagos relacionados
+          </strong>
+
+          <span>
+            Este movimiento todavía no tiene pagos registrados.
+          </span>
+
+        </div>
+
       }
+
     </section>
 
     <!-- =================================================
@@ -329,9 +486,13 @@
          ================================================= -->
 
     <section class="history-section">
+
       <header class="history-section__header">
+
         <div>
-          <h3>Bitácora del movimiento</h3>
+          <h3>
+            Bitácora del movimiento
+          </h3>
 
           <p>
             Secuencia de aplicaciones, reversas y cierres.
@@ -341,143 +502,228 @@
         <span class="history-section__total">
           {{ actions.length }}
         </span>
+
       </header>
 
       @if (actions.length > 0) {
-      <div class="history-timeline">
-        @for (
-        action of actions;
-        track action.id
-        ) {
-        <article class="history-event" [ngClass]="getActionClass(action)">
 
-          <div class="history-event__marker">
-            <mat-icon>
-              {{ getActionIcon(action) }}
-            </mat-icon>
-          </div>
+        <div class="history-timeline">
 
-          <div class="history-event__content">
-            <header class="history-event__header">
-              <div>
-                <strong>
-                  {{ getActionLabel(action) }}
-                </strong>
+          @for (
+            action of actions;
+            track action.id
+          ) {
 
-                <span>
+            <article
+              class="history-event"
+              [ngClass]="
+                getActionClass(
+                  action
+                )
+              ">
+
+              <div class="history-event__marker">
+
+                <mat-icon>
                   {{
-                  getUserName(
-                  action.created_by_user
-                  )
+                    getActionIcon(
+                      action
+                    )
                   }}
-                </span>
+                </mat-icon>
+
               </div>
 
-              <time>
-                {{
-                action.created_at
-                | date:'dd/MM/yyyy HH:mm'
-                }}
-              </time>
-            </header>
+              <div class="history-event__content">
 
-            <div class="history-event__amounts">
-              @if (
-              action.amount !== null &&
-              action.amount !== undefined
-              ) {
-              <div>
-                <span>Importe</span>
+                <header class="history-event__header">
 
-                <strong>
-                  {{
-                  action.amount
-                  | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
+                  <div>
+
+                    <strong>
+                      {{
+                        getActionLabel(
+                          action
+                        )
+                      }}
+                    </strong>
+
+                    <span>
+                      {{
+                        getUserName(
+                          action.created_by_user
+                        )
+                      }}
+                    </span>
+
+                  </div>
+
+                  <time>
+                    {{
+                      action.created_at
+                      | date:
+                        'dd/MM/yyyy HH:mm'
+                    }}
+                  </time>
+
+                </header>
+
+                <div class="history-event__amounts">
+
+                  @if (
+                    action.amount !== null &&
+                    action.amount !== undefined
+                  ) {
+
+                    <div>
+                      <span>Importe</span>
+
+                      <strong>
+                        {{
+                          action.amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                        }}
+                      </strong>
+                    </div>
+
+                  }
+
+                  @if (
+                    action.previous_available_amount !==
+                      null &&
+                    action.previous_available_amount !==
+                      undefined
+                  ) {
+
+                    <div>
+                      <span>
+                        Disponible anterior
+                      </span>
+
+                      <strong>
+                        {{
+                          action
+                            .previous_available_amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                        }}
+                      </strong>
+                    </div>
+
+                  }
+
+                  @if (
+                    action.new_available_amount !==
+                      null &&
+                    action.new_available_amount !==
+                      undefined
+                  ) {
+
+                    <div>
+                      <span>
+                        Disponible posterior
+                      </span>
+
+                      <strong>
+                        {{
+                          action
+                            .new_available_amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                        }}
+                      </strong>
+                    </div>
+
+                  }
+
+                  @if (action.new_status) {
+
+                    <div>
+                      <span>Nuevo estatus</span>
+
+                      <strong>
+                        {{
+                          getStatusLabel(
+                            action.new_status
+                          )
+                        }}
+                      </strong>
+                    </div>
+
+                  }
+
+                </div>
+
+                @if (
+                  action.reason ||
+                  action.notes
+                ) {
+
+                  <p class="history-event__reason">
+
+                    <mat-icon>
+                      notes
+                    </mat-icon>
+
+                    <span>
+                      {{
+                        action.reason ||
+                        action.notes
+                      }}
+                    </span>
+
+                  </p>
+
+                }
+
               </div>
-              }
 
-              @if (
-              action.previous_available_amount !== null &&
-              action.previous_available_amount !== undefined
-              ) {
-              <div>
-                <span>Disponible anterior</span>
+            </article>
 
-                <strong>
-                  {{
-                  action.previous_available_amount
-                  | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
-              </div>
-              }
+          }
 
-              @if (
-              action.new_available_amount !== null &&
-              action.new_available_amount !== undefined
-              ) {
-              <div>
-                <span>Disponible posterior</span>
+        </div>
 
-                <strong>
-                  {{
-                  action.new_available_amount
-                  | currency:'MXN':'symbol':'1.2-2'
-                  }}
-                </strong>
-              </div>
-              }
-
-              @if (action.new_status) {
-              <div>
-                <span>Nuevo estatus</span>
-
-                <strong>
-                  {{
-                  getStatusLabel(
-                  action.new_status
-                  )
-                  }}
-                </strong>
-              </div>
-              }
-            </div>
-
-            @if (action.reason || action.notes) {
-            <p class="history-event__reason">
-              <mat-icon>notes</mat-icon>
-
-              <span>
-                {{
-                action.reason ||
-                action.notes
-                }}
-              </span>
-            </p>
-            }
-          </div>
-        </article>
-        }
-      </div>
       } @else if (!loading()) {
-      <div class="history-empty-state">
-        <mat-icon>history</mat-icon>
 
-        <strong>Sin eventos de auditoría</strong>
+        <div class="history-empty-state">
 
-        <span>
-          No hay acciones adicionales registradas para este movimiento.
-        </span>
-      </div>
+          <mat-icon>
+            history
+          </mat-icon>
+
+          <strong>
+            Sin eventos de auditoría
+          </strong>
+
+          <span>
+            No hay acciones adicionales registradas para este movimiento.
+          </span>
+
+        </div>
+
       }
+
     </section>
+
   </div>
 
-  <app-btns-section type="close" (action)="onFooterAction($event)">
+  <app-btns-section
+    type="close"
+    (action)="onFooterAction($event)">
   </app-btns-section>
 
-  <app-loading-overlay [visible]="loading()" [fullscreen]="false" text="Cargando historial...">
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando historial...">
   </app-loading-overlay>
+
 </div>

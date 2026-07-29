@@ -74,6 +74,7 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsPayable } from './components/modal-treasury-accounts-payable/modal-treasury-accounts-payable';
 import { ModalAccountsPayableHistory } from './components/modal-accounts-payable-history/modal-accounts-payable-history';
 import { ModalAccountsPayableManualClose } from './components/modal-accounts-payable-manual-close/modal-accounts-payable-manual-close';
+import { ModalRegularizeHistoricalPayment } from './components/modal-regularize-historical-payment/modal-regularize-historical-payment';
 
 // =========================================================
 // STORAGE
@@ -1872,6 +1873,10 @@ export class TreasuryAccountsPayable
     movement:
       entity.TreasuryAvailableOutflowTableRow,
   ): void {
+    if (!movement?.id) {
+      return;
+    }
+
     const modalData:
       entity.TreasuryBankMovementHistoryModalData = {
       movement,
@@ -1884,7 +1889,20 @@ export class TreasuryAccountsPayable
         'large',
       )
       .afterClosed()
-      .subscribe();
+      .subscribe(
+        (
+          historyChanged:
+            boolean | null,
+        ) => {
+          if (!historyChanged) {
+            return;
+          }
+
+          this.clearPaymentSelection();
+          this.loadAvailableOutflows();
+          this.loadPendingExpenseItems();
+        },
+      );
   }
 
   openManualClose(
@@ -2263,13 +2281,52 @@ export class TreasuryAccountsPayable
     row:
       entity.TreasuryHistoricalPaymentTableRow,
   ): void {
-    console.log(
-      'Pendiente: regularizar pago histórico',
-      row,
-    );
+    if (
+      !row?.payment_id ||
+      !row.can_regularize
+    ) {
+      return;
+    }
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryRegularizeHistoricalPaymentComponent.
+    const modalData:
+      entity.TreasuryRegularizeHistoricalPaymentModalData = {
+      payment: row,
+    };
+
+    this.dialogService
+      .open(
+        ModalRegularizeHistoricalPayment,
+        modalData,
+        'large',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryRegularizeHistoricalPaymentResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          /*
+           * Una transferencia conciliada consume saldo
+           * de un movimiento bancario disponible.
+           *
+           * Limpiamos cualquier selección para evitar
+           * conservar importes anteriores.
+           */
+          this.clearPaymentSelection();
+
+          /*
+           * Actualiza la tabla de históricos y la tabla
+           * de movimientos sin alterar sus filtros.
+           */
+          this.loadHistoricalPayments();
+          this.loadAvailableOutflows();
+        },
+      );
   }
 
   openHistoricalHistory(

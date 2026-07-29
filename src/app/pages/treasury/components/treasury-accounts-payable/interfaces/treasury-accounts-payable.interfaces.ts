@@ -916,3 +916,187 @@ export interface TreasuryManualReopenBankMovementResponse {
     } | null;
   };
 }
+
+
+// =========================================================
+// REVERSIÓN DE PAGO BANCARIO
+// =========================================================
+
+export interface TreasuryReversePaymentModalApplication {
+  application_id: string;
+  expense_item_id: number;
+  expense_id: number;
+  applied_amount: number;
+  status: string;
+
+  expense_item: {
+    id: number;
+    concept: string | null;
+    item_type: string;
+    amount: number;
+  } | null;
+
+  expense: {
+    id: number;
+    internal_folio: string | null;
+    date: string | null;
+    total_amount: number;
+  } | null;
+
+  supplier: {
+    id: number | null;
+    display_name: string;
+  } | null;
+
+  project: {
+    id: number;
+    name: string;
+  } | null;
+}
+
+export interface TreasuryReversePaymentModalPayment {
+  payment_id: string;
+  amount: number;
+  payment_date: string;
+  payment_method: string;
+  source_type: string;
+  origin: string;
+  reference: string | null;
+  notes: string | null;
+  status: string;
+
+  applications: TreasuryReversePaymentModalApplication[];
+}
+
+export interface TreasuryReversePaymentModalMovement {
+  id: string;
+
+  movement_date: string;
+  amount: number;
+  available_amount: number;
+  applied_amount: number;
+  manual_closed_amount: number;
+
+  status: TreasuryBankMovementStatus;
+
+  bank_reference: string | null;
+  receipt_number: string | null;
+  tracking_key: string | null;
+
+  company: {
+    id: number;
+    code: string;
+    name: string;
+  } | null;
+
+  bank: {
+    id: number;
+    code: string;
+    name: string;
+  } | null;
+
+  bank_account: {
+    id: number;
+    account_identifier: string;
+    alias: string | null;
+    currency: string;
+  } | null;
+}
+
+export interface TreasuryReversePaymentModalData {
+  payment: TreasuryBankMovementHistoryPayment;
+  movement: TreasuryBankMovementHistoryCurrentMovement;
+}
+
+export interface TreasuryReversePaymentPayload {
+  reason: string;
+}
+
+export interface TreasuryReversePaymentResponse {
+  success: boolean;
+  message: string;
+
+  payment: {
+    id: string;
+    amount: number;
+    status: string;
+    reversed_at: string;
+    reversed_by_user_id: number;
+    reversal_reason: string;
+  };
+
+  bank_movement: {
+    id: string;
+    amount: number;
+    previous_available_amount: number;
+    restored_amount: number;
+    remaining_applied_amount: number;
+    manual_closed_amount: number;
+    available_amount: number;
+    status: TreasuryBankMovementStatus;
+  };
+
+  applications: Array<{
+    id: string;
+    expense_item_id: number;
+    restored_amount: number;
+    status: string;
+  }>;
+}
+
+
+// =========================================================
+// REGULARIZAR PAGO HISTÓRICO
+// =========================================================
+
+export interface TreasuryRegularizeHistoricalPaymentModalData {
+  payment: TreasuryHistoricalPaymentTableRow;
+}
+
+export interface TreasuryRegularizeHistoricalPaymentPayload {
+  regularization_type:
+    TreasuryHistoricalRegularizationType;
+
+  company_id?: number;
+  bank_movement_id?: string;
+
+  reference?: string;
+  reason: string;
+}
+
+export interface TreasuryRegularizeHistoricalPaymentResponse {
+  success: boolean;
+  message: string;
+
+  payment: {
+    id: string;
+    amount: number;
+
+    payment_date: string | null;
+
+    payment_method:
+      TreasuryHistoricalPaymentMethod;
+
+    regularization_status:
+      TreasuryHistoricalRegularizationStatus;
+
+    regularization_type:
+      TreasuryHistoricalRegularizationType;
+
+    company: {
+      id: number | null;
+      code: string | null;
+      name: string;
+    };
+
+    bank_movement:
+      | TreasuryHistoricalPaymentBankMovement
+      | null;
+
+    reference: string | null;
+
+    regularized_by_user_id: number;
+    regularized_at: string;
+    regularization_notes: string;
+  };
+}
