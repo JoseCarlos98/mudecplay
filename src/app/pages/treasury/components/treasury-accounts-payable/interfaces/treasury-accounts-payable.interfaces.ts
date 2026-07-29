@@ -626,3 +626,180 @@ export interface TreasuryApplyBankMovementResponse {
     new_pending_amount: number;
   }>;
 }
+
+
+// =========================================================
+// HISTORIAL DE MOVIMIENTO BANCARIO
+// =========================================================
+
+export interface TreasuryBankMovementHistoryModalData {
+  movement: TreasuryAvailableOutflowTableRow;
+}
+
+export interface TreasuryBankMovementHistoryUser {
+  id: number;
+  name: string;
+}
+
+export interface TreasuryBankMovementHistoryExpenseItem {
+  id: number;
+  concept: string | null;
+  item_type: TreasuryPendingExpenseItemType;
+  amount: number;
+}
+
+export interface TreasuryBankMovementHistoryExpense {
+  id: number;
+  internal_folio: string;
+  date: string | null;
+  total_amount: number;
+}
+
+export interface TreasuryBankMovementHistoryApplication {
+  application_id: string;
+  expense_item_id?: number;
+  expense_id?: number;
+
+  applied_amount: number;
+  status?: string | null;
+
+  previous_paid_amount?: number | null;
+  previous_pending_amount?: number | null;
+  new_pending_amount?: number | null;
+
+  expense_item:
+    | TreasuryBankMovementHistoryExpenseItem
+    | null;
+
+  expense:
+    | TreasuryBankMovementHistoryExpense
+    | null;
+
+  supplier:
+    | TreasuryAccountsPayableSupplierReference
+    | null;
+
+  project:
+    | TreasuryAccountsPayableProjectReference
+    | null;
+}
+
+export interface TreasuryBankMovementHistoryPayment {
+  payment_id: string;
+
+  amount: number;
+  payment_date: string | null;
+  payment_method: string;
+
+  reference: string | null;
+  notes: string | null;
+
+  status: string;
+  created_at: string | null;
+
+  created_by_user:
+    | TreasuryBankMovementHistoryUser
+    | null;
+
+  applications: TreasuryBankMovementHistoryApplication[];
+}
+
+export type TreasuryBankMovementActionType =
+  | 'payment_applied'
+  | 'payment_reversed'
+  | 'manual_close'
+  | 'manual_close_reopened'
+  | 'reopen_manual_close'
+  | string;
+
+export interface TreasuryBankMovementHistoryAction {
+  id: string;
+
+  action_type: TreasuryBankMovementActionType;
+
+  payment_id?: string | null;
+
+  amount: number | null;
+
+  previous_available_amount: number | null;
+  new_available_amount: number | null;
+
+  previous_manual_closed_amount?: number | null;
+  new_manual_closed_amount?: number | null;
+
+  previous_status:
+    | TreasuryBankMovementStatus
+    | null;
+
+  new_status:
+    | TreasuryBankMovementStatus
+    | null;
+
+  reason: string | null;
+  notes?: string | null;
+
+  metadata:
+    | Record<string, unknown>
+    | null;
+
+  created_by_user:
+    | TreasuryBankMovementHistoryUser
+    | null;
+
+  created_at: string;
+}
+
+export interface TreasuryBankMovementHistoryCurrentMovement {
+  id: string;
+
+  movement_date: string;
+  movement_time?: string | null;
+
+  amount: number;
+  available_amount: number;
+  applied_amount: number;
+  manual_closed_amount: number;
+
+  status: TreasuryBankMovementStatus;
+
+  description_original: string;
+  bank_reference: string | null;
+
+  company:
+    | TreasuryAccountsPayableCompanyReference
+    | null;
+
+  bank:
+    | TreasuryAccountsPayableBankReference
+    | null;
+
+  bank_account:
+    | TreasuryAccountsPayableBankAccountReference
+    | null;
+}
+
+export interface TreasuryBankMovementHistoryResponse {
+  movement?: TreasuryBankMovementHistoryCurrentMovement;
+
+  payments?: TreasuryBankMovementHistoryPayment[];
+
+  actions?: TreasuryBankMovementHistoryAction[];
+
+  /**
+   * Compatibilidad en caso de que el backend
+   * devuelva la bitácora con el nombre history.
+   */
+  history?: TreasuryBankMovementHistoryAction[];
+
+  summary?: {
+    payments_count?: number;
+    active_payments_count?: number;
+
+    applications_count?: number;
+    actions_count?: number;
+
+    applied_amount?: number;
+    reversed_amount?: number;
+    manually_closed_amount?: number;
+  };
+}

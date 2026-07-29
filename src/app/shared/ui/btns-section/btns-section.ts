@@ -19,60 +19,70 @@ import { MatButtonModule } from '@angular/material/button';
  * - search: disparar búsqueda de filtros
  * - clean: limpiar filtros
  * - continue: continuar flujo
+ * - close: cerrar modal informativo
  */
 export type ModuleFooterAction =
   | 'cancel'
   | 'save'
   | 'search'
   | 'clean'
-  | 'continue';
+  | 'continue'
+  | 'close';
 
-export type ModuleFooterButtonVariant = 'primary' | 'danger';
+export type ModuleFooterButtonVariant =
+  | 'primary'
+  | 'danger';
 
 @Component({
   selector: 'app-btns-section',
   standalone: true,
-  imports: [CommonModule, MatIconModule, MatButtonModule],
+  imports: [
+    CommonModule,
+    MatIconModule,
+    MatButtonModule,
+  ],
   templateUrl: './btns-section.html',
   styleUrl: './btns-section.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BtnsSection implements OnDestroy {
   /**
-   * Modo del componente:
-   * - save: footer de formulario Cancelar / Guardar
-   * - search: acciones de filtros Buscar / Limpiar
-   * - continue: footer Cancelar / Continuar
+   * Modos disponibles:
+   * - save: Cancelar / Guardar
+   * - search: Buscar / Limpiar
+   * - continue: Cancelar / Continuar
+   * - close: Cerrar
    */
   @Input() type: ModuleFooterAction = 'save';
 
   /**
-   * Id del formulario al que se conecta el botón submit.
-   * Por defecto se mantiene como "form" para no romper modales existentes.
+   * Id del formulario al que se conecta
+   * el botón submit.
    */
   @Input() form: string = 'form';
 
   /**
    * Textos configurables.
-   * Por defecto mantiene el comportamiento actual.
    */
   @Input() cancelLabel: string = 'Cancelar';
   @Input() saveLabel: string = 'Guardar';
   @Input() continueLabel: string = 'Continuar';
+  @Input() closeLabel: string = 'Cerrar';
 
   /**
-   * Íconos opcionales para botones principales.
+   * Íconos opcionales.
    */
   @Input() saveIcon: string | null = null;
   @Input() continueIcon: string | null = null;
 
   /**
    * Variantes visuales.
-   * primary = azul normal.
-   * danger = rojo para acciones delicadas.
    */
-  @Input() saveVariant: ModuleFooterButtonVariant = 'primary';
-  @Input() continueVariant: ModuleFooterButtonVariant = 'primary';
+  @Input() saveVariant:
+    ModuleFooterButtonVariant = 'primary';
+
+  @Input() continueVariant:
+    ModuleFooterButtonVariant = 'primary';
 
   /**
    * Estados disabled.
@@ -80,10 +90,10 @@ export class BtnsSection implements OnDestroy {
   @Input() saveDisabled: boolean = false;
   @Input() cancelDisabled: boolean = false;
   @Input() continueDisabled: boolean = false;
+  @Input() closeDisabled: boolean = false;
 
   /**
-   * Bloqueo interno contra doble click.
-   * Sirve para evitar doble submit inmediato sin obligar a cada pantalla a manejar saving.
+   * Bloqueo contra doble clic.
    */
   @Input() preventDoubleClick: boolean = true;
   @Input() doubleClickLockMs: number = 1200;
@@ -96,24 +106,29 @@ export class BtnsSection implements OnDestroy {
   @Input() hasActiveSearch: boolean = false;
 
   /**
-   * Evento único para todas las acciones del footer.
-   * El padre hace un switch(action) y decide qué hacer.
+   * Evento único para todas las acciones.
    */
-  @Output() action = new EventEmitter<ModuleFooterAction>();
+  @Output()
+  action = new EventEmitter<ModuleFooterAction>();
 
   readonly actionLocked = signal(false);
 
-  private unlockTimeout: ReturnType<typeof setTimeout> | null = null;
+  private unlockTimeout:
+    ReturnType<typeof setTimeout> | null = null;
 
   ngOnDestroy(): void {
     this.clearUnlockTimeout();
   }
 
   emitAction(action: ModuleFooterAction): void {
-    if (this.isActionDisabled(action)) return;
+    if (this.isActionDisabled(action)) {
+      return;
+    }
 
     if (this.shouldLockAction(action)) {
-      if (this.actionLocked()) return;
+      if (this.actionLocked()) {
+        return;
+      }
 
       this.actionLocked.set(true);
       this.clearUnlockTimeout();
@@ -127,19 +142,33 @@ export class BtnsSection implements OnDestroy {
     this.action.emit(action);
   }
 
-  isActionDisabled(action: ModuleFooterAction): boolean {
+  isActionDisabled(
+    action: ModuleFooterAction,
+  ): boolean {
     switch (action) {
       case 'cancel':
         return this.cancelDisabled;
 
       case 'save':
-        return this.saveDisabled || this.actionLocked();
+        return (
+          this.saveDisabled ||
+          this.actionLocked()
+        );
 
       case 'continue':
-        return this.continueDisabled || this.actionLocked();
+        return (
+          this.continueDisabled ||
+          this.actionLocked()
+        );
+
+      case 'close':
+        return this.closeDisabled;
 
       case 'search':
-        return this.isSearchButtonDisabled() || this.actionLocked();
+        return (
+          this.isSearchButtonDisabled() ||
+          this.actionLocked()
+        );
 
       case 'clean':
         return !this.hasActiveFilters;
@@ -149,7 +178,9 @@ export class BtnsSection implements OnDestroy {
     }
   }
 
-  private shouldLockAction(action: ModuleFooterAction): boolean {
+  private shouldLockAction(
+    action: ModuleFooterAction,
+  ): boolean {
     return (
       this.preventDoubleClick &&
       ['save', 'continue', 'search'].includes(action)
@@ -157,11 +188,15 @@ export class BtnsSection implements OnDestroy {
   }
 
   private isSearchButtonDisabled(): boolean {
-    return this.hasActiveSearch ? !this.hasActiveSearch : false;
+    return this.hasActiveSearch
+      ? !this.hasActiveSearch
+      : false;
   }
 
   private clearUnlockTimeout(): void {
-    if (!this.unlockTimeout) return;
+    if (!this.unlockTimeout) {
+      return;
+    }
 
     clearTimeout(this.unlockTimeout);
     this.unlockTimeout = null;

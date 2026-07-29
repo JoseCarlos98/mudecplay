@@ -75,4 +75,15 @@
       {{ continueLabel }}
     </button>
   </div>
+} @else if (type == 'close') {
+  <div class="c-modal-actions">
+    <button
+      mat-flat-button
+      type="button"
+      class="btn-primary"
+      (click)="emitAction('close')"
+      [disabled]="isActionDisabled('close')">
+      Cerrar
+    </button>
+  </div>
 }

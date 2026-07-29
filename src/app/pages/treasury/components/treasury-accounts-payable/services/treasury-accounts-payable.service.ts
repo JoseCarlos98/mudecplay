@@ -317,17 +317,32 @@ export class TreasuryAccountsPayableService {
 
 
   // =========================================================
-// CUENTAS POR PAGAR: APLICAR MOVIMIENTO BANCARIO
-// =========================================================
+  // CUENTAS POR PAGAR: APLICAR MOVIMIENTO BANCARIO
+  // =========================================================
 
-applyBankMovement(
-  payload: entity.TreasuryApplyBankMovementPayload,
-) {
-  return this.http.post<
-    entity.TreasuryApplyBankMovementResponse
-  >(
-    `${this.apiUrl}/apply-bank-movement`,
-    payload,
-  );
-}
+  applyBankMovement(
+    payload: entity.TreasuryApplyBankMovementPayload,
+  ) {
+    return this.http.post<
+      entity.TreasuryApplyBankMovementResponse
+    >(
+      `${this.apiUrl}/apply-bank-movement`,
+      payload,
+    );
+  }
+
+  // =========================================================
+  // CUENTAS POR PAGAR:
+  // HISTORIAL DE MOVIMIENTO BANCARIO
+  // =========================================================
+
+  getBankMovementHistory(
+    movementId: number | string,
+  ): Observable<entity.TreasuryBankMovementHistoryResponse> {
+    return this.http.get<
+      entity.TreasuryBankMovementHistoryResponse
+    >(
+      `${this.apiUrl}/bank-movements/${movementId}/history`,
+    );
+  }
 }

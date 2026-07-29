@@ -72,6 +72,7 @@ import {
 import { roundMoney } from '../../../../shared/helpers/general-helpers';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsPayable } from './components/modal-treasury-accounts-payable/modal-treasury-accounts-payable';
+import { ModalAccountsPayableHistory } from './components/modal-accounts-payable-history/modal-accounts-payable-history';
 
 // =========================================================
 // STORAGE
@@ -213,40 +214,16 @@ const AVAILABLE_OUTFLOW_DISPLAYED_COLUMNS = [
 // =========================================================
 
 const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
-  {
-    key: 'pending_amount',
-    label: 'Pendiente',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'supplier_display_name',
-    label: 'Proveedor',
-  },
-  {
-    key: 'concept',
-    label: 'Concepto',
-  },
-  {
+   {
     key: 'expense_date',
     label: 'Fecha',
     type: 'date',
   },
   {
-    key: 'internal_folio',
-    label: 'Folio',
-  },
-  {
-    key: 'project_name',
-    label: 'Proyecto',
-  },
-  {
-    key: 'item_type_label',
-    label: 'Tipo',
-    type: 'chip',
-    variantResolver: (
-      row: entity.TreasuryPendingExpenseItemTableRow,
-    ) => resolveExpenseItemTypeVariant(row),
+    key: 'pending_amount',
+    label: 'Pendiente',
+    type: 'money',
+    align: 'right',
   },
   {
     key: 'amount',
@@ -260,6 +237,33 @@ const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
     type: 'money',
     align: 'right',
   },
+  {
+    key: 'internal_folio',
+    label: 'Folio',
+  },
+  {
+    key: 'concept',
+    label: 'Concepto',
+  },
+  {
+    key: 'supplier_display_name',
+    label: 'Proveedor',
+  },
+ 
+
+  {
+    key: 'project_name',
+    label: 'Proyecto',
+  },
+  {
+    key: 'item_type_label',
+    label: 'Tipo',
+    type: 'chip',
+    variantResolver: (
+      row: entity.TreasuryPendingExpenseItemTableRow,
+    ) => resolveExpenseItemTypeVariant(row),
+  },
+
   {
     key: 'payment_status_label',
     label: 'Estatus',
@@ -1857,18 +1861,24 @@ export class TreasuryAccountsPayable
     this.selectedMovement.set(row);
   }
 
-  openMovementHistory(
-    movement:
-      entity.TreasuryAvailableOutflowTableRow,
-  ): void {
-    console.log(
-      'Pendiente: abrir historial del movimiento',
-      movement,
-    );
+openMovementHistory(
+  movement:
+    entity.TreasuryAvailableOutflowTableRow,
+): void {
+  const modalData:
+    entity.TreasuryBankMovementHistoryModalData = {
+    movement,
+  };
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryMovementHistoryComponent.
-  }
+  this.dialogService
+    .open(
+      ModalAccountsPayableHistory,
+      modalData,
+      'large',
+    )
+    .afterClosed()
+    .subscribe();
+}
 
   openManualClose(
     movement:
