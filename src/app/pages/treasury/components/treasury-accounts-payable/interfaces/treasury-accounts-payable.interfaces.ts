@@ -55,6 +55,8 @@ export interface TreasuryAvailableOutflowFilters {
   bank_id?: number | null;
   bank_account_id?: number | null;
 
+  minimum_available_amount?: number | null;
+
   date_from?: string | null;
   date_to?: string | null;
 

@@ -1,7 +1,7 @@
 .regularize-historical-payment-modal {
   position: relative;
 
-  max-height: 90vh;
+  max-height: 92vh;
 
   display: grid;
   grid-template-rows:
@@ -227,7 +227,8 @@
   gap: 0.8rem;
 
   app-input-select,
-  app-input-field {
+  app-input-field,
+  app-input-date {
     width: 100%;
   }
 
@@ -292,13 +293,119 @@
 }
 
 /* =========================================================
+ * FILTROS DE MOVIMIENTOS
+ * ========================================================= */
+
+.movement-selection-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(10rem, 0.8fr)
+    minmax(10rem, 1.1fr)
+    minmax(10rem, 1fr)
+    minmax(9rem, 0.8fr)
+    minmax(10rem, 1fr)
+    auto;
+  gap: 0.65rem;
+  align-items: end;
+
+  ::ng-deep .btns-action-filters {
+    gap: 10px;
+    display: flex;
+    margin-bottom: 25px!important;
+  }
+
+
+  .movement-filter--date {
+    margin-bottom: 25px;
+  }
+}
+
+/* =========================================================
+ * TABLA DE MOVIMIENTOS
+ * ========================================================= */
+
+.movement-selection-table {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+
+    color: #64748b;
+    font-size: 0.67rem;
+
+    strong {
+      color: #172033;
+    }
+  }
+
+  /**
+   * Contenedor general.
+   * Mantiene separadas la tabla y la paginación.
+   */
+  &__shell {
+    min-width: 0;
+
+    display: grid;
+    grid-template-rows:
+      minmax(0, 1fr)
+      auto;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 0.7rem;
+
+    background: #ffffff;
+
+    overflow: hidden;
+  }
+
+  /**
+   * Solamente las filas tienen scroll.
+   */
+  &__viewport {
+    min-width: 0;
+    width: 100%;
+    max-height: 22rem;
+
+    border: 0;
+    border-radius: 0;
+
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  /**
+   * El paginador ocupa su propia fila.
+   * Se neutraliza cualquier position global.
+   */
+  &__paginator {
+    position: static !important;
+    inset: auto !important;
+    z-index: 1;
+
+    width: 100%;
+    flex-shrink: 0;
+
+    border-top: 1px solid #e2e8f0;
+
+    background: #ffffff;
+  }
+}
+
+/* =========================================================
  * MOVIMIENTO SELECCIONADO
  * ========================================================= */
 
 .selected-regularization-movement {
   padding: 0.8rem;
 
-  border: 1px solid #bbf7d0;
+  border: 1px solid #86efac;
   border-radius: 0.7rem;
 
   background: #f0fdf4;
@@ -329,11 +436,37 @@
     }
   }
 
-  &__amount {
+  &__remove {
     flex-shrink: 0;
 
-    color: #047857 !important;
-    font-size: 0.86rem !important;
+    padding: 0.32rem 0.55rem;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+
+    background: #fff;
+    color: #b91c1c;
+
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    mat-icon {
+      width: 0.95rem;
+      height: 0.95rem;
+
+      font-size: 0.95rem;
+    }
+
+    &:hover {
+      background: #fef2f2;
+    }
   }
 
   &__grid {
@@ -366,21 +499,82 @@
       overflow-wrap: anywhere;
     }
   }
+
+  &__amounts {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+
+    border-top: 1px dashed #bbf7d0;
+
+    article {
+      min-width: 0;
+
+      padding: 0.6rem 0.65rem;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+
+      border: 1px solid #d1fae5;
+      border-radius: 0.6rem;
+
+      background: #ffffff;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.64rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.8rem;
+    }
+
+    > mat-icon {
+      width: 1rem;
+      height: 1rem;
+
+      color: #64748b;
+      font-size: 1rem;
+    }
+  }
 }
 
-.regularization-balance-warning {
-  margin-top: 0.7rem;
+.amount--warning {
+  color: #c2410c !important;
+}
+
+.amount--success {
+  color: #047857 !important;
+}
+
+/* =========================================================
+ * EMPRESA OPCIONAL
+ * ========================================================= */
+
+.regularization-company-helper {
   padding: 0.65rem 0.7rem;
 
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
+  gap: 0.45rem;
 
-  border: 1px solid #fed7aa;
+  border: 1px solid #dbeafe;
   border-radius: 0.6rem;
 
-  background: #fff7ed;
-  color: #9a3412;
+  background: #eff6ff;
+  color: #475569;
 
   mat-icon {
     width: 1rem;
@@ -388,11 +582,12 @@
 
     flex-shrink: 0;
 
+    color: #2563eb;
     font-size: 1rem;
   }
 
   span {
-    font-size: 0.67rem;
+    font-size: 0.66rem;
     line-height: 1.4;
   }
 }
@@ -432,6 +627,13 @@
  * RESPONSIVE
  * ========================================================= */
 
+@media screen and (max-width: 1180px) {
+  .movement-selection-filters {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media screen and (max-width: 780px) {
   .historical-payment-card {
     &__grid {
@@ -440,10 +642,24 @@
     }
   }
 
+  .movement-selection-filters {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
   .selected-regularization-movement {
     &__grid {
       grid-template-columns:
         repeat(2, minmax(0, 1fr));
+    }
+
+    &__amounts {
+      grid-template-columns:
+        minmax(0, 1fr);
+
+      > mat-icon {
+        display: none;
+      }
     }
   }
 
@@ -457,12 +673,22 @@
 
 @media screen and (max-width: 520px) {
   .regularize-historical-payment-modal {
-    max-height: 94vh;
+    max-height: 95vh;
 
     &__body {
       padding-inline: 0.75rem;
     }
   }
+  .movement-selection-table {
+  &__summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__viewport {
+    max-height: 18rem;
+  }
+}
 
   .historical-payment-card {
     &__header {
@@ -472,6 +698,18 @@
     &__grid {
       grid-template-columns:
         minmax(0, 1fr);
+    }
+  }
+
+  .movement-selection-filters {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+  .movement-selection-table {
+    &__summary {
+      flex-direction: column;
+      align-items: flex-start;
     }
   }
 

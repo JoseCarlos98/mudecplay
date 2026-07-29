@@ -56,6 +56,18 @@ export class TreasuryAccountsPayableService {
       }
 
       if (
+        filters.minimum_available_amount !== undefined &&
+        filters.minimum_available_amount !== null
+      ) {
+        params = params.set(
+          'minimum_available_amount',
+          String(
+            filters.minimum_available_amount,
+          ),
+        );
+      }
+
+      if (
         filters.company_id !== undefined &&
         filters.company_id !== null
       ) {

@@ -22,10 +22,18 @@ import {
 import { MatIconModule } from '@angular/material/icon';
 
 import {
+  MatPaginatorModule,
+  PageEvent,
+} from '@angular/material/paginator';
+
+import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
 
-import { finalize } from 'rxjs';
+import {
+  finalize,
+  forkJoin,
+} from 'rxjs';
 
 // UI compartida
 import {
@@ -50,6 +58,22 @@ import {
 } from '../../../../../../shared/ui/input-select/input-select';
 
 import {
+  DateRangeValue,
+  InputDate,
+} from '../../../../../../shared/ui/input-date/input-date';
+
+import {
+  DataTable,
+} from '../../../../../../shared/ui/data-table/data-table';
+
+import {
+  ColumnsConfig,
+  ColumnVariant,
+  DataTableActionEvent,
+  DataTableExtraAction,
+} from '../../../../../../shared/ui/data-table/interfaces/table-interfaces';
+
+import {
   LoadingOverlay,
 } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
 
@@ -57,6 +81,11 @@ import {
 import {
   Catalog,
 } from '../../../../../../shared/interfaces/general-interfaces';
+
+// Helpers
+import {
+  roundMoney,
+} from '../../../../../../shared/helpers/general-helpers';
 
 // Servicios compartidos
 import {
@@ -97,6 +126,90 @@ const REGULARIZATION_TYPE_OPTIONS: Catalog[] = [
   },
 ];
 
+const UNIDENTIFIED_COMPANY_OPTION: Catalog = {
+  id: 'unidentified',
+  name: 'Empresa no identificada',
+};
+
+// =========================================================
+// COLUMNAS: MOVIMIENTOS DISPONIBLES
+// =========================================================
+
+const MOVEMENT_COLUMNS: ColumnsConfig[] = [
+  {
+    key: 'movement_date',
+    label: 'Fecha',
+    type: 'date',
+  },
+  {
+    key: 'reference_display',
+    label: 'Referencia',
+  },
+  {
+    key: 'description_original',
+    label: 'Descripción',
+  },
+  {
+    key: 'company_name',
+    label: 'Empresa',
+  },
+  {
+    key: 'bank_name',
+    label: 'Banco',
+  },
+  {
+    key: 'bank_account_display',
+    label: 'Cuenta',
+  },
+  {
+    key: 'available_amount',
+    label: 'Disponible',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'status_label',
+    label: 'Estatus',
+    type: 'chip',
+    variantResolver: (
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
+    ) =>
+      resolveMovementStatusVariant(
+        row,
+      ),
+  },
+];
+
+const MOVEMENT_DISPLAYED_COLUMNS = [
+  ...MOVEMENT_COLUMNS.map(
+    (column) =>
+      column.key,
+  ),
+  'actions',
+];
+
+function resolveMovementStatusVariant(
+  row:
+    entity.TreasuryAvailableOutflowTableRow,
+): ColumnVariant {
+  switch (row.status) {
+    case 'matched':
+    case 'manually_closed':
+      return 'chip-success';
+
+    case 'unmatched':
+    case 'partially_matched':
+      return 'chip-warning';
+
+    case 'cancelled':
+      return 'chip-danger';
+
+    default:
+      return 'chip-neutral';
+  }
+}
+
 @Component({
   selector:
     'app-modal-regularize-historical-payment',
@@ -108,11 +221,14 @@ const REGULARIZATION_TYPE_OPTIONS: Catalog[] = [
     ReactiveFormsModule,
 
     MatIconModule,
+    MatPaginatorModule,
 
     ModuleHeader,
     BtnsSection,
     InputField,
     InputSelect,
+    InputDate,
+    DataTable,
     LoadingOverlay,
   ],
 
@@ -166,6 +282,17 @@ export class ModalRegularizeHistoricalPayment
   readonly regularizationTypeOptions =
     REGULARIZATION_TYPE_OPTIONS;
 
+  readonly movementColumns =
+    MOVEMENT_COLUMNS;
+
+  readonly movementDisplayedColumns =
+    MOVEMENT_DISPLAYED_COLUMNS;
+
+  readonly tableActionPermissions = {
+    showEdit: false,
+    showDelete: false,
+  };
+
   readonly loadingCatalogs =
     signal(false);
 
@@ -175,27 +302,23 @@ export class ModalRegularizeHistoricalPayment
   readonly saving =
     signal(false);
 
+  // =========================================================
+  // CATÁLOGOS
+  // =========================================================
+
   companyOptions: Catalog[] = [];
-
-  bankMovementOptions: Catalog[] = [];
-
-  private readonly bankMovementById =
-    new Map<
-      string,
-      entity.TreasuryAvailableOutflow
-    >();
-
-  private movementsLoaded = false;
+  bankOptions: Catalog[] = [];
+  bankAccountOptions: Catalog[] = [];
 
   // =========================================================
-  // FORMULARIO
+  // FORMULARIO PRINCIPAL
   // =========================================================
 
   readonly form =
     this.fb.group({
       regularization_type:
         this.fb.control<
-          entity.TreasuryHistoricalRegularizationType
+          | entity.TreasuryHistoricalRegularizationType
           | ''
         >(
           '',
@@ -210,15 +333,7 @@ export class ModalRegularizeHistoricalPayment
 
       company_id:
         this.fb.control<
-          Catalog
-          | number
-          | string
-          | null
-        >(null),
-
-      bank_movement_id:
-        this.fb.control<
-          Catalog
+          | Catalog
           | number
           | string
           | null
@@ -252,11 +367,154 @@ export class ModalRegularizeHistoricalPayment
     });
 
   // =========================================================
+  // FILTROS DE MOVIMIENTOS
+  // =========================================================
+
+  readonly movementFilterForm =
+    this.fb.group({
+      dateRange:
+        this.fb.control<
+          DateRangeValue | null
+        >(null),
+
+      search:
+        this.fb.control<string>(
+          '',
+          {
+            nonNullable: true,
+          },
+        ),
+
+      company_id:
+        this.fb.control<
+          | Catalog
+          | number
+          | string
+          | null
+        >(null),
+
+      bank_id:
+        this.fb.control<
+          | Catalog
+          | number
+          | string
+          | null
+        >(null),
+
+      bank_account_id:
+        this.fb.control<
+          | Catalog
+          | number
+          | string
+          | null
+        >(null),
+    });
+
+  movementFilters:
+    entity.TreasuryAvailableOutflowFilters = {
+      page: 1,
+      limit: 10,
+
+      search: '',
+
+      company_id: null,
+      bank_id: null,
+      bank_account_id: null,
+
+      minimum_available_amount: null,
+
+      date_from: null,
+      date_to: null,
+    };
+
+  // =========================================================
+  // TABLA DE MOVIMIENTOS
+  // =========================================================
+
+  movementTableData:
+    entity.TreasuryAvailableOutflowsResponse = {
+      data: [],
+
+      summary: {
+        movements_count: 0,
+        available_amount: 0,
+      },
+
+      meta: {
+        page: 1,
+        limit: 10,
+        total: 0,
+        total_pages: 0,
+      },
+    };
+
+  availableMovementRows:
+    entity.TreasuryAvailableOutflowTableRow[] = [];
+
+  readonly selectedMovement =
+    signal<
+      entity.TreasuryAvailableOutflowTableRow
+      | null
+    >(null);
+
+  readonly movementExtraActions:
+    DataTableExtraAction<
+      entity.TreasuryAvailableOutflowTableRow
+    >[] = [
+      {
+        type:
+          'selectMovement',
+
+        icon:
+          'radio_button_unchecked',
+
+        tooltip:
+          'Seleccionar movimiento',
+
+        visible:
+          (
+            row:
+              entity.TreasuryAvailableOutflowTableRow,
+          ) =>
+            this.selectedMovement()?.id !==
+            row.id,
+      },
+      {
+        type:
+          'clearMovementSelection',
+
+        icon:
+          'check_circle',
+
+        tooltip:
+          'Movimiento seleccionado',
+
+        iconClass:
+          'table-action-icon--success',
+
+        visible:
+          (
+            row:
+              entity.TreasuryAvailableOutflowTableRow,
+          ) =>
+            this.selectedMovement()?.id ===
+            row.id,
+      },
+    ];
+
+  // =========================================================
   // CICLO DE VIDA
   // =========================================================
 
   ngOnInit(): void {
-    this.loadCompanies();
+    this.movementFilters = {
+      ...this.movementFilters,
+
+      minimum_available_amount:
+        this.paymentAmount,
+    };
+
+    this.loadCatalogs();
 
     this.form.controls
       .regularization_type
@@ -289,15 +547,18 @@ export class ModalRegularizeHistoricalPayment
   }
 
   get paymentAmount(): number {
-    return Number(
-      this.payment.amount || 0,
+    return roundMoney(
+      Number(
+        this.payment.amount || 0,
+      ),
     );
   }
 
   get folioDisplay(): string {
     return (
       this.payment.internal_folio ||
-      this.payment.expense?.internal_folio ||
+      this.payment.expense
+        ?.internal_folio ||
       'Sin folio'
     );
   }
@@ -310,8 +571,10 @@ export class ModalRegularizeHistoricalPayment
 
   get supplierDisplay(): string {
     return (
-      this.payment.supplier_display_name ||
-      this.payment.supplier?.display_name ||
+      this.payment
+        .supplier_display_name ||
+      this.payment.supplier
+        ?.display_name ||
       'Sin proveedor'
     );
   }
@@ -319,7 +582,8 @@ export class ModalRegularizeHistoricalPayment
   get projectDisplay(): string {
     return (
       this.payment.project_name ||
-      this.payment.project?.name ||
+      this.payment.project
+        ?.name ||
       'Sin proyecto'
     );
   }
@@ -327,13 +591,14 @@ export class ModalRegularizeHistoricalPayment
   get conceptDisplay(): string {
     return (
       this.payment.concept ||
-      this.payment.expense_item?.concept ||
+      this.payment.expense_item
+        ?.concept ||
       'Sin concepto'
     );
   }
 
   // =========================================================
-  // TIPO SELECCIONADO
+  // TIPO DE REGULARIZACIÓN
   // =========================================================
 
   get regularizationType():
@@ -374,65 +639,52 @@ export class ModalRegularizeHistoricalPayment
     );
   }
 
-  get selectedBankMovement():
-    entity.TreasuryAvailableOutflow | null {
-    const movementId =
-      this.getStringId(
-        this.form.controls
-          .bank_movement_id
-          .value,
-      );
-
-    if (!movementId) {
-      return null;
-    }
-
-    return (
-      this.bankMovementById.get(
-        movementId,
-      ) ?? null
-    );
-  }
+  // =========================================================
+  // MOVIMIENTO SELECCIONADO
+  // =========================================================
 
   get selectedMovementReference(): string {
     const movement =
-      this.selectedBankMovement;
+      this.selectedMovement();
 
     if (!movement) {
       return 'Sin movimiento';
     }
 
-    return this.getMovementReference(
-      movement,
-    );
+    return movement.reference_display;
   }
 
   get selectedMovementAccount(): string {
     const movement =
-      this.selectedBankMovement;
+      this.selectedMovement();
 
     if (!movement) {
       return 'Sin cuenta';
     }
 
-    const alias =
-      movement.bank_account
-        ?.alias
-        ?.trim();
+    return (
+      movement.bank_account_display ||
+      'Sin cuenta'
+    );
+  }
 
-    const identifier =
-      movement.bank_account
-        ?.account_identifier
-        ?.trim();
+  get selectedMovementAvailableAfter(): number {
+    const movement =
+      this.selectedMovement();
 
-    if (alias && identifier) {
-      return `${alias} · ${identifier}`;
+    if (!movement) {
+      return 0;
     }
 
-    return (
-      alias ||
-      identifier ||
-      'Sin cuenta'
+    return roundMoney(
+      Math.max(
+        Number(
+          movement.available_amount ||
+          0,
+        ) -
+        this.paymentAmount,
+        0,
+      ),
     );
   }
 
@@ -445,11 +697,22 @@ export class ModalRegularizeHistoricalPayment
       return false;
     }
 
-    if (
-      this.isMatchedTransfer &&
-      !this.selectedBankMovement
-    ) {
-      return false;
+    if (this.isMatchedTransfer) {
+      const movement =
+        this.selectedMovement();
+
+      if (!movement) {
+        return false;
+      }
+
+      if (
+        Number(
+          movement.available_amount,
+        ) <
+        this.paymentAmount
+      ) {
+        return false;
+      }
     }
 
     return true;
@@ -459,72 +722,103 @@ export class ModalRegularizeHistoricalPayment
   // CATÁLOGOS
   // =========================================================
 
-  private loadCompanies(): void {
+  private loadCatalogs(): void {
     if (this.loadingCatalogs()) {
       return;
     }
 
     this.loadingCatalogs.set(true);
 
-    this.catalogsService
-      .treasuryCompaniesCatalog()
+    forkJoin({
+      companies:
+        this.catalogsService
+          .treasuryCompaniesCatalog(),
+
+      banks:
+        this.catalogsService
+          .treasuryBanksCatalog(),
+
+      bankAccounts:
+        this.catalogsService
+          .treasuryBankAccountsCatalog(
+            false,
+          ),
+    })
       .pipe(
         takeUntilDestroyed(
           this.destroyRef,
         ),
 
         finalize(() =>
-          this.loadingCatalogs.set(false),
+          this.loadingCatalogs.set(
+            false,
+          ),
         ),
       )
       .subscribe({
-        next: (
-          companies: Catalog[],
-        ) => {
-          this.companyOptions =
-            companies ?? [];
+        next: ({
+          companies,
+          banks,
+          bankAccounts,
+        }) => {
+          this.companyOptions = [
+            UNIDENTIFIED_COMPANY_OPTION,
+            ...(companies ?? []),
+          ];
+
+          this.bankOptions =
+            banks ?? [];
+
+          this.bankAccountOptions =
+            bankAccounts ?? [];
         },
 
-        error: (error: unknown) => {
+        error: (
+          error:
+            unknown,
+        ) => {
           console.error(
-            'Error cargando empresas para regularización:',
+            'Error cargando catálogos para regularización:',
             error,
           );
         },
       });
   }
 
-  private loadAvailableMovements(): void {
+  // =========================================================
+  // CARGA DE MOVIMIENTOS
+  // =========================================================
+
+  loadAvailableMovements(): void {
     if (
       this.loadingMovements() ||
-      this.movementsLoaded
+      !this.isMatchedTransfer
     ) {
       return;
     }
 
-    this.loadingMovements.set(true);
+    this.loadingMovements.set(
+      true,
+    );
 
     this.accountsPayableService
-      .getAvailableOutflows({
-        page: 1,
-        limit: 100,
+      .getAvailableOutflows(
+        {
+          ...this.movementFilters,
 
-        search: '',
-
-        company_id: null,
-        bank_id: null,
-        bank_account_id: null,
-
-        date_from: null,
-        date_to: null,
-      })
+          minimum_available_amount:
+            this.paymentAmount,
+        },
+      )
       .pipe(
         takeUntilDestroyed(
           this.destroyRef,
         ),
 
         finalize(() =>
-          this.loadingMovements.set(false),
+          this.loadingMovements.set(
+            false,
+          ),
         ),
       )
       .subscribe({
@@ -532,40 +826,28 @@ export class ModalRegularizeHistoricalPayment
           response:
             entity.TreasuryAvailableOutflowsResponse,
         ) => {
-          this.movementsLoaded = true;
+          this.movementTableData =
+            response;
 
-          this.bankMovementById.clear();
-
-          const movements =
-            response.data ?? [];
-
-          for (
-            const movement of movements
-          ) {
-            this.bankMovementById.set(
-              String(movement.id),
-              movement,
-            );
-          }
-
-          this.bankMovementOptions =
-            movements.map(
+          this.availableMovementRows =
+            (
+              response.data ??
+              []
+            ).map(
               (
-                movement:
+                row:
                   entity.TreasuryAvailableOutflow,
-              ): Catalog => ({
-                id:
-                  String(movement.id),
-
-                name:
-                  this.getMovementOptionLabel(
-                    movement,
-                  ),
-              }),
+              ) =>
+                this.mapAvailableMovementRow(
+                  row,
+                ),
             );
         },
 
-        error: (error: unknown) => {
+        error: (
+          error:
+            unknown,
+        ) => {
           console.error(
             'Error cargando movimientos bancarios disponibles:',
             error,
@@ -575,52 +857,255 @@ export class ModalRegularizeHistoricalPayment
   }
 
   // =========================================================
+  // FILTROS DE MOVIMIENTOS
+  // =========================================================
+
+  searchAvailableMovements(): void {
+    const value =
+      this.movementFilterForm
+        .getRawValue();
+
+    this.movementFilters = {
+      page: 1,
+
+      limit:
+        this.movementFilters.limit,
+
+      search:
+        value.search.trim(),
+
+      company_id:
+        this.getNumberId(
+          value.company_id,
+        ),
+
+      bank_id:
+        this.getNumberId(
+          value.bank_id,
+        ),
+
+      bank_account_id:
+        this.getNumberId(
+          value.bank_account_id,
+        ),
+
+      minimum_available_amount:
+        this.paymentAmount,
+
+      date_from:
+        value.dateRange
+          ?.startDate ??
+        null,
+
+      date_to:
+        value.dateRange
+          ?.endDate ??
+        null,
+    };
+
+    this.loadAvailableMovements();
+  }
+
+  clearAvailableMovementFilters(): void {
+    this.movementFilterForm.reset(
+      {
+        dateRange: null,
+        search: '',
+        company_id: null,
+        bank_id: null,
+        bank_account_id: null,
+      },
+      {
+        emitEvent: false,
+      },
+    );
+
+    this.movementFilters = {
+      page: 1,
+
+      limit:
+        this.movementFilters.limit,
+
+      search: '',
+
+      company_id: null,
+      bank_id: null,
+      bank_account_id: null,
+
+      minimum_available_amount:
+        this.paymentAmount,
+
+      date_from: null,
+      date_to: null,
+    };
+
+    this.loadAvailableMovements();
+  }
+
+  onMovementBtnsSectionAction(
+    action: string,
+  ): void {
+    switch (action) {
+      case 'search':
+        this.searchAvailableMovements();
+        break;
+
+      case 'clean':
+        this.clearAvailableMovementFilters();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  onMovementPageChange(
+    event: PageEvent,
+  ): void {
+    this.movementFilters = {
+      ...this.movementFilters,
+
+      page:
+        event.pageIndex + 1,
+
+      limit:
+        event.pageSize,
+
+      minimum_available_amount:
+        this.paymentAmount,
+    };
+
+    this.loadAvailableMovements();
+  }
+
+  get hasActiveMovementFilters(): boolean {
+    const value =
+      this.movementFilterForm
+        .getRawValue();
+
+    return Boolean(
+      value.dateRange
+        ?.startDate ||
+      value.dateRange
+        ?.endDate ||
+      value.search.trim() ||
+      this.getCatalogValue(
+        value.company_id,
+      ) ||
+      this.getCatalogValue(
+        value.bank_id,
+      ) ||
+      this.getCatalogValue(
+        value.bank_account_id,
+      ),
+    );
+  }
+
+  // =========================================================
+  // ACCIONES DE TABLA
+  // =========================================================
+
+  onMovementTableAction(
+    event:
+      DataTableActionEvent<
+        entity.TreasuryAvailableOutflowTableRow
+      >,
+  ): void {
+    switch (event.type) {
+      case 'selectMovement':
+        this.selectMovement(
+          event.row,
+        );
+        break;
+
+      case 'clearMovementSelection':
+        this.clearMovementSelection();
+        break;
+
+      default:
+        break;
+    }
+  }
+
+  private selectMovement(
+    row:
+      entity.TreasuryAvailableOutflowTableRow,
+  ): void {
+    if (
+      Number(
+        row.available_amount,
+      ) <
+      this.paymentAmount
+    ) {
+      return;
+    }
+
+    this.selectedMovement.set(
+      row,
+    );
+  }
+
+  clearMovementSelection(): void {
+    this.selectedMovement.set(
+      null,
+    );
+  }
+
+  // =========================================================
   // TIPO DE REGULARIZACIÓN
   // =========================================================
 
-  private handleRegularizationTypeChange(
-    type:
-      | entity.TreasuryHistoricalRegularizationType
-      | '',
-  ): void {
-    const bankMovementControl =
-      this.form.controls
-        .bank_movement_id;
+ private handleRegularizationTypeChange(
+  type:
+    | entity.TreasuryHistoricalRegularizationType
+    | '',
+): void {
+  const companyControl =
+    this.form.controls.company_id;
 
-    if (
-      type ===
-      'bank_transfer_matched'
-    ) {
-      this.form.controls
-        .company_id
-        .setValue(
-          null,
-          {
-            emitEvent: false,
-          },
-        );
+  if (
+    type ===
+    'bank_transfer_matched'
+  ) {
+    companyControl.setValue(
+      null,
+      {
+        emitEvent: false,
+      },
+    );
 
-      bankMovementControl.setValidators([
-        Validators.required,
-      ]);
+    this.movementFilters = {
+      ...this.movementFilters,
 
-      this.loadAvailableMovements();
-    } else {
-      bankMovementControl.clearValidators();
+      page: 1,
 
-      bankMovementControl.setValue(
-        null,
+      minimum_available_amount:
+        this.paymentAmount,
+    };
+
+    this.loadAvailableMovements();
+
+    return;
+  }
+
+  this.clearMovementSelection();
+
+  if (
+    type ===
+      'historical_transfer_without_movement' ||
+    type ===
+      'cash'
+  ) {
+    if (!companyControl.value) {
+      companyControl.setValue(
+        UNIDENTIFIED_COMPANY_OPTION,
         {
           emitEvent: false,
         },
       );
     }
-
-    bankMovementControl
-      .updateValueAndValidity({
-        emitEvent: false,
-      });
   }
+}
 
   // =========================================================
   // GUARDAR
@@ -674,18 +1159,17 @@ export class ModalRegularizeHistoricalPayment
       regularizationType ===
       'bank_transfer_matched'
     ) {
-      const movementId =
-        this.getStringId(
-          value.bank_movement_id,
-        );
+      const movement =
+        this.selectedMovement();
 
-      if (!movementId) {
-        this.form.markAllAsTouched();
+      if (!movement?.id) {
         return;
       }
 
       payload.bank_movement_id =
-        movementId;
+        String(
+          movement.id,
+        );
     } else {
       const companyId =
         this.getNumberId(
@@ -698,7 +1182,9 @@ export class ModalRegularizeHistoricalPayment
       }
     }
 
-    this.saving.set(true);
+    this.saving.set(
+      true,
+    );
 
     this.accountsPayableService
       .regularizeHistoricalPayment(
@@ -711,7 +1197,9 @@ export class ModalRegularizeHistoricalPayment
         ),
 
         finalize(() =>
-          this.saving.set(false),
+          this.saving.set(
+            false,
+          ),
         ),
       )
       .subscribe({
@@ -728,7 +1216,10 @@ export class ModalRegularizeHistoricalPayment
           );
         },
 
-        error: (error: unknown) => {
+        error: (
+          error:
+            unknown,
+        ) => {
           console.error(
             'Error al regularizar el pago histórico:',
             error,
@@ -748,7 +1239,8 @@ export class ModalRegularizeHistoricalPayment
   // =========================================================
 
   onBtnsSectionAction(
-    action: ModuleFooterAction,
+    action:
+      ModuleFooterAction,
   ): void {
     switch (action) {
       case 'cancel':
@@ -769,7 +1261,61 @@ export class ModalRegularizeHistoricalPayment
       return;
     }
 
-    this.dialogRef.close(null);
+    this.dialogRef.close(
+      null,
+    );
+  }
+
+  // =========================================================
+  // MAPEO
+  // =========================================================
+
+  private mapAvailableMovementRow(
+    row:
+      entity.TreasuryAvailableOutflow,
+  ): entity.TreasuryAvailableOutflowTableRow {
+    return {
+      ...row,
+
+      company_name:
+        row.company?.name ??
+        'Empresa no identificada',
+
+      bank_name:
+        row.bank?.name ??
+        'Sin banco',
+
+      bank_account_display:
+        this.getBankAccountDisplay(
+          row,
+        ),
+
+      reference_display:
+        row.bank_reference
+          ?.trim() ||
+        row.receipt_number
+          ?.trim() ||
+        row.tracking_key
+          ?.trim() ||
+        `Movimiento ${row.id}`,
+
+      counterparty_display:
+        row.counterparty_name
+          ?.trim() ||
+        row.counterparty_account
+          ?.trim() ||
+        'Sin contraparte',
+
+      status_label:
+        this.getMovementStatusLabel(
+          row.status,
+        ),
+
+      classification_label:
+        this.getClassificationLabel(
+          row.classification,
+        ),
+    };
   }
 
   // =========================================================
@@ -806,55 +1352,81 @@ export class ModalRegularizeHistoricalPayment
     return `${day}/${month}/${year}`;
   }
 
-  private getMovementOptionLabel(
-    movement:
+  private getBankAccountDisplay(
+    row:
       entity.TreasuryAvailableOutflow,
   ): string {
-    const date =
-      this.formatDate(
-        movement.movement_date,
-      );
+    const alias =
+      row.bank_account
+        ?.alias
+        ?.trim();
 
-    const reference =
-      this.getMovementReference(
-        movement,
-      );
+    const identifier =
+      row.bank_account
+        ?.account_identifier
+        ?.trim();
 
-    const company =
-      movement.company?.name ||
-      'Empresa no identificada';
-
-    const amount =
-      new Intl.NumberFormat(
-        'es-MX',
-        {
-          style: 'currency',
-          currency: 'MXN',
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        },
-      ).format(
-        Number(
-          movement.available_amount || 0,
-        ),
-      );
+    if (
+      alias &&
+      identifier
+    ) {
+      return `${alias} · ${identifier}`;
+    }
 
     return (
-      `${date} · ${reference} · ` +
-      `${company} · Disponible ${amount}`
+      alias ||
+      identifier ||
+      'Sin cuenta'
     );
   }
 
-  private getMovementReference(
-    movement:
-      entity.TreasuryAvailableOutflow,
+  private getMovementStatusLabel(
+    status:
+      string
+      | null
+      | undefined,
   ): string {
-    return (
-      movement.bank_reference?.trim() ||
-      movement.receipt_number?.trim() ||
-      movement.tracking_key?.trim() ||
-      `Movimiento ${movement.id}`
-    );
+    switch (status) {
+      case 'unmatched':
+        return 'Pendiente';
+
+      case 'partially_matched':
+        return 'Parcial';
+
+      case 'matched':
+        return 'Conciliado';
+
+      case 'manually_closed':
+        return 'Cerrado manualmente';
+
+      case 'cancelled':
+        return 'Cancelado';
+
+      default:
+        return 'Sin estatus';
+    }
+  }
+
+  private getClassificationLabel(
+    classification:
+      string
+      | null
+      | undefined,
+  ): string {
+    if (!classification) {
+      return 'Sin clasificación';
+    }
+
+    return classification
+      .split('_')
+      .filter(Boolean)
+      .map(
+        (part) =>
+          part.charAt(0)
+            .toUpperCase() +
+          part.slice(1),
+      )
+      .join(' ');
   }
 
   private getCatalogValue(
@@ -909,36 +1481,9 @@ export class ModalRegularizeHistoricalPayment
     return id;
   }
 
-  private getStringId(
-    value:
-      | Catalog
-      | number
-      | string
-      | null
-      | undefined,
-  ): string | null {
-    const raw =
-      this.getCatalogValue(
-        value,
-      );
-
-    if (
-      raw === null ||
-      raw === undefined
-    ) {
-      return null;
-    }
-
-    const id =
-      String(raw).trim();
-
-    return /^[1-9]\d*$/.test(id)
-      ? id
-      : null;
-  }
-
   private showError(
-    message: string,
+    message:
+      string,
   ): void {
     this.dialogService
       .confirm({
@@ -957,15 +1502,16 @@ export class ModalRegularizeHistoricalPayment
   }
 
   private resolveErrorMessage(
-    error: unknown,
+    error:
+      unknown,
   ): string {
     const backendMessage =
       (
         error as {
           error?: {
             message?:
-              | string
-              | string[];
+            | string
+            | string[];
           };
         }
       )?.error?.message;
@@ -982,7 +1528,7 @@ export class ModalRegularizeHistoricalPayment
 
     if (
       typeof backendMessage ===
-        'string' &&
+      'string' &&
       backendMessage.trim()
     ) {
       return backendMessage.trim();
