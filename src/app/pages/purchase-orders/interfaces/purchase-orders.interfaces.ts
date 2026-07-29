@@ -652,8 +652,8 @@ export interface AvailableXmlExpensesResponse {
 }
 
 export interface FiltersAvailableXmlExpenses {
-  page: number;
-  limit: number;
+  // page: number;
+  // limit: number;
   search?: string | null;
   supplier_id?: number | string | null;
   date_from?: string | null;
@@ -754,8 +754,8 @@ export interface AvailableWarehouseXmlExpensesResponse {
 }
 
 export interface FiltersAvailableWarehouseXmlExpenses {
-  page: number;
-  limit: number;
+  // page: number;
+  // limit: number;
 
   search?: string | null;
   supplier_id?: number | string | null;

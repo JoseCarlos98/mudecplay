@@ -1,25 +1,27 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { finalize } from 'rxjs';
+import { CommonModule } from "@angular/common";
+import { Component, OnInit, inject, signal } from "@angular/core";
+import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
+import { ActivatedRoute, Router } from "@angular/router";
+import { MatIconModule } from "@angular/material/icon";
+import { finalize } from "rxjs";
 
 import {
   BtnsSection,
   ModuleFooterAction,
-} from '../../../../../../shared/ui/btns-section/btns-section';
+} from "../../../../../../shared/ui/btns-section/btns-section";
 
-import { ModuleHeader } from '../../../../../../shared/ui/module-header/module-header';
-import { ModuleHeaderConfig } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
-import { LoadingOverlay } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
+import { ModuleHeader } from "../../../../../../shared/ui/module-header/module-header";
+import { ModuleHeaderConfig } from "../../../../../../shared/ui/module-header/interfaces/module-header-interface";
+import { LoadingOverlay } from "../../../../../../shared/ui/loading-overlay/loading-overlay";
 import {
   DateRangeValue,
   InputDate,
-} from '../../../../../../shared/ui/input-date/input-date';
-import { InputField } from '../../../../../../shared/ui/input-field/input-field';
+} from "../../../../../../shared/ui/input-date/input-date";
+import { InputField } from "../../../../../../shared/ui/input-field/input-field";
+import { Autocomplete } from "../../../../../../shared/ui/autocomplete/autocomplete";
+import { Catalog } from "../../../../../../shared/interfaces/general-interfaces";
 
-import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
+import { PurchaseOrdersService } from "../../../../services/purchase-orders.service";
 import {
   AvailableXmlExpenseDto,
   AvailableXmlExpenseItemDto,
@@ -28,14 +30,14 @@ import {
   PendingTicketPhotoRow,
   PurchaseOrderFlowDetailResponse,
   PurchaseOrderTicketPhotoDto,
-} from '../../../../interfaces/purchase-orders.interfaces';
+} from "../../../../interfaces/purchase-orders.interfaces";
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
 };
 
 @Component({
-  selector: 'app-record-oc-xml-expense',
+  selector: "app-record-oc-xml-expense",
   standalone: true,
   imports: [
     CommonModule,
@@ -45,12 +47,13 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     LoadingOverlay,
     InputDate,
     InputField,
+    Autocomplete,
     BtnsSection,
 
     MatIconModule,
   ],
-  templateUrl: './record-oc-xml-expense.html',
-  styleUrl: './record-oc-xml-expense.scss',
+  templateUrl: "./record-oc-xml-expense.html",
+  styleUrl: "./record-oc-xml-expense.scss",
 })
 export class RecordOcXmlExpense implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -58,7 +61,7 @@ export class RecordOcXmlExpense implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
 
-  readonly pageTitle = 'Relacionar gasto XML';
+  readonly pageTitle = "Relacionar gasto XML";
   readonly headerConfig = HEADER_CONFIG;
 
   readonly loadingPage = signal(false);
@@ -78,16 +81,12 @@ export class RecordOcXmlExpense implements OnInit {
   selectedXmlExpense: AvailableXmlExpenseDto | null = null;
   selectedItemIds: number[] = [];
 
-  totalAvailableXmlExpenses = 0;
-  availablePage = 1;
-  availableLimit = 20;
-  availableTotalPages = 0;
-
   errorMessage: string | null = null;
 
   form: FormGroup = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string | null>(null),
+    supplier: this.fb.control<Catalog | number | string | null>(null),
     amount: this.fb.control<number | string | null>(null),
     notes: this.fb.control<string | null>(null),
   });
@@ -96,7 +95,7 @@ export class RecordOcXmlExpense implements OnInit {
     this.photoId = this.getPhotoIdFromRoute();
 
     if (!this.photoId) {
-      this.errorMessage = 'No se encontró el identificador de la foto.';
+      this.errorMessage = "No se encontró el identificador de la foto.";
       return;
     }
 
@@ -104,14 +103,16 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   get projectName(): string {
-    return this.order?.project?.name ?? this.photo?.project_name ?? 'Sin proyecto';
+    return (
+      this.order?.project?.name ?? this.photo?.project_name ?? "Sin proyecto"
+    );
   }
 
   get requesterName(): string {
     return (
       this.order?.requested_by_employee?.name ??
       this.order?.requested_by_name ??
-      'Sin solicitante'
+      "Sin solicitante"
     );
   }
 
@@ -120,42 +121,42 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   get destinationLabel(): string {
-    return this.order?.destination_type_label ?? 'Sin destino';
+    return this.order?.destination_type_label ?? "Sin destino";
   }
 
   get invoiceLabel(): string {
-    return this.order?.will_have_invoice_label ?? 'Sin dato';
+    return this.order?.will_have_invoice_label ?? "Sin dato";
   }
 
   get flowTypeLabel(): string {
-    if (!this.order) return 'Sin flujo';
+    if (!this.order) return "Sin flujo";
 
     return `${this.destinationLabel} · ${this.invoiceLabel}`;
   }
 
   get ticketFileName(): string {
-    return this.photo?.file_name ?? 'Foto del ticket';
+    return this.photo?.file_name ?? "Foto del ticket";
   }
 
   get uploadedByName(): string {
-    return this.photo?.uploaded_by_name ?? 'Sin dato';
+    return this.photo?.uploaded_by_name ?? "Sin dato";
   }
 
   get uploadedAt(): string {
-    return this.photo?.created_at_date ?? 'Sin fecha';
+    return this.photo?.created_at_date ?? "Sin fecha";
   }
 
   get orderConcept(): string {
-    return this.order?.concept ?? 'Sin concepto';
+    return this.order?.concept ?? "Sin concepto";
   }
 
   get orderNotes(): string {
-    return this.order?.notes || 'Sin notas registradas.';
+    return this.order?.notes || "Sin notas registradas.";
   }
 
   get isDirectWithInvoice(): boolean {
     return (
-      this.order?.destination_type === 'direct' &&
+      this.order?.destination_type === "direct" &&
       this.order?.will_have_invoice === true
     );
   }
@@ -179,14 +180,12 @@ export class RecordOcXmlExpense implements OnInit {
   get hasActiveXmlFilters(): boolean {
     const raw = this.form.getRawValue();
 
-    const hasDates = !!(
-      raw.dateRange?.startDate ||
-      raw.dateRange?.endDate
-    );
+    const hasDates = !!(raw.dateRange?.startDate || raw.dateRange?.endDate);
 
     return !!(
       hasDates ||
       raw.search?.trim() ||
+      this.getCatalogId(raw.supplier) !== null ||
       this.toNumberOrNull(raw.amount) !== null
     );
   }
@@ -234,9 +233,9 @@ export class RecordOcXmlExpense implements OnInit {
 
   onHeaderAction(action: string): void {
     switch (action) {
-      case 'back':
-      case 'close':
-      case 'cancel':
+      case "back":
+      case "close":
+      case "cancel":
         this.goBack();
         break;
 
@@ -247,11 +246,11 @@ export class RecordOcXmlExpense implements OnInit {
 
   onFilterAction(action: ModuleFooterAction): void {
     switch (action) {
-      case 'search':
+      case "search":
         this.applyFilters();
         break;
 
-      case 'clean':
+      case "clean":
         this.clearFilters();
         break;
 
@@ -262,11 +261,11 @@ export class RecordOcXmlExpense implements OnInit {
 
   onFooterAction(action: ModuleFooterAction): void {
     switch (action) {
-      case 'save':
+      case "save":
         this.saveExpense();
         break;
 
-      case 'cancel':
+      case "cancel":
         this.goBack();
         break;
 
@@ -276,7 +275,7 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   applyFilters(): void {
-    this.loadAvailableXmlExpenses(true);
+    this.loadAvailableXmlExpenses();
   }
 
   clearFilters(): void {
@@ -284,12 +283,13 @@ export class RecordOcXmlExpense implements OnInit {
       {
         dateRange: null,
         search: null,
+        supplier: null,
         amount: null,
       },
       { emitEvent: false },
     );
 
-    this.loadAvailableXmlExpenses(true);
+    this.loadAvailableXmlExpenses();
   }
 
   selectXmlExpense(expense: AvailableXmlExpenseDto): void {
@@ -366,18 +366,20 @@ export class RecordOcXmlExpense implements OnInit {
             response?.data?.purchase_order_id ?? this.order?.id;
 
           if (purchaseOrderId) {
-            this.router.navigateByUrl(`/ordenes-compra/detalle/${purchaseOrderId}`);
+            this.router.navigateByUrl(
+              `/ordenes-compra/detalle/${purchaseOrderId}`,
+            );
             return;
           }
 
           this.goBack();
         },
         error: (err) => {
-          console.error('Error relacionando gasto XML con O.C.:', err);
+          console.error("Error relacionando gasto XML con O.C.:", err);
 
           this.errorMessage =
             err?.error?.message ||
-            'No se pudo relacionar el gasto XML con la orden de compra.';
+            "No se pudo relacionar el gasto XML con la orden de compra.";
         },
       });
   }
@@ -385,12 +387,12 @@ export class RecordOcXmlExpense implements OnInit {
   openPhotoInNewTab(): void {
     if (!this.photoUrl) return;
 
-    window.open(this.photoUrl, '_blank', 'noopener,noreferrer');
+    window.open(this.photoUrl, "_blank", "noopener,noreferrer");
   }
 
   onImageError(): void {
     this.imageError = true;
-    this.errorMessage = 'No se pudo mostrar la imagen.';
+    this.errorMessage = "No se pudo mostrar la imagen.";
   }
 
   goBack(): void {
@@ -399,7 +401,7 @@ export class RecordOcXmlExpense implements OnInit {
       return;
     }
 
-    this.router.navigateByUrl('/ordenes-compra');
+    this.router.navigateByUrl("/ordenes-compra");
   }
 
   trackByExpenseId(_: number, expense: AvailableXmlExpenseDto): number {
@@ -411,7 +413,7 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   getAvailableItemName(item: AvailableXmlExpenseItemDto): string {
-    return item.product?.name ?? item.concept ?? 'Partida sin nombre';
+    return item.product?.name ?? item.concept ?? "Partida sin nombre";
   }
 
   hasPendingProjectExpense(expense: AvailableXmlExpenseDto): boolean {
@@ -432,11 +434,11 @@ export class RecordOcXmlExpense implements OnInit {
     const hasPendingProject = this.hasPendingProjectExpense(expense);
 
     if (hasPendingProject && projectNames.length === 0) {
-      return 'Proyecto pendiente';
+      return "Proyecto pendiente";
     }
 
     if (hasPendingProject) {
-      return 'Proyecto mixto';
+      return "Proyecto mixto";
     }
 
     return projectNames[0] ?? this.projectName;
@@ -447,7 +449,7 @@ export class RecordOcXmlExpense implements OnInit {
       return `Se asignará a: ${this.projectName}`;
     }
 
-    return 'Ya pertenece al proyecto de la O.C.';
+    return "Ya pertenece al proyecto de la O.C.";
   }
 
   isPendingProjectItem(item: AvailableXmlExpenseItemDto): boolean {
@@ -455,7 +457,7 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   getAvailableItemProjectLabel(item: AvailableXmlExpenseItemDto): string {
-    return item.project?.name ?? 'Proyecto pendiente';
+    return item.project?.name ?? "Proyecto pendiente";
   }
 
   getAvailableItemProjectHelp(item: AvailableXmlExpenseItemDto): string {
@@ -463,7 +465,7 @@ export class RecordOcXmlExpense implements OnInit {
       return `Se asignará a: ${this.projectName}`;
     }
 
-    return 'Ya pertenece al proyecto de la O.C.';
+    return "Ya pertenece al proyecto de la O.C.";
   }
 
   private loadInitialData(): void {
@@ -480,23 +482,22 @@ export class RecordOcXmlExpense implements OnInit {
           this.loadPhotoUrl();
 
           const purchaseOrderId =
-            photo.purchase_order?.id ??
-            photo.purchaseOrder?.id ??
-            null;
+            photo.purchase_order?.id ?? photo.purchaseOrder?.id ?? null;
 
           if (purchaseOrderId) {
             this.loadOrderDetail(purchaseOrderId);
             return;
           }
 
-          this.errorMessage = 'La foto no tiene una orden de compra conciliada.';
+          this.errorMessage =
+            "La foto no tiene una orden de compra conciliada.";
         },
         error: (err) => {
-          console.error('Error cargando detalle de foto:', err);
+          console.error("Error cargando detalle de foto:", err);
 
           this.errorMessage =
             err?.error?.message ||
-            'No se pudo cargar la información de la foto.';
+            "No se pudo cargar la información de la foto.";
         },
       });
   }
@@ -509,41 +510,37 @@ export class RecordOcXmlExpense implements OnInit {
       .pipe(finalize(() => this.loadingPage.set(false)))
       .subscribe({
         next: (response) => {
-          this.order = (response?.data ?? response) as PurchaseOrderFlowDetailResponse;
+          this.order = (response?.data ??
+            response) as PurchaseOrderFlowDetailResponse;
 
           if (this.hasExistingPhotoLink) {
-            this.errorMessage = 'Esta foto ya tiene un gasto XML relacionado.';
+            this.errorMessage = "Esta foto ya tiene un gasto XML relacionado.";
             return;
           }
 
           if (this.isDirectWithInvoice) {
-            this.loadAvailableXmlExpenses(true);
+            this.loadAvailableXmlExpenses();
           }
         },
         error: (err) => {
-          console.error('Error cargando detalle de O.C.:', err);
+          console.error("Error cargando detalle de O.C.:", err);
 
           this.errorMessage =
             err?.error?.message ||
-            'No se pudo cargar la información de la O.C.';
+            "No se pudo cargar la información de la O.C.";
         },
       });
   }
 
-  private loadAvailableXmlExpenses(resetPage = false): void {
+  private loadAvailableXmlExpenses(): void {
     if (!this.order?.id) return;
-
-    if (resetPage) {
-      this.availablePage = 1;
-    }
 
     const raw = this.form.getRawValue();
     const amount = this.toNumberOrNull(raw.amount);
 
     const filters: FiltersAvailableXmlExpenses = {
-      page: this.availablePage,
-      limit: this.availableLimit,
       search: raw.search?.trim() || null,
+      supplier_id: this.getCatalogId(raw.supplier),
       amount,
       date_from: raw.dateRange?.startDate ?? null,
       date_to: raw.dateRange?.endDate ?? null,
@@ -557,10 +554,6 @@ export class RecordOcXmlExpense implements OnInit {
       .subscribe({
         next: (response) => {
           this.availableXmlExpenses = response.data ?? [];
-          this.totalAvailableXmlExpenses = Number(response.total ?? 0);
-          this.availablePage = Number(response.page ?? 1);
-          this.availableLimit = Number(response.limit ?? 20);
-          this.availableTotalPages = Number(response.totalPages ?? 0);
 
           if (
             this.selectedXmlExpense &&
@@ -573,11 +566,11 @@ export class RecordOcXmlExpense implements OnInit {
           }
         },
         error: (err) => {
-          console.error('Error cargando gastos XML disponibles:', err);
+          console.error("Error cargando gastos XML disponibles:", err);
 
           this.errorMessage =
             err?.error?.message ||
-            'No se pudieron cargar los gastos XML disponibles.';
+            "No se pudieron cargar los gastos XML disponibles.";
         },
       });
   }
@@ -597,8 +590,8 @@ export class RecordOcXmlExpense implements OnInit {
           this.photoUrl = response.url;
         },
         error: (err) => {
-          console.error('Error cargando URL temporal de foto:', err);
-          this.errorMessage = 'No se pudo cargar la foto del ticket.';
+          console.error("Error cargando URL temporal de foto:", err);
+          this.errorMessage = "No se pudo cargar la foto del ticket.";
         },
       });
   }
@@ -606,8 +599,8 @@ export class RecordOcXmlExpense implements OnInit {
   private mapTicketPhotoToRow(
     photo: PurchaseOrderTicketPhotoDto,
   ): PendingTicketPhotoRow {
-    const createdAt = photo.created_at ?? photo.createdAt ?? '';
-    const status = photo.status ?? 'pending';
+    const createdAt = photo.created_at ?? photo.createdAt ?? "";
+    const status = photo.status ?? "pending";
 
     const publicUrl =
       photo.public_url ??
@@ -625,13 +618,13 @@ export class RecordOcXmlExpense implements OnInit {
         photo.file_name ??
         photo.fileName ??
         photo.filename ??
-        'Foto del ticket',
-      project_name: photo.project?.name ?? 'Sin proyecto',
+        "Foto del ticket",
+      project_name: photo.project?.name ?? "Sin proyecto",
       uploaded_by_name:
         photo.uploaded_by_user?.name ??
         photo.uploadedByUser?.name ??
         photo.user?.name ??
-        'Sin dato',
+        "Sin dato",
       status,
       status_label: this.getPhotoStatusLabel(status),
       created_at: createdAt,
@@ -642,22 +635,22 @@ export class RecordOcXmlExpense implements OnInit {
 
   private getPhotoStatusLabel(status: string): string {
     switch (status) {
-      case 'reconciled':
-        return 'Foto conciliada';
+      case "reconciled":
+        return "Foto conciliada";
 
-      case 'discarded':
-        return 'Descartada';
+      case "discarded":
+        return "Descartada";
 
-      case 'pending':
+      case "pending":
       default:
-        return 'Pendiente';
+        return "Pendiente";
     }
   }
 
   private getPhotoIdFromRoute(): number | null {
     const rawPhotoId =
-      this.route.snapshot.paramMap.get('photoId') ??
-      this.route.snapshot.paramMap.get('id');
+      this.route.snapshot.paramMap.get("photoId") ??
+      this.route.snapshot.paramMap.get("id");
 
     const photoId = Number(rawPhotoId);
 
@@ -665,16 +658,26 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   private toNumberOrNull(value: unknown): number | null {
-    if (value === null || value === undefined || value === '') return null;
+    if (value === null || value === undefined || value === "") return null;
 
     const cleanValue =
-      typeof value === 'string'
-        ? value.replace(/[$,\s]/g, '')
-        : value;
+      typeof value === "string" ? value.replace(/[$,\s]/g, "") : value;
 
     const parsed = Number(cleanValue);
 
     return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  private getCatalogId(
+    value: Catalog | number | string | null | undefined,
+  ): number | null {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+
+    const id = typeof value === "object" ? Number(value.id) : Number(value);
+
+    return Number.isInteger(id) && id > 0 ? id : null;
   }
 
   private round2(value: number): number {
@@ -682,29 +685,29 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   private formatDateTime(value: string | Date | null | undefined): string {
-    if (!value) return 'Sin fecha';
+    if (!value) return "Sin fecha";
 
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+    if (Number.isNaN(date.getTime())) return "Sin fecha";
 
     return date
-      .toLocaleString('es-MX', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
+      .toLocaleString("es-MX", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
       })
-      .replace(',', '');
+      .replace(",", "");
   }
 
   formatMoney(value: number | string | null | undefined): string {
     const amount = Number(value ?? 0);
 
-    return amount.toLocaleString('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
+    return amount.toLocaleString("es-MX", {
+      style: "currency",
+      currency: "MXN",
     });
   }
 

@@ -17,6 +17,8 @@ import {
   InputDate,
 } from '../../../../../../shared/ui/input-date/input-date';
 import { InputField } from '../../../../../../shared/ui/input-field/input-field';
+import { Autocomplete } from '../../../../../../shared/ui/autocomplete/autocomplete';
+import { Catalog } from '../../../../../../shared/interfaces/general-interfaces';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
 import {
@@ -44,6 +46,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     LoadingOverlay,
     InputDate,
     InputField,
+    Autocomplete,
     BtnsSection,
 
     MatIconModule,
@@ -77,16 +80,12 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   selectedWarehouseXmlExpense: AvailableWarehouseXmlExpenseDto | null = null;
   selectedItemIds: number[] = [];
 
-  totalAvailableWarehouseXmlExpenses = 0;
-  availablePage = 1;
-  availableLimit = 20;
-  availableTotalPages = 0;
-
   errorMessage: string | null = null;
 
   form = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string | null>(null),
+    supplier: this.fb.control<Catalog | number | string | null>(null),
     amount: this.fb.control<number | string | null>(null),
     notes: this.fb.control<string | null>(null),
   });
@@ -103,7 +102,11 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   get projectName(): string {
-    return this.order?.project?.name ?? this.photo?.project_name ?? 'Sin proyecto';
+    return (
+      this.order?.project?.name ??
+      this.photo?.project_name ??
+      'Sin proyecto'
+    );
   }
 
   get requesterName(): string {
@@ -164,14 +167,16 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   get hasExistingPhotoLink(): boolean {
-    if (!this.photoId || !this.order?.expense_links?.length) return false;
+    if (!this.photoId || !this.order?.expense_links?.length) {
+      return false;
+    }
 
     return this.order.expense_links.some((link) => {
       const ticketPhotoId = Number(
         (link as any).ticket_photo?.id ??
-        (link as any).ticketPhoto?.id ??
-        link.ticket_photo_id ??
-        0,
+          (link as any).ticketPhoto?.id ??
+          link.ticket_photo_id ??
+          0,
       );
 
       return ticketPhotoId === this.photoId;
@@ -189,6 +194,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return !!(
       hasDates ||
       raw.search?.trim() ||
+      this.getCatalogId(raw.supplier) !== null ||
       this.toNumberOrNull(raw.amount) !== null
     );
   }
@@ -196,8 +202,10 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   get selectedItems(): AvailableWarehouseXmlExpenseItemDto[] {
     if (!this.selectedWarehouseXmlExpense) return [];
 
-    return (this.selectedWarehouseXmlExpense.available_items ?? []).filter(
-      (item) => this.selectedItemIds.includes(Number(item.id)),
+    return (
+      this.selectedWarehouseXmlExpense.available_items ?? []
+    ).filter((item) =>
+      this.selectedItemIds.includes(Number(item.id)),
     );
   }
 
@@ -252,10 +260,10 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return this.isZeroAmountWarehouseXmlSpecialCase;
   }
 
-
-
   get amountDifference(): number {
-    return this.round2(this.selectedAmount - this.requestedAmount);
+    return this.round2(
+      this.selectedAmount - this.requestedAmount,
+    );
   }
 
   abs(value: number): number {
@@ -264,7 +272,8 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
 
   get canSave(): boolean {
     const hasValidAmount =
-      this.selectedAmount > 0 || this.isZeroAmountWarehouseXmlSpecialCase;
+      this.selectedAmount > 0 ||
+      this.isZeroAmountWarehouseXmlSpecialCase;
 
     return (
       !!this.photoId &&
@@ -323,7 +332,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   applyFilters(): void {
-    this.loadAvailableWarehouseXmlExpenses(true);
+    this.loadAvailableWarehouseXmlExpenses();
   }
 
   clearFilters(): void {
@@ -331,35 +340,27 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
       {
         dateRange: null,
         search: null,
+        supplier: null,
         amount: null,
       },
       { emitEvent: false },
     );
 
-    this.loadAvailableWarehouseXmlExpenses(true);
+    this.loadAvailableWarehouseXmlExpenses();
   }
 
-  nextPage(): void {
-    if (this.availablePage >= this.availableTotalPages) return;
-
-    this.availablePage += 1;
-    this.clearSelectedWarehouseXmlExpense();
-    this.loadAvailableWarehouseXmlExpenses(false);
-  }
-
-  previousPage(): void {
-    if (this.availablePage <= 1) return;
-
-    this.availablePage -= 1;
-    this.clearSelectedWarehouseXmlExpense();
-    this.loadAvailableWarehouseXmlExpenses(false);
-  }
-
-  selectXmlExpense(expense: AvailableWarehouseXmlExpenseDto): void {
-    if (!expense?.can_select || this.hasExistingPhotoLink) return;
+  selectXmlExpense(
+    expense: AvailableWarehouseXmlExpenseDto,
+  ): void {
+    if (!expense?.can_select || this.hasExistingPhotoLink) {
+      return;
+    }
 
     this.selectedWarehouseXmlExpense = expense;
-    this.selectedItemIds = (expense.available_item_ids ?? [])
+
+    this.selectedItemIds = (
+      expense.available_item_ids ?? []
+    )
       .map(Number)
       .filter((id) => Number.isFinite(id) && id > 0);
 
@@ -371,32 +372,55 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     this.selectedItemIds = [];
   }
 
-  isXmlExpenseSelected(expense: AvailableWarehouseXmlExpenseDto): boolean {
-    return Number(this.selectedWarehouseXmlExpense?.id ?? 0) === Number(expense.id);
+  isXmlExpenseSelected(
+    expense: AvailableWarehouseXmlExpenseDto,
+  ): boolean {
+    return (
+      Number(this.selectedWarehouseXmlExpense?.id ?? 0) ===
+      Number(expense.id)
+    );
   }
 
-  toggleXmlItem(item: AvailableWarehouseXmlExpenseItemDto): void {
+  toggleXmlItem(
+    item: AvailableWarehouseXmlExpenseItemDto,
+  ): void {
     const itemId = Number(item.id);
 
     if (!itemId || this.hasExistingPhotoLink) return;
 
     if (this.selectedItemIds.includes(itemId)) {
-      this.selectedItemIds = this.selectedItemIds.filter((id) => id !== itemId);
+      this.selectedItemIds =
+        this.selectedItemIds.filter(
+          (id) => id !== itemId,
+        );
       return;
     }
 
-    this.selectedItemIds = [...this.selectedItemIds, itemId];
+    this.selectedItemIds = [
+      ...this.selectedItemIds,
+      itemId,
+    ];
   }
 
-  isXmlItemSelected(item: AvailableWarehouseXmlExpenseItemDto): boolean {
-    return this.selectedItemIds.includes(Number(item.id));
+  isXmlItemSelected(
+    item: AvailableWarehouseXmlExpenseItemDto,
+  ): boolean {
+    return this.selectedItemIds.includes(
+      Number(item.id),
+    );
   }
 
   selectAllItems(): void {
-    if (!this.selectedWarehouseXmlExpense || this.hasExistingPhotoLink) return;
+    if (
+      !this.selectedWarehouseXmlExpense ||
+      this.hasExistingPhotoLink
+    ) {
+      return;
+    }
 
     this.selectedItemIds = (
-      this.selectedWarehouseXmlExpense.available_item_ids ?? []
+      this.selectedWarehouseXmlExpense
+        .available_item_ids ?? []
     )
       .map(Number)
       .filter((id) => Number.isFinite(id) && id > 0);
@@ -411,7 +435,11 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   saveRelation(): void {
     if (this.saving()) return;
 
-    if (!this.canSave || !this.photoId || !this.selectedWarehouseXmlExpense) {
+    if (
+      !this.canSave ||
+      !this.photoId ||
+      !this.selectedWarehouseXmlExpense
+    ) {
       this.form.markAllAsTouched();
       return;
     }
@@ -419,8 +447,11 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     const raw = this.form.getRawValue();
 
     const payload: LinkExistingWarehouseXmlExpenseDto = {
-      expense_id: Number(this.selectedWarehouseXmlExpense.id),
-      expense_item_ids: this.selectedItemIds.map(Number),
+      expense_id: Number(
+        this.selectedWarehouseXmlExpense.id,
+      ),
+      expense_item_ids:
+        this.selectedItemIds.map(Number),
       notes: raw.notes?.trim() || null,
     };
 
@@ -428,21 +459,31 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     this.saving.set(true);
 
     this.purchaseOrdersService
-      .linkExistingWarehouseXmlExpenseToTicketPhoto(this.photoId, payload)
+      .linkExistingWarehouseXmlExpenseToTicketPhoto(
+        this.photoId,
+        payload,
+      )
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
         next: (response) => {
-          const purchaseOrderId = response?.data?.purchase_order_id ?? this.order?.id;
+          const purchaseOrderId =
+            response?.data?.purchase_order_id ??
+            this.order?.id;
 
           if (purchaseOrderId) {
-            this.router.navigateByUrl(`/ordenes-compra/detalle/${purchaseOrderId}`);
+            this.router.navigateByUrl(
+              `/ordenes-compra/detalle/${purchaseOrderId}`,
+            );
             return;
           }
 
           this.goBack();
         },
         error: (err) => {
-          console.error('Error relacionando XML de almacén con O.C.:', err);
+          console.error(
+            'Error relacionando XML de almacén con O.C.:',
+            err,
+          );
 
           this.errorMessage =
             err?.error?.message ||
@@ -454,35 +495,53 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   openPhotoInNewTab(): void {
     if (!this.photoUrl) return;
 
-    window.open(this.photoUrl, '_blank', 'noopener,noreferrer');
+    window.open(
+      this.photoUrl,
+      '_blank',
+      'noopener,noreferrer',
+    );
   }
 
   onImageError(): void {
     this.imageError = true;
-    this.errorMessage = 'No se pudo mostrar la imagen.';
+    this.errorMessage =
+      'No se pudo mostrar la imagen.';
   }
 
   goBack(): void {
     if (this.order?.id) {
-      this.router.navigateByUrl(`/ordenes-compra/detalle/${this.order.id}`);
+      this.router.navigateByUrl(
+        `/ordenes-compra/detalle/${this.order.id}`,
+      );
       return;
     }
 
     this.router.navigateByUrl('/ordenes-compra');
   }
 
-  getAvailableItemName(item: AvailableWarehouseXmlExpenseItemDto): string {
-    return item.product?.name ?? item.concept ?? 'Partida sin nombre';
+  getAvailableItemName(
+    item: AvailableWarehouseXmlExpenseItemDto,
+  ): string {
+    return (
+      item.product?.name ??
+      item.concept ??
+      'Partida sin nombre'
+    );
   }
 
-  getItemUnitText(item: AvailableWarehouseXmlExpenseItemDto): string {
+  getItemUnitText(
+    item: AvailableWarehouseXmlExpenseItemDto,
+  ): string {
     const quantity = item.quantity ?? '—';
-    const unit = item.unit || item.unit_name || '';
+    const unit =
+      item.unit || item.unit_name || '';
 
     return `${quantity} ${unit}`.trim();
   }
 
-  getItemUnitPrice(item: AvailableWarehouseXmlExpenseItemDto): number {
+  getItemUnitPrice(
+    item: AvailableWarehouseXmlExpenseItemDto,
+  ): number {
     return Number(item.unit_price ?? 0);
   }
 
@@ -493,103 +552,138 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
 
     this.purchaseOrdersService
       .getTicketPhotoById(this.photoId)
-      .pipe(finalize(() => this.loadingPage.set(false)))
+      .pipe(
+        finalize(() => this.loadingPage.set(false)),
+      )
       .subscribe({
         next: (photo) => {
-          this.photo = this.mapTicketPhotoToRow(photo);
+          this.photo =
+            this.mapTicketPhotoToRow(photo);
+
           this.loadPhotoUrl();
 
           const purchaseOrderId =
-            photo.purchase_order?.id ?? photo.purchaseOrder?.id ?? null;
+            photo.purchase_order?.id ??
+            photo.purchaseOrder?.id ??
+            null;
 
           if (purchaseOrderId) {
             this.loadOrderDetail(purchaseOrderId);
             return;
           }
 
-          this.errorMessage = 'La foto no tiene una orden de compra conciliada.';
+          this.errorMessage =
+            'La foto no tiene una orden de compra conciliada.';
         },
         error: (err) => {
-          console.error('Error cargando detalle de foto:', err);
+          console.error(
+            'Error cargando detalle de foto:',
+            err,
+          );
 
           this.errorMessage =
-            err?.error?.message || 'No se pudo cargar la información de la foto.';
+            err?.error?.message ||
+            'No se pudo cargar la información de la foto.';
         },
       });
   }
 
-  private loadOrderDetail(orderId: number): void {
+  private loadOrderDetail(
+    orderId: number,
+  ): void {
     this.loadingPage.set(true);
 
     this.purchaseOrdersService
       .getFlowDetail(orderId)
-      .pipe(finalize(() => this.loadingPage.set(false)))
+      .pipe(
+        finalize(() => this.loadingPage.set(false)),
+      )
       .subscribe({
         next: (response) => {
-          this.order = (response?.data ?? response) as PurchaseOrderFlowDetailResponse;
+          this.order = (
+            response?.data ?? response
+          ) as PurchaseOrderFlowDetailResponse;
 
           if (this.hasExistingPhotoLink) {
-            this.errorMessage = 'Esta foto ya tiene un XML relacionado.';
+            this.errorMessage =
+              'Esta foto ya tiene un XML relacionado.';
             return;
           }
 
           if (this.isWarehouseWithInvoice) {
-            this.loadAvailableWarehouseXmlExpenses(true);
+            this.loadAvailableWarehouseXmlExpenses();
           }
         },
         error: (err) => {
-          console.error('Error cargando detalle de O.C.:', err);
+          console.error(
+            'Error cargando detalle de O.C.:',
+            err,
+          );
 
           this.errorMessage =
-            err?.error?.message || 'No se pudo cargar la información de la O.C.';
+            err?.error?.message ||
+            'No se pudo cargar la información de la O.C.';
         },
       });
   }
 
-  private loadAvailableWarehouseXmlExpenses(resetPage = false): void {
+  private loadAvailableWarehouseXmlExpenses(): void {
     if (!this.order?.id) return;
 
-    if (resetPage) {
-      this.availablePage = 1;
-    }
-
     const raw = this.form.getRawValue();
-    const amount = this.toNumberOrNull(raw.amount);
+    const amount =
+      this.toNumberOrNull(raw.amount);
 
-    const filters: FiltersAvailableWarehouseXmlExpenses = {
-      page: this.availablePage,
-      limit: this.availableLimit,
-      search: raw.search?.trim() || null,
-      amount,
-      date_from: raw.dateRange?.startDate ?? null,
-      date_to: raw.dateRange?.endDate ?? null,
-    };
+    const filters: FiltersAvailableWarehouseXmlExpenses =
+      {
+        search: raw.search?.trim() || null,
+        supplier_id: this.getCatalogId(
+          raw.supplier,
+        ),
+        amount,
+        date_from:
+          raw.dateRange?.startDate ?? null,
+        date_to:
+          raw.dateRange?.endDate ?? null,
+      };
 
     this.loadingXmlExpenses.set(true);
 
     this.purchaseOrdersService
-      .getAvailableWarehouseXmlExpensesForPurchaseOrder(this.order.id, filters)
-      .pipe(finalize(() => this.loadingXmlExpenses.set(false)))
+      .getAvailableWarehouseXmlExpensesForPurchaseOrder(
+        this.order.id,
+        filters,
+      )
+      .pipe(
+        finalize(() =>
+          this.loadingXmlExpenses.set(false),
+        ),
+      )
       .subscribe({
         next: (response) => {
-          this.availableWarehouseXmlExpenses = response.data ?? [];
-          this.totalAvailableWarehouseXmlExpenses = Number(response.total ?? 0);
-          this.availablePage = Number(response.page ?? 1);
-          this.availableLimit = Number(response.limit ?? 20);
-          this.availableTotalPages = Number(response.totalPages ?? 0);
+          this.availableWarehouseXmlExpenses =
+            response.data ?? [];
 
           if (
             this.selectedWarehouseXmlExpense &&
             !this.availableWarehouseXmlExpenses.some(
               (expense) =>
-                Number(expense.id) === Number(this.selectedWarehouseXmlExpense?.id),
+                Number(expense.id) ===
+                Number(
+                  this
+                    .selectedWarehouseXmlExpense
+                    ?.id,
+                ),
             )
           ) {
             this.clearSelectedWarehouseXmlExpense();
           }
         },
         error: (err) => {
-          console.error('Error cargando XML de almacén disponibles:', err);
+          console.error(
+            'Error cargando XML de almacén disponibles:',
+            err,
+          );
 
           this.errorMessage =
             err?.error?.message ||
@@ -607,14 +701,21 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
 
     this.purchaseOrdersService
       .getTicketPhotoViewUrl(this.photoId)
-      .pipe(finalize(() => this.loadingPhoto.set(false)))
+      .pipe(
+        finalize(() => this.loadingPhoto.set(false)),
+      )
       .subscribe({
         next: (response) => {
           this.photoUrl = response.url;
         },
         error: (err) => {
-          console.error('Error cargando URL temporal de foto:', err);
-          this.errorMessage = 'No se pudo cargar la foto del ticket.';
+          console.error(
+            'Error cargando URL temporal de foto:',
+            err,
+          );
+
+          this.errorMessage =
+            'No se pudo cargar la foto del ticket.';
         },
       });
   }
@@ -622,7 +723,9 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   private mapTicketPhotoToRow(
     photo: PurchaseOrderTicketPhotoDto,
   ): PendingTicketPhotoRow {
-    const createdAt = photo.created_at ?? photo.createdAt ?? '';
+    const createdAt =
+      photo.created_at ?? photo.createdAt ?? '';
+
     const status = photo.status ?? 'pending';
 
     const publicUrl =
@@ -642,22 +745,30 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
         photo.fileName ??
         photo.filename ??
         'Foto del ticket',
-      project_name: photo.project?.name ?? 'Sin proyecto',
+      project_name:
+        photo.project?.name ?? 'Sin proyecto',
       uploaded_by_name:
         photo.uploaded_by_user?.name ??
         photo.uploadedByUser?.name ??
         photo.user?.name ??
         'Sin dato',
       status,
-      status_label: this.getPhotoStatusLabel(status),
+      status_label:
+        this.getPhotoStatusLabel(status),
       created_at: createdAt,
-      created_at_date: this.formatDateTime(createdAt),
+      created_at_date:
+        this.formatDateTime(createdAt),
       public_url: publicUrl,
-      purchase_order: photo.purchase_order ?? photo.purchaseOrder ?? null,
+      purchase_order:
+        photo.purchase_order ??
+        photo.purchaseOrder ??
+        null,
     };
   }
 
-  private getPhotoStatusLabel(status: string): string {
+  private getPhotoStatusLabel(
+    status: string,
+  ): string {
     switch (status) {
       case 'reconciled':
         return 'Foto conciliada';
@@ -673,35 +784,84 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
 
   private getPhotoIdFromRoute(): number | null {
     const rawPhotoId =
-      this.route.snapshot.paramMap.get('photoId') ??
+      this.route.snapshot.paramMap.get(
+        'photoId',
+      ) ??
       this.route.snapshot.paramMap.get('id');
 
     const photoId = Number(rawPhotoId);
 
-    return Number.isFinite(photoId) && photoId > 0 ? photoId : null;
+    return Number.isFinite(photoId) &&
+      photoId > 0
+      ? photoId
+      : null;
   }
 
-  private toNumberOrNull(value: unknown): number | null {
-    if (value === null || value === undefined || value === '') return null;
+  private toNumberOrNull(
+    value: unknown,
+  ): number | null {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
+    }
 
     const cleanValue =
-      typeof value === 'string' ? value.replace(/[$,\s]/g, '') : value;
+      typeof value === 'string'
+        ? value.replace(/[$,\s]/g, '')
+        : value;
 
     const parsed = Number(cleanValue);
 
-    return Number.isFinite(parsed) ? parsed : null;
+    return Number.isFinite(parsed)
+      ? parsed
+      : null;
+  }
+
+  private getCatalogId(
+    value:
+      | Catalog
+      | number
+      | string
+      | null
+      | undefined,
+  ): number | null {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
+    }
+
+    const id =
+      typeof value === 'object'
+        ? Number(value.id)
+        : Number(value);
+
+    return Number.isInteger(id) && id > 0
+      ? id
+      : null;
   }
 
   private round2(value: number): number {
-    return Number(Number(value ?? 0).toFixed(2));
+    return Number(
+      Number(value ?? 0).toFixed(2),
+    );
   }
 
-  private formatDateTime(value: string | Date | null | undefined): string {
+  private formatDateTime(
+    value: string | Date | null | undefined,
+  ): string {
     if (!value) return 'Sin fecha';
 
     const date = new Date(value);
 
-    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+    if (Number.isNaN(date.getTime())) {
+      return 'Sin fecha';
+    }
 
     return date
       .toLocaleString('es-MX', {
@@ -714,7 +874,13 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
       .replace(',', '');
   }
 
-  formatMoney(value: number | string | null | undefined): string {
+  formatMoney(
+    value:
+      | number
+      | string
+      | null
+      | undefined,
+  ): string {
     const amount = Number(value ?? 0);
 
     return amount.toLocaleString('es-MX', {
