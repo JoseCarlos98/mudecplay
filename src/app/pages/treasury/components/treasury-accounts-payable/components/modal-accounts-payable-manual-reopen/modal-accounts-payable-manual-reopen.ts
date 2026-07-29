@@ -48,11 +48,6 @@ import {
   LoadingOverlay,
 } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
 
-// Servicios compartidos
-import {
-  DialogService,
-} from '../../../../../../shared/services/dialog.service';
-
 // Módulo
 import * as entity from '../../interfaces/treasury-accounts-payable.interfaces';
 
@@ -70,7 +65,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 
 @Component({
   selector:
-    'app-modal-accounts-payable-manual-close',
+    'app-modal-accounts-payable-manual-reopen',
 
   standalone: true,
 
@@ -87,12 +82,12 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   ],
 
   templateUrl:
-    './modal-accounts-payable-manual-close.html',
+    './modal-accounts-payable-manual-reopen.html',
 
   styleUrl:
-    './modal-accounts-payable-manual-close.scss',
+    './modal-accounts-payable-manual-reopen.scss',
 })
-export class ModalAccountsPayableManualClose {
+export class ModalAccountsPayableManualReopen {
 
   // =========================================================
   // INYECCIONES
@@ -100,21 +95,18 @@ export class ModalAccountsPayableManualClose {
 
   readonly data =
     inject<
-      entity.TreasuryManualCloseBankMovementModalData
+      entity.TreasuryManualReopenBankMovementModalData
     >(MAT_DIALOG_DATA);
 
   private readonly dialogRef =
     inject(
       MatDialogRef<
-        ModalAccountsPayableManualClose
+        ModalAccountsPayableManualReopen
       >,
     );
 
   private readonly accountsPayableService =
     inject(TreasuryAccountsPayableService);
-
-  private readonly dialogService =
-    inject(DialogService);
 
   private readonly fb =
     inject(FormBuilder);
@@ -158,8 +150,50 @@ export class ModalAccountsPayableManualClose {
   // =========================================================
 
   get movement():
-    entity.TreasuryAvailableOutflowTableRow {
+    entity.TreasuryBankMovementHistoryCurrentMovement {
     return this.data.movement;
+  }
+
+  get originalAmount(): number {
+    return Number(
+      this.movement.amount ?? 0,
+    );
+  }
+
+  get appliedAmount(): number {
+    return Number(
+      this.movement.applied_amount ?? 0,
+    );
+  }
+
+  get availableAmount(): number {
+    return Number(
+      this.movement.available_amount ?? 0,
+    );
+  }
+
+  get manualClosedAmount(): number {
+    return Number(
+      this.movement.manual_closed_amount ?? 0,
+    );
+  }
+
+  get availableAfterReopen(): number {
+    return Number(
+      (
+        this.availableAmount +
+        this.manualClosedAmount
+      ).toFixed(2),
+    );
+  }
+
+  get referenceDisplay(): string {
+    return (
+      this.movement.tracking_key?.trim() ||
+      this.movement.bank_reference?.trim() ||
+      this.movement.receipt_number?.trim() ||
+      `Movimiento ${this.movement.id}`
+    );
   }
 
   get accountDisplay(): string {
@@ -180,36 +214,7 @@ export class ModalAccountsPayableManualClose {
     return (
       alias ||
       identifier ||
-      this.movement.bank_account_display ||
       'Sin cuenta'
-    );
-  }
-
-  get originalAmount(): number {
-    return Number(
-      this.movement.amount || 0,
-    );
-  }
-
-  get appliedAmount(): number {
-    return Number(
-      this.movement.applied_amount || 0,
-    );
-  }
-
-  get availableAmount(): number {
-    return Number(
-      this.movement.available_amount || 0,
-    );
-  }
-
-  get referenceDisplay(): string {
-    return (
-      this.movement.reference_display ||
-      this.movement.bank_reference ||
-      this.movement.receipt_number ||
-      this.movement.tracking_key ||
-      `Movimiento ${this.movement.id}`
     );
   }
 
@@ -218,7 +223,9 @@ export class ModalAccountsPayableManualClose {
       !this.saving() &&
       this.form.valid &&
       Boolean(this.movement?.id) &&
-      this.availableAmount > 0
+      this.manualClosedAmount > 0 &&
+      this.movement.status ===
+        'manually_closed'
     );
   }
 
@@ -250,14 +257,14 @@ export class ModalAccountsPayableManualClose {
     }
 
     const payload:
-      entity.TreasuryManualCloseBankMovementPayload = {
+      entity.TreasuryManualReopenBankMovementPayload = {
       reason,
     };
 
     this.saving.set(true);
 
     this.accountsPayableService
-      .manualCloseBankMovement(
+      .manualReopenBankMovement(
         this.movement.id,
         payload,
       )
@@ -266,14 +273,14 @@ export class ModalAccountsPayableManualClose {
           this.destroyRef,
         ),
 
-        finalize(() =>
-          this.saving.set(false),
-        ),
+        finalize(() => {
+          this.saving.set(false);
+        }),
       )
       .subscribe({
         next: (
           response:
-            entity.TreasuryManualCloseBankMovementResponse,
+            entity.TreasuryManualReopenBankMovementResponse,
         ) => {
           if (!response.success) {
             return;
@@ -286,14 +293,8 @@ export class ModalAccountsPayableManualClose {
 
         error: (error: unknown) => {
           console.error(
-            'Error al cerrar manualmente el movimiento:',
+            'Error al reabrir el movimiento bancario:',
             error,
-          );
-
-          this.showError(
-            this.resolveErrorMessage(
-              error,
-            ),
           );
         },
       });
@@ -343,78 +344,22 @@ export class ModalAccountsPayableManualClose {
     }
 
     const date =
-      String(value)
-        .slice(0, 10);
-
-    const parts =
-      date.split('-');
-
-    if (parts.length !== 3) {
-      return date;
-    }
+      String(value).slice(0, 10);
 
     const [
       year,
       month,
       day,
-    ] = parts;
+    ] = date.split('-');
+
+    if (
+      !year ||
+      !month ||
+      !day
+    ) {
+      return date;
+    }
 
     return `${day}/${month}/${year}`;
-  }
-
-  private showError(
-    message: string,
-  ): void {
-    this.dialogService
-      .confirm({
-        title:
-          'No se pudo cerrar el movimiento',
-
-        message,
-
-        confirmText:
-          'Aceptar',
-
-        cancelText:
-          '',
-      })
-      .subscribe();
-  }
-
-  private resolveErrorMessage(
-    error: unknown,
-  ): string {
-    const backendMessage =
-      (
-        error as {
-          error?: {
-            message?:
-              | string
-              | string[];
-          };
-        }
-      )?.error?.message;
-
-    if (
-      Array.isArray(
-        backendMessage,
-      )
-    ) {
-      return backendMessage.join(
-        '\n',
-      );
-    }
-
-    if (
-      typeof backendMessage ===
-        'string' &&
-      backendMessage.trim()
-    ) {
-      return backendMessage.trim();
-    }
-
-    return (
-      'No fue posible cerrar el movimiento bancario.'
-    );
   }
 }

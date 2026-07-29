@@ -73,6 +73,7 @@ import { roundMoney } from '../../../../shared/helpers/general-helpers';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsPayable } from './components/modal-treasury-accounts-payable/modal-treasury-accounts-payable';
 import { ModalAccountsPayableHistory } from './components/modal-accounts-payable-history/modal-accounts-payable-history';
+import { ModalAccountsPayableManualClose } from './components/modal-accounts-payable-manual-close/modal-accounts-payable-manual-close';
 
 // =========================================================
 // STORAGE
@@ -214,7 +215,7 @@ const AVAILABLE_OUTFLOW_DISPLAYED_COLUMNS = [
 // =========================================================
 
 const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
-   {
+  {
     key: 'expense_date',
     label: 'Fecha',
     type: 'date',
@@ -249,7 +250,7 @@ const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
     key: 'supplier_display_name',
     label: 'Proveedor',
   },
- 
+
 
   {
     key: 'project_name',
@@ -857,8 +858,14 @@ export class TreasuryAccountsPayable
         icon: 'lock',
         tooltip: 'Cerrar saldo disponible',
 
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+
         visible: (row) =>
-          Number(row.available_amount) > 0,
+          Number(
+            row.available_amount,
+          ) > 0,
       },
     ];
 
@@ -1861,36 +1868,75 @@ export class TreasuryAccountsPayable
     this.selectedMovement.set(row);
   }
 
-openMovementHistory(
-  movement:
-    entity.TreasuryAvailableOutflowTableRow,
-): void {
-  const modalData:
-    entity.TreasuryBankMovementHistoryModalData = {
-    movement,
-  };
+  openMovementHistory(
+    movement:
+      entity.TreasuryAvailableOutflowTableRow,
+  ): void {
+    const modalData:
+      entity.TreasuryBankMovementHistoryModalData = {
+      movement,
+    };
 
-  this.dialogService
-    .open(
-      ModalAccountsPayableHistory,
-      modalData,
-      'large',
-    )
-    .afterClosed()
-    .subscribe();
-}
+    this.dialogService
+      .open(
+        ModalAccountsPayableHistory,
+        modalData,
+        'large',
+      )
+      .afterClosed()
+      .subscribe();
+  }
 
   openManualClose(
     movement:
       entity.TreasuryAvailableOutflowTableRow,
   ): void {
-    console.log(
-      'Pendiente: confirmar cierre del movimiento',
-      movement,
-    );
+    if (
+      !movement?.id ||
+      Number(
+        movement.available_amount,
+      ) <= 0
+    ) {
+      return;
+    }
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryManualCloseMovementComponent.
+    const modalData:
+      entity.TreasuryManualCloseBankMovementModalData = {
+      movement,
+    };
+
+    this.dialogService
+      .open(
+        ModalAccountsPayableManualClose,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryManualCloseBankMovementResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          /*
+           * El movimiento ya no estará disponible,
+           * por lo que limpiamos también cualquier
+           * concepto que estuviera seleccionado.
+           */
+          this.clearPaymentSelection();
+
+          /*
+           * Se actualizan ambos paneles para conservar
+           * el mismo comportamiento general del módulo.
+           */
+          this.loadAvailableOutflows();
+          this.loadPendingExpenseItems();
+        },
+      );
   }
 
   // =========================================================

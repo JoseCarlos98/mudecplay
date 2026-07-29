@@ -345,4 +345,45 @@ export class TreasuryAccountsPayableService {
       `${this.apiUrl}/bank-movements/${movementId}/history`,
     );
   }
+
+
+  // =========================================================
+  // CERRAR MOVIMIENTO BANCARIO MANUALMENTE
+  // =========================================================
+
+  manualCloseBankMovement(
+    movementId: string | number,
+    payload:
+      entity.TreasuryManualCloseBankMovementPayload,
+  ): Observable<
+    entity.TreasuryManualCloseBankMovementResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryManualCloseBankMovementResponse
+    >(
+      `${this.apiUrl}/bank-movements/${movementId}/manual-close`,
+      payload,
+    );
+  }
+
+  // =========================================================
+  // REABRIR MOVIMIENTO CERRADO MANUALMENTE
+  // =========================================================
+
+  manualReopenBankMovement(
+    movementId: string | number,
+    payload:
+      entity.TreasuryManualReopenBankMovementPayload,
+  ): Observable<
+    entity.TreasuryManualReopenBankMovementResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryManualReopenBankMovementResponse
+    >(
+      `${this.apiUrl}/bank-movements/${movementId}/manual-reopen`,
+      payload,
+    );
+  }
 }
+
+

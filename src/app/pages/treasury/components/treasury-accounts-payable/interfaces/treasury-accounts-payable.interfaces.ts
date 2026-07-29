@@ -292,12 +292,12 @@ export interface TreasuryHistoricalPaymentFilters {
   project_id?: number | null;
 
   regularization_status?:
-    | TreasuryHistoricalRegularizationStatus
-    | null;
+  | TreasuryHistoricalRegularizationStatus
+  | null;
 
   regularization_type?:
-    | TreasuryHistoricalRegularizationType
-    | null;
+  | TreasuryHistoricalRegularizationType
+  | null;
 
   missing_payment_date?: boolean | null;
 
@@ -314,17 +314,17 @@ export interface TreasuryHistoricalPaymentUiFilters {
   project_id: Catalog | number | string | null;
 
   regularization_status:
-    | TreasuryHistoricalRegularizationStatus
-    | '';
+  | TreasuryHistoricalRegularizationStatus
+  | '';
 
   regularization_type:
-    | TreasuryHistoricalRegularizationType
-    | '';
+  | TreasuryHistoricalRegularizationType
+  | '';
 
   missing_payment_date:
-    | 'true'
-    | 'false'
-    | '';
+  | 'true'
+  | 'false'
+  | '';
 
   page: number;
   limit: number;
@@ -405,23 +405,23 @@ export interface TreasuryHistoricalPayment {
   payment_method: TreasuryHistoricalPaymentMethod;
 
   regularization_status:
-    TreasuryHistoricalRegularizationStatus;
+  TreasuryHistoricalRegularizationStatus;
 
   regularization_type:
-    | TreasuryHistoricalRegularizationType
-    | null;
+  | TreasuryHistoricalRegularizationType
+  | null;
 
   regularized_by_user_id: number | null;
   regularized_at: string | null;
   regularization_notes: string | null;
 
   company:
-    | TreasuryAccountsPayableCompanyReference
-    | null;
+  | TreasuryAccountsPayableCompanyReference
+  | null;
 
   bank_movement:
-    | TreasuryHistoricalPaymentBankMovement
-    | null;
+  | TreasuryHistoricalPaymentBankMovement
+  | null;
 
   can_regularize: boolean;
   can_reopen_regularization: boolean;
@@ -429,23 +429,23 @@ export interface TreasuryHistoricalPayment {
   applications_count: number;
 
   expense_item:
-    | TreasuryHistoricalPaymentExpenseItem
-    | null;
+  | TreasuryHistoricalPaymentExpenseItem
+  | null;
 
   expense:
-    | TreasuryHistoricalPaymentExpense
-    | null;
+  | TreasuryHistoricalPaymentExpense
+  | null;
 
   supplier:
-    | TreasuryAccountsPayableSupplierReference
-    | null;
+  | TreasuryAccountsPayableSupplierReference
+  | null;
 
   project:
-    | TreasuryAccountsPayableProjectReference
-    | null;
+  | TreasuryAccountsPayableProjectReference
+  | null;
 
   applications:
-    TreasuryHistoricalPaymentApplication[];
+  TreasuryHistoricalPaymentApplication[];
 }
 
 export interface TreasuryHistoricalPaymentTableRow
@@ -473,8 +473,8 @@ export interface TreasuryHistoricalPaymentsSummary {
   missing_payment_date_count: number;
 
   regularization_status:
-    | TreasuryHistoricalRegularizationStatus
-    | null;
+  | TreasuryHistoricalRegularizationStatus
+  | null;
 }
 
 export interface TreasuryHistoricalPaymentsResponse {
@@ -494,11 +494,11 @@ export interface TreasuryHistoricalPaymentHistoryAction {
   id: string;
 
   action_type:
-    | 'regularize'
-    | 'reopen_regularization';
+  | 'regularize'
+  | 'reopen_regularization';
 
   regularization_type:
-    TreasuryHistoricalRegularizationType;
+  TreasuryHistoricalRegularizationType;
 
   company_id: number | null;
   bank_movement_id: string | null;
@@ -506,22 +506,22 @@ export interface TreasuryHistoricalPaymentHistoryAction {
   amount: number;
 
   previous_regularization_status:
-    TreasuryHistoricalRegularizationStatus;
+  TreasuryHistoricalRegularizationStatus;
 
   new_regularization_status:
-    TreasuryHistoricalRegularizationStatus;
+  TreasuryHistoricalRegularizationStatus;
 
   previous_payment_method:
-    TreasuryHistoricalPaymentMethod;
+  TreasuryHistoricalPaymentMethod;
 
   new_payment_method:
-    TreasuryHistoricalPaymentMethod;
+  TreasuryHistoricalPaymentMethod;
 
   reason: string;
 
   metadata:
-    | Record<string, unknown>
-    | null;
+  | Record<string, unknown>
+  | null;
 
   created_by_user_id: number | null;
   created_at: string;
@@ -534,20 +534,20 @@ export interface TreasuryHistoricalPaymentHistoryResponse {
 
     payment_date: string | null;
     payment_method:
-      TreasuryHistoricalPaymentMethod;
+    TreasuryHistoricalPaymentMethod;
 
     status: string;
 
     regularization_status:
-      TreasuryHistoricalRegularizationStatus;
+    TreasuryHistoricalRegularizationStatus;
 
     regularization_type:
-      | TreasuryHistoricalRegularizationType
-      | null;
+    | TreasuryHistoricalRegularizationType
+    | null;
 
     company:
-      | TreasuryAccountsPayableCompanyReference
-      | null;
+    | TreasuryAccountsPayableCompanyReference
+    | null;
 
     bank_movement: {
       id: string;
@@ -668,20 +668,20 @@ export interface TreasuryBankMovementHistoryApplication {
   new_pending_amount?: number | null;
 
   expense_item:
-    | TreasuryBankMovementHistoryExpenseItem
-    | null;
+  | TreasuryBankMovementHistoryExpenseItem
+  | null;
 
   expense:
-    | TreasuryBankMovementHistoryExpense
-    | null;
+  | TreasuryBankMovementHistoryExpense
+  | null;
 
   supplier:
-    | TreasuryAccountsPayableSupplierReference
-    | null;
+  | TreasuryAccountsPayableSupplierReference
+  | null;
 
   project:
-    | TreasuryAccountsPayableProjectReference
-    | null;
+  | TreasuryAccountsPayableProjectReference
+  | null;
 }
 
 export interface TreasuryBankMovementHistoryPayment {
@@ -698,8 +698,8 @@ export interface TreasuryBankMovementHistoryPayment {
   created_at: string | null;
 
   created_by_user:
-    | TreasuryBankMovementHistoryUser
-    | null;
+  | TreasuryBankMovementHistoryUser
+  | null;
 
   applications: TreasuryBankMovementHistoryApplication[];
 }
@@ -728,23 +728,23 @@ export interface TreasuryBankMovementHistoryAction {
   new_manual_closed_amount?: number | null;
 
   previous_status:
-    | TreasuryBankMovementStatus
-    | null;
+  | TreasuryBankMovementStatus
+  | null;
 
   new_status:
-    | TreasuryBankMovementStatus
-    | null;
+  | TreasuryBankMovementStatus
+  | null;
 
   reason: string | null;
   notes?: string | null;
 
   metadata:
-    | Record<string, unknown>
-    | null;
+  | Record<string, unknown>
+  | null;
 
   created_by_user:
-    | TreasuryBankMovementHistoryUser
-    | null;
+  | TreasuryBankMovementHistoryUser
+  | null;
 
   created_at: string;
 }
@@ -753,7 +753,8 @@ export interface TreasuryBankMovementHistoryCurrentMovement {
   id: string;
 
   movement_date: string;
-  movement_time?: string | null;
+  movement_time: string | null;
+  movement_type: string;
 
   amount: number;
   available_amount: number;
@@ -761,21 +762,24 @@ export interface TreasuryBankMovementHistoryCurrentMovement {
   manual_closed_amount: number;
 
   status: TreasuryBankMovementStatus;
+  classification: string | null;
 
   description_original: string;
   bank_reference: string | null;
+  receipt_number: string | null;
+  tracking_key: string | null;
 
   company:
-    | TreasuryAccountsPayableCompanyReference
-    | null;
+  | TreasuryAccountsPayableCompanyReference
+  | null;
 
   bank:
-    | TreasuryAccountsPayableBankReference
-    | null;
+  | TreasuryAccountsPayableBankReference
+  | null;
 
   bank_account:
-    | TreasuryAccountsPayableBankAccountReference
-    | null;
+  | TreasuryAccountsPayableBankAccountReference
+  | null;
 }
 
 export interface TreasuryBankMovementHistoryResponse {
@@ -801,5 +805,114 @@ export interface TreasuryBankMovementHistoryResponse {
     applied_amount?: number;
     reversed_amount?: number;
     manually_closed_amount?: number;
+  };
+}
+
+
+// =========================================================
+// CIERRE MANUAL DE MOVIMIENTO BANCARIO
+// =========================================================
+
+export interface TreasuryManualCloseBankMovementModalData {
+  movement: TreasuryAvailableOutflowTableRow;
+}
+
+export interface TreasuryManualCloseBankMovementPayload {
+  reason: string;
+}
+
+export interface TreasuryManualCloseBankMovementResponse {
+  success: boolean;
+  message: string;
+
+  bank_movement: {
+    id: string;
+
+    amount: number;
+    applied_amount: number;
+
+    previous_available_amount: number;
+    manual_closed_amount: number;
+    available_amount: number;
+
+    status: TreasuryBankMovementStatus;
+
+    manually_closed_by_user_id: number | null;
+    manually_closed_at: string | null;
+    manual_close_reason: string | null;
+
+    company: {
+      id: number;
+      code: string;
+      name: string;
+    } | null;
+
+    bank: {
+      id: number;
+      code: string;
+      name: string;
+    } | null;
+
+    bank_account: {
+      id: number;
+      account_identifier: string;
+      alias: string | null;
+      currency: string;
+    } | null;
+  };
+}
+
+
+// =========================================================
+// REAPERTURA MANUAL DE MOVIMIENTO BANCARIO
+// =========================================================
+
+export interface TreasuryManualReopenBankMovementModalData {
+  movement: TreasuryBankMovementHistoryCurrentMovement;
+}
+
+export interface TreasuryManualReopenBankMovementPayload {
+  reason: string;
+}
+
+export interface TreasuryManualReopenBankMovementResponse {
+  success: boolean;
+  message: string;
+
+  bank_movement: {
+    id: string;
+
+    amount: number;
+    applied_amount: number;
+
+    previous_available_amount: number;
+    reopened_amount: number;
+
+    manual_closed_amount: number;
+    available_amount: number;
+
+    previous_status: TreasuryBankMovementStatus;
+    status: TreasuryBankMovementStatus;
+
+    reopened_by_user_id: number;
+
+    company: {
+      id: number;
+      code: string;
+      name: string;
+    } | null;
+
+    bank: {
+      id: number;
+      code: string;
+      name: string;
+    } | null;
+
+    bank_account: {
+      id: number;
+      account_identifier: string;
+      alias: string | null;
+      currency: string;
+    } | null;
   };
 }

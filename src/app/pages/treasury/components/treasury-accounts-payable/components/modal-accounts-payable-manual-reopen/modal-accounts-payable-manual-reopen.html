@@ -1,25 +1,25 @@
-<div class="c-modal accounts-payable-manual-close-modal">
+<div class="c-modal accounts-payable-manual-reopen-modal">
 
   <app-module-header
-    title="Cerrar movimiento bancario"
+    title="Reabrir movimiento bancario"
     [config]="headerConfig"
     (action)="closeModal()">
   </app-module-header>
 
-  <div class="accounts-payable-manual-close-modal__body">
+  <div class="accounts-payable-manual-reopen-modal__body">
 
     <!-- ===============================================
          MOVIMIENTO
          =============================================== -->
 
-    <section class="manual-close-movement-card">
+    <section class="manual-reopen-movement-card">
 
-      <div class="manual-close-movement-card__header">
+      <div class="manual-reopen-movement-card__header">
 
-        <div class="manual-close-movement-card__identity">
+        <div class="manual-reopen-movement-card__identity">
 
-          <div class="manual-close-movement-card__icon">
-            <mat-icon>account_balance</mat-icon>
+          <div class="manual-reopen-movement-card__icon">
+            <mat-icon>lock_open</mat-icon>
           </div>
 
           <div>
@@ -32,13 +32,13 @@
 
         </div>
 
-        <span class="manual-close-status">
-          {{ movement.status_label || 'Disponible' }}
+        <span class="manual-reopen-status">
+          Cerrado manualmente
         </span>
 
       </div>
 
-      <div class="manual-close-movement-card__grid">
+      <div class="manual-reopen-movement-card__grid">
 
         <div>
           <span>Empresa</span>
@@ -46,7 +46,6 @@
           <strong>
             {{
               movement.company?.name ||
-              movement.company_name ||
               'Empresa no identificada'
             }}
           </strong>
@@ -58,7 +57,6 @@
           <strong>
             {{
               movement.bank?.name ||
-              movement.bank_name ||
               'Sin banco'
             }}
           </strong>
@@ -86,7 +84,7 @@
 
       </div>
 
-      <div class="manual-close-movement-card__description">
+      <div class="manual-reopen-movement-card__description">
 
         <span>Descripción</span>
 
@@ -102,14 +100,14 @@
     </section>
 
     <!-- ===============================================
-         DISTRIBUCIÓN DEL MOVIMIENTO
+         DISTRIBUCIÓN
          =============================================== -->
 
-    <section class="manual-close-amounts">
+    <section class="manual-reopen-amounts">
 
-      <article class="manual-close-amount-card">
+      <article class="manual-reopen-amount-card">
 
-        <div class="manual-close-amount-card__icon">
+        <div class="manual-reopen-amount-card__icon">
           <mat-icon>payments</mat-icon>
         </div>
 
@@ -129,16 +127,16 @@
 
       </article>
 
-      <article class="manual-close-amount-card">
+      <article class="manual-reopen-amount-card">
 
-        <div class="manual-close-amount-card__icon">
+        <div class="manual-reopen-amount-card__icon">
           <mat-icon>task_alt</mat-icon>
         </div>
 
         <div>
           <span>Total aplicado</span>
 
-          <strong class="manual-close-amount--success">
+          <strong class="manual-reopen-amount--success">
             {{
               appliedAmount
                 | currency:
@@ -151,18 +149,18 @@
 
       </article>
 
-      <article class="manual-close-amount-card manual-close-amount-card--warning">
+      <article class="manual-reopen-amount-card manual-reopen-amount-card--closed">
 
-        <div class="manual-close-amount-card__icon">
+        <div class="manual-reopen-amount-card__icon">
           <mat-icon>lock</mat-icon>
         </div>
 
         <div>
-          <span>Saldo que se cerrará</span>
+          <span>Cerrado actualmente</span>
 
-          <strong class="manual-close-amount--warning">
+          <strong class="manual-reopen-amount--closed">
             {{
-              availableAmount
+              manualClosedAmount
                 | currency:
                   'MXN':
                   'symbol':
@@ -173,18 +171,18 @@
 
       </article>
 
-      <article class="manual-close-amount-card">
+      <article class="manual-reopen-amount-card manual-reopen-amount-card--available">
 
-        <div class="manual-close-amount-card__icon">
+        <div class="manual-reopen-amount-card__icon">
           <mat-icon>account_balance_wallet</mat-icon>
         </div>
 
         <div>
           <span>Disponible después</span>
 
-          <strong>
+          <strong class="manual-reopen-amount--available">
             {{
-              0
+              availableAfterReopen
                 | currency:
                   'MXN':
                   'symbol':
@@ -198,34 +196,33 @@
     </section>
 
     <!-- ===============================================
-         ADVERTENCIA
+         INFORMACIÓN
          =============================================== -->
 
-    <section class="manual-close-warning">
+    <section class="manual-reopen-information">
 
       <mat-icon>
-        warning
+        info
       </mat-icon>
 
       <div>
         <strong>
-          Este movimiento dejará de estar disponible
+          El saldo cerrado volverá a estar disponible
         </strong>
 
         <p>
-          El saldo de
+          Se restaurarán
           <strong>
             {{
-              availableAmount
+              manualClosedAmount
                 | currency:
                   'MXN':
                   'symbol':
                   '1.2-2'
             }}
           </strong>
-          se registrará como cerrado manualmente.
-          No se creará un pago y no se modificará
-          el saldo pendiente de ningún concepto.
+          para aplicarlos nuevamente a conceptos pendientes.
+          Los pagos ya registrados no se modificarán.
         </p>
       </div>
 
@@ -237,15 +234,27 @@
 
     <form
       id="form"
-      class="manual-close-form"
+      class="manual-reopen-form"
       [formGroup]="form"
       (ngSubmit)="saveData()">
 
       <app-input-field
         formControlName="reason"
-        label="Motivo del cierre"
+        label="Motivo de la reapertura"
         type="text">
       </app-input-field>
+
+      <div class="manual-reopen-form__helper">
+
+        <mat-icon>info</mat-icon>
+
+        <span>
+          Describe por qué el saldo cerrado debe
+          volver a estar disponible. Mínimo 5 y
+          máximo 500 caracteres.
+        </span>
+
+      </div>
 
     </form>
 
@@ -256,12 +265,11 @@
        =============================================== -->
 
   <app-btns-section
-    class="accounts-payable-manual-close-modal__footer"
+    class="accounts-payable-manual-reopen-modal__footer"
     type="save"
     form="form"
     cancelLabel="Cerrar"
-    saveLabel="Cerrar movimiento"
-    saveVariant="danger"
+    saveLabel="Reabrir movimiento"
     [cancelDisabled]="saving()"
     [saveDisabled]="!canSave"
     (action)="onBtnsSectionAction($event)">
@@ -270,7 +278,7 @@
   <app-loading-overlay
     [visible]="saving()"
     [fullscreen]="false"
-    text="Cerrando movimiento...">
+    text="Reabriendo movimiento...">
   </app-loading-overlay>
 
 </div>
