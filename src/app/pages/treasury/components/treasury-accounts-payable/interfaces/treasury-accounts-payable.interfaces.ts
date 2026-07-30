@@ -1102,3 +1102,88 @@ export interface TreasuryRegularizeHistoricalPaymentResponse {
     regularization_notes: string;
   };
 }
+
+
+// =========================================================
+// MODAL: REABRIR REGULARIZACIÓN HISTÓRICA
+// =========================================================
+
+export interface TreasuryReopenHistoricalRegularizationModalData {
+  payment:
+    TreasuryHistoricalPaymentTableRow;
+}
+
+export interface TreasuryReopenHistoricalRegularizationPayload {
+  reason: string;
+}
+
+export interface TreasuryReopenedHistoricalPayment {
+  id: string;
+
+  amount: number;
+  payment_date: string | null;
+
+  payment_method:
+    TreasuryHistoricalPaymentMethod;
+
+  status: string;
+
+  regularization_status:
+    TreasuryHistoricalRegularizationStatus;
+
+  regularization_type:
+    | TreasuryHistoricalRegularizationType
+    | null;
+
+  company: null;
+  bank_movement: null;
+
+  reference: string | null;
+
+  regularized_by_user_id:
+    number | null;
+
+  regularized_at:
+    string | null;
+
+  regularization_notes:
+    string | null;
+
+  reopened_by_user_id:
+    number;
+
+  reopened_at:
+    string;
+}
+
+export interface TreasuryRestoredHistoricalBankMovement {
+  id: string;
+
+  amount: number;
+
+  restored_amount: number;
+
+  previous_available_amount:
+    number;
+
+  available_amount:
+    number;
+
+  manual_closed_amount:
+    number;
+
+  status:
+    TreasuryBankMovementStatus;
+}
+
+export interface TreasuryReopenHistoricalRegularizationResponse {
+  success: boolean;
+  message: string;
+
+  payment:
+    TreasuryReopenedHistoricalPayment;
+
+  restored_bank_movement:
+    | TreasuryRestoredHistoricalBankMovement
+    | null;
+}

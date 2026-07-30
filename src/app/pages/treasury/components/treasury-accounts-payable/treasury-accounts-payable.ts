@@ -75,6 +75,7 @@ import { ModalTreasuryAccountsPayable } from './components/modal-treasury-accoun
 import { ModalAccountsPayableHistory } from './components/modal-accounts-payable-history/modal-accounts-payable-history';
 import { ModalAccountsPayableManualClose } from './components/modal-accounts-payable-manual-close/modal-accounts-payable-manual-close';
 import { ModalRegularizeHistoricalPayment } from './components/modal-regularize-historical-payment/modal-regularize-historical-payment';
+import { ModalReopenHistoricalRegularization } from './components/modal-reopen-historical-regularization/modal-reopen-historical-regularization';
 
 // =========================================================
 // STORAGE
@@ -107,17 +108,6 @@ const ITEM_TYPE_OPTIONS: Catalog[] = [
   {
     id: 'warehouse',
     name: 'Almacén',
-  },
-];
-
-const REGULARIZATION_STATUS_OPTIONS: Catalog[] = [
-  {
-    id: 'pending',
-    name: 'Pendientes',
-  },
-  {
-    id: 'regularized',
-    name: 'Regularizados',
   },
 ];
 
@@ -409,7 +399,8 @@ function resolveRegularizationStatusVariant(
 
 type AccountsPayableTab =
   | 'pending'
-  | 'historical';
+  | 'historical_pending'
+  | 'historical_regularized';
 
 @Component({
   selector: 'app-treasury-accounts-payable',
@@ -483,9 +474,6 @@ export class TreasuryAccountsPayable
 
   readonly itemTypeOptions =
     ITEM_TYPE_OPTIONS;
-
-  readonly regularizationStatusOptions =
-    REGULARIZATION_STATUS_OPTIONS;
 
   readonly regularizationTypeOptions =
     REGULARIZATION_TYPE_OPTIONS;
@@ -927,10 +915,19 @@ export class TreasuryAccountsPayable
         tooltip: 'Ver historial',
       },
       {
-        type: 'reopenRegularization',
-        icon: 'restart_alt',
-        tooltip: 'Reabrir regularización',
-        visible: (row) =>
+        type:
+          'reopenRegularization',
+        icon:
+          'restart_alt',
+        tooltip:
+          'Reabrir regularización',
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+        visible: (
+          row:
+            entity.TreasuryHistoricalPaymentTableRow,
+        ) =>
           row.can_reopen_regularization,
       },
     ];
@@ -955,7 +952,53 @@ export class TreasuryAccountsPayable
   setActiveTab(
     tab: AccountsPayableTab,
   ): void {
+    if (
+      this.activeTab() === tab
+    ) {
+      return;
+    }
+
     this.activeTab.set(tab);
+
+    /*
+     * Cuando se entra a regularizados,
+     * consultamos los pagos regularizados.
+     *
+     * Para las otras dos pestañas:
+     * - Pendientes por pagar
+     * - Históricos por regularizar
+     *
+     * mantenemos el resumen de históricos pendientes.
+     */
+    const regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus =
+      tab ===
+        'historical_regularized'
+        ? 'regularized'
+        : 'pending';
+
+    this.historicalFilterForm
+      .controls
+      .regularization_status
+      .setValue(
+        regularizationStatus,
+        {
+          emitEvent: false,
+        },
+      );
+
+    this.historicalFilters = {
+      ...this.historicalFilters,
+
+      page: 1,
+
+      regularization_status:
+        regularizationStatus,
+    };
+
+    this.saveHistoricalFiltersToStorage();
+
+    this.loadHistoricalPayments();
   }
 
   // =========================================================
@@ -1621,14 +1664,23 @@ export class TreasuryAccountsPayable
   }
 
   clearHistoricalPaymentFilters(): void {
+    const regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus =
+      this.activeTab() ===
+        'historical_regularized'
+        ? 'regularized'
+        : 'pending';
+
     this.historicalFilterForm.reset(
       {
         dateRange: null,
         search: '',
         supplier_id: null,
         project_id: null,
+
         regularization_status:
-          'pending',
+          regularizationStatus,
+
         regularization_type: '',
         missing_payment_date: '',
       },
@@ -1639,15 +1691,17 @@ export class TreasuryAccountsPayable
 
     this.historicalFilters = {
       page: 1,
+
       limit:
         this.historicalFilters.limit,
 
       search: '',
+
       supplier_id: null,
       project_id: null,
 
       regularization_status:
-        'pending',
+        regularizationStatus,
 
       regularization_type:
         null,
@@ -1655,11 +1709,8 @@ export class TreasuryAccountsPayable
       missing_payment_date:
         null,
 
-      date_from:
-        null,
-
-      date_to:
-        null,
+      date_from: null,
+      date_to: null,
     };
 
     this.storage.removeItem(
@@ -1734,7 +1785,8 @@ export class TreasuryAccountsPayable
 
   get hasActiveHistoricalFilters(): boolean {
     const value =
-      this.historicalFilterForm.getRawValue();
+      this.historicalFilterForm
+        .getRawValue();
 
     return Boolean(
       value.dateRange?.startDate ||
@@ -1746,8 +1798,6 @@ export class TreasuryAccountsPayable
       this.getCatalogValue(
         value.project_id,
       ) ||
-      value.regularization_status !==
-      'pending' ||
       value.regularization_type ||
       value.missing_payment_date,
     );
@@ -2341,18 +2391,54 @@ export class TreasuryAccountsPayable
     // Aquí se abrirá posteriormente:
     // TreasuryHistoricalPaymentHistoryComponent.
   }
-
   openReopenRegularization(
     row:
       entity.TreasuryHistoricalPaymentTableRow,
   ): void {
-    console.log(
-      'Pendiente: confirmar reapertura',
-      row,
-    );
+    if (
+      !row?.payment_id ||
+      !row.can_reopen_regularization
+    ) {
+      return;
+    }
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryReopenHistoricalPaymentComponent.
+    const modalData:
+      entity.TreasuryReopenHistoricalRegularizationModalData = {
+      payment:
+        row,
+    };
+
+    this.dialogService
+      .open(
+        ModalReopenHistoricalRegularization,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryReopenHistoricalRegularizationResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          /*
+           * El pago salió de regularizados y regresó
+           * a históricos por regularizar.
+           */
+          this.loadHistoricalPayments();
+
+          /*
+           * Una transferencia conciliada puede
+           * devolver saldo a un movimiento bancario.
+           */
+          this.clearPaymentSelection();
+          this.loadAvailableOutflows();
+        },
+      );
   }
 
   // =========================================================
@@ -2469,6 +2555,10 @@ export class TreasuryAccountsPayable
   }
 
   private restoreHistoricalFilters(): void {
+    const regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus =
+      'pending';
+
     const saved =
       this.storage.getItem<
         entity.TreasuryHistoricalPaymentUiFilters
@@ -2476,7 +2566,35 @@ export class TreasuryAccountsPayable
         HISTORICAL_PAYMENTS_FILTERS_KEY,
       );
 
-    if (!saved) return;
+    /*
+     * La pantalla siempre inicia mostrando
+     * pagos históricos pendientes.
+     *
+     * El estado guardado anteriormente se ignora,
+     * porque ahora el estado depende de la pestaña.
+     */
+    if (!saved) {
+      this.historicalFilterForm.patchValue(
+        {
+          regularization_status:
+            regularizationStatus,
+        },
+        {
+          emitEvent: false,
+        },
+      );
+
+      this.historicalFilters = {
+        ...this.historicalFilters,
+
+        page: 1,
+
+        regularization_status:
+          regularizationStatus,
+      };
+
+      return;
+    }
 
     const dateRange =
       this.normalizeDateRange(
@@ -2497,16 +2615,13 @@ export class TreasuryAccountsPayable
           saved.project_id ?? null,
 
         regularization_status:
-          saved.regularization_status ||
-          'pending',
+          regularizationStatus,
 
         regularization_type:
-          saved.regularization_type ||
-          '',
+          saved.regularization_type ?? '',
 
         missing_payment_date:
-          saved.missing_payment_date ||
-          '',
+          saved.missing_payment_date ?? '',
       },
       {
         emitEvent: false,
@@ -2518,6 +2633,9 @@ export class TreasuryAccountsPayable
         ...saved,
 
         dateRange,
+
+        regularization_status:
+          regularizationStatus,
 
         page:
           saved.page ?? 1,

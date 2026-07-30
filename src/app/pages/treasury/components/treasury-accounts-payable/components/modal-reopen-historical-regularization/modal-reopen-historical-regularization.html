@@ -1,0 +1,497 @@
+<div class="
+    c-modal
+    reopen-historical-regularization-modal
+  ">
+
+    <app-module-header title="Reabrir regularización histórica" [config]="headerConfig" (action)="closeModal()">
+    </app-module-header>
+
+    <div class="
+      reopen-historical-regularization-modal__body
+    ">
+
+        <!-- ===============================================
+         PAGO HISTÓRICO
+         =============================================== -->
+
+        <section class="reopen-historical-payment-card">
+
+            <div class="
+          reopen-historical-payment-card__header
+        ">
+
+                <div class="
+            reopen-historical-payment-card__identity
+          ">
+
+                    <div class="
+              reopen-historical-payment-card__icon
+            ">
+
+                        <mat-icon>
+                            history
+                        </mat-icon>
+
+                    </div>
+
+                    <div>
+
+                        <span>
+                            Pago histórico
+                        </span>
+
+                        <strong>
+                            {{ folioDisplay }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <span class="
+            reopen-historical-status
+          ">
+
+                    Regularizado
+
+                </span>
+
+            </div>
+
+            <div class="
+          reopen-historical-payment-card__grid
+        ">
+
+                <div>
+
+                    <span>
+                        Fecha de pago
+                    </span>
+
+                    <strong>
+                        {{ paymentDateDisplay }}
+                    </strong>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Proveedor
+                    </span>
+
+                    <strong>
+                        {{ supplierDisplay }}
+                    </strong>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Proyecto
+                    </span>
+
+                    <strong>
+                        {{ projectDisplay }}
+                    </strong>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Importe pagado
+                    </span>
+
+                    <strong class="
+              reopen-historical-amount--primary
+            ">
+
+                        {{
+                        paymentAmount
+                        | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                        }}
+
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="
+          reopen-historical-payment-card__concept
+        ">
+
+                <span>
+                    Concepto
+                </span>
+
+                <strong>
+                    {{ conceptDisplay }}
+                </strong>
+
+            </div>
+
+        </section>
+
+        <!-- ===============================================
+         REGULARIZACIÓN ACTUAL
+         =============================================== -->
+
+        <section class="
+        reopen-regularization-summary
+      ">
+
+            <article class="
+          reopen-regularization-summary__item
+        ">
+
+                <mat-icon>
+                    payments
+                </mat-icon>
+
+                <div>
+
+                    <span>
+                        Forma de pago
+                    </span>
+
+                    <strong>
+                        {{ paymentMethodDisplay }}
+                    </strong>
+
+                </div>
+
+            </article>
+
+            <article class="
+          reopen-regularization-summary__item
+        ">
+
+                <mat-icon>
+                    fact_check
+                </mat-icon>
+
+                <div>
+
+                    <span>
+                        Tipo de regularización
+                    </span>
+
+                    <strong>
+                        {{ regularizationTypeDisplay }}
+                    </strong>
+
+                </div>
+
+            </article>
+
+            <article class="
+          reopen-regularization-summary__item
+        ">
+
+                <mat-icon>
+                    business
+                </mat-icon>
+
+                <div>
+
+                    <span>
+                        Empresa
+                    </span>
+
+                    <strong>
+                        {{ companyDisplay }}
+                    </strong>
+
+                </div>
+
+            </article>
+
+            <article class="
+          reopen-regularization-summary__item
+        ">
+
+                <mat-icon>
+                    tag
+                </mat-icon>
+
+                <div>
+
+                    <span>
+                        Referencia
+                    </span>
+
+                    <strong>
+                        {{
+                        payment.reference ||
+                        'Sin referencia'
+                        }}
+                    </strong>
+
+                </div>
+
+            </article>
+
+        </section>
+
+        <!-- ===============================================
+         MOVIMIENTO QUE RECUPERARÁ SALDO
+         =============================================== -->
+
+        @if (
+        hasBankMovement &&
+        bankMovement;
+        as movement
+        ) {
+
+        <section class="
+          reopen-bank-movement-section
+        ">
+
+            <div class="
+            reopen-bank-movement-section__header
+          ">
+
+                <mat-icon>
+                    account_balance
+                </mat-icon>
+
+                <div>
+
+                    <strong>
+                        Movimiento bancario relacionado
+                    </strong>
+
+                    <span>
+                        El importe del pago histórico será
+                        devuelto al saldo disponible de este
+                        movimiento.
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="
+            reopen-bank-movement-card
+          ">
+
+                <div>
+
+                    <span>
+                        Movimiento
+                    </span>
+
+                    <strong>
+                        {{ movementReferenceDisplay }}
+                    </strong>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Fecha
+                    </span>
+
+                    <strong>
+                        {{
+                        formatDate(
+                        movement.movement_date
+                        )
+                        }}
+                    </strong>
+
+                </div>
+
+                <div>
+
+                    <span>
+                        Estatus actual
+                    </span>
+
+                    <strong>
+                        {{ movementStatusDisplay }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div class="
+            reopen-bank-movement-amounts
+          ">
+
+                <article>
+
+                    <span>
+                        Disponible actual
+                    </span>
+
+                    <strong>
+                        {{
+                        movementAvailableAmount
+                        | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                        }}
+                    </strong>
+
+                </article>
+
+                <mat-icon>
+                    add
+                </mat-icon>
+
+                <article>
+
+                    <span>
+                        Importe que se devolverá
+                    </span>
+
+                    <strong class="
+                reopen-historical-amount--warning
+              ">
+
+                        {{
+                        paymentAmount
+                        | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                        }}
+
+                    </strong>
+
+                </article>
+
+                <mat-icon>
+                    arrow_forward
+                </mat-icon>
+
+                <article>
+
+                    <span>
+                        Disponible después
+                    </span>
+
+                    <strong class="
+                reopen-historical-amount--success
+              ">
+
+                        {{
+                        movementAvailableAfterReopen
+                        | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                        }}
+
+                    </strong>
+
+                </article>
+
+            </div>
+
+        </section>
+
+        }
+
+        <!-- ===============================================
+         ADVERTENCIA
+         =============================================== -->
+
+        <section class="
+        reopen-historical-warning
+      ">
+
+            <mat-icon>
+                warning
+            </mat-icon>
+
+            <div>
+
+                <strong>
+                    El pago volverá a estar pendiente
+                    de regularización
+                </strong>
+
+                @if (hasBankMovement) {
+
+                <p>
+                    Se eliminará la relación actual con
+                    la empresa y el movimiento bancario.
+                    El importe de
+                    <strong>
+                        {{
+                        paymentAmount
+                        | currency:
+                        'MXN':
+                        'symbol':
+                        '1.2-2'
+                        }}
+                    </strong>
+                    se devolverá al saldo disponible del
+                    movimiento.
+                </p>
+
+                } @else {
+
+                <p>
+                    Se eliminará la forma de pago y la
+                    empresa actualmente registradas.
+                    No se modificará ningún movimiento
+                    bancario porque esta regularización
+                    no tiene uno relacionado.
+                </p>
+
+                }
+
+                <p>
+                    El importe ya aplicado al gasto no será
+                    eliminado ni modificado.
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+        <form id="form" class="
+        reopen-historical-form
+      " [formGroup]="form" (ngSubmit)="saveData()">
+
+            <app-input-field formControlName="reason" label="Motivo de la reapertura" type="text">
+            </app-input-field>
+
+        </form>
+
+    </div>
+
+    <!-- ===============================================
+       FOOTER
+       =============================================== -->
+
+    <app-btns-section class="
+      reopen-historical-regularization-modal__footer
+    " type="save" form="form" cancelLabel="Cerrar" saveLabel="Reabrir regularización" saveVariant="danger"
+        [cancelDisabled]="saving()" [saveDisabled]="!canSave" (action)="
+      onBtnsSectionAction(
+        $event
+      )
+    ">
+    </app-btns-section>
+
+    <app-loading-overlay [visible]="saving()" [fullscreen]="false" text="Reabriendo regularización...">
+    </app-loading-overlay>
+
+</div>

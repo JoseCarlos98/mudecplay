@@ -60,14 +60,61 @@
       </article>
 
       <article class="accounts-payable-summary__card">
-        <mat-icon>manage_history</mat-icon>
+
+        @if (
+        activeTab() ===
+        'historical_regularized'
+        ) {
+
+        <mat-icon>
+          task_alt
+        </mat-icon>
 
         <div>
-          <span>Históricos por regularizar</span>
+
+          <span>
+            Históricos regularizados
+          </span>
 
           <strong>
             {{
-            historicalTableData.summary
+            historicalTableData
+            .summary
+            .payments_count
+            }}
+          </strong>
+
+          <small>
+            Total:
+            {{
+            historicalTableData
+            .summary
+            .total_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
+            }}
+          </small>
+
+        </div>
+
+        } @else {
+
+        <mat-icon>
+          manage_history
+        </mat-icon>
+
+        <div>
+
+          <span>
+            Históricos por regularizar
+          </span>
+
+          <strong>
+            {{
+            historicalTableData
+            .summary
             .payments_count
             }}
           </strong>
@@ -75,32 +122,67 @@
           <small>
             Sin fecha:
             {{
-            historicalTableData.summary
+            historicalTableData
+            .summary
             .missing_payment_date_count
             }}
           </small>
+
         </div>
+
+        }
+
       </article>
     </div>
 
     <nav class="accounts-payable-tabs">
-      <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
-          activeTab() === 'pending'
-        " (click)="setActiveTab('pending')">
 
-        <mat-icon>pending_actions</mat-icon>
+      <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
+      activeTab() === 'pending'
+    " (click)="setActiveTab('pending')">
+
+        <mat-icon>
+          pending_actions
+        </mat-icon>
 
         Pendientes por pagar
+
       </button>
 
       <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
-          activeTab() === 'historical'
-        " (click)="setActiveTab('historical')">
+      activeTab() ===
+      'historical_pending'
+    " (click)="
+      setActiveTab(
+        'historical_pending'
+      )
+    ">
 
-        <mat-icon>history</mat-icon>
+        <mat-icon>
+          history
+        </mat-icon>
 
-        Pagos anteriores por regularizar
+        Pagos históricos por regularizar
+
       </button>
+
+      <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
+      activeTab() ===
+      'historical_regularized'
+    " (click)="
+      setActiveTab(
+        'historical_regularized'
+      )
+    ">
+
+        <mat-icon>
+          task_alt
+        </mat-icon>
+
+        Pagos históricos regularizados
+
+      </button>
+
     </nav>
   </div>
 
@@ -405,46 +487,95 @@
   }
 
   <!-- =====================================================
-       PAGOS HISTÓRICOS
-       ===================================================== -->
+     PAGOS HISTÓRICOS
+     ===================================================== -->
 
-  @if (activeTab() === 'historical') {
+  @if (
+  activeTab() === 'historical_pending' ||
+  activeTab() === 'historical_regularized'
+  ) {
+
   <section class="card-content shadow-md accounts-payable-panel">
+
+    <!-- ===============================================
+         ENCABEZADO
+         =============================================== -->
+
     <div class="accounts-payable-panel__header">
+
       <div>
-        <h2>Pagos anteriores por regularizar</h2>
+
+        <h2>
+          {{
+          activeTab() ===
+          'historical_regularized'
+          ? 'Pagos históricos regularizados'
+          : 'Pagos históricos por regularizar'
+          }}
+        </h2>
 
         <p>
-          Los pagos ya fueron aplicados al gasto.
-          Solo falta identificar su forma de pago,
-          empresa o movimiento bancario.
+          {{
+          activeTab() ===
+          'historical_regularized'
+          ? 'Consulta los pagos históricos que ya tienen identificada su forma de pago, empresa o movimiento bancario.'
+          : 'Los pagos ya fueron aplicados al gasto. Solo falta identificar su forma de pago, empresa o movimiento
+          bancario.'
+          }}
         </p>
+
       </div>
 
       <div class="accounts-payable-panel__amount">
-        Total
+
+        {{
+        activeTab() ===
+        'historical_regularized'
+        ? 'Total regularizado'
+        : 'Total por regularizar'
+        }}
 
         <strong>
           {{
-          historicalTableData.summary
+          historicalTableData
+          .summary
           .total_amount
-          | currency:'MXN':'symbol':'1.2-2'
+          | currency:
+          'MXN':
+          'symbol':
+          '1.2-2'
           }}
         </strong>
+
       </div>
+
     </div>
 
+    <!-- ===============================================
+         FILTROS
+         =============================================== -->
+
     <form [formGroup]="historicalFilterForm">
+
       <div class="c-filters accounts-payable-filters">
+
         <app-input-date formControlName="dateRange" label="Fecha de pago" mode="range">
         </app-input-date>
 
         <app-input-field formControlName="search" label="Buscar pago" type="text" [isFilter]="true">
         </app-input-field>
 
-        <app-input-select formControlName="regularization_status" label="Estado"
-          [options]="regularizationStatusOptions">
-        </app-input-select>
+        <!--
+          El estado ya no se selecciona aquí.
+
+          La pestaña determina automáticamente:
+
+          historical_pending
+          → regularization_status = pending
+
+          historical_regularized
+          → regularization_status = regularized
+        -->
 
         <app-input-select formControlName="regularization_type" label="Tipo" [options]="regularizationTypeOptions">
         </app-input-select>
@@ -467,25 +598,62 @@
             label="Proyecto"
             [options]="projectOptions">
           </app-input-select>
-          -->
+        -->
 
-        <app-btns-section type="search" [hasActiveFilters]="hasActiveHistoricalFilters"
-          (action)="onHistoricalBtnsSectionAction($event)">
+        <app-btns-section type="search" [hasActiveFilters]="
+            hasActiveHistoricalFilters
+          " (action)="
+            onHistoricalBtnsSectionAction(
+              $event
+            )
+          ">
         </app-btns-section>
+
       </div>
+
     </form>
 
-    <div class="c-module-table accounts-payable-table-shell"> <app-data-table [data]="historicalPaymentRows"
-        [columnsConfig]="historicalPaymentColumns" [displayedColumns]="historicalPaymentDisplayedColumns"
-        [extraActions]="historicalExtraActions" [actionPermissions]="tableActionPermissions"
-        (action)="onHistoricalTableAction($event)">
+    <!-- ===============================================
+         TABLA
+         =============================================== -->
+
+    <div class="
+        c-module-table
+        accounts-payable-table-shell
+      ">
+
+      <app-data-table [data]="historicalPaymentRows" [columnsConfig]="
+          historicalPaymentColumns
+        " [displayedColumns]="
+          historicalPaymentDisplayedColumns
+        " [extraActions]="
+          historicalExtraActions
+        " [actionPermissions]="
+          tableActionPermissions
+        " (action)="
+          onHistoricalTableAction(
+            $event
+          )
+        ">
       </app-data-table>
 
-      <mat-paginator [length]="historicalTableData.meta.total" [pageSize]="historicalFilters.limit"
-        [pageIndex]="historicalFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
-        (page)="onHistoricalPaymentPageChange($event)" showFirstLastButtons>
+      <mat-paginator [length]="
+          historicalTableData.meta.total
+        " [pageSize]="
+          historicalFilters.limit
+        " [pageIndex]="
+          historicalFilters.page - 1
+        " [pageSizeOptions]="
+          [5, 10, 25, 50]
+        " (page)="
+          onHistoricalPaymentPageChange(
+            $event
+          )
+        " showFirstLastButtons>
       </mat-paginator>
+
     </div>
+
   </section>
   }
 </div>
