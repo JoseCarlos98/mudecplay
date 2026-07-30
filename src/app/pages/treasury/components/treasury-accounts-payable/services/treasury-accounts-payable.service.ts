@@ -430,25 +430,27 @@ export class TreasuryAccountsPayableService {
 
 
   // =========================================================
-// REABRIR REGULARIZACIÓN HISTÓRICA
-// =========================================================
+  // REABRIR REGULARIZACIÓN HISTÓRICA
+  // =========================================================
 
-reopenHistoricalPaymentRegularization(
-  paymentId:
-    string | number,
+  reopenHistoricalPaymentRegularization(
+    paymentId:
+      string | number,
 
-  payload:
-    entity.TreasuryReopenHistoricalRegularizationPayload,
-): Observable<
-  entity.TreasuryReopenHistoricalRegularizationResponse
-> {
-  return this.http.patch<
+    payload:
+      entity.TreasuryReopenHistoricalRegularizationPayload,
+  ): Observable<
     entity.TreasuryReopenHistoricalRegularizationResponse
-  >(
-    `${this.apiUrl}/historical-payments/${paymentId}/reopen-regularization`,
-    payload,
-  );
-}
+  > {
+    return this.http.patch<
+      entity.TreasuryReopenHistoricalRegularizationResponse
+    >(
+      `${this.apiUrl}/historical-payments/${paymentId}/reopen-regularization`,
+      payload,
+    );
+  }
+
+
 }
 
 

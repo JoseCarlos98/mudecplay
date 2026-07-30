@@ -1,0 +1,773 @@
+<div
+  class="
+    c-modal
+    historical-payment-history-modal
+  ">
+
+  <app-module-header
+    title="Historial del pago histórico"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div
+    class="
+      historical-payment-history-modal__body
+    ">
+
+    <!-- ===============================================
+         RESUMEN DEL PAGO
+         =============================================== -->
+
+    <section
+      class="historical-payment-summary">
+
+      <div
+        class="
+          historical-payment-summary__header
+        ">
+
+        <div
+          class="
+            historical-payment-summary__identity
+          ">
+
+          <div
+            class="
+              historical-payment-summary__icon
+            ">
+
+            <mat-icon>
+              history
+            </mat-icon>
+
+          </div>
+
+          <div>
+
+            <span>
+              Pago histórico
+            </span>
+
+            <strong>
+              {{ folioDisplay }}
+            </strong>
+
+          </div>
+
+        </div>
+
+        <span
+          class="historical-payment-status"
+          [ngClass]="
+            regularizationStatusClass
+          ">
+
+          {{ regularizationStatusLabel }}
+
+        </span>
+
+      </div>
+
+      <div
+        class="
+          historical-payment-summary__grid
+        ">
+
+        <div>
+          <span>Pago</span>
+
+          <strong>
+            #{{ paymentId }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Fecha del pago</span>
+
+          <strong>
+            {{
+              paymentDate
+                ? (
+                    paymentDate
+                    | date:'dd/MM/yyyy'
+                  )
+                : 'Sin fecha'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Proveedor</span>
+
+          <strong>
+            {{ supplierDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Proyecto</span>
+
+          <strong>
+            {{ projectDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Concepto</span>
+
+          <strong>
+            {{ conceptDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Importe pagado</span>
+
+          <strong
+            class="
+              historical-payment-summary__amount
+            ">
+
+            {{
+              paymentAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+
+          </strong>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         ESTADO ACTUAL
+         =============================================== -->
+
+    <section
+      class="current-regularization-section">
+
+      <header
+        class="
+          current-regularization-section__header
+        ">
+
+        <div>
+
+          <h3>
+            Estado actual
+          </h3>
+
+          <p>
+            Información vigente de la
+            regularización histórica.
+          </p>
+
+        </div>
+
+      </header>
+
+      <div
+        class="current-regularization-grid">
+
+        <article>
+
+          <mat-icon>
+            payments
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Forma de pago
+            </span>
+
+            <strong>
+              {{ currentPaymentMethodLabel }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            fact_check
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Tipo de regularización
+            </span>
+
+            <strong>
+              {{
+                currentRegularizationTypeLabel
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            business
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Empresa
+            </span>
+
+            <strong>
+              {{ companyDisplay }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            account_balance
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Movimiento bancario
+            </span>
+
+            <strong>
+              {{
+                currentBankMovementReference
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            tag
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Referencia
+            </span>
+
+            <strong>
+              {{ currentReference }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            person
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Regularizado por
+            </span>
+
+            <strong>
+              {{
+                currentRegularizedByUserId
+                  ? (
+                      'Usuario #' +
+                      currentRegularizedByUserId
+                    )
+                  : 'Sin usuario vigente'
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+        <article>
+
+          <mat-icon>
+            schedule
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Fecha de regularización
+            </span>
+
+            <strong>
+              {{
+                currentRegularizedAt
+                  ? (
+                      currentRegularizedAt
+                      | date:
+                        'dd/MM/yyyy HH:mm'
+                    )
+                  : 'Sin fecha vigente'
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+      </div>
+
+      @if (
+        currentRegularizationNotes
+      ) {
+
+        <div
+          class="
+            current-regularization-notes
+          ">
+
+          <mat-icon>
+            notes
+          </mat-icon>
+
+          <div>
+
+            <span>
+              Motivo vigente
+            </span>
+
+            <strong>
+              {{
+                currentRegularizationNotes
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      }
+
+    </section>
+
+    <!-- ===============================================
+         BITÁCORA
+         =============================================== -->
+
+    <section
+      class="history-section">
+
+      <header
+        class="
+          history-section__header
+        ">
+
+        <div>
+
+          <h3>
+            Bitácora de regularización
+          </h3>
+
+          <p>
+            Secuencia completa de
+            regularizaciones y reaperturas.
+          </p>
+
+        </div>
+
+        <span
+          class="
+            history-section__total
+          ">
+
+          {{ actions.length }}
+
+        </span>
+
+      </header>
+
+      @if (
+        actions.length > 0
+      ) {
+
+        <div
+          class="history-timeline">
+
+          @for (
+            action of actions;
+            track action.id
+          ) {
+
+            <article
+              class="history-event"
+              [ngClass]="
+                getActionClass(
+                  action
+                )
+              ">
+
+              <div
+                class="
+                  history-event__marker
+                ">
+
+                <mat-icon>
+                  {{
+                    getActionIcon(
+                      action
+                    )
+                  }}
+                </mat-icon>
+
+              </div>
+
+              <div
+                class="
+                  history-event__content
+                ">
+
+                <header
+                  class="
+                    history-event__header
+                  ">
+
+                  <div>
+
+                    <strong>
+                      {{
+                        getActionLabel(
+                          action
+                        )
+                      }}
+                    </strong>
+
+                    <span>
+                      {{
+                        getActionUserDisplay(
+                          action
+                        )
+                      }}
+                    </span>
+
+                  </div>
+
+                  <time>
+                    {{
+                      action.created_at
+                        | date:
+                          'dd/MM/yyyy HH:mm'
+                    }}
+                  </time>
+
+                </header>
+
+                <div
+                  class="
+                    history-event__main-data
+                  ">
+
+                  <div>
+
+                    <span>
+                      Importe
+                    </span>
+
+                    <strong>
+                      {{
+                        action.amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                      }}
+                    </strong>
+
+                  </div>
+
+                  <div>
+
+                    <span>
+                      Tipo
+                    </span>
+
+                    <strong>
+                      {{
+                        getActionRegularizationTypeLabel(
+                          action
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+                  <div>
+
+                    <span>
+                      Empresa
+                    </span>
+
+                    <strong>
+                      {{
+                        getActionCompanyDisplay(
+                          action
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+                  <div>
+
+                    <span>
+                      Movimiento / referencia
+                    </span>
+
+                    <strong>
+                      {{
+                        getActionMovementDisplay(
+                          action
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+                </div>
+
+                <div
+                  class="
+                    history-event__changes
+                  ">
+
+                  <article>
+
+                    <span>
+                      Estado anterior
+                    </span>
+
+                    <strong>
+                      {{
+                        getRegularizationStatusLabel(
+                          action
+                            .previous_regularization_status
+                        )
+                      }}
+                    </strong>
+
+                  </article>
+
+                  <mat-icon>
+                    arrow_forward
+                  </mat-icon>
+
+                  <article>
+
+                    <span>
+                      Estado posterior
+                    </span>
+
+                    <strong>
+                      {{
+                        getRegularizationStatusLabel(
+                          action
+                            .new_regularization_status
+                        )
+                      }}
+                    </strong>
+
+                  </article>
+
+                  <article>
+
+                    <span>
+                      Método anterior
+                    </span>
+
+                    <strong>
+                      {{
+                        getPaymentMethodLabel(
+                          action
+                            .previous_payment_method
+                        )
+                      }}
+                    </strong>
+
+                  </article>
+
+                  <mat-icon>
+                    arrow_forward
+                  </mat-icon>
+
+                  <article>
+
+                    <span>
+                      Método posterior
+                    </span>
+
+                    <strong>
+                      {{
+                        getPaymentMethodLabel(
+                          action
+                            .new_payment_method
+                        )
+                      }}
+                    </strong>
+
+                  </article>
+
+                </div>
+
+                @if (
+                  hasMovementBalanceRestored(
+                    action
+                  )
+                ) {
+
+                  <div
+                    class="
+                      history-event__restored-balance
+                    ">
+
+                    <mat-icon>
+                      account_balance_wallet
+                    </mat-icon>
+
+                    <div>
+
+                      <strong>
+                        Saldo bancario restaurado
+                      </strong>
+
+                      <span>
+                        El movimiento pasó de
+
+                        <b>
+                          {{
+                            getPreviousMovementAvailableAmount(
+                              action
+                            )
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </b>
+
+                        a
+
+                        <b>
+                          {{
+                            getNewMovementAvailableAmount(
+                              action
+                            )
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </b>.
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                }
+
+                @if (
+                  action.reason
+                ) {
+
+                  <p
+                    class="
+                      history-event__reason
+                    ">
+
+                    <mat-icon>
+                      notes
+                    </mat-icon>
+
+                    <span>
+                      {{ action.reason }}
+                    </span>
+
+                  </p>
+
+                }
+
+              </div>
+
+            </article>
+
+          }
+
+        </div>
+
+      } @else if (
+        !loading()
+      ) {
+
+        <div
+          class="
+            history-empty-state
+          ">
+
+          <mat-icon>
+            history
+          </mat-icon>
+
+          <strong>
+            Sin eventos registrados
+          </strong>
+
+          <span>
+            Este pago histórico todavía no
+            tiene acciones de regularización.
+          </span>
+
+        </div>
+
+      }
+
+    </section>
+
+  </div>
+
+  <!-- ===============================================
+       FOOTER
+       =============================================== -->
+
+  <app-btns-section
+    type="close"
+    (action)="
+      onFooterAction(
+        $event
+      )
+    ">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando historial...">
+  </app-loading-overlay>
+
+</div>

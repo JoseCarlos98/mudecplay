@@ -1187,3 +1187,12 @@ export interface TreasuryReopenHistoricalRegularizationResponse {
     | TreasuryRestoredHistoricalBankMovement
     | null;
 }
+
+
+// =========================================================
+// MODAL: HISTORIAL DE PAGO HISTÓRICO
+// =========================================================
+
+export interface TreasuryHistoricalPaymentHistoryModalData {
+  payment: TreasuryHistoricalPaymentTableRow;
+}

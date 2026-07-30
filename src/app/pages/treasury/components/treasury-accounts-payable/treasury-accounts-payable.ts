@@ -76,6 +76,7 @@ import { ModalAccountsPayableHistory } from './components/modal-accounts-payable
 import { ModalAccountsPayableManualClose } from './components/modal-accounts-payable-manual-close/modal-accounts-payable-manual-close';
 import { ModalRegularizeHistoricalPayment } from './components/modal-regularize-historical-payment/modal-regularize-historical-payment';
 import { ModalReopenHistoricalRegularization } from './components/modal-reopen-historical-regularization/modal-reopen-historical-regularization';
+import { ModalHistoricalPaymentHistory } from './components/modal-historical-payment-history/modal-historical-payment-history';
 
 // =========================================================
 // STORAGE
@@ -2383,14 +2384,26 @@ export class TreasuryAccountsPayable
     row:
       entity.TreasuryHistoricalPaymentTableRow,
   ): void {
-    console.log(
-      'Pendiente: historial del pago histórico',
-      row,
-    );
+    if (!row?.payment_id) {
+      return;
+    }
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryHistoricalPaymentHistoryComponent.
+    const modalData:
+      entity.TreasuryHistoricalPaymentHistoryModalData = {
+      payment:
+        row,
+    };
+
+    this.dialogService
+      .open(
+        ModalHistoricalPaymentHistory,
+        modalData,
+        'large',
+      )
+      .afterClosed()
+      .subscribe();
   }
+
   openReopenRegularization(
     row:
       entity.TreasuryHistoricalPaymentTableRow,
