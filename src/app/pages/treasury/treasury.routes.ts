@@ -16,7 +16,7 @@ export const TREASURY_ROUTES: Routes = [
       ),
     canActivate: [rolesGuard],
     data: {
-      roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_BANCARIAS_EDITOR'],
+      roles: ['TESORERIA_CUENTAS_BANCARIAS_EDITOR'],
     },
   },
 
@@ -28,7 +28,7 @@ export const TREASURY_ROUTES: Routes = [
       ).then((m) => m.TreasuryBankMovementUpload),
     canActivate: [rolesGuard],
     data: {
-      roles: ['ADMIN_GENERAL', 'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR'],
+      roles: ['TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR'],
     },
   },
 
@@ -41,7 +41,6 @@ export const TREASURY_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: {
       roles: [
-        'ADMIN_GENERAL',
         'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
         'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
       ],
@@ -57,25 +56,24 @@ export const TREASURY_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: {
       roles: [
-        'ADMIN_GENERAL',
         'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
         'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
       ],
     },
   },
-  
+
   {
     path: 'cuentas-por-pagar',
     loadComponent: () =>
-      import('./components/treasury-accounts-payable/treasury-accounts-payable').then(
+      import(
+        './components/treasury-accounts-payable/treasury-accounts-payable'
+      ).then(
         (m) => m.TreasuryAccountsPayable,
       ),
     canActivate: [rolesGuard],
     data: {
       roles: [
-        'ADMIN_GENERAL',
-        'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
-        'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+        'TESORERIA_CUENTAS_POR_PAGAR_EDITOR',
       ],
     },
   },

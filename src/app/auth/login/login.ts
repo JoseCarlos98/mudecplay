@@ -77,15 +77,36 @@ export class LoginComponent implements OnInit {
         const roleHome: Record<string, string> = {
           ADMIN_GENERAL: '/gastos',
 
+          // Gastos, almacén y cuentas por cobrar actuales
           GASTOS_EDITOR: '/gastos',
           ALMACEN_EDITOR: '/almacen',
           CUENTAS_POR_COBRAR_EDITOR: '/cuentas-por-cobrar',
           REPORTES_EMISOR: '/reportes',
 
-          ORDENES_COMPRA_EDITOR: '/ordenes-compra',
-          ORDENES_COMPRA_TICKETS_SUBIDOR: '/ordenes-compra/subir-ticket-gasto',
-          ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR: '/ordenes-compra/fotos-sin-gasto',
+          // Tesorería
+          TESORERIA_CUENTAS_BANCARIAS_EDITOR:
+            '/tesoreria/cuentas-bancarias',
 
+          TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR:
+            '/tesoreria/cargar-movimientos',
+
+          TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR:
+            '/tesoreria/movimientos-bancarios',
+
+          TESORERIA_CUENTAS_POR_PAGAR_EDITOR:
+            '/tesoreria/cuentas-por-pagar',
+
+          // Órdenes de compra
+          ORDENES_COMPRA_EDITOR:
+            '/ordenes-compra',
+
+          ORDENES_COMPRA_TICKETS_SUBIDOR:
+            '/ordenes-compra/subir-ticket-gasto',
+
+          ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR:
+            '/ordenes-compra/fotos-sin-gasto',
+
+          // Catálogos
           PROVEEDORES_EDITOR: '/proveedores',
           PROYECTOS_EDITOR: '/proyectos',
           CLIENTES_EDITOR: '/clientes',
@@ -96,10 +117,13 @@ export class LoginComponent implements OnInit {
           AREAS_EDITOR: '/areas',
           AREAS_EMPLEADOS_EDITOR: '/areas-empleados',
 
+          // Mano de obra
           EMPLEADOS_EDITOR: '/mano-de-obra/empleados',
           ASISTENCIA_EDITOR: '/mano-de-obra/asistencia-diaria',
-          LLEGADAS_RETARDOS_EDITOR: '/mano-de-obra/llegadas-retardos',
-          HORAS_EXTRAS_EDITOR: '/mano-de-obra/horas-extras',
+          LLEGADAS_RETARDOS_EDITOR:
+            '/mano-de-obra/llegadas-retardos',
+          HORAS_EXTRAS_EDITOR:
+            '/mano-de-obra/horas-extras',
 
           PRESTAMOS_EDITOR: '/mano-de-obra',
           NOMINA_EDITOR: '/mano-de-obra',
@@ -108,16 +132,25 @@ export class LoginComponent implements OnInit {
         const rolePriority: string[] = [
           'ADMIN_GENERAL',
 
+          // Módulos generales
           'GASTOS_EDITOR',
           'ALMACEN_EDITOR',
           'CUENTAS_POR_COBRAR_EDITOR',
 
+          // Tesorería
+          'TESORERIA_CUENTAS_BANCARIAS_EDITOR',
+          'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+          'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
+          'TESORERIA_CUENTAS_POR_PAGAR_EDITOR',
+
+          // Órdenes de compra
           'ORDENES_COMPRA_EDITOR',
           'ORDENES_COMPRA_TICKETS_SUBIDOR',
           'ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR',
 
           'REPORTES_EMISOR',
 
+          // Mano de obra
           'EMPLEADOS_EDITOR',
           'ASISTENCIA_EDITOR',
           'LLEGADAS_RETARDOS_EDITOR',
@@ -125,6 +158,7 @@ export class LoginComponent implements OnInit {
           'PRESTAMOS_EDITOR',
           'NOMINA_EDITOR',
 
+          // Catálogos
           'PROVEEDORES_EDITOR',
           'PROYECTOS_EDITOR',
           'CLIENTES_EDITOR',
@@ -149,8 +183,10 @@ export class LoginComponent implements OnInit {
 
       error: (err) => {
         this.isSubmitting.set(false);
+
         this.loginError =
-          err?.error?.message || 'Error al iniciar sesión. Verifica tus datos.';
+          err?.error?.message ||
+          'Error al iniciar sesión. Verifica tus datos.';
       },
     });
   }

@@ -50,8 +50,6 @@ export const routes: Routes = [
         canActivate: [rolesGuard],
         data: {
           roles: [
-            'ADMIN_GENERAL',
-
             'TESORERIA_CUENTAS_BANCARIAS_EDITOR',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
