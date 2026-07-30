@@ -3,7 +3,6 @@
   </app-module-header>
 
   <div class="treasury-payment-modal__body">
-
     <!-- ===============================================
          MOVIMIENTO BANCARIO
          =============================================== -->
@@ -47,7 +46,7 @@
         <span>
           {{
           movement.movement_date
-          | date:'dd/MM/yyyy'
+          | date: 'dd/MM/yyyy'
           }}
         </span>
       </div>
@@ -66,7 +65,7 @@
         <span class="payment-summary__money">
           {{
           movement.available_amount
-          | currency:'MXN':'symbol':'1.2-2'
+          | currency: 'MXN' : 'symbol' : '1.2-2'
           }}
         </span>
       </div>
@@ -102,7 +101,7 @@
         <strong class="payment-totals__applied">
           {{
           totalToApply
-          | currency:'MXN':'symbol':'1.2-2'
+          | currency: 'MXN' : 'symbol' : '1.2-2'
           }}
         </strong>
       </div>
@@ -110,14 +109,30 @@
       <div>
         <span>Saldo restante</span>
 
-        <strong>
+        <strong [class.payment-totals__remaining--invalid]="
+            movementExceededAmount > 0
+          ">
           {{
           remainingMovementAmount
-          | currency:'MXN':'symbol':'1.2-2'
+          | currency: 'MXN' : 'symbol' : '1.2-2'
           }}
         </strong>
       </div>
     </section>
+
+    @if (movementExceededAmount > 0) {
+    <div class="payment-total-error">
+      El total de los conceptos supera el saldo disponible del
+      movimiento por
+
+      <strong>
+        {{
+        movementExceededAmount
+        | currency: 'MXN' : 'symbol' : '1.2-2'
+        }}
+      </strong>.
+    </div>
+    }
 
     <!-- ===============================================
          CONCEPTOS SELECCIONADOS
@@ -131,7 +146,7 @@
           </h3>
 
           <p>
-            Revisa los importes antes de confirmar el pago.
+            Puedes modificar el importe para registrar un pago parcial.
           </p>
         </div>
 
@@ -171,17 +186,13 @@
               </small>
             </div>
 
-            <div class="payment-application__amount">
-              <span>
-                Aplicar
-              </span>
-
-              <strong>
-                {{
-                application.amount
-                | currency:'MXN':'symbol':'1.2-2'
-                }}
-              </strong>
+            <div class="payment-application__amount" [class.payment-application__amount--invalid]="
+    hasApplicationAmountError(application)
+  ">
+              <app-input-field [formControl]="
+      getApplicationAmountControl(application)
+    " label="Aplicar" type="money" prefix="MX$" [decimals]="2" placeholder="MX$ 0.00">
+              </app-input-field>
             </div>
           </div>
 
@@ -194,7 +205,7 @@
               <strong>
                 {{
                 application.item.pending_amount
-                | currency:'MXN':'symbol':'1.2-2'
+                | currency: 'MXN' : 'symbol' : '1.2-2'
                 }}
               </strong>
             </div>
@@ -207,7 +218,7 @@
               <strong>
                 {{
                 getPendingAfter(application)
-                | currency:'MXN':'symbol':'1.2-2'
+                | currency: 'MXN' : 'symbol' : '1.2-2'
                 }}
               </strong>
             </div>
@@ -237,7 +248,6 @@
 
     <section class="payment-confirmation-row">
       <form id="form" class="payment-notes-form" [formGroup]="form" (ngSubmit)="applyPayment()">
-
         <app-input-field formControlName="notes" label="Notas" type="text">
         </app-input-field>
       </form>
@@ -248,9 +258,9 @@
         seleccionados.
       </div>
     </section>
+
+  </div>
     <app-btns-section class="modal-actions-spacer" type="save" form="form" [saveDisabled]="!canApplyPayment"
       (action)="onBtnsSectionAction($event)">
     </app-btns-section>
-  </div>
-
 </div>

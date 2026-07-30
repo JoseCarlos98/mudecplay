@@ -1196,3 +1196,174 @@ export interface TreasuryReopenHistoricalRegularizationResponse {
 export interface TreasuryHistoricalPaymentHistoryModalData {
   payment: TreasuryHistoricalPaymentTableRow;
 }
+
+
+// =========================================================
+// HISTORIAL DE PAGOS POR CONCEPTO
+// =========================================================
+
+export type TreasuryExpenseItemPaymentHistoryActionType =
+  | 'payment_applied'
+  | 'payment_reversed';
+
+export interface TreasuryExpenseItemPaymentHistoryModalData {
+  expenseItem: TreasuryPendingExpenseItemTableRow;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryCompany {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryBank {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryBankAccount {
+  id: number;
+  alias: string | null;
+  account_identifier: string | null;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryMovement {
+  id: string;
+
+  movement_date: string | null;
+
+  amount: number;
+  available_amount: number;
+
+  status: string;
+
+  bank_reference: string | null;
+  description: string | null;
+
+  bank:
+    | TreasuryExpenseItemPaymentHistoryBank
+    | null;
+
+  bank_account:
+    | TreasuryExpenseItemPaymentHistoryBankAccount
+    | null;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryApplication {
+  id: string;
+
+  status: string;
+
+  applied_amount: number;
+
+  created_by_user_id: number | null;
+  created_at: string;
+
+  reversed_by_user_id: number | null;
+  reversed_at: string | null;
+  reversal_reason: string | null;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryPayment {
+  id: string;
+
+  amount: number;
+  payment_date: string | null;
+
+  payment_method: string;
+  source_type: string;
+  origin: string;
+  status: string;
+
+  reference: string | null;
+  notes: string | null;
+
+  created_by_user_id: number | null;
+  created_at: string;
+
+  reversed_by_user_id: number | null;
+  reversed_at: string | null;
+  reversal_reason: string | null;
+
+  company:
+    | TreasuryExpenseItemPaymentHistoryCompany
+    | null;
+
+  bank_movement:
+    | TreasuryExpenseItemPaymentHistoryMovement
+    | null;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryEvent {
+  event_id: string;
+
+  action_type:
+    TreasuryExpenseItemPaymentHistoryActionType;
+
+  event_at: string;
+
+  amount: number;
+
+  previous_pending_amount: number;
+  new_pending_amount: number;
+
+  application:
+    TreasuryExpenseItemPaymentHistoryApplication;
+
+  payment:
+    TreasuryExpenseItemPaymentHistoryPayment;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryExpenseItem {
+  id: number;
+  expense_id: number;
+
+  internal_folio: string;
+  expense_date: string | null;
+
+  cfdi_uuid: string | null;
+  has_cfdi: boolean;
+
+  concept: string;
+  item_type: TreasuryPendingExpenseItemType;
+
+  amount: number;
+  paid_amount: number;
+  pending_amount: number;
+
+  payment_status:
+    | 'unpaid'
+    | 'partial'
+    | 'paid';
+
+  supplier:
+    TreasuryAccountsPayableSupplierReference;
+
+  project:
+    | TreasuryAccountsPayableProjectReference
+    | null;
+}
+
+export interface TreasuryExpenseItemPaymentHistorySummary {
+  applications_count: number;
+  events_count: number;
+
+  active_applications_count: number;
+  reversed_applications_count: number;
+
+  original_amount: number;
+  paid_amount: number;
+  pending_amount: number;
+}
+
+export interface TreasuryExpenseItemPaymentHistoryResponse {
+  expense_item:
+    TreasuryExpenseItemPaymentHistoryExpenseItem;
+
+  history:
+    TreasuryExpenseItemPaymentHistoryEvent[];
+
+  summary:
+    TreasuryExpenseItemPaymentHistorySummary;
+}

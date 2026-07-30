@@ -450,7 +450,21 @@ export class TreasuryAccountsPayableService {
     );
   }
 
+  // =========================================================
+  // HISTORIAL DE PAGOS POR CONCEPTO
+  // =========================================================
 
+  getExpenseItemPaymentHistory(
+    expenseItemId: number | string,
+  ): Observable<
+    entity.TreasuryExpenseItemPaymentHistoryResponse
+  > {
+    return this.http.get<
+      entity.TreasuryExpenseItemPaymentHistoryResponse
+    >(
+      `${this.apiUrl}/expense-items/${expenseItemId}/payment-history`,
+    );
+  }
 }
 
 

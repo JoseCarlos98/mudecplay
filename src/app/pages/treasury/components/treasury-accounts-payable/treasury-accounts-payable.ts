@@ -77,6 +77,7 @@ import { ModalAccountsPayableManualClose } from './components/modal-accounts-pay
 import { ModalRegularizeHistoricalPayment } from './components/modal-regularize-historical-payment/modal-regularize-historical-payment';
 import { ModalReopenHistoricalRegularization } from './components/modal-reopen-historical-regularization/modal-reopen-historical-regularization';
 import { ModalHistoricalPaymentHistory } from './components/modal-historical-payment-history/modal-historical-payment-history';
+import { ModalExpenseItemPaymentHistory } from './components/modal-expense-item-payment-history/modal-expense-item-payment-history';
 
 // =========================================================
 // STORAGE
@@ -2162,13 +2163,20 @@ export class TreasuryAccountsPayable
     row:
       entity.TreasuryPendingExpenseItemTableRow,
   ): void {
-    console.log(
-      'Pendiente: historial del concepto',
-      row,
-    );
+    const modalData:
+      entity.TreasuryExpenseItemPaymentHistoryModalData = {
+      expenseItem:
+        row,
+    };
 
-    // Aquí se abrirá posteriormente:
-    // TreasuryExpensePaymentHistoryComponent.
+    this.dialogService
+      .open(
+        ModalExpenseItemPaymentHistory,
+        modalData,
+        'large',
+      )
+      .afterClosed()
+      .subscribe();
   }
 
   preparePayment(): void {

@@ -34,10 +34,6 @@
    * tiene poca altura.
    */
   .treasury-payment-modal__body {
-    /*
-   * No obliga al cuerpo a llenar toda la altura.
-   * Puede reducirse o crecer según el contenido.
-   */
     flex: 0 1 auto;
 
     min-width: 0;
@@ -49,10 +45,6 @@
     align-content: start;
     gap: 1rem;
 
-    /*
-   * Si la pantalla es demasiado baja,
-   * el contenido completo mantiene su scroll.
-   */
     overflow-x: hidden;
     overflow-y: auto;
 
@@ -69,7 +61,11 @@
 
   .payment-summary {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
     gap: 0.65rem 1.25rem;
 
     min-width: 0;
@@ -131,7 +127,11 @@
 
   .payment-totals {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
     gap: 0.75rem;
 
     min-width: 0;
@@ -145,7 +145,6 @@
     div {
       display: flex;
       align-items: baseline;
-      //   justify-content: space-between;
       gap: 0.65rem;
 
       min-width: 0;
@@ -169,13 +168,38 @@
     color: #047857 !important;
   }
 
+  .payment-totals__remaining--invalid {
+    color: #b91c1c !important;
+  }
+
+  .payment-total-error {
+    display: block;
+
+    margin-top: -0.45rem;
+    padding: 0.65rem 0.8rem;
+
+    border: 1px solid #fecaca;
+    border-radius: 0.55rem;
+
+    background: #fef2f2;
+    color: #b91c1c;
+
+    font-size: 0.78rem;
+    line-height: 1.35;
+
+    strong {
+      font-weight: 800;
+    }
+  }
+
   // =====================================================
   // CONCEPTOS SELECCIONADOS
   // =====================================================
 
   .payment-applications {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns:
+      minmax(0, 1fr);
     grid-auto-rows: max-content;
     gap: 0.75rem;
 
@@ -228,12 +252,8 @@
   }
 
   /*
-   * Lista con alto fijo y scroll interno.
-   *
-   * Se usa flex para garantizar que las tarjetas conserven
-   * su altura natural y nunca se compriman ni se sobrepongan.
+   * Lista con alto máximo y scroll interno.
    */
-
   .payment-applications__list {
     display: flex;
     flex-direction: column;
@@ -242,10 +262,6 @@
     width: 100%;
     min-width: 0;
 
-    /*
-   * Crece según la cantidad de filas,
-   * pero no supera 27rem.
-   */
     height: auto;
     min-height: 0;
     max-height: 27rem;
@@ -277,20 +293,24 @@
   }
 
   /*
- * Primera franja:
- * folio, concepto, proveedor e importe.
- */
+   * Primera franja:
+   * folio, concepto, proveedor e importe editable.
+   */
   .payment-application__main {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+    align-items: start;
     gap: 0.75rem;
 
     min-width: 0;
 
     > div:first-child {
       display: grid;
-      grid-template-columns: max-content minmax(0, 1fr);
+      grid-template-columns:
+        max-content
+        minmax(0, 1fr);
       grid-template-areas:
         'folio concept'
         'supplier supplier';
@@ -342,17 +362,20 @@
     white-space: nowrap;
   }
 
-  /*
- * El importe queda en una sola línea y se distingue
- * mediante un indicador verde compacto.
- */
-  .payment-application__amount {
-    display: flex;
-    align-items: baseline;
-    justify-content: flex-end;
-    gap: 0.35rem;
+  // =====================================================
+  // IMPORTE EDITABLE
+  // =====================================================
 
-    min-width: max-content;
+  .payment-application__amount {
+    display: grid;
+    grid-template-columns:
+      max-content
+      minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.45rem;
+
+    width: 12rem;
+    min-width: 12rem;
     padding: 0.35rem 0.5rem;
 
     border: 1px solid #bbf7d0;
@@ -360,28 +383,37 @@
 
     background: #f0fdf4;
 
-    span {
-      color: #64748b;
-      font-size: 0.7rem;
-      line-height: 1.2;
+    box-sizing: border-box;
+
+    ::ng-deep .c-input-field {
+
+      margin-bottom: 0!important;
+    }
+    ::ng-deep .c-input {
+      width: 175px!important;
     }
 
-    strong {
-      color: #047857;
-      font-size: 0.95rem;
-      font-weight: 800;
+    > label {
+      color: #64748b;
+      font-size: 0.7rem;
+      font-weight: 600;
       line-height: 1.2;
       white-space: nowrap;
     }
   }
 
+
   /*
- * Segunda franja:
- * los tres datos quedan horizontalmente en una sola línea.
- */
+   * Segunda franja:
+   * saldos y proyecto.
+   */
   .payment-application__balances {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
     gap: 0;
 
     padding-top: 0.45rem;
@@ -427,14 +459,10 @@
   // NOTAS Y ADVERTENCIA
   // =====================================================
 
-  /*
-   * Notas ocupa todo el ancho.
-   * El mensaje amarillo queda debajo.
-   */
   .payment-confirmation-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
+    grid-template-columns:
+      minmax(0, 1fr);
 
     width: 100%;
     min-width: 0;
@@ -486,22 +514,30 @@
   // =====================================================
 
   @media (max-width: 640px) {
+    .payment-summary,
+    .payment-totals {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+
     .payment-application {
       padding: 0.7rem;
     }
 
     .payment-application__main {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns:
+        minmax(0, 1fr);
       gap: 0.5rem;
     }
 
     .payment-application__amount {
-      justify-content: flex-start;
-      width: max-content;
+      width: 100%;
+      min-width: 0;
     }
 
     .payment-application__balances {
-      grid-template-columns: minmax(0, 1fr);
+      grid-template-columns:
+        minmax(0, 1fr);
       gap: 0.35rem;
 
       div {
