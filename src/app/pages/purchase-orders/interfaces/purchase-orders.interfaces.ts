@@ -237,7 +237,21 @@ export interface PurchaseOrderFlowDetailResponse extends PurchaseOrderResponseDt
   history: PurchaseOrderHistoryEventDto[];
 }
 
+export interface PurchaseOrdersPaginationResponse {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+  has_next_page: boolean;
+  has_previous_page: boolean;
+}
+
 export interface PurchaseOrdersPaginatedResponse {
+  data: PurchaseOrderResponseDto[];
+  pagination: PurchaseOrdersPaginationResponse;
+}
+
+export interface AvailableForReconciliationResponse {
   data: PurchaseOrderResponseDto[];
   total: number;
   page: number;
@@ -251,12 +265,16 @@ export interface PurchaseOrderFilters {
 
   search?: string | null;
   requested_amount?: number | null;
+  related_expense_amount?: number | null;
   status?: PurchaseOrderStatus | null;
   destination_type?: PurchaseOrderDestinationType | null;
   will_have_invoice?: boolean | null;
   project_id?: number | null;
   ticket_filter?: 'all' | 'with_photo' | 'without_photo';
-  tracking_status?: PurchaseOrderTrackingStatus | string | null;
+  tracking_status?:
+    | PurchaseOrderTrackingStatus
+    | string
+    | null;
 }
 
 export interface PurchaseOrderUiFilters {
@@ -265,8 +283,15 @@ export interface PurchaseOrderUiFilters {
 
   search?: string | null;
   requested_amount: number | null;
-  tracking_status: PurchaseOrderTrackingStatus | string | '';
-  destination_type?: PurchaseOrderDestinationType | '' | null;
+  related_expense_amount: number | null;
+  tracking_status:
+    | PurchaseOrderTrackingStatus
+    | string
+    | '';
+  destination_type?:
+    | PurchaseOrderDestinationType
+    | ''
+    | null;
   will_have_invoice?: 'true' | 'false' | '' | null;
   projects?: Catalog[];
 }

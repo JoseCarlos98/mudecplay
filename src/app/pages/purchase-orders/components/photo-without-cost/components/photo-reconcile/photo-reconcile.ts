@@ -450,36 +450,47 @@ export class PhotoReconcile implements OnInit {
     });
   }
 
-  loadAvailableOrders(): void {
-    if (this.loadingOrders()) return;
-
-    this.loadingOrders.set(true);
-
-    this.purchaseOrdersService
-      .getAvailableForReconciliation(this.filters)
-      .pipe(finalize(() => this.loadingOrders.set(false)))
-      .subscribe({
-        next: (response) => {
-          this.ordersTableData = {
-            ...response,
-            data: (response.data ?? []).map((order) =>
-              this.mapPurchaseOrderRow(order),
-            ),
-          };
-        },
-        error: (err) => {
-          console.error('Error al cargar O.C. disponibles:', err);
-
-          this.ordersTableData = {
-            data: [],
-            total: 0,
-            page: this.filters.page,
-            limit: this.filters.limit,
-            totalPages: 0,
-          };
-        },
-      });
+loadAvailableOrders(): void {
+  if (this.loadingOrders()) {
+    return;
   }
+
+  this.loadingOrders.set(true);
+
+  this.purchaseOrdersService
+    .getAvailableForReconciliation(this.filters)
+    .pipe(
+      finalize(() => this.loadingOrders.set(false)),
+    )
+    .subscribe({
+      next: (response) => {
+        this.ordersTableData = {
+          data: (response.data ?? []).map((order) =>
+            this.mapPurchaseOrderRow(order),
+          ),
+          total: response.total,
+          page: response.page,
+          limit: response.limit,
+          totalPages: response.totalPages,
+        };
+      },
+
+      error: (error) => {
+        console.error(
+          'Error al cargar O.C. disponibles:',
+          error,
+        );
+
+        this.ordersTableData = {
+          data: [],
+          total: 0,
+          page: this.filters.page,
+          limit: this.filters.limit,
+          totalPages: 0,
+        };
+      },
+    });
+}
 
   private mapPurchaseOrderRow(
     row: PurchaseOrderResponseDto,

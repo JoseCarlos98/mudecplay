@@ -2,9 +2,20 @@ import { RoleCode } from '../../../../auth/interfaces/auth.interface';
 
 export type DataTableActionType = 'edit' | 'delete' | 'showItems' | string;
 export type ActionPopoverKind = 'warning' | 'info' | 'success' | 'error';
+export type DataTableRowKey = string | number;
 
 export interface DataTableActionEvent<T> {
   type: DataTableActionType;
+  row: T;
+}
+
+export interface DataTableRowExpansionEvent<T> {
+  row: T;
+  expanded: boolean;
+}
+
+export interface DataTableExpandedRowContext<T> {
+  $implicit: T;
   row: T;
 }
 
@@ -14,6 +25,7 @@ export interface DataTableActionPopover {
   items?: string[];
   kind?: ActionPopoverKind;
 }
+
 export type ColumnType =
   | 'text'
   | 'relation'
@@ -92,14 +104,12 @@ export interface DataTableExtraAction<T> {
   /** Clase opcional para el botón */
   buttonClass?: string;
 
-/**
- * Clase opcional para el ícono.
- *
- * Puede ser:
- * - Una clase fija para todas las filas.
- * - Una función para resolver la clase según cada fila.
- *
- * Si no se envía, conserva el color neutro actual.
- */
-iconClass?: string | ((row: T) => string | null);
+  /**
+   * Clase opcional para el ícono.
+   *
+   * Puede ser:
+   * - Una clase fija para todas las filas.
+   * - Una función para resolver la clase según cada fila.
+   */
+  iconClass?: string | ((row: T) => string | null);
 }

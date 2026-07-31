@@ -1,62 +1,416 @@
 <div class="c-table-page">
   <div class="card-content shadow-md">
-    <app-module-header title="Órdenes de compra" [config]="headerConfig" (action)="onHeaderAction($event)">
+    <app-module-header
+      title="Órdenes de compra"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)"
+    >
     </app-module-header>
 
     <form [formGroup]="formFilters">
-      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6">
-        <app-input-field formControlName="search" label="Folio o concepto" type="text" [isFilter]="true">
+      <div
+        class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"
+      >
+        <app-input-field
+          formControlName="search"
+          label="Folio o concepto"
+          type="text"
+          [isFilter]="true"
+        >
         </app-input-field>
 
-        <app-input-field formControlName="requested_amount" label="Importe solicitado" type="money" [isFilter]="true">
+        <app-input-field
+          formControlName="requested_amount"
+          label="Importe solicitado"
+          type="money"
+          [isFilter]="true"
+        >
         </app-input-field>
 
-        <app-input-select formControlName="tracking_status" label="Seguimiento" [options]="trackingStatusOptions">
+        <app-input-field
+          formControlName="related_expense_amount"
+          label="Importe gasto relacionado"
+          type="money"
+          [isFilter]="true"
+        >
+        </app-input-field>
+
+        <app-input-select
+          formControlName="tracking_status"
+          label="Seguimiento"
+          [options]="trackingStatusOptions"
+        >
         </app-input-select>
 
-        <app-input-select formControlName="destination_type" label="Destino" [options]="destinationTypeOptions">
+        <app-input-select
+          formControlName="destination_type"
+          label="Destino"
+          [options]="destinationTypeOptions"
+        >
         </app-input-select>
 
-        <app-input-select formControlName="will_have_invoice" label="Factura" [options]="invoiceOptions">
+        <app-input-select
+          formControlName="will_have_invoice"
+          label="Factura"
+          [options]="invoiceOptions"
+        >
         </app-input-select>
 
-        <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)"
+        >
         </app-btns-section>
 
         @if (canManageRequesters) {
-        <div class="purchase-orders-catalog-actions">
-          <button type="button" class="btn-outline purchase-orders-catalog-actions__button"
-            (click)="openRequestersModal()">
-            <mat-icon>manage_accounts</mat-icon>
-            <span>Solicitantes</span>
-          </button>
+          <div class="purchase-orders-catalog-actions">
+            <button
+              type="button"
+              class="btn-outline purchase-orders-catalog-actions__button"
+              (click)="openRequestersModal()"
+            >
+              <mat-icon>manage_accounts</mat-icon>
+              <span>Solicitantes</span>
+            </button>
 
-          <button type="button" class="btn-outline purchase-orders-catalog-actions__button"
-            (click)="openAuthorizersModal()">
-            <mat-icon>verified_user</mat-icon>
-            <span>Autorizadores</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              class="btn-outline purchase-orders-catalog-actions__button"
+              (click)="openAuthorizersModal()"
+            >
+              <mat-icon>verified_user</mat-icon>
+              <span>Autorizadores</span>
+            </button>
+          </div>
         }
       </div>
     </form>
   </div>
 
   @if (purchaseOrdersTableData?.data) {
-  <div class="c-module-table">
-    <app-data-table [data]="purchaseOrdersTableData.data" [columnsConfig]="columnsConfig"
-      [displayedColumns]="displayedColumns" [extraActions]="extraActions" [actionPermissions]="{
+    <div class="c-module-table">
+      <app-data-table
+        [data]="purchaseOrdersTableData.data"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns"
+        [extraActions]="extraActions"
+        [actionPermissions]="{
           showEdit: false,
           showDelete: false
-        }" (action)="onTableAction($event)">
-    </app-data-table>
+        }"
+        [expandable]="true"
+        [expandedRowTemplate]="purchaseOrderDetailTemplate"
+        expandTooltip="Ver información relacionada"
+        (action)="onTableAction($event)"
+        (rowExpansionChange)="
+          onPurchaseOrderExpansionChange($event)
+        "
+      >
+      </app-data-table>
 
-    <mat-paginator [length]="purchaseOrdersTableData.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-      [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
-    </mat-paginator>
-  </div>
+      <ng-template
+        #purchaseOrderDetailTemplate
+        let-row="row"
+      >
+        <div class="purchase-order-expanded">
+          @if (isExpandedOrderLoading(row.id)) {
+            <div class="purchase-order-expanded__loading">
+              <mat-icon>progress_activity</mat-icon>
+
+              <span>
+                Cargando gastos y XML relacionados...
+              </span>
+            </div>
+          } @else if (
+            getExpandedOrderError(row.id);
+            as error
+          ) {
+            <div class="purchase-order-expanded__error">
+              <div>
+                <mat-icon>error_outline</mat-icon>
+                <span>{{ error }}</span>
+              </div>
+
+              <button
+                type="button"
+                class="btn-outline"
+                (click)="loadExpandedOrderDetail(row, true)"
+              >
+                Reintentar
+              </button>
+            </div>
+          } @else if (
+            getExpandedOrderDetail(row.id);
+            as detail
+          ) {
+            <section class="purchase-order-expenses">
+              <header class="purchase-order-expenses__header">
+                <div class="purchase-order-expenses__title">
+                  <mat-icon>receipt_long</mat-icon>
+
+                  <strong>
+                    Gastos / XML relacionados
+                  </strong>
+                </div>
+
+                <span class="purchase-order-expenses__count">
+                  {{ getExpandedExpenses(detail).length }}
+                </span>
+              </header>
+
+              @if (getExpandedExpenses(detail).length > 0) {
+                <div class="purchase-order-expenses__list">
+                  @for (
+                    expenseLink of getExpandedExpenses(detail);
+                    track expenseLink.id
+                  ) {
+                    <article class="purchase-order-expense">
+                      <div class="purchase-order-expense__summary">
+                        <div class="purchase-order-expense__metadata">
+                          <div class="purchase-order-expense__field">
+                            <span>Proveedor</span>
+
+                            <strong>
+                              {{
+                                getExpandedExpenseSupplierName(
+                                  expenseLink
+                                )
+                              }}
+                            </strong>
+                          </div>
+
+                          <div class="purchase-order-expense__field">
+                            <span>Folio / factura</span>
+
+                            <strong>
+                              {{
+                                getExpandedExpenseFolio(
+                                  expenseLink
+                                )
+                              }}
+                            </strong>
+                          </div>
+
+                          <div
+                            class="purchase-order-expense__field purchase-order-expense__field--amount"
+                          >
+                            <span>Total gasto / XML</span>
+
+                            <strong>
+                              {{
+                                getExpandedExpenseTotal(
+                                  expenseLink
+                                )
+                                  | currency
+                                    : 'MXN'
+                                    : 'symbol-narrow'
+                                    : '1.2-2'
+                              }}
+                            </strong>
+                          </div>
+
+                          <div
+                            class="purchase-order-expense__field purchase-order-expense__field--amount"
+                          >
+                            <span>Monto relacionado</span>
+
+                            <strong>
+                              {{
+                                getExpandedExpenseLinkedTotal(
+                                  expenseLink
+                                )
+                                  | currency
+                                    : 'MXN'
+                                    : 'symbol-narrow'
+                                    : '1.2-2'
+                              }}
+                            </strong>
+                          </div>
+                        </div>
+
+                        <div class="purchase-order-expense__actions">
+                          <span class="purchase-order-expense__type">
+                            {{
+                              getExpandedExpenseTypeLabel(
+                                expenseLink
+                              )
+                            }}
+                          </span>
+
+                          @if (
+                            getExpandedExpensePhoto(expenseLink);
+                            as photo
+                          ) {
+                            <button
+                              type="button"
+                              class="btn-outline purchase-order-expense__button"
+                              (click)="
+                                openExpandedPhoto(photo, row)
+                              "
+                            >
+                              <mat-icon>visibility</mat-icon>
+                              <span>Ver imagen</span>
+                            </button>
+                          } @else {
+                            <button
+                              type="button"
+                              class="btn-outline purchase-order-expense__button"
+                              disabled
+                            >
+                              <mat-icon>
+                                image_not_supported
+                              </mat-icon>
+
+                              <span>Sin imagen</span>
+                            </button>
+                          }
+
+                          @if (
+                            getExpandedExpenseId(expenseLink)
+                          ) {
+                            <button
+                              type="button"
+                              class="btn-outline purchase-order-expense__button"
+                              (click)="
+                                openExpandedExpense(expenseLink)
+                              "
+                            >
+                              <mat-icon>open_in_new</mat-icon>
+                              <span>Ver gasto</span>
+                            </button>
+                          }
+                        </div>
+                      </div>
+
+                      <div
+                        class="purchase-order-expense__items-wrap"
+                      >
+                        <table
+                          class="purchase-order-expense__items"
+                        >
+                          <thead>
+                            <tr>
+                              <th>Concepto</th>
+                              <th>Cantidad</th>
+                              <th>Unidad</th>
+
+                              <th class="is-amount">
+                                Monto relacionado
+                              </th>
+                            </tr>
+                          </thead>
+
+                          <tbody>
+                            @if (
+                              getExpandedExpenseLinkedItems(
+                                expenseLink
+                              ).length > 0
+                            ) {
+                              @for (
+                                item of
+                                  getExpandedExpenseLinkedItems(
+                                    expenseLink
+                                  );
+                                track
+                                  item.link_item_id ||
+                                  item.expense_item_id ||
+                                  item.id
+                              ) {
+                                <tr>
+                                  <td>
+                                    <strong>
+                                      {{
+                                        getExpandedExpenseItemConcept(
+                                          item
+                                        )
+                                      }}
+                                    </strong>
+                                  </td>
+
+                                  <td>
+                                    {{
+                                      getExpandedExpenseItemQuantity(
+                                        item
+                                      )
+                                    }}
+                                  </td>
+
+                                  <td>
+                                    {{
+                                      getExpandedExpenseItemUnit(
+                                        item
+                                      )
+                                    }}
+                                  </td>
+
+                                  <td class="is-amount">
+                                    {{
+                                      getExpandedExpenseItemAmount(
+                                        item
+                                      )
+                                        | currency
+                                          : 'MXN'
+                                          : 'symbol-narrow'
+                                          : '1.2-2'
+                                    }}
+                                  </td>
+                                </tr>
+                              }
+                            } @else {
+                              <tr>
+                                <td
+                                  class="purchase-order-expense__items-empty"
+                                  colspan="4"
+                                >
+                                  No hay partidas vinculadas
+                                  para mostrar.
+                                </td>
+                              </tr>
+                            }
+                          </tbody>
+                        </table>
+                      </div>
+                    </article>
+                  }
+                </div>
+              } @else {
+                <div class="purchase-order-expenses__empty">
+                  <mat-icon>receipt</mat-icon>
+
+                  <div>
+                    <strong>
+                      Sin gastos relacionados
+                    </strong>
+
+                    <span>
+                      Esta O.C. todavía no tiene gastos o
+                      XML vinculados.
+                    </span>
+                  </div>
+                </div>
+              }
+            </section>
+          }
+        </div>
+      </ng-template>
+
+      <mat-paginator
+        [length]="purchaseOrdersTableData.pagination.total"
+        [pageSize]="filters.limit"
+        [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+    </div>
   }
 </div>
 
-<app-loading-overlay [visible]="loadingTable()" [fullscreen]="true" text="Cargando órdenes de compra...">
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando órdenes de compra..."
+>
 </app-loading-overlay>
