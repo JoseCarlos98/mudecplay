@@ -1,0 +1,501 @@
+:host {
+  display: block;
+}
+
+/* =========================================================
+ * MODAL
+ * ========================================================= */
+
+.cash-payment-modal {
+  position: relative;
+
+  max-height: 90vh;
+
+  display: grid;
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  overflow: hidden;
+
+  &__body {
+    min-height: 0;
+
+    padding: 0.85rem 1rem 0 1rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * CONCEPTO
+ * ========================================================= */
+
+.cash-payment-concept {
+  padding: 0.9rem;
+
+  border: 1px solid #d9e2ec;
+  border-radius: 0.75rem;
+
+  background: #f8fafc;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  &__identity {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    > div:last-child {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.65rem;
+
+    background: #dcfce7;
+    color: #15803d;
+
+    mat-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      font-size: 1.25rem;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.85rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__description {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    border-top: 1px dashed #cbd5e1;
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.74rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.cash-payment-badge {
+  flex-shrink: 0;
+
+  padding: 0.3rem 0.65rem;
+
+  border-radius: 999px;
+
+  background: #dcfce7;
+  color: #166534;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+ * IMPORTES
+ * ========================================================= */
+
+.cash-payment-amounts {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.cash-payment-amount-card {
+  min-width: 0;
+
+  padding: 0.72rem 0.75rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 0.7rem;
+
+  background: #ffffff;
+
+  &--completed {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+
+    .cash-payment-amount-card__icon {
+      background: #dcfce7;
+      color: #15803d;
+    }
+  }
+
+  &__icon {
+    width: 2rem;
+    height: 2rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.55rem;
+
+    background: #eff6ff;
+    color: #2563eb;
+
+    mat-icon {
+      width: 1.1rem;
+      height: 1.1rem;
+
+      font-size: 1.1rem;
+    }
+  }
+
+  > div:last-child {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.68rem;
+  }
+
+  strong {
+    color: #172033;
+    font-size: 0.84rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+.cash-payment-amount--paid {
+  color: #047857 !important;
+}
+
+.cash-payment-amount--pending {
+  color: #b45309 !important;
+}
+
+.cash-payment-amount--payment {
+  color: #2563eb !important;
+}
+
+.cash-payment-amount--completed {
+  color: #15803d !important;
+}
+
+/* =========================================================
+ * INFORMACIÓN
+ * ========================================================= */
+
+.cash-payment-information {
+  padding: 0.8rem 0.85rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+
+  border: 1px solid #bae6fd;
+  border-radius: 0.7rem;
+
+  background: #f0f9ff;
+  color: #075985;
+
+  > mat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+
+    flex-shrink: 0;
+
+    font-size: 1.25rem;
+  }
+
+  div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  strong {
+    font-size: 0.76rem;
+  }
+
+  p {
+    margin: 0;
+
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+/* =========================================================
+ * FORMULARIO
+ * ========================================================= */
+
+.cash-payment-form {
+  width: 100%;
+
+  padding-bottom: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  app-input-field,
+  app-input-select,
+  app-input-date {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+
+  &__notes {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+ * EMPRESA
+ * ========================================================= */
+
+.cash-payment-company-section {
+  padding: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 0.75rem;
+
+  background: #ffffff;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+
+    > mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      flex-shrink: 0;
+
+      color: #2563eb;
+      font-size: 1.2rem;
+    }
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+.cash-payment-company-warning {
+  padding: 0.65rem 0.7rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+
+  border: 1px solid #fde68a;
+  border-radius: 0.6rem;
+
+  background: #fffbeb;
+  color: #92400e;
+
+  mat-icon {
+    width: 1rem;
+    height: 1rem;
+
+    margin-top: 0.05rem;
+
+    flex-shrink: 0;
+
+    font-size: 1rem;
+  }
+
+  span {
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+}
+
+/* =========================================================
+ * ERROR DE IMPORTE
+ * ========================================================= */
+
+.cash-payment-form-error {
+  padding: 0.65rem 0.7rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+
+  border: 1px solid #fecaca;
+  border-radius: 0.6rem;
+
+  background: #fef2f2;
+  color: #b91c1c;
+
+  mat-icon {
+    width: 1rem;
+    height: 1rem;
+
+    margin-top: 0.05rem;
+
+    flex-shrink: 0;
+
+    font-size: 1rem;
+  }
+
+  span {
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 780px) {
+  .cash-payment-concept {
+    &__grid {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .cash-payment-modal {
+    max-height: 94vh;
+
+    &__body {
+      padding-inline: 0.75rem;
+    }
+  }
+
+  .cash-payment-concept {
+    &__header {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+
+  .cash-payment-amounts,
+  .cash-payment-form__grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}

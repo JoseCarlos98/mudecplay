@@ -1,0 +1,385 @@
+<div class="c-modal cash-payment-modal">
+
+  <!-- =====================================================
+       ENCABEZADO
+       ===================================================== -->
+
+  <app-module-header
+    title="Registrar pago en efectivo"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <!-- =====================================================
+       CONTENIDO
+       ===================================================== -->
+
+  <div class="cash-payment-modal__body">
+
+    <!-- ===================================================
+         INFORMACIÓN DEL CONCEPTO
+         =================================================== -->
+
+    <section class="cash-payment-concept">
+
+      <div class="cash-payment-concept__header">
+
+        <div class="cash-payment-concept__identity">
+
+          <div class="cash-payment-concept__icon">
+            <mat-icon>
+              payments
+            </mat-icon>
+          </div>
+
+          <div>
+            <span>Concepto por pagar</span>
+
+            <strong>
+              {{ folioDisplay }}
+            </strong>
+          </div>
+
+        </div>
+
+        <span class="cash-payment-badge">
+          Pago en efectivo
+        </span>
+
+      </div>
+
+      <div class="cash-payment-concept__grid">
+
+        <div>
+          <span>Proveedor</span>
+
+          <strong>
+            {{ supplierDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Proyecto</span>
+
+          <strong>
+            {{ projectDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Monto del concepto</span>
+
+          <strong>
+            {{
+              originalAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Pagado anteriormente</span>
+
+          <strong class="cash-payment-amount--paid">
+            {{
+              paidAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="cash-payment-concept__description">
+
+        <span>Concepto</span>
+
+        <strong>
+          {{ conceptDisplay }}
+        </strong>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         RESUMEN DE IMPORTES
+         =================================================== -->
+
+    <section class="cash-payment-amounts">
+
+      <article class="cash-payment-amount-card">
+
+        <div class="cash-payment-amount-card__icon">
+          <mat-icon>
+            account_balance_wallet
+          </mat-icon>
+        </div>
+
+        <div>
+          <span>Pendiente actual</span>
+
+          <strong class="cash-payment-amount--pending">
+            {{
+              pendingAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="cash-payment-amount-card">
+
+        <div class="cash-payment-amount-card__icon">
+          <mat-icon>
+            paid
+          </mat-icon>
+        </div>
+
+        <div>
+          <span>Pago en efectivo</span>
+
+          <strong class="cash-payment-amount--payment">
+            {{
+              amountToPay
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article
+        class="cash-payment-amount-card"
+        [class.cash-payment-amount-card--completed]="
+          pendingAfter === 0
+        ">
+
+        <div class="cash-payment-amount-card__icon">
+          <mat-icon>
+            {{
+              pendingAfter === 0
+                ? 'task_alt'
+                : 'pending_actions'
+            }}
+          </mat-icon>
+        </div>
+
+        <div>
+          <span>Pendiente después</span>
+
+          <strong
+            [class.cash-payment-amount--completed]="
+              pendingAfter === 0
+            ">
+
+            {{
+              pendingAfter
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+
+          </strong>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ===================================================
+         INFORMACIÓN
+         =================================================== -->
+
+    <section class="cash-payment-information">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <div>
+        <strong>
+          Este pago no utiliza un movimiento bancario
+        </strong>
+
+        <p>
+          El importe se aplicará directamente al saldo
+          pendiente del concepto y quedará registrado
+          en su historial como pago en efectivo.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         FORMULARIO
+         =================================================== -->
+
+    <form
+      id="form"
+      class="cash-payment-form"
+      autocomplete="off"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <div class="cash-payment-form__grid">
+
+        <app-input-field
+          formControlName="amount"
+          label="Importe pagado"
+          type="money">
+        </app-input-field>
+
+        <app-input-date
+          formControlName="payment_date"
+          label="Fecha del pago">
+        </app-input-date>
+
+      </div>
+
+      <section class="cash-payment-company-section">
+
+        <div class="cash-payment-company-section__header">
+
+          <mat-icon>
+            business
+          </mat-icon>
+
+          <div>
+            <strong>
+              Empresa que entregó el efectivo
+            </strong>
+
+            <span>
+              Selecciona la empresa cuando sea posible
+              identificarla.
+            </span>
+          </div>
+
+        </div>
+
+        <div class="cash-payment-form__grid">
+
+          <app-input-select
+            formControlName="company_id"
+            label="Empresa"
+            [options]="companyOptions">
+          </app-input-select>
+
+          <app-input-field
+            formControlName="reference"
+            label="Referencia o recibo"
+            type="text">
+          </app-input-field>
+
+        </div>
+
+        @if (!companyWasIdentified) {
+
+          <div class="cash-payment-company-warning">
+
+            <mat-icon>
+              warning
+            </mat-icon>
+
+            <span>
+              Si no seleccionas una empresa, debes
+              explicar el motivo en las notas.
+            </span>
+
+          </div>
+
+        }
+
+      </section>
+
+      <div class="cash-payment-form__notes">
+
+        <app-input-field
+          formControlName="notes"
+          label="Notas"
+          type="text">
+        </app-input-field>
+
+      </div>
+
+      @if (
+        form.controls.amount.touched &&
+        form.controls.amount.hasError('max')
+      ) {
+
+        <div class="cash-payment-form-error">
+
+          <mat-icon>
+            error_outline
+          </mat-icon>
+
+          <span>
+            El importe no puede superar el saldo
+            pendiente de
+            <strong>
+              {{
+                pendingAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>.
+          </span>
+
+        </div>
+
+      }
+
+    </form>
+
+  </div>
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <app-btns-section
+    class="cash-payment-modal__footer"
+    type="save"
+    form="form"
+    cancelLabel="Cerrar"
+    saveLabel="Registrar pago"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  <app-loading-overlay
+    [visible]="
+      loadingCatalogs() ||
+      saving()
+    "
+    [fullscreen]="false"
+    [text]="
+      saving()
+        ? 'Registrando pago en efectivo...'
+        : 'Cargando información...'
+    ">
+  </app-loading-overlay>
+
+</div>

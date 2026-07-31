@@ -465,6 +465,25 @@ export class TreasuryAccountsPayableService {
       `${this.apiUrl}/expense-items/${expenseItemId}/payment-history`,
     );
   }
+
+  // =========================================================
+  // CUENTAS POR PAGAR:
+  // REGISTRAR PAGO ACTUAL EN EFECTIVO
+  // =========================================================
+
+  applyCashPayment(
+    payload:
+      entity.TreasuryApplyCashPaymentPayload,
+  ): Observable<
+    entity.TreasuryApplyCashPaymentResponse
+  > {
+    return this.http.post<
+      entity.TreasuryApplyCashPaymentResponse
+    >(
+      `${this.apiUrl}/apply-cash-payment`,
+      payload,
+    );
+  }
 }
 
 

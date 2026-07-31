@@ -54,6 +54,8 @@ import * as entity from '../../interfaces/treasury-accounts-payable.interfaces';
 import {
   TreasuryAccountsPayableService,
 } from '../../services/treasury-accounts-payable.service';
+import { ModalReversePayment } from '../modal-reverse-payment/modal-reverse-payment';
+import { PermissionsService } from '../../../../../../auth/services/permissions.service';
 
 // =========================================================
 // CONFIGURACIÓN
@@ -91,6 +93,10 @@ export class ModalExpenseItemPaymentHistory
   // =========================================================
   // INYECCIONES
   // =========================================================
+  private readonly permissionsService =
+  inject(
+    PermissionsService,
+  );
 
   readonly data =
     inject<
@@ -100,7 +106,8 @@ export class ModalExpenseItemPaymentHistory
   private readonly dialogRef =
     inject(
       MatDialogRef<
-        ModalExpenseItemPaymentHistory
+        ModalExpenseItemPaymentHistory,
+        boolean
       >,
     );
 
@@ -128,6 +135,9 @@ export class ModalExpenseItemPaymentHistory
 
   readonly loading =
     signal(false);
+
+  private historyChanged =
+    false;
 
   // =========================================================
   // DATA
@@ -261,7 +271,7 @@ export class ModalExpenseItemPaymentHistory
 
   get paymentStatusLabel(): string {
     switch (
-      this.paymentStatus
+    this.paymentStatus
     ) {
       case 'paid':
         return 'Pagado';
@@ -277,7 +287,7 @@ export class ModalExpenseItemPaymentHistory
 
   get paymentStatusClass(): string {
     switch (
-      this.paymentStatus
+    this.paymentStatus
     ) {
       case 'paid':
         return 'concept-status--paid';
@@ -375,9 +385,9 @@ export class ModalExpenseItemPaymentHistory
 
     const wasLaterReversed =
       event.application.status ===
-        'reversed' ||
+      'reversed' ||
       event.payment.status ===
-        'reversed';
+      'reversed';
 
     return wasLaterReversed
       ? 'Revertido posteriormente'
@@ -390,11 +400,11 @@ export class ModalExpenseItemPaymentHistory
   ): string {
     if (
       event.action_type ===
-        'payment_reversed' ||
+      'payment_reversed' ||
       event.application.status ===
-        'reversed' ||
+      'reversed' ||
       event.payment.status ===
-        'reversed'
+      'reversed'
     ) {
       return 'event-status--reversed';
     }
@@ -407,7 +417,7 @@ export class ModalExpenseItemPaymentHistory
       entity.TreasuryExpenseItemPaymentHistoryPayment,
   ): string {
     switch (
-      payment.payment_method
+    payment.payment_method
     ) {
       case 'transfer':
         return 'Transferencia';
@@ -566,6 +576,269 @@ export class ModalExpenseItemPaymentHistory
     );
   }
 
+
+  // =========================================================
+  // REVERSIÓN
+  // =========================================================
+
+  openReversePayment(
+    event:
+      entity.TreasuryExpenseItemPaymentHistoryEvent,
+  ): void {
+    if (
+      !this.canReverseEvent(
+        event,
+      ) ||
+      !this.expenseItem
+    ) {
+      return;
+    }
+
+    const movement =
+      event.payment
+        .bank_movement;
+
+    const modalData:
+      entity.TreasuryCurrentPaymentReverseModalData = {
+      payment: {
+        id:
+          String(
+            event.payment.id,
+          ),
+
+        amount:
+          Number(
+            event.payment.amount ??
+            0,
+          ),
+
+        payment_date:
+          event.payment
+            .payment_date ??
+          null,
+
+        payment_method:
+          event.payment
+            .payment_method,
+
+        source_type:
+          event.payment
+            .source_type,
+
+        origin:
+          event.payment.origin,
+
+        status:
+          event.payment.status,
+
+        reference:
+          event.payment
+            .reference ??
+          null,
+
+        notes:
+          event.payment
+            .notes ??
+          null,
+
+        company:
+          event.payment.company
+            ? {
+              id:
+                event.payment
+                  .company
+                  .id ??
+                null,
+
+              code:
+                event.payment
+                  .company
+                  .code ??
+                null,
+
+              name:
+                event.payment
+                  .company
+                  .name,
+            }
+            : null,
+
+        bank_movement:
+          movement
+            ? {
+              id:
+                String(
+                  movement.id,
+                ),
+
+              movement_date:
+                movement
+                  .movement_date ??
+                null,
+
+              amount:
+                Number(
+                  movement.amount ??
+                  0,
+                ),
+
+              available_amount:
+                Number(
+                  movement
+                    .available_amount ??
+                  0,
+                ),
+
+              status:
+                movement.status,
+
+              bank_reference:
+                movement
+                  .bank_reference ??
+                null,
+
+              description:
+                movement
+                  .description ??
+                null,
+
+              bank:
+                movement.bank
+                  ? {
+                    id:
+                      movement
+                        .bank.id,
+
+                    code:
+                      movement
+                        .bank.code,
+
+                    name:
+                      movement
+                        .bank.name,
+                  }
+                  : null,
+
+              bank_account:
+                movement
+                  .bank_account
+                  ? {
+                    id:
+                      movement
+                        .bank_account
+                        .id,
+
+                    alias:
+                      movement
+                        .bank_account
+                        .alias ??
+                      null,
+
+                    account_identifier:
+                      movement
+                        .bank_account
+                        .account_identifier,
+                  }
+                  : null,
+            }
+            : null,
+      },
+
+      application: {
+        id:
+          String(
+            event.application.id,
+          ),
+
+        applied_amount:
+          Number(
+            event.application
+              .applied_amount ??
+            0,
+          ),
+
+        status:
+          event.application
+            .status,
+      },
+
+      expense_item: {
+        id:
+          this.expenseItem.id,
+
+        internal_folio:
+          this.internalFolio,
+
+        concept:
+          this.concept,
+
+        amount:
+          this.originalAmount,
+
+        paid_amount:
+          this.paidAmount,
+
+        pending_amount:
+          this.pendingAmount,
+      },
+    };
+
+    this.dialogService
+      .open(
+        ModalReversePayment,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryReversePaymentResponse
+            | null,
+        ) => {
+          if (
+            !result?.success
+          ) {
+            return;
+          }
+
+          /*
+           * Mantiene abierto este historial,
+           * pero vuelve a consultar sus datos.
+           */
+          this.historyChanged =
+            true;
+
+          this.loadHistory();
+        },
+      );
+  }
+
+  // =========================================================
+  // REVERSIÓN
+  // =========================================================
+
+canReverseEvent(
+  event:
+    entity.TreasuryExpenseItemPaymentHistoryEvent,
+): boolean {
+  return (
+    this.permissionsService.isAdmin() &&
+
+    event.action_type ===
+      'payment_applied' &&
+
+    event.payment.origin ===
+      'new' &&
+
+    event.payment.status ===
+      'active' &&
+
+    event.application.status ===
+      'active'
+  );
+}
+
   // =========================================================
   // ACCIONES
   // =========================================================
@@ -581,7 +854,9 @@ export class ModalExpenseItemPaymentHistory
   }
 
   closeModal(): void {
-    this.dialogRef.close();
+    this.dialogRef.close(
+      this.historyChanged,
+    );
   }
 
   // =========================================================
@@ -669,8 +944,8 @@ export class ModalExpenseItemPaymentHistory
       error as {
         error?: {
           message?:
-            | string
-            | string[];
+          | string
+          | string[];
         };
 
         message?: string;
@@ -693,7 +968,7 @@ export class ModalExpenseItemPaymentHistory
 
     if (
       typeof backendMessage ===
-        'string' &&
+      'string' &&
       backendMessage.trim()
     ) {
       return backendMessage;
@@ -702,7 +977,7 @@ export class ModalExpenseItemPaymentHistory
     if (
       typeof httpError
         ?.message ===
-        'string' &&
+      'string' &&
       httpError.message.trim()
     ) {
       return httpError.message;

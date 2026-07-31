@@ -1,0 +1,519 @@
+:host {
+  display: block;
+}
+
+/* =========================================================
+ * MODAL
+ * ========================================================= */
+
+.reverse-payment-modal {
+  position: relative;
+
+  max-height: 90vh;
+
+  display: grid;
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  overflow: hidden;
+
+  &__body {
+    min-height: 0;
+
+    padding: 0.85rem 1rem 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * INFORMACIÓN DEL PAGO
+ * ========================================================= */
+
+.reverse-payment-card {
+  padding: 0.85rem;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 0.75rem;
+
+  background: #f8fafc;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+
+  &__identity {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.85rem;
+    }
+  }
+
+  &__icon {
+    width: 2.2rem;
+    height: 2.2rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.6rem;
+
+    background: #fee2e2;
+    color: #dc2626;
+
+    mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      font-size: 1.2rem;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.8rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.66rem;
+    }
+
+    strong {
+      color: #263247;
+      font-size: 0.72rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__notes {
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    border-top: 1px dashed #cbd5e1;
+
+    span {
+      color: #64748b;
+      font-size: 0.66rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.7rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.reverse-payment-method {
+  flex-shrink: 0;
+
+  padding: 0.28rem 0.6rem;
+
+  border-radius: 999px;
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  &--cash {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &--bank {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+}
+
+/* =========================================================
+ * CONCEPTO
+ * ========================================================= */
+
+.reverse-payment-concept {
+  padding: 0.8rem;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 0.75rem;
+
+  background: #ffffff;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+
+      > div {
+        min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+      }
+    }
+
+    mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      flex-shrink: 0;
+
+      color: #2563eb;
+      font-size: 1.2rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.65rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+
+    > span {
+      padding: 0.25rem 0.5rem;
+
+      border-radius: 999px;
+
+      background: #f1f5f9;
+      color: #475569;
+
+      white-space: nowrap;
+    }
+  }
+
+  &__description {
+    margin-top: 0.65rem;
+    padding-top: 0.6rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    border-top: 1px dashed #dbe4ee;
+
+    span {
+      color: #64748b;
+      font-size: 0.65rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.72rem;
+      line-height: 1.4;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.7rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+
+    > div {
+      min-width: 0;
+
+      padding: 0.55rem 0.6rem;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+
+      border-radius: 0.55rem;
+
+      background: #f8fafc;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.63rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.74rem;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+/* =========================================================
+ * IMPORTES
+ * ========================================================= */
+
+.reverse-payment-amounts {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+
+  article {
+    min-width: 0;
+
+    padding: 0.7rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    border: 1px solid #dbe4ee;
+    border-radius: 0.68rem;
+
+    background: #ffffff;
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.64rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.78rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__icon {
+    width: 1.9rem;
+    height: 1.9rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.5rem;
+
+    background: #fef2f2;
+    color: #dc2626;
+
+    mat-icon {
+      width: 1rem;
+      height: 1rem;
+
+      font-size: 1rem;
+    }
+  }
+}
+
+.amount-paid {
+  color: #15803d !important;
+}
+
+.amount-pending {
+  color: #b45309 !important;
+}
+
+.amount-reversed {
+  color: #dc2626 !important;
+}
+
+/* =========================================================
+ * ADVERTENCIA
+ * ========================================================= */
+
+.reverse-payment-warning {
+  padding: 0.75rem 0.8rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+
+  border: 1px solid #fecaca;
+  border-radius: 0.7rem;
+
+  background: #fef2f2;
+  color: #991b1b;
+
+  > mat-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+
+    margin-top: 0.05rem;
+
+    flex-shrink: 0;
+
+    font-size: 1.2rem;
+  }
+
+  > div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  strong {
+    font-size: 0.73rem;
+  }
+
+  p {
+    margin: 0;
+
+    font-size: 0.67rem;
+    line-height: 1.45;
+  }
+}
+
+/* =========================================================
+ * FORMULARIO
+ * ========================================================= */
+
+.reverse-payment-form {
+  width: 100%;
+
+  padding-bottom: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  app-input-field {
+    display: block;
+
+    width: 100%;
+  }
+
+  &__helper {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+
+    color: #64748b;
+
+    mat-icon {
+      width: 0.95rem;
+      height: 0.95rem;
+
+      margin-top: 0.03rem;
+
+      flex-shrink: 0;
+
+      font-size: 0.95rem;
+    }
+
+    span {
+      font-size: 0.64rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 760px) {
+  .reverse-payment-card__grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .reverse-payment-concept__grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}
+
+@media screen and (max-width: 580px) {
+  .reverse-payment-modal {
+    max-height: 94vh;
+
+    &__body {
+      padding-inline: 0.75rem;
+    }
+  }
+
+  .reverse-payment-card {
+    &__header {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+
+  .reverse-payment-concept__header {
+    flex-direction: column;
+  }
+
+  .reverse-payment-amounts {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}

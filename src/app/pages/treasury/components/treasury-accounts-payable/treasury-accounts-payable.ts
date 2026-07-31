@@ -78,6 +78,8 @@ import { ModalRegularizeHistoricalPayment } from './components/modal-regularize-
 import { ModalReopenHistoricalRegularization } from './components/modal-reopen-historical-regularization/modal-reopen-historical-regularization';
 import { ModalHistoricalPaymentHistory } from './components/modal-historical-payment-history/modal-historical-payment-history';
 import { ModalExpenseItemPaymentHistory } from './components/modal-expense-item-payment-history/modal-expense-item-payment-history';
+import { ModalCashPayment } from './components/modal-cash-payment/modal-cash-payment';
+import { PermissionsService } from '../../../../auth/services/permissions.service';
 
 // =========================================================
 // STORAGE
@@ -434,6 +436,9 @@ export class TreasuryAccountsPayable
   // =========================================================
 
   private readonly dialogService = inject(DialogService);
+
+  private readonly permissionsService =
+    inject(PermissionsService);
 
   private readonly accountsPayableService =
     inject(TreasuryAccountsPayableService);
@@ -868,17 +873,14 @@ export class TreasuryAccountsPayable
         type: 'addExpenseItem',
         icon: 'add_circle',
         tooltip: 'Agregar al pago',
-        iconClass: 'table-action-icon--success',
+        iconClass:
+          'table-action-icon--success',
 
         visible: (row) =>
           !this.selectedApplications().has(
             row.expense_item_id,
           ),
 
-        /*
-         * El botón permanece visible, pero deshabilitado
-         * mientras no exista un movimiento seleccionado.
-         */
         disabled: () =>
           !this.selectedMovement(),
       },
@@ -886,7 +888,8 @@ export class TreasuryAccountsPayable
         type: 'removeExpenseItem',
         icon: 'remove_circle',
         tooltip: 'Quitar del pago',
-        iconClass: 'table-action-icon--danger',
+        iconClass:
+          'table-action-icon--danger',
 
         visible: (row) =>
           this.selectedApplications().has(
@@ -894,9 +897,27 @@ export class TreasuryAccountsPayable
           ),
       },
       {
+        type: 'cashPayment',
+        icon: 'payments',
+        tooltip:
+          'Registrar pago en efectivo',
+        iconClass:
+          'table-action-icon--success',
+
+        /*
+         * Evita registrar efectivo mientras el mismo
+         * concepto está preparado para transferencia.
+         */
+        disabled: (row) =>
+          this.selectedApplications().has(
+            row.expense_item_id,
+          ),
+      },
+      {
         type: 'expensePaymentHistory',
         icon: 'history',
-        tooltip: 'Ver historial de pagos',
+        tooltip:
+          'Ver historial de pagos',
       },
     ];
 
@@ -1050,6 +1071,10 @@ export class TreasuryAccountsPayable
           );
         },
       });
+  }
+
+  get isAdmin(): boolean {
+    return this.permissionsService.isAdmin();
   }
 
   // =========================================================
@@ -1962,10 +1987,9 @@ export class TreasuryAccountsPayable
       entity.TreasuryAvailableOutflowTableRow,
   ): void {
     if (
+      !this.permissionsService.isAdmin() ||
       !movement?.id ||
-      Number(
-        movement.available_amount,
-      ) <= 0
+      Number(movement.available_amount) <= 0
     ) {
       return;
     }
@@ -2014,9 +2038,10 @@ export class TreasuryAccountsPayable
   // =========================================================
 
   onPendingItemTableAction(
-    event: DataTableActionEvent<
-      entity.TreasuryPendingExpenseItemTableRow
-    >,
+    event:
+      DataTableActionEvent<
+        entity.TreasuryPendingExpenseItemTableRow
+      >,
   ): void {
     switch (event.type) {
       case 'addExpenseItem':
@@ -2027,6 +2052,12 @@ export class TreasuryAccountsPayable
 
       case 'removeExpenseItem':
         this.removeExpenseItem(
+          event.row,
+        );
+        break;
+
+      case 'cashPayment':
+        this.openCashPayment(
           event.row,
         );
         break;
@@ -2159,14 +2190,71 @@ export class TreasuryAccountsPayable
     );
   }
 
+  openCashPayment(
+    row:
+      entity.TreasuryPendingExpenseItemTableRow,
+  ): void {
+    if (
+      Number(
+        row.pending_amount,
+      ) <= 0
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryApplyCashPaymentModalData = {
+      item: row,
+    };
+
+    this.dialogService
+      .open(
+        ModalCashPayment,
+        modalData,
+        'small',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryApplyCashPaymentResponse
+            | null,
+        ) => {
+          if (
+            !result?.success
+          ) {
+            return;
+          }
+
+          /*
+           * Por seguridad elimina cualquier selección
+           * anterior del concepto.
+           */
+          this.removeExpenseItem(
+            row,
+          );
+
+          /*
+           * Solo recargamos conceptos:
+           * el efectivo no modifica movimientos bancarios.
+           */
+          this.loadPendingExpenseItems();
+
+          /*
+           * No se muestra diálogo de éxito.
+           * El interceptor presenta el mensaje del backend.
+           */
+        },
+      );
+  }
+
   openExpensePaymentHistory(
     row:
       entity.TreasuryPendingExpenseItemTableRow,
   ): void {
     const modalData:
       entity.TreasuryExpenseItemPaymentHistoryModalData = {
-      expenseItem:
-        row,
+      expenseItem: row,
     };
 
     this.dialogService
@@ -2176,7 +2264,28 @@ export class TreasuryAccountsPayable
         'large',
       )
       .afterClosed()
-      .subscribe();
+      .subscribe(
+        (
+          historyChanged:
+            boolean | null,
+        ) => {
+          if (!historyChanged) {
+            return;
+          }
+
+          /*
+           * Una transferencia puede devolver saldo
+           * al movimiento bancario.
+           *
+           * El efectivo solo modifica el concepto,
+           * pero recargamos ambas tablas para cubrir
+           * correctamente los dos tipos de pago.
+           */
+          this.clearPaymentSelection();
+          this.loadAvailableOutflows();
+          this.loadPendingExpenseItems();
+        },
+      );
   }
 
   preparePayment(): void {

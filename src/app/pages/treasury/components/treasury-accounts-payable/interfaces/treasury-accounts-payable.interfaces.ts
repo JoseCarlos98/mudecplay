@@ -1021,7 +1021,12 @@ export interface TreasuryReversePaymentResponse {
   payment: {
     id: string;
     amount: number;
+
+    payment_method: string;
+    source_type: string;
+
     status: string;
+
     reversed_at: string;
     reversed_by_user_id: number;
     reversal_reason: string;
@@ -1030,13 +1035,16 @@ export interface TreasuryReversePaymentResponse {
   bank_movement: {
     id: string;
     amount: number;
+
     previous_available_amount: number;
     restored_amount: number;
     remaining_applied_amount: number;
     manual_closed_amount: number;
     available_amount: number;
-    status: TreasuryBankMovementStatus;
-  };
+
+    status:
+    TreasuryBankMovementStatus;
+  } | null;
 
   applications: Array<{
     id: string;
@@ -1045,19 +1053,13 @@ export interface TreasuryReversePaymentResponse {
     status: string;
   }>;
 }
-
-
-// =========================================================
-// REGULARIZAR PAGO HISTÓRICO
-// =========================================================
-
 export interface TreasuryRegularizeHistoricalPaymentModalData {
   payment: TreasuryHistoricalPaymentTableRow;
 }
 
 export interface TreasuryRegularizeHistoricalPaymentPayload {
   regularization_type:
-    TreasuryHistoricalRegularizationType;
+  TreasuryHistoricalRegularizationType;
 
   company_id?: number;
   bank_movement_id?: string;
@@ -1077,13 +1079,13 @@ export interface TreasuryRegularizeHistoricalPaymentResponse {
     payment_date: string | null;
 
     payment_method:
-      TreasuryHistoricalPaymentMethod;
+    TreasuryHistoricalPaymentMethod;
 
     regularization_status:
-      TreasuryHistoricalRegularizationStatus;
+    TreasuryHistoricalRegularizationStatus;
 
     regularization_type:
-      TreasuryHistoricalRegularizationType;
+    TreasuryHistoricalRegularizationType;
 
     company: {
       id: number | null;
@@ -1092,8 +1094,8 @@ export interface TreasuryRegularizeHistoricalPaymentResponse {
     };
 
     bank_movement:
-      | TreasuryHistoricalPaymentBankMovement
-      | null;
+    | TreasuryHistoricalPaymentBankMovement
+    | null;
 
     reference: string | null;
 
@@ -1110,7 +1112,7 @@ export interface TreasuryRegularizeHistoricalPaymentResponse {
 
 export interface TreasuryReopenHistoricalRegularizationModalData {
   payment:
-    TreasuryHistoricalPaymentTableRow;
+  TreasuryHistoricalPaymentTableRow;
 }
 
 export interface TreasuryReopenHistoricalRegularizationPayload {
@@ -1124,16 +1126,16 @@ export interface TreasuryReopenedHistoricalPayment {
   payment_date: string | null;
 
   payment_method:
-    TreasuryHistoricalPaymentMethod;
+  TreasuryHistoricalPaymentMethod;
 
   status: string;
 
   regularization_status:
-    TreasuryHistoricalRegularizationStatus;
+  TreasuryHistoricalRegularizationStatus;
 
   regularization_type:
-    | TreasuryHistoricalRegularizationType
-    | null;
+  | TreasuryHistoricalRegularizationType
+  | null;
 
   company: null;
   bank_movement: null;
@@ -1141,19 +1143,19 @@ export interface TreasuryReopenedHistoricalPayment {
   reference: string | null;
 
   regularized_by_user_id:
-    number | null;
+  number | null;
 
   regularized_at:
-    string | null;
+  string | null;
 
   regularization_notes:
-    string | null;
+  string | null;
 
   reopened_by_user_id:
-    number;
+  number;
 
   reopened_at:
-    string;
+  string;
 }
 
 export interface TreasuryRestoredHistoricalBankMovement {
@@ -1164,16 +1166,16 @@ export interface TreasuryRestoredHistoricalBankMovement {
   restored_amount: number;
 
   previous_available_amount:
-    number;
+  number;
 
   available_amount:
-    number;
+  number;
 
   manual_closed_amount:
-    number;
+  number;
 
   status:
-    TreasuryBankMovementStatus;
+  TreasuryBankMovementStatus;
 }
 
 export interface TreasuryReopenHistoricalRegularizationResponse {
@@ -1181,11 +1183,11 @@ export interface TreasuryReopenHistoricalRegularizationResponse {
   message: string;
 
   payment:
-    TreasuryReopenedHistoricalPayment;
+  TreasuryReopenedHistoricalPayment;
 
   restored_bank_movement:
-    | TreasuryRestoredHistoricalBankMovement
-    | null;
+  | TreasuryRestoredHistoricalBankMovement
+  | null;
 }
 
 
@@ -1242,12 +1244,12 @@ export interface TreasuryExpenseItemPaymentHistoryMovement {
   description: string | null;
 
   bank:
-    | TreasuryExpenseItemPaymentHistoryBank
-    | null;
+  | TreasuryExpenseItemPaymentHistoryBank
+  | null;
 
   bank_account:
-    | TreasuryExpenseItemPaymentHistoryBankAccount
-    | null;
+  | TreasuryExpenseItemPaymentHistoryBankAccount
+  | null;
 }
 
 export interface TreasuryExpenseItemPaymentHistoryApplication {
@@ -1287,19 +1289,19 @@ export interface TreasuryExpenseItemPaymentHistoryPayment {
   reversal_reason: string | null;
 
   company:
-    | TreasuryExpenseItemPaymentHistoryCompany
-    | null;
+  | TreasuryExpenseItemPaymentHistoryCompany
+  | null;
 
   bank_movement:
-    | TreasuryExpenseItemPaymentHistoryMovement
-    | null;
+  | TreasuryExpenseItemPaymentHistoryMovement
+  | null;
 }
 
 export interface TreasuryExpenseItemPaymentHistoryEvent {
   event_id: string;
 
   action_type:
-    TreasuryExpenseItemPaymentHistoryActionType;
+  TreasuryExpenseItemPaymentHistoryActionType;
 
   event_at: string;
 
@@ -1309,10 +1311,10 @@ export interface TreasuryExpenseItemPaymentHistoryEvent {
   new_pending_amount: number;
 
   application:
-    TreasuryExpenseItemPaymentHistoryApplication;
+  TreasuryExpenseItemPaymentHistoryApplication;
 
   payment:
-    TreasuryExpenseItemPaymentHistoryPayment;
+  TreasuryExpenseItemPaymentHistoryPayment;
 }
 
 export interface TreasuryExpenseItemPaymentHistoryExpenseItem {
@@ -1333,16 +1335,16 @@ export interface TreasuryExpenseItemPaymentHistoryExpenseItem {
   pending_amount: number;
 
   payment_status:
-    | 'unpaid'
-    | 'partial'
-    | 'paid';
+  | 'unpaid'
+  | 'partial'
+  | 'paid';
 
   supplier:
-    TreasuryAccountsPayableSupplierReference;
+  TreasuryAccountsPayableSupplierReference;
 
   project:
-    | TreasuryAccountsPayableProjectReference
-    | null;
+  | TreasuryAccountsPayableProjectReference
+  | null;
 }
 
 export interface TreasuryExpenseItemPaymentHistorySummary {
@@ -1359,11 +1361,159 @@ export interface TreasuryExpenseItemPaymentHistorySummary {
 
 export interface TreasuryExpenseItemPaymentHistoryResponse {
   expense_item:
-    TreasuryExpenseItemPaymentHistoryExpenseItem;
+  TreasuryExpenseItemPaymentHistoryExpenseItem;
 
   history:
-    TreasuryExpenseItemPaymentHistoryEvent[];
+  TreasuryExpenseItemPaymentHistoryEvent[];
 
   summary:
-    TreasuryExpenseItemPaymentHistorySummary;
+  TreasuryExpenseItemPaymentHistorySummary;
+}
+
+
+// =========================================================
+// PAGO ACTUAL EN EFECTIVO
+// =========================================================
+
+export interface TreasuryApplyCashPaymentModalData {
+  item: TreasuryPendingExpenseItemTableRow;
+}
+
+export interface TreasuryApplyCashPaymentPayload {
+  expense_item_id: number;
+  amount: number;
+  payment_date: string;
+
+  company_id?: number | null;
+  reference?: string | null;
+  notes?: string | null;
+}
+
+export interface TreasuryApplyCashPaymentResponse {
+  success: boolean;
+  message: string;
+
+  payment: {
+    id: string;
+    amount: number;
+
+    payment_date: string;
+    payment_method: 'cash';
+    source_type: 'manual';
+
+    status: string;
+
+    reference: string | null;
+    notes: string | null;
+
+    created_by_user_id: number;
+
+    company: {
+      id: number | null;
+      code: string | null;
+      name: string;
+    };
+
+    bank_movement: null;
+  };
+
+  application: {
+    id: string;
+
+    expense_item_id: number;
+    expense_id: number;
+
+    applied_amount: number;
+
+    previous_paid_amount: number;
+    previous_pending_amount: number;
+
+    new_paid_amount: number;
+    new_pending_amount: number;
+
+    payment_status:
+    | 'partial'
+    | 'paid';
+  };
+}
+
+
+// =========================================================
+// MODAL: REVERTIR PAGO ACTUAL DESDE HISTORIAL DEL CONCEPTO
+// =========================================================
+
+export interface TreasuryCurrentPaymentReverseModalPayment {
+  id: string;
+
+  amount: number;
+
+  payment_date: string | null;
+  payment_method: string;
+  source_type: string;
+  origin: string;
+  status: string;
+
+  reference: string | null;
+  notes: string | null;
+
+  company: {
+    id: number | null;
+    code: string | null;
+    name: string;
+  } | null;
+
+  bank_movement: {
+    id: string;
+
+    movement_date: string | null;
+
+    amount: number;
+    available_amount: number;
+
+    status: string;
+
+    bank_reference: string | null;
+    description: string | null;
+
+    bank: {
+      id: number;
+      code: string;
+      name: string;
+    } | null;
+
+    bank_account: {
+      id: number;
+      alias: string | null;
+      account_identifier: string | null;
+    } | null;
+  } | null;
+}
+
+export interface TreasuryCurrentPaymentReverseModalApplication {
+  id: string;
+
+  applied_amount: number;
+  status: string;
+}
+
+export interface TreasuryCurrentPaymentReverseModalExpenseItem {
+  id: number;
+
+  internal_folio: string;
+  concept: string;
+
+  amount: number;
+  paid_amount: number;
+  pending_amount: number;
+}
+
+export interface TreasuryCurrentPaymentReverseModalData {
+  payment:
+  TreasuryCurrentPaymentReverseModalPayment;
+
+  application:
+  TreasuryCurrentPaymentReverseModalApplication;
+
+  expense_item:
+  TreasuryCurrentPaymentReverseModalExpenseItem;
 }

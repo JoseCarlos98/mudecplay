@@ -319,6 +319,8 @@
             Ver historial
           </button>
 
+          @if (isAdmin) {
+
           <button type="button" class="accounts-payable-button accounts-payable-button--warning"
             (click)="openManualClose(movement)">
 
@@ -326,6 +328,8 @@
 
             Cerrar movimiento
           </button>
+
+          }
 
           <button type="button" class="accounts-payable-button accounts-payable-button--neutral"
             (click)="clearPaymentSelection()">
