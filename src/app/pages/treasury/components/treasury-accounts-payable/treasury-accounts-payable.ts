@@ -91,9 +91,13 @@ const AVAILABLE_OUTFLOWS_FILTERS_KEY =
 const PENDING_EXPENSE_ITEMS_FILTERS_KEY =
   'mp_treasury_accounts_payable_pending_items_v1';
 
-const HISTORICAL_PAYMENTS_FILTERS_KEY =
-  'mp_treasury_accounts_payable_historical_v1';
+const HISTORICAL_PENDING_FILTERS_KEY =
+  'mp_treasury_accounts_payable_historical_pending_v1';
 
+const HISTORICAL_REGULARIZED_FILTERS_KEY =
+  'mp_treasury_accounts_payable_historical_regularized_v1';
+
+const DEFAULT_HISTORICAL_PAYMENTS_LIMIT = 10;
 // =========================================================
 // HEADER
 // =========================================================
@@ -509,6 +513,13 @@ export class TreasuryAccountsPayable
   readonly loadingHistorical =
     signal(false);
 
+  /*
+   * Identifica la solicitud histórica más reciente.
+   * Evita que una respuesta anterior sobrescriba
+   * los datos de la pestaña actualmente seleccionada.
+   */
+  private historicalRequestSequence = 0;
+
   readonly loadingPage = computed(
     () =>
       this.loadingCatalogs() ||
@@ -769,6 +780,50 @@ export class TreasuryAccountsPayable
       return roundMoney(total);
     });
 
+  readonly selectedConceptsRemaining =
+    computed(() => {
+      const applications =
+        this.selectedApplications();
+
+      const total =
+        Array.from(
+          this.selectedExpenseItems().entries(),
+        ).reduce(
+          (
+            sum,
+            [expenseItemId, item],
+          ) => {
+            const currentPending =
+              roundMoney(
+                Number(
+                  item.pending_amount || 0,
+                ),
+              );
+
+            const amountToApply =
+              roundMoney(
+                Number(
+                  applications.get(
+                    expenseItemId,
+                  ) || 0,
+                ),
+              );
+
+            const remaining =
+              Math.max(
+                currentPending -
+                amountToApply,
+                0,
+              );
+
+            return sum + remaining;
+          },
+          0,
+        );
+
+      return roundMoney(total);
+    });
+
   readonly selectedMovementRemaining =
     computed(() => {
       const movement =
@@ -981,45 +1036,34 @@ export class TreasuryAccountsPayable
       return;
     }
 
+    /*
+     * Guarda los filtros de la pestaña que
+     * se está abandonando.
+     */
+    const previousStatus =
+      this.getHistoricalStatusForTab(
+        this.activeTab(),
+      );
+
+    this.saveHistoricalFiltersToStorage(
+      undefined,
+      previousStatus,
+    );
+
     this.activeTab.set(tab);
 
     /*
-     * Cuando se entra a regularizados,
-     * consultamos los pagos regularizados.
-     *
-     * Para las otras dos pestañas:
-     * - Pendientes por pagar
-     * - Históricos por regularizar
-     *
-     * mantenemos el resumen de históricos pendientes.
+     * Restaura únicamente los filtros
+     * pertenecientes a la nueva pestaña.
      */
-    const regularizationStatus:
-      entity.TreasuryHistoricalRegularizationStatus =
-      tab ===
-        'historical_regularized'
-        ? 'regularized'
-        : 'pending';
-
-    this.historicalFilterForm
-      .controls
-      .regularization_status
-      .setValue(
-        regularizationStatus,
-        {
-          emitEvent: false,
-        },
+    const nextStatus =
+      this.getHistoricalStatusForTab(
+        tab,
       );
 
-    this.historicalFilters = {
-      ...this.historicalFilters,
-
-      page: 1,
-
-      regularization_status:
-        regularizationStatus,
-    };
-
-    this.saveHistoricalFiltersToStorage();
+    this.restoreHistoricalFilters(
+      nextStatus,
+    );
 
     this.loadHistoricalPayments();
   }
@@ -1179,24 +1223,53 @@ export class TreasuryAccountsPayable
   }
 
   loadHistoricalPayments(): void {
-    if (this.loadingHistorical()) return;
+    const requestSequence =
+      ++this.historicalRequestSequence;
+
+    /*
+     * Se crea una copia para que un cambio posterior
+     * de pestaña no modifique los filtros de esta petición.
+     */
+    const filters = {
+      ...this.historicalFilters,
+    };
 
     this.loadingHistorical.set(true);
 
     this.accountsPayableService
       .getHistoricalPayments(
-        this.historicalFilters,
+        filters,
       )
       .pipe(
-        finalize(() =>
-          this.loadingHistorical.set(false),
-        ),
+        finalize(() => {
+          /*
+           * Una petición anterior no puede apagar
+           * el loading de la petición vigente.
+           */
+          if (
+            requestSequence ===
+            this.historicalRequestSequence
+          ) {
+            this.loadingHistorical.set(false);
+          }
+        }),
       )
       .subscribe({
         next: (
           response:
             entity.TreasuryHistoricalPaymentsResponse,
         ) => {
+          /*
+           * Ignora respuestas pertenecientes
+           * a una pestaña seleccionada anteriormente.
+           */
+          if (
+            requestSequence !==
+            this.historicalRequestSequence
+          ) {
+            return;
+          }
+
           this.historicalTableData =
             response;
 
@@ -1211,7 +1284,15 @@ export class TreasuryAccountsPayable
                 ),
             );
         },
+
         error: (error: unknown) => {
+          if (
+            requestSequence !==
+            this.historicalRequestSequence
+          ) {
+            return;
+          }
+
           console.error(
             'Error cargando pagos históricos:',
             error,
@@ -1647,6 +1728,9 @@ export class TreasuryAccountsPayable
     const value =
       this.historicalFilterForm.getRawValue();
 
+    const regularizationStatus =
+      this.getHistoricalStatusForTab();
+
     const uiState:
       entity.TreasuryHistoricalPaymentUiFilters = {
       dateRange:
@@ -1662,18 +1746,16 @@ export class TreasuryAccountsPayable
         value.project_id ?? null,
 
       regularization_status:
-        value.regularization_status ||
-        '',
+        regularizationStatus,
 
       regularization_type:
-        value.regularization_type ||
-        '',
+        value.regularization_type || '',
 
       missing_payment_date:
-        value.missing_payment_date ||
-        '',
+        value.missing_payment_date || '',
 
       page: 1,
+
       limit:
         this.historicalFilters.limit,
     };
@@ -1685,18 +1767,21 @@ export class TreasuryAccountsPayable
 
     this.saveHistoricalFiltersToStorage(
       uiState,
+      regularizationStatus,
     );
 
     this.loadHistoricalPayments();
   }
 
   clearHistoricalPaymentFilters(): void {
-    const regularizationStatus:
-      entity.TreasuryHistoricalRegularizationStatus =
-      this.activeTab() ===
-        'historical_regularized'
-        ? 'regularized'
-        : 'pending';
+    const regularizationStatus =
+      this.getHistoricalStatusForTab();
+
+    /*
+     * Conserva el tamaño de página de esta pestaña.
+     */
+    const currentLimit =
+      this.historicalFilters.limit;
 
     this.historicalFilterForm.reset(
       {
@@ -1718,9 +1803,7 @@ export class TreasuryAccountsPayable
 
     this.historicalFilters = {
       page: 1,
-
-      limit:
-        this.historicalFilters.limit,
+      limit: currentLimit,
 
       search: '',
 
@@ -1730,18 +1813,21 @@ export class TreasuryAccountsPayable
       regularization_status:
         regularizationStatus,
 
-      regularization_type:
-        null,
-
-      missing_payment_date:
-        null,
+      regularization_type: null,
+      missing_payment_date: null,
 
       date_from: null,
       date_to: null,
     };
 
+    /*
+     * Elimina exclusivamente los filtros
+     * de la pestaña actual.
+     */
     this.storage.removeItem(
-      HISTORICAL_PAYMENTS_FILTERS_KEY,
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      ),
     );
 
     this.loadHistoricalPayments();
@@ -2578,7 +2664,10 @@ export class TreasuryAccountsPayable
   private restoreFiltersFromStorage(): void {
     this.restoreOutflowFilters();
     this.restorePendingItemFilters();
-    this.restoreHistoricalFilters();
+
+    this.restoreHistoricalFilters(
+      this.getHistoricalStatusForTab(),
+    );
   }
 
   private restoreOutflowFilters(): void {
@@ -2684,74 +2773,87 @@ export class TreasuryAccountsPayable
       });
   }
 
-  private restoreHistoricalFilters(): void {
-    const regularizationStatus:
-      entity.TreasuryHistoricalRegularizationStatus =
-      'pending';
+  private restoreHistoricalFilters(
+    regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus,
+  ): void {
+    const storageKey =
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      );
 
     const saved =
       this.storage.getItem<
         entity.TreasuryHistoricalPaymentUiFilters
       >(
-        HISTORICAL_PAYMENTS_FILTERS_KEY,
+        storageKey,
       );
-
-    /*
-     * La pantalla siempre inicia mostrando
-     * pagos históricos pendientes.
-     *
-     * El estado guardado anteriormente se ignora,
-     * porque ahora el estado depende de la pestaña.
-     */
-    if (!saved) {
-      this.historicalFilterForm.patchValue(
-        {
-          regularization_status:
-            regularizationStatus,
-        },
-        {
-          emitEvent: false,
-        },
-      );
-
-      this.historicalFilters = {
-        ...this.historicalFilters,
-
-        page: 1,
-
-        regularization_status:
-          regularizationStatus,
-      };
-
-      return;
-    }
 
     const dateRange =
       this.normalizeDateRange(
-        saved.dateRange,
+        saved?.dateRange,
       );
 
-    this.historicalFilterForm.patchValue(
+    const uiState:
+      entity.TreasuryHistoricalPaymentUiFilters = {
+      dateRange,
+
+      search:
+        saved?.search ?? '',
+
+      supplier_id:
+        saved?.supplier_id ?? null,
+
+      project_id:
+        saved?.project_id ?? null,
+
+      /*
+       * Nunca se restaura el estado almacenado.
+       * La pestaña determina obligatoriamente el estado.
+       */
+      regularization_status:
+        regularizationStatus,
+
+      regularization_type:
+        saved?.regularization_type ?? '',
+
+      missing_payment_date:
+        saved?.missing_payment_date ?? '',
+
+      page:
+        saved?.page ?? 1,
+
+      limit:
+        saved?.limit ??
+        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+    };
+
+    /*
+     * Se usa reset para impedir que permanezcan valores
+     * pertenecientes a la pestaña anterior.
+     */
+    this.historicalFilterForm.reset(
       {
-        dateRange,
+        dateRange:
+          uiState.dateRange,
 
         search:
-          saved.search ?? '',
+          uiState.search,
 
         supplier_id:
-          saved.supplier_id ?? null,
+          uiState.supplier_id,
 
         project_id:
-          saved.project_id ?? null,
+          uiState.project_id,
 
         regularization_status:
           regularizationStatus,
 
         regularization_type:
-          saved.regularization_type ?? '',
+          uiState.regularization_type,
 
         missing_payment_date:
-          saved.missing_payment_date ?? '',
+          uiState.missing_payment_date,
       },
       {
         emitEvent: false,
@@ -2759,21 +2861,9 @@ export class TreasuryAccountsPayable
     );
 
     this.historicalFilters =
-      this.buildHistoricalBackendFiltersFromUi({
-        ...saved,
-
-        dateRange,
-
-        regularization_status:
-          regularizationStatus,
-
-        page:
-          saved.page ?? 1,
-
-        limit:
-          saved.limit ??
-          this.historicalFilters.limit,
-      });
+      this.buildHistoricalBackendFiltersFromUi(
+        uiState,
+      );
   }
 
   private saveOutflowFiltersToStorage(
@@ -2852,7 +2942,12 @@ export class TreasuryAccountsPayable
   }
 
   private saveHistoricalFiltersToStorage(
-    state?: entity.TreasuryHistoricalPaymentUiFilters,
+    state?:
+      entity.TreasuryHistoricalPaymentUiFilters,
+
+    regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus =
+      this.getHistoricalStatusForTab(),
   ): void {
     if (!state) {
       const value =
@@ -2871,17 +2966,18 @@ export class TreasuryAccountsPayable
         project_id:
           value.project_id ?? null,
 
+        /*
+         * El estado siempre depende de la pestaña,
+         * nunca del valor previamente guardado.
+         */
         regularization_status:
-          value.regularization_status ||
-          'pending',
+          regularizationStatus,
 
         regularization_type:
-          value.regularization_type ||
-          '',
+          value.regularization_type || '',
 
         missing_payment_date:
-          value.missing_payment_date ||
-          '',
+          value.missing_payment_date || '',
 
         page:
           this.historicalFilters.page,
@@ -2891,9 +2987,19 @@ export class TreasuryAccountsPayable
       };
     }
 
+    const normalizedState:
+      entity.TreasuryHistoricalPaymentUiFilters = {
+      ...state,
+
+      regularization_status:
+        regularizationStatus,
+    };
+
     this.storage.setItem(
-      HISTORICAL_PAYMENTS_FILTERS_KEY,
-      state,
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      ),
+      normalizedState,
     );
   }
 
@@ -3077,5 +3183,27 @@ export class TreasuryAccountsPayable
         dateRange.endDate ??
         null,
     };
+  }
+
+  private getHistoricalStatusForTab(
+    tab:
+      AccountsPayableTab =
+      this.activeTab(),
+  ):
+    entity.TreasuryHistoricalRegularizationStatus {
+    return tab ===
+      'historical_regularized'
+      ? 'regularized'
+      : 'pending';
+  }
+
+  private getHistoricalFiltersStorageKey(
+    status:
+      entity.TreasuryHistoricalRegularizationStatus,
+  ): string {
+    return status ===
+      'regularized'
+      ? HISTORICAL_REGULARIZED_FILTERS_KEY
+      : HISTORICAL_PENDING_FILTERS_KEY;
   }
 }

@@ -170,6 +170,11 @@ export class TreasuryBankAccountForm implements OnInit {
         next: ({ companies, banks }) => {
           this.companyOptions = companies ?? [];
           this.bankOptions = banks ?? [];
+          console.log(this.bankOptions);
+          this.bankOptions = this.bankOptions.filter(
+            (bank) => bank.name !== 'ALBO'
+          );
+          
 
           if (this.isEditMode && this.data?.bankAccount) {
             this.patchBankAccount(this.data.bankAccount);

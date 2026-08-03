@@ -447,37 +447,48 @@
       </div>
 
       <footer class="payment-preparation">
-        <div class="payment-preparation__summary">
-          <div>
-            <span>Seleccionados</span>
+<div class="payment-preparation__summary">
+  <div>
+    <span>Seleccionados</span>
 
-            <strong>
-              {{ selectedApplicationsCount() }}
-            </strong>
-          </div>
+    <strong>
+      {{ selectedApplicationsCount() }}
+    </strong>
+  </div>
 
-          <div>
-            <span>Total a aplicar</span>
+  <div>
+    <span>Total a aplicar</span>
 
-            <strong>
-              {{
-              selectedApplicationsTotal()
-              | currency:'MXN':'symbol':'1.2-2'
-              }}
-            </strong>
-          </div>
+    <strong>
+      {{
+        selectedApplicationsTotal()
+          | currency:'MXN':'symbol':'1.2-2'
+      }}
+    </strong>
+  </div>
 
-          <div>
-            <span>Saldo restante</span>
+  <div>
+    <span>Movimiento restante</span>
 
-            <strong>
-              {{
-              selectedMovementRemaining()
-              | currency:'MXN':'symbol':'1.2-2'
-              }}
-            </strong>
-          </div>
-        </div>
+    <strong>
+      {{
+        selectedMovementRemaining()
+          | currency:'MXN':'symbol':'1.2-2'
+      }}
+    </strong>
+  </div>
+
+  <div>
+    <span>Pendiente después</span>
+
+    <strong>
+      {{
+        selectedConceptsRemaining()
+          | currency:'MXN':'symbol':'1.2-2'
+      }}
+    </strong>
+  </div>
+</div>
 
         <button type="button" class="btn-primary" [disabled]="!canPreparePayment()" (click)="preparePayment()">
 

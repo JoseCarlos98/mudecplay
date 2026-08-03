@@ -164,7 +164,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
   { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
   { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
-  { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
+  // { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
