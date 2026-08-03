@@ -380,23 +380,23 @@ export class Expenses implements OnInit {
   };
 
   readonly extraActions: ExpenseTableExtraAction[] = [
-    {
-      type: 'downloadReceipt',
-      icon: 'picture_as_pdf',
-      tooltip: this.getReceiptTooltip,
-      popoverContent: this.getReceiptPopover,
-      visible: () => true,
-      disabled: (row) =>
-        !row.can_generate_receipt || this.isDownloadingThisReceipt(row),
-    },
-    {
-      type: 'archiveExpense',
-      icon: 'archive',
-      tooltip: this.getArchiveTooltip,
-      popoverContent: this.getArchivePopover,
-      visible: () => true,
-      disabled: (row) => !row.can_generate_receipt || row.is_archived,
-    },
+    // {
+    //   type: 'downloadReceipt',
+    //   icon: 'picture_as_pdf',
+    //   tooltip: this.getReceiptTooltip,
+    //   popoverContent: this.getReceiptPopover,
+    //   visible: () => true,
+    //   disabled: (row) =>
+    //     !row.can_generate_receipt || this.isDownloadingThisReceipt(row),
+    // },
+    // {
+    //   type: 'archiveExpense',
+    //   icon: 'archive',
+    //   tooltip: this.getArchiveTooltip,
+    //   popoverContent: this.getArchivePopover,
+    //   visible: () => true,
+    //   disabled: (row) => !row.can_generate_receipt || row.is_archived,
+    // },
     {
       type: 'cancelWarehouseExpense',
       icon: 'delete_forever',

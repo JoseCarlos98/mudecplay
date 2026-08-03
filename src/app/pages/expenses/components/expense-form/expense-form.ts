@@ -95,6 +95,8 @@ export class ExpenseForm implements OnInit {
 
   isPurchaseOrderLinkedExpense = false;
 
+  isTreasuryLockedExpense = false;
+
   cfdiUuidFromXml: string | null = null;
 
   xmlQueueTotal = 0;
@@ -121,6 +123,23 @@ export class ExpenseForm implements OnInit {
   //  GETTERS
   // ==========================
 
+  get canSaveTreasurySupplierCorrection(): boolean {
+    if (!this.isTreasuryLockedExpense || this.isLaborAuto) {
+      return false;
+    }
+
+    const supplierCtrl = this.form.get('supplier_id');
+    const supplierId = toIdForm(supplierCtrl?.value);
+
+    return (
+      !!supplierCtrl &&
+      supplierCtrl.enabled &&
+      supplierCtrl.dirty &&
+      supplierCtrl.valid &&
+      !!supplierId
+    );
+  }
+
   get currentXmlIndex(): number {
     if (!this.xmlQueueTotal) return 1;
     return this.xmlQueueTotal - this.xmlQueuePending;
@@ -128,6 +147,18 @@ export class ExpenseForm implements OnInit {
 
   get itemsFA(): FormArray {
     return this.form.get('items') as FormArray;
+  }
+  /**
+ * Indica si actualmente hay al menos un concepto
+ * seleccionado como almacén dentro del formulario.
+ *
+ * Se usa solamente para la interfaz.
+ * No determina si el gasto ya generó lotes.
+ */
+  get hasWarehouseItemsInForm(): boolean {
+    return this.itemsFA.controls.some((ctrl) =>
+      this.isWarehouseItem(ctrl),
+    );
   }
 
   get hasAnySelected(): boolean {
@@ -161,6 +192,7 @@ export class ExpenseForm implements OnInit {
     const amount = Number(this.bulkAmountCtrl.value ?? 0);
 
     return (
+      !this.isTreasuryLockedExpense &&
       !this.isXmlImport &&
       !this.isLaborAuto &&
       !this.isWarehouseSafeExpense &&
@@ -536,6 +568,7 @@ export class ExpenseForm implements OnInit {
    * Indica si el usuario puede cambiar el tipo de item.
    */
   canChangeItemType(ctrl: AbstractControl): boolean {
+    if (this.isTreasuryLockedExpense) return false;
     if (this.isLaborAuto) return false;
     if (this.isWarehouseSafeExpense) return false;
 
@@ -876,6 +909,8 @@ export class ExpenseForm implements OnInit {
       next: (response: entity.ExpenseDetail) => {
         this.formData = response;
 
+        this.isTreasuryLockedExpense = !!response.has_active_treasury_payments;
+
         const anyResp: any = response as any;
 
         this.isXmlImport = !!anyResp.cfdi_uuid;
@@ -883,10 +918,7 @@ export class ExpenseForm implements OnInit {
         this.isLaborAuto = anyResp.origin_type === 'labor_auto';
 
         this.isPurchaseOrderLinkedExpense =
-          anyResp.origin_type === 'purchase_order' ||
-          anyResp.source_module === 'purchase_orders' ||
-          anyResp.source_module === 'purchase_order' ||
-          !!anyResp.source_record_id;
+          !!response.is_purchase_order_linked;
 
         this.hasWarehouseItems = response.items.some(
           (item) => item.item_type === 'warehouse',
@@ -947,8 +979,85 @@ export class ExpenseForm implements OnInit {
         if (this.isPurchaseOrderProjectLocked) {
           this.applyPurchaseOrderProjectLocking();
         }
+
+        /*
+ * Este bloqueo siempre debe ejecutarse al final.
+ * Un pago activo de Tesorería bloquea cualquier modificación.
+ */
+        if (this.isTreasuryLockedExpense) {
+          this.applyActiveTreasuryPaymentLocking();
+        }
       },
       error: (err) => console.error('Error al cargar gastos:', err),
+    });
+  }
+
+  /**
+ * Bloquea completamente un gasto que tenga pagos activos
+ * registrados en Tesorería.
+ *
+ * Se debe ejecutar después de todos los demás bloqueos.
+ */
+  /**
+   * Bloquea la estructura del gasto cuando tiene pagos activos.
+   * Solo permite completar o corregir el proveedor.
+   */
+  private applyActiveTreasuryPaymentLocking(): void {
+    if (!this.isTreasuryLockedExpense) return;
+
+    this.bulkProjectSelected = null;
+
+    this.bulkProjectCtrl.setValue(null, {
+      emitEvent: false,
+    });
+
+    this.bulkAmountCtrl.setValue(null, {
+      emitEvent: false,
+    });
+
+    this.bulkProjectCtrl.disable({
+      emitEvent: false,
+    });
+
+    this.bulkAmountCtrl.disable({
+      emitEvent: false,
+    });
+
+    this.itemsFA.controls.forEach((ctrl) => {
+      ctrl.get('selected')?.setValue(false, {
+        emitEvent: false,
+      });
+    });
+
+    /*
+     * Bloquea fecha, conceptos, productos, importes,
+     * proyectos, tipo, cantidades y demás estructura.
+     */
+    this.form.disable({
+      emitEvent: false,
+    });
+
+    /*
+     * El proveedor sí puede corregirse.
+     * Mano de obra conserva su proveedor bloqueado.
+     */
+    if (!this.isLaborAuto) {
+      const supplierCtrl = this.form.get('supplier_id');
+
+      supplierCtrl?.enable({
+        emitEvent: false,
+      });
+
+      supplierCtrl?.markAsPristine();
+      supplierCtrl?.markAsUntouched();
+
+      supplierCtrl?.updateValueAndValidity({
+        emitEvent: false,
+      });
+    }
+
+    this.form.updateValueAndValidity({
+      emitEvent: false,
     });
   }
 
@@ -1154,36 +1263,110 @@ export class ExpenseForm implements OnInit {
    * Actualiza un gasto existente.
    */
   updateData(): void {
+    /*
+     * Con pagos activos solamente se actualiza el proveedor.
+     */
+    if (this.isTreasuryLockedExpense) {
+      if (this.isLaborAuto) {
+        return;
+      }
+
+      const supplierCtrl = this.form.get('supplier_id');
+      const supplierId = toIdForm(supplierCtrl?.value);
+
+      if (
+        !supplierCtrl ||
+        supplierCtrl.disabled ||
+        supplierCtrl.invalid ||
+        !supplierCtrl.dirty ||
+        !supplierId
+      ) {
+        supplierCtrl?.markAsTouched();
+
+        if (!supplierId) {
+          supplierCtrl?.setErrors({
+            required: true,
+          });
+        }
+
+        return;
+      }
+
+      this.expenseService
+        .update(
+          this.expenseId,
+          {
+            supplier_id: supplierId,
+          } as entity.UpdateExpenseSupplier,
+        )
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.navigateToList();
+            }
+          },
+          error: (err) =>
+            console.error(
+              'Error al actualizar proveedor del gasto:',
+              err,
+            ),
+        });
+
+      return;
+    }
+
+    /*
+     * Actualización normal sin pagos activos.
+     */
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
     if (this.isWarehouseSafeExpense) {
-      const payload = this.buildWarehouseSafePayloadFromForm();
+      const payload =
+        this.buildWarehouseSafePayloadFromForm();
 
-      this.expenseService.updateWarehouseExpenseSafe(this.expenseId, payload).subscribe({
-        next: (response) => {
-          if (response.success) {
-            this.navigateToList();
-          }
-        },
-        error: (err) => console.error('Error al actualizar gasto con almacén:', err),
-      });
+      this.expenseService
+        .updateWarehouseExpenseSafe(
+          this.expenseId,
+          payload,
+        )
+        .subscribe({
+          next: (response) => {
+            if (response.success) {
+              this.navigateToList();
+            }
+          },
+          error: (err) =>
+            console.error(
+              'Error al actualizar gasto con almacén:',
+              err,
+            ),
+        });
 
       return;
     }
 
     const payload = this.buildPayloadFromForm();
 
-    this.expenseService.update(this.expenseId, payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.navigateToList();
-        }
-      },
-      error: (err) => console.error('Error al actualizar gasto:', err),
-    });
+    this.expenseService
+      .update(
+        this.expenseId,
+        payload,
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.success) {
+            this.navigateToList();
+          }
+        },
+        error: (err) =>
+          console.error(
+            'Error al actualizar gasto:',
+            err,
+          ),
+      });
   }
 
   /**
@@ -1206,7 +1389,9 @@ export class ExpenseForm implements OnInit {
    * Crea un FormGroup para un item del gasto.
    */
   createItemGroup(data?: any): FormGroup {
-    const defaultPaymentDate = data?.payment_date ?? this.getTodayIsoDate();
+    const defaultPaymentDate =
+      data?.payment_date ??
+      null;
     const isZeroCostDiscount = this.isZeroCostXmlDiscountRaw(data ?? {});
     const amountMinValue = isZeroCostDiscount ? 0 : 0.01;
 
@@ -1264,9 +1449,18 @@ export class ExpenseForm implements OnInit {
    * Agrega un item manual al gasto.
    */
   addItem(): void {
-    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
+    if (
+      this.isTreasuryLockedExpense ||
+      this.isXmlImport ||
+      this.isLaborAuto ||
+      this.isWarehouseSafeExpense
+    ) {
+      return;
+    }
 
-    this.itemsFA.push(this.createItemGroup());
+    this.itemsFA.push(
+      this.createItemGroup(),
+    );
   }
 
   /**
@@ -1274,7 +1468,15 @@ export class ExpenseForm implements OnInit {
    */
   removeItem(index: number): void {
     if (this.itemsFA.length <= 1) return;
-    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
+
+    if (
+      this.isTreasuryLockedExpense ||
+      this.isXmlImport ||
+      this.isLaborAuto ||
+      this.isWarehouseSafeExpense
+    ) {
+      return;
+    }
 
     this.itemsFA.removeAt(index);
   }
@@ -1287,6 +1489,8 @@ export class ExpenseForm implements OnInit {
    * Selecciona o deselecciona todos los items.
    */
   onToggleSelectAll(checked: boolean): void {
+    if (this.isTreasuryLockedExpense) return;
+
     this.itemsFA.controls.forEach((ctrl) => {
       ctrl.get('selected')?.setValue(checked);
     });
@@ -1296,6 +1500,8 @@ export class ExpenseForm implements OnInit {
    * Guarda el proyecto seleccionado para aplicación masiva.
    */
   onBulkProjectSelected(project: Catalog): void {
+    if (this.isTreasuryLockedExpense) return;
+
     this.bulkProjectSelected = project;
   }
 
@@ -1303,14 +1509,23 @@ export class ExpenseForm implements OnInit {
    * Aplica un proyecto a los items directos seleccionados.
    */
   applyBulkProject(): void {
+    if (this.isTreasuryLockedExpense) return;
+
     const project = this.bulkProjectSelected;
 
-    if (!project || this.isWarehouseSafeExpense || this.isPurchaseOrderProjectLocked) {
+    if (
+      !project ||
+      this.isWarehouseSafeExpense ||
+      this.isPurchaseOrderProjectLocked
+    ) {
       return;
     }
 
     this.itemsFA.controls.forEach((ctrl) => {
-      if (ctrl.get('selected')?.value && !this.isWarehouseItem(ctrl)) {
+      if (
+        ctrl.get('selected')?.value &&
+        !this.isWarehouseItem(ctrl)
+      ) {
         ctrl.get('project_id')?.setValue(project);
         ctrl.get('project_id')?.markAsDirty();
         ctrl.get('project_id')?.markAsTouched();
@@ -1322,8 +1537,14 @@ export class ExpenseForm implements OnInit {
    * Aplica un monto a los items directos seleccionados.
    */
   applyAmountToSelected(): void {
-    if (this.isXmlImport || this.isLaborAuto || this.isWarehouseSafeExpense) return;
-
+    if (
+      this.isTreasuryLockedExpense ||
+      this.isXmlImport ||
+      this.isLaborAuto ||
+      this.isWarehouseSafeExpense
+    ) {
+      return;
+    }
     const amount = Number(this.bulkAmountCtrl.value ?? 0);
 
     if (amount <= 0) {

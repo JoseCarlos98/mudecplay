@@ -5,6 +5,11 @@ import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
  *  TIPOS BASE
  * ===================================================== */
 
+export type ExpensePaymentStatus =
+  | 'unpaid'
+  | 'partial'
+  | 'paid';
+
 export type ExpenseItemType = 'direct' | 'warehouse';
 
 export type WarehouseLotStatus =
@@ -309,6 +314,16 @@ export interface ExpenseDetail {
   };
 
   items: ExpenseItemDetail[];
+
+  paid_amount: number;
+
+  payment_status: ExpensePaymentStatus;
+  has_active_treasury_payments: boolean;
+  last_payment_date: string | null;
+}
+
+export interface UpdateExpenseSupplier {
+  supplier_id: number;
 }
 
 /* =====================================================

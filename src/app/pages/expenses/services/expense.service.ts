@@ -77,9 +77,19 @@ export class ExpenseService {
     return this.http.post<ApiSuccess>(url, formData);
   }
 
-  update(id: number, formData: entity.UpdateExpense): Observable<ApiSuccess> {
-    const url = `${this.apiUrl}/${id}`;
-    return this.http.patch<ApiSuccess>(url, formData);
+  // update(id: number, formData: entity.UpdateExpense): Observable<ApiSuccess> {
+  //   const url = `${this.apiUrl}/${id}`;
+  //   return this.http.patch<ApiSuccess>(url, formData);
+  // }
+
+  update(
+    expenseId: number,
+    payload: entity.CreateExpense | entity.UpdateExpenseSupplier,
+  ) {
+    return this.http.patch<ApiSuccess>(
+      `${this.apiUrl}/${expenseId}`,
+      payload,
+    );
   }
 
   updateWarehouseExpenseSafe(

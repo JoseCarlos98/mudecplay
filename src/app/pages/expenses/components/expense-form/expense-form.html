@@ -56,19 +56,22 @@
   </div>
   }
 
-  @if (!isLaborAuto) {
-  <div class="c-form-alert c-form-alert--info">
-    <mat-icon class="c-form-alert__icon">info</mat-icon>
+@if (!isLaborAuto && hasWarehouseItemsInForm) {
+<div class="c-form-alert c-form-alert--info">
+  <mat-icon class="c-form-alert__icon">info</mat-icon>
 
-    <div class="c-form-alert__content">
-      <strong>Control de almacén:</strong>
-      los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
-      Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
-    </div>
+  <div class="c-form-alert__content">
+    <strong>Control de almacén:</strong>
+    los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
+    Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
   </div>
-  }
+</div>
+}
 
-  @if (isWarehouseSafeExpense) {
+  @if (
+  isWarehouseSafeExpense &&
+  !isTreasuryLockedExpense
+  ) {
   <div class="c-form-alert c-form-alert--warning">
     <mat-icon class="c-form-alert__icon">lock</mat-icon>
 
@@ -80,7 +83,10 @@
   </div>
   }
 
-  @if (isPurchaseOrderProjectLocked) {
+  @if (
+  isPurchaseOrderProjectLocked &&
+  !isTreasuryLockedExpense
+  ) {
   <div class="c-form-alert c-form-alert--info">
     <mat-icon class="c-form-alert__icon">lock</mat-icon>
 
@@ -88,6 +94,45 @@
       <strong>Proyecto bloqueado por O.C.:</strong>
       este gasto está relacionado con una orden de compra. El proyecto se toma desde la O.C.
       y no puede cambiarse desde edición de gasto para mantener la trazabilidad.
+    </div>
+  </div>
+  }
+
+  @if (isTreasuryLockedExpense) {
+  <div class="c-form-alert c-form-alert--warning">
+    <mat-icon class="c-form-alert__icon">
+      account_balance_wallet
+    </mat-icon>
+
+    <div class="c-form-alert__content">
+      <strong>Gasto bloqueado por pagos activos:</strong>
+
+      este gasto tiene pagos registrados en
+      <strong>Tesorería</strong> y no puede modificarse.
+
+      Para corregirlo, primero debes revertir sus pagos desde
+      <strong>Cuentas por pagar</strong>.
+
+      @if (formData) {
+      <div>
+        Pagado:
+        <strong>
+          {{ formatMoney(formData.paid_amount ?? 0) }}
+        </strong>
+
+        · Pendiente:
+        <strong>
+          {{ formatMoney(formData.remaining_amount ?? 0) }}
+        </strong>
+
+        @if (formData.last_payment_date) {
+        · Último pago:
+        <strong>
+          {{ formData.last_payment_date }}
+        </strong>
+        }
+      </div>
+      }
     </div>
   </div>
   }
@@ -125,7 +170,12 @@
             </span>
           </div>
 
-          @if (!cfdiUuidFromXml && !isLaborAuto && !isWarehouseSafeExpense) {
+          @if (
+          !cfdiUuidFromXml &&
+          !isLaborAuto &&
+          !isWarehouseSafeExpense &&
+          !isTreasuryLockedExpense
+          ) {
           <button type="button" class="btn-add-row" (click)="addItem()">
             <mat-icon>add</mat-icon>
             <span>Agregar</span>
@@ -134,7 +184,10 @@
         </div>
 
         <!-- Barra masiva -->
-        <div class="form-dinamic-bulk" *ngIf="itemsFA.length > 0">
+        <div class="form-dinamic-bulk" *ngIf="
+    itemsFA.length > 0 &&
+    !isTreasuryLockedExpense
+  ">
           <div class="bulk-check">
             <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
               (change)="onToggleSelectAll($event.checked)">
@@ -186,7 +239,10 @@
             <!-- Header del item -->
             <div class="expense-item-card__top">
               <div class="expense-item-card__left">
-                <mat-checkbox color="primary" formControlName="selected"></mat-checkbox>
+                @if (!isTreasuryLockedExpense) {
+                <mat-checkbox color="primary" formControlName="selected">
+                </mat-checkbox>
+                }
 
                 @if (!isLaborAuto) {
                 <div class="item-type">
@@ -213,7 +269,13 @@
                 }
               </div>
 
-              @if (itemsFA.length > 1 && !cfdiUuidFromXml && !isLaborAuto && !isWarehouseSafeExpense) {
+              @if (
+              itemsFA.length > 1 &&
+              !cfdiUuidFromXml &&
+              !isLaborAuto &&
+              !isWarehouseSafeExpense &&
+              !isTreasuryLockedExpense
+              ) {
               <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
                 <mat-icon>delete</mat-icon>
               </button>
@@ -340,6 +402,10 @@
     </div>
   </form>
 
-  <app-btns-section [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
+  <app-btns-section [saveDisabled]="
+    isTreasuryLockedExpense
+      ? !canSaveTreasurySupplierCorrection
+      : !form.valid
+  " (action)="onFooterAction($event)">
   </app-btns-section>
 </div>
