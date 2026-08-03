@@ -47,6 +47,12 @@ export class PurchaseOrdersService {
 
       params = setScalar(
         params,
+        'related_expense_amount',
+        filters.related_expense_amount,
+      );
+
+      params = setScalar(
+        params,
         'tracking_status',
         filters.tracking_status,
       );
@@ -128,46 +134,40 @@ export class PurchaseOrdersService {
   }
 
   getAvailableForReconciliation(
-    filters?: entity.PurchaseOrderFilters,
-  ): Observable<entity.PurchaseOrdersPaginatedResponse> {
-    let params = new HttpParams();
+    filters: PurchaseOrderFilters,
+  ): Observable<entity.AvailableForReconciliationResponse> {
+    let params = new HttpParams()
+      .set('page', filters.page)
+      .set('limit', filters.limit);
 
-    if (filters) {
-      params = params.set('page', String(filters.page));
-      params = params.set('limit', String(filters.limit));
-
-      if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
-      }
-
-      if (filters.destination_type) {
-        params = params.set('destination_type', filters.destination_type);
-      }
-
-      if (
-        filters.will_have_invoice !== undefined &&
-        filters.will_have_invoice !== null
-      ) {
-        params = params.set(
-          'will_have_invoice',
-          String(filters.will_have_invoice),
-        );
-      }
-
-      if (filters.project_id) {
-        params = params.set('project_id', String(filters.project_id));
-      }
-
-      if (filters.ticket_filter) {
-        params = params.set('ticket_filter', filters.ticket_filter);
-      }
+    if (filters.project_id) {
+      params = params.set(
+        'project_id',
+        filters.project_id,
+      );
     }
 
-    return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
+    if (filters.ticket_filter) {
+      params = params.set(
+        'ticket_filter',
+        filters.ticket_filter,
+      );
+    }
+
+    if (filters.search?.trim()) {
+      params = params.set(
+        'search',
+        filters.search.trim(),
+      );
+    }
+
+    return this.http.get<entity.AvailableForReconciliationResponse>(
       `${this.apiUrl}/available-for-reconciliation`,
       { params },
     );
   }
+
+
 
   getFlowDetail(id: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}/flow-detail`);
@@ -384,47 +384,47 @@ export class PurchaseOrdersService {
     );
   }
 
-getAvailableWarehouseXmlExpensesForPurchaseOrder(
-  purchaseOrderId: number | string,
-  filters?: entity.FiltersAvailableWarehouseXmlExpenses,
-): Observable<entity.AvailableWarehouseXmlExpensesResponse> {
-  let params = new HttpParams();
+  getAvailableWarehouseXmlExpensesForPurchaseOrder(
+    purchaseOrderId: number | string,
+    filters?: entity.FiltersAvailableWarehouseXmlExpenses,
+  ): Observable<entity.AvailableWarehouseXmlExpensesResponse> {
+    let params = new HttpParams();
 
-  if (filters) {
-    if (filters.search?.trim()) {
-      params = params.set('search', filters.search.trim());
+    if (filters) {
+      if (filters.search?.trim()) {
+        params = params.set('search', filters.search.trim());
+      }
+
+      if (
+        filters.supplier_id !== undefined &&
+        filters.supplier_id !== null &&
+        String(filters.supplier_id).trim() !== ''
+      ) {
+        params = params.set('supplier_id', String(filters.supplier_id));
+      }
+
+      if (filters.date_from?.trim()) {
+        params = params.set('date_from', filters.date_from.trim());
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set('date_to', filters.date_to.trim());
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null &&
+        String(filters.amount).trim() !== ''
+      ) {
+        params = params.set('amount', String(filters.amount));
+      }
     }
 
-    if (
-      filters.supplier_id !== undefined &&
-      filters.supplier_id !== null &&
-      String(filters.supplier_id).trim() !== ''
-    ) {
-      params = params.set('supplier_id', String(filters.supplier_id));
-    }
-
-    if (filters.date_from?.trim()) {
-      params = params.set('date_from', filters.date_from.trim());
-    }
-
-    if (filters.date_to?.trim()) {
-      params = params.set('date_to', filters.date_to.trim());
-    }
-
-    if (
-      filters.amount !== undefined &&
-      filters.amount !== null &&
-      String(filters.amount).trim() !== ''
-    ) {
-      params = params.set('amount', String(filters.amount));
-    }
+    return this.http.get<entity.AvailableWarehouseXmlExpensesResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/available-warehouse-xml-expenses`,
+      { params },
+    );
   }
-
-  return this.http.get<entity.AvailableWarehouseXmlExpensesResponse>(
-    `${this.apiUrl}/${purchaseOrderId}/available-warehouse-xml-expenses`,
-    { params },
-  );
-}
 
   linkExistingWarehouseXmlExpenseToTicketPhoto(
     photoId: number | string,
