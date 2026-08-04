@@ -190,8 +190,24 @@ getBankMovements(
 }
 
 
+// =========================================================
+// TESORERÍA: RECLASIFICACIÓN MANUAL DE MOVIMIENTOS
+// =========================================================
 
-
+updateBankMovementClassification(
+  movementId: number | string,
+  payload:
+    entity.TreasuryUpdateBankMovementClassificationPayload,
+): Observable<
+  entity.TreasuryUpdateBankMovementClassificationResponse
+> {
+  return this.http.patch<
+    entity.TreasuryUpdateBankMovementClassificationResponse
+  >(
+    `${this.apiUrl}/bank-movements/${movementId}/classification`,
+    payload,
+  );
+}
 
 
 

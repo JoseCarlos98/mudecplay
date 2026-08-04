@@ -366,4 +366,61 @@ export type TreasuryBankMovementsTablePaginatedResponse =
   TreasuryPaginatedResponse<TreasuryBankMovementTableRow>;
 
 
-  
+  // =========================================================
+// TESORERÍA: RECLASIFICACIÓN MANUAL DE MOVIMIENTOS
+// =========================================================
+
+export type TreasuryManualBankMovementClassification =
+  | 'transferencia_salida'
+  | 'pago_tercero'
+  | 'gasto_por_comprobar'
+  | 'prestamo';
+
+export interface TreasuryUpdateBankMovementClassificationPayload {
+  classification: TreasuryManualBankMovementClassification;
+  reason: string;
+}
+
+export interface TreasuryUpdateBankMovementClassificationResponse {
+  success: boolean;
+  message: string;
+
+  bank_movement: {
+    id: string;
+    movement_type: TreasuryBankMovementType | string;
+
+    previous_classification: string | null;
+
+    classification:
+      TreasuryManualBankMovementClassification;
+
+    classification_label: string;
+
+    amount: number;
+    available_amount: number;
+    manual_closed_amount: number;
+
+    status: TreasuryBankMovementStatus | string;
+
+    bank_reference: string | null;
+    description_original: string;
+
+    company: TreasuryCompany | null;
+    bank: TreasuryBank | null;
+
+    bank_account:
+      TreasuryBankMovement['bank_account'];
+  };
+
+  audit: {
+    action_id: string;
+    action_type: string;
+    reason: string;
+    created_by_user_id: number;
+    created_at: string;
+  };
+}
+
+export interface TreasuryBankMovementClassificationModalData {
+  movement: TreasuryBankMovementTableRow;
+}

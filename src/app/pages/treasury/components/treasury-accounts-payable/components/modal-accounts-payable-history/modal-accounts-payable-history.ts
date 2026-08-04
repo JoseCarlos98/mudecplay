@@ -445,6 +445,10 @@ export class ModalAccountsPayableHistory
       case 'reopen_manual_close':
         return 'Cierre manual reabierto';
 
+      case 'classification_changed':
+      case 'classification_change':
+        return 'Clasificación actualizada';
+
       default:
         return this.humanizeText(
           action.action_type,
@@ -471,6 +475,10 @@ export class ModalAccountsPayableHistory
       case 'reopen_manual_close':
         return 'lock_open';
 
+      case 'classification_changed':
+      case 'classification_change':
+        return 'label';
+
       default:
         return 'history';
     }
@@ -493,6 +501,8 @@ export class ModalAccountsPayableHistory
       case 'manual_reopen':
       case 'manual_close_reopened':
       case 'reopen_manual_close':
+      case 'classification_changed':
+      case 'classification_change':
         return 'history-event--info';
 
       default:
@@ -504,9 +514,110 @@ export class ModalAccountsPayableHistory
   // LABELS DE PAGOS
   // =========================================================
 
+  isClassificationChange(
+    action:
+      entity.TreasuryBankMovementHistoryAction,
+  ): boolean {
+    return (
+      action.action_type ===
+      'classification_changed' ||
+      action.action_type ===
+      'classification_change'
+    );
+  }
+
+  getPreviousClassificationLabel(
+    action:
+      entity.TreasuryBankMovementHistoryAction,
+  ): string {
+    return this.getClassificationLabel(
+      this.getActionMetadataString(
+        action,
+        'previous_classification',
+      ),
+    );
+  }
+
+  getNewClassificationLabel(
+    action:
+      entity.TreasuryBankMovementHistoryAction,
+  ): string {
+    return this.getClassificationLabel(
+      this.getActionMetadataString(
+        action,
+        'new_classification',
+      ),
+    );
+  }
+
+  private getActionMetadataString(
+    action:
+      entity.TreasuryBankMovementHistoryAction,
+    key: string,
+  ): string | null {
+    const metadata =
+      action.metadata as
+      | Record<string, unknown>
+      | null
+      | undefined;
+
+    const value =
+      metadata?.[key];
+
+    if (
+      typeof value !== 'string'
+    ) {
+      return null;
+    }
+
+    const normalized =
+      value.trim();
+
+    return normalized || null;
+  }
+
+  private getClassificationLabel(
+    classification:
+      | string
+      | null
+      | undefined,
+  ): string {
+    switch (classification) {
+      case 'transferencia_salida':
+        return 'Transferencia de salida';
+
+      case 'pago_tercero':
+        return 'Pago a tercero';
+
+      case 'gasto_por_comprobar':
+        return 'Gasto por comprobar';
+
+      case 'prestamo':
+        return 'Préstamo';
+
+      case 'comision_bancaria':
+        return 'Comisión bancaria';
+
+      case 'iva_comision':
+        return 'IVA de comisión';
+
+      case 'transferencia_entrada':
+        return 'Transferencia de entrada';
+
+      default:
+        return classification
+          ? this.humanizeText(
+            classification,
+          )
+          : 'Sin clasificación';
+    }
+  }
+
   getPaymentStatusLabel(
     status:
-      string | null | undefined,
+      | string
+      | null
+      | undefined,
   ): string {
     switch (status) {
       case 'active':
@@ -520,7 +631,9 @@ export class ModalAccountsPayableHistory
 
       default:
         return status
-          ? this.humanizeText(status)
+          ? this.humanizeText(
+            status,
+          )
           : 'Sin estatus';
     }
   }
@@ -553,10 +666,9 @@ export class ModalAccountsPayableHistory
     return (
       application.expense
         ?.internal_folio ||
-      `Gasto #${
-        application.expense_id ??
-        application.expense?.id ??
-        '—'
+      `Gasto #${application.expense_id ??
+      application.expense?.id ??
+      '—'
       }`
     );
   }
@@ -674,8 +786,8 @@ export class ModalAccountsPayableHistory
       error as {
         error?: {
           message?:
-            | string
-            | string[];
+          | string
+          | string[];
         };
 
         message?: string;
@@ -695,7 +807,7 @@ export class ModalAccountsPayableHistory
 
     if (
       typeof backendMessage ===
-        'string' &&
+      'string' &&
       backendMessage.trim()
     ) {
       return backendMessage;

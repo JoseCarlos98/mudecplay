@@ -43,6 +43,8 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalAccountsPayableManualReopen } from '../treasury-accounts-payable/components/modal-accounts-payable-manual-reopen/modal-accounts-payable-manual-reopen';
 import { TreasuryBankMovementHistoryCurrentMovement, TreasuryManualReopenBankMovementModalData, TreasuryManualReopenBankMovementResponse } from '../treasury-accounts-payable/interfaces/treasury-accounts-payable.interfaces';
 import { roundMoney } from '../../../../shared/helpers/general-helpers';
+import { ModalBankMovementClassification } from '../treasury-accounts-payable/components/modal-bank-movement-classification/modal-bank-movement-classification';
+import { ModalAccountsPayableHistory } from '../treasury-accounts-payable/components/modal-accounts-payable-history/modal-accounts-payable-history';
 
 // =========================================================
 // TESORERÍA: MOVIMIENTOS BANCARIOS - CONSTANTES
@@ -186,7 +188,7 @@ export class TreasuryBankMovements implements OnInit {
   private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
-  private readonly dialogService =   inject(DialogService);
+  private readonly dialogService = inject(DialogService);
 
   // =========================================================
   // CONFIG UI
@@ -401,36 +403,36 @@ export class TreasuryBankMovements implements OnInit {
     };
   }
 
-private mapBankMovementRow(
-  row: entity.TreasuryBankMovement,
-): entity.TreasuryBankMovementTableRow {
-  return {
-    ...row,
+  private mapBankMovementRow(
+    row: entity.TreasuryBankMovement,
+  ): entity.TreasuryBankMovementTableRow {
+    return {
+      ...row,
 
-    company_name: row.company?.name ?? null,
-    bank_name: row.bank?.name ?? null,
-    bank_account_display: this.getBankAccountDisplay(row),
+      company_name: row.company?.name ?? null,
+      bank_name: row.bank?.name ?? null,
+      bank_account_display: this.getBankAccountDisplay(row),
 
-    movement_type_label: this.getMovementTypeLabel(row.movement_type),
+      movement_type_label: this.getMovementTypeLabel(row.movement_type),
 
-    classification_label: this.getClassificationLabel(row.classification),
-    status_label: this.getStatusLabel(row.status),
+      classification_label: this.getClassificationLabel(row.classification),
+      status_label: this.getStatusLabel(row.status),
 
-    reference_display:
-      row.bank_reference ??
-      row.receipt_number ??
-      row.tracking_key ??
-      null,
+      reference_display:
+        row.bank_reference ??
+        row.receipt_number ??
+        row.tracking_key ??
+        null,
 
-    counterparty_display:
-      row.counterparty_name ??
-      row.counterparty_account ??
-      null,
+      counterparty_display:
+        row.counterparty_name ??
+        row.counterparty_account ??
+        null,
 
-    import_file_name:
-      row.import_file?.original_file_name ?? null,
-  };
-}
+      import_file_name:
+        row.import_file?.original_file_name ?? null,
+    };
+  }
 
   // =========================================================
   // PAGINACIÓN
@@ -645,148 +647,313 @@ private mapBankMovementRow(
   }
 
   readonly bankMovementExtraActions:
-  DataTableExtraAction<
-    entity.TreasuryBankMovementTableRow
-  >[] = [
-    {
-      type: 'manualReopen',
+    DataTableExtraAction<
+      entity.TreasuryBankMovementTableRow
+    >[] = [
+      {
+        type: 'movementHistory',
 
-      icon: 'lock_open',
+        icon: 'history',
 
-      tooltip:
-        'Reabrir movimiento',
+        tooltip:
+          'Ver historial',
+      },
+      {
+        type: 'changeClassification',
 
-      iconClass:
-        'table-action-icon--info',
+        icon: 'label',
 
-      roles: [
-        'ADMIN_GENERAL',
-      ],
+        tooltip:
+          'Cambiar clasificación',
 
-      visible: (row) =>
-        row.movement_type ===
+        iconClass:
+          'table-action-icon--warning',
+
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+
+        visible: (row) =>
+          this.canChangeBankMovementClassification(
+            row,
+          ),
+      },
+
+      {
+        type: 'manualReopen',
+
+        icon: 'lock_open',
+
+        tooltip:
+          'Reabrir movimiento',
+
+        iconClass:
+          'table-action-icon--info',
+
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+
+        visible: (row) =>
+          row.movement_type ===
           'outflow' &&
-        row.status ===
+          row.status ===
           'manually_closed' &&
-        Number(
-          row.manual_closed_amount ??
-          0,
-        ) > 0,
-    },
-  ];
+          Number(
+            row.manual_closed_amount ??
+            0,
+          ) > 0,
+      },
+    ];
 
   onBankMovementTableAction(
-  event:
-    DataTableActionEvent<
-      entity.TreasuryBankMovementTableRow
-    >,
-): void {
-  switch (event.type) {
-    case 'manualReopen':
-      this.openManualReopen(
-        event.row,
-      );
-      break;
+    event:
+      DataTableActionEvent<
+        entity.TreasuryBankMovementTableRow
+      >,
+  ): void {
+    switch (event.type) {
+      case 'movementHistory':
+        this.openMovementHistory(
+          event.row,
+        );
+        break;
 
-    default:
-      break;
-  }
-}
+      case 'changeClassification':
+        this.openBankMovementClassification(
+          event.row,
+        );
+        break;
 
-openManualReopen(
-  row:
-    entity.TreasuryBankMovementTableRow,
-): void {
-  const manualClosedAmount =
-    Number(
-      row.manual_closed_amount ??
-      0,
-    );
+      case 'manualReopen':
+        this.openManualReopen(
+          event.row,
+        );
+        break;
 
-  if (
-    !row?.id ||
-    row.movement_type !==
-      'outflow' ||
-    row.status !==
-      'manually_closed' ||
-    manualClosedAmount <= 0
-  ) {
-    return;
+      default:
+        break;
+    }
   }
 
-  const amount =
-    Number(row.amount ?? 0);
+  openMovementHistory(
+    row:
+      entity.TreasuryBankMovementTableRow,
+  ): void {
+    if (!row?.id) {
+      return;
+    }
 
-  const availableAmount =
-    Number(
-      row.available_amount ??
-      0,
-    );
-
-  const appliedAmount =
-    roundMoney(
-      Number(
-        row.applied_amount ??
+    this.dialogService
+      .open(
+        ModalAccountsPayableHistory,
+        {
+          movement: row,
+        },
+        'large',
+      )
+      .afterClosed()
+      .subscribe(
         (
-          amount -
-          availableAmount -
-          manualClosedAmount
+          historyChanged:
+            boolean | null,
+        ) => {
+          if (!historyChanged) {
+            return;
+          }
+
+          /*
+           * Si desde el historial se revierte un pago
+           * o se modifica el movimiento, refresca la
+           * tabla conservando filtros y paginación.
+           */
+          this.loadBankMovements();
+        },
+      );
+  }
+  openBankMovementClassification(
+    row:
+      entity.TreasuryBankMovementTableRow,
+  ): void {
+    if (
+      !this.canChangeBankMovementClassification(
+        row,
+      )
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryBankMovementClassificationModalData = {
+      movement: row,
+    };
+
+    this.dialogService
+      .open(
+        ModalBankMovementClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryUpdateBankMovementClassificationResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          /*
+           * Conserva los filtros y la página actual.
+           * Solo consulta nuevamente la tabla.
+           */
+          this.loadBankMovements();
+        },
+      );
+  }
+
+  private canChangeBankMovementClassification(
+    row:
+      entity.TreasuryBankMovementTableRow,
+  ): boolean {
+    const originalAmount =
+      roundMoney(
+        Number(
+          row.amount ?? 0,
         ),
-      ),
+      );
+
+    const availableAmount =
+      roundMoney(
+        Number(
+          row.available_amount ?? 0,
+        ),
+      );
+
+    const appliedAmount =
+      roundMoney(
+        Number(
+          row.applied_amount ?? 0,
+        ),
+      );
+
+    const manualClosedAmount =
+      roundMoney(
+        Number(
+          row.manual_closed_amount ?? 0,
+        ),
+      );
+
+    return (
+      Boolean(row?.id) &&
+      row.movement_type ===
+      'outflow' &&
+      row.status ===
+      'unmatched' &&
+      originalAmount > 0 &&
+      availableAmount ===
+      originalAmount &&
+      appliedAmount === 0 &&
+      manualClosedAmount === 0
     );
+  }
 
-  const movement:
-    TreasuryBankMovementHistoryCurrentMovement = {
-    id:
-      String(row.id),
+  openManualReopen(
+    row:
+      entity.TreasuryBankMovementTableRow,
+  ): void {
+    const manualClosedAmount =
+      Number(
+        row.manual_closed_amount ??
+        0,
+      );
 
-    movement_date:
-      row.movement_date,
+    if (
+      !row?.id ||
+      row.movement_type !==
+      'outflow' ||
+      row.status !==
+      'manually_closed' ||
+      manualClosedAmount <= 0
+    ) {
+      return;
+    }
 
-    movement_time:
-      row.movement_time ??
-      null,
+    const amount =
+      Number(row.amount ?? 0);
 
-    movement_type:
-      row.movement_type,
+    const availableAmount =
+      Number(
+        row.available_amount ??
+        0,
+      );
 
-    amount,
+    const appliedAmount =
+      roundMoney(
+        Number(
+          row.applied_amount ??
+          (
+            amount -
+            availableAmount -
+            manualClosedAmount
+          ),
+        ),
+      );
 
-    available_amount:
-      availableAmount,
+    const movement:
+      TreasuryBankMovementHistoryCurrentMovement = {
+      id:
+        String(row.id),
 
-    applied_amount:
-      appliedAmount,
+      movement_date:
+        row.movement_date,
 
-    manual_closed_amount:
-      manualClosedAmount,
+      movement_time:
+        row.movement_time ??
+        null,
 
-    status:
-      row.status,
+      movement_type:
+        row.movement_type,
 
-    classification:
-      row.classification ??
-      null,
+      amount,
 
-    description_original:
-      row.description_original ??
-      '',
+      available_amount:
+        availableAmount,
 
-    bank_reference:
-      row.bank_reference ??
-      null,
+      applied_amount:
+        appliedAmount,
 
-    receipt_number:
-      row.receipt_number ??
-      null,
+      manual_closed_amount:
+        manualClosedAmount,
 
-    tracking_key:
-      row.tracking_key ??
-      null,
+      status:
+        row.status,
 
-    company:
-      row.company
-        ? {
+      classification:
+        row.classification ??
+        null,
+
+      description_original:
+        row.description_original ??
+        '',
+
+      bank_reference:
+        row.bank_reference ??
+        null,
+
+      receipt_number:
+        row.receipt_number ??
+        null,
+
+      tracking_key:
+        row.tracking_key ??
+        null,
+
+      company:
+        row.company
+          ? {
             id:
               row.company.id,
 
@@ -796,11 +963,11 @@ openManualReopen(
             name:
               row.company.name,
           }
-        : null,
+          : null,
 
-    bank:
-      row.bank
-        ? {
+      bank:
+        row.bank
+          ? {
             id:
               row.bank.id,
 
@@ -810,11 +977,11 @@ openManualReopen(
             name:
               row.bank.name,
           }
-        : null,
+          : null,
 
-    bank_account:
-      row.bank_account
-        ? {
+      bank_account:
+        row.bank_account
+          ? {
             id:
               row.bank_account.id,
 
@@ -830,33 +997,33 @@ openManualReopen(
                 .currency ||
               'MXN',
           }
-        : null,
-  };
+          : null,
+    };
 
-  const modalData:
-    TreasuryManualReopenBankMovementModalData = {
-    movement,
-  };
+    const modalData:
+      TreasuryManualReopenBankMovementModalData = {
+      movement,
+    };
 
-  this.dialogService
-    .open(
-      ModalAccountsPayableManualReopen,
-      modalData,
-      'medium',
-    )
-    .afterClosed()
-    .subscribe(
-      (
-        result:
-          | TreasuryManualReopenBankMovementResponse
-          | null,
-      ) => {
-        if (!result?.success) {
-          return;
-        }
+    this.dialogService
+      .open(
+        ModalAccountsPayableManualReopen,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | TreasuryManualReopenBankMovementResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
 
-        this.loadBankMovements();
-      },
-    );
-}
+          this.loadBankMovements();
+        },
+      );
+  }
 }
