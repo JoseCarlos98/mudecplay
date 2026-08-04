@@ -31,6 +31,7 @@ import {
   PurchaseOrderFlowDetailResponse,
   PurchaseOrderTicketPhotoDto,
 } from "../../../../interfaces/purchase-orders.interfaces";
+import { SearchMultiSelect } from "../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple";
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -49,6 +50,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     InputField,
     Autocomplete,
     BtnsSection,
+    SearchMultiSelect,
 
     MatIconModule,
   ],
@@ -86,7 +88,7 @@ export class RecordOcXmlExpense implements OnInit {
   form: FormGroup = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string | null>(null),
-    supplier: this.fb.control<Catalog | number | string | null>(null),
+    suppliersIds: this.fb.control<Catalog[]>([]),
     amount: this.fb.control<number | string | null>(null),
     notes: this.fb.control<string | null>(null),
   });
@@ -180,12 +182,15 @@ export class RecordOcXmlExpense implements OnInit {
   get hasActiveXmlFilters(): boolean {
     const raw = this.form.getRawValue();
 
-    const hasDates = !!(raw.dateRange?.startDate || raw.dateRange?.endDate);
+    const hasDates = !!(
+      raw.dateRange?.startDate ||
+      raw.dateRange?.endDate
+    );
 
     return !!(
       hasDates ||
       raw.search?.trim() ||
-      this.getCatalogId(raw.supplier) !== null ||
+      (raw.suppliersIds?.length ?? 0) > 0 ||
       this.toNumberOrNull(raw.amount) !== null
     );
   }
@@ -283,7 +288,7 @@ export class RecordOcXmlExpense implements OnInit {
       {
         dateRange: null,
         search: null,
-        supplier: null,
+        suppliersIds: [],
         amount: null,
       },
       { emitEvent: false },
@@ -540,7 +545,7 @@ export class RecordOcXmlExpense implements OnInit {
 
     const filters: FiltersAvailableXmlExpenses = {
       search: raw.search?.trim() || null,
-      supplier_id: this.getCatalogId(raw.supplier),
+      supplierIds: this.getSupplierIds(raw.suppliersIds),
       amount,
       date_from: raw.dateRange?.startDate ?? null,
       date_to: raw.dateRange?.endDate ?? null,
@@ -549,30 +554,58 @@ export class RecordOcXmlExpense implements OnInit {
     this.loadingXmlExpenses.set(true);
 
     this.purchaseOrdersService
-      .getAvailableXmlExpensesForPurchaseOrder(this.order.id, filters)
-      .pipe(finalize(() => this.loadingXmlExpenses.set(false)))
+      .getAvailableXmlExpensesForPurchaseOrder(
+        this.order.id,
+        filters,
+      )
+      .pipe(
+        finalize(() =>
+          this.loadingXmlExpenses.set(false),
+        ),
+      )
       .subscribe({
         next: (response) => {
-          this.availableXmlExpenses = response.data ?? [];
+          this.availableXmlExpenses =
+            response.data ?? [];
 
           if (
             this.selectedXmlExpense &&
             !this.availableXmlExpenses.some(
               (expense) =>
-                Number(expense.id) === Number(this.selectedXmlExpense?.id),
+                Number(expense.id) ===
+                Number(this.selectedXmlExpense?.id),
             )
           ) {
             this.clearSelectedXmlExpense();
           }
         },
         error: (err) => {
-          console.error("Error cargando gastos XML disponibles:", err);
+          console.error(
+            'Error cargando gastos XML disponibles:',
+            err,
+          );
 
           this.errorMessage =
             err?.error?.message ||
-            "No se pudieron cargar los gastos XML disponibles.";
+            'No se pudieron cargar los gastos XML disponibles.';
         },
       });
+  }
+
+  private getSupplierIds(
+    values: Catalog[] | null | undefined,
+  ): number[] {
+    return Array.from(
+      new Set(
+        (values ?? [])
+          .map((supplier) => Number(supplier?.id))
+          .filter(
+            (id) =>
+              Number.isInteger(id) &&
+              id > 0,
+          ),
+      ),
+    );
   }
 
   private loadPhotoUrl(): void {

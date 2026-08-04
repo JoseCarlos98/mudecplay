@@ -677,10 +677,8 @@ export interface AvailableXmlExpensesResponse {
 }
 
 export interface FiltersAvailableXmlExpenses {
-  // page: number;
-  // limit: number;
   search?: string | null;
-  supplier_id?: number | string | null;
+  supplierIds?: number[] | null;
   date_from?: string | null;
   date_to?: string | null;
   amount?: number | string | null;
@@ -779,11 +777,8 @@ export interface AvailableWarehouseXmlExpensesResponse {
 }
 
 export interface FiltersAvailableWarehouseXmlExpenses {
-  // page: number;
-  // limit: number;
-
   search?: string | null;
-  supplier_id?: number | string | null;
+  supplierIds?: number[] | null;
   date_from?: string | null;
   date_to?: string | null;
   amount?: number | string | null;

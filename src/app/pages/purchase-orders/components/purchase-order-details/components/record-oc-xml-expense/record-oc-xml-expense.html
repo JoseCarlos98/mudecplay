@@ -1,17 +1,9 @@
 <div class="card-content-form record-oc-xml-page">
-  <app-module-header
-    [title]="pageTitle"
-    [config]="headerConfig"
-    (action)="onHeaderAction($event)"
-  >
+  <app-module-header [title]="pageTitle" [config]="headerConfig" (action)="onHeaderAction($event)">
   </app-module-header>
 
   @if (loadingPage()) {
-  <app-loading-overlay
-    [visible]="true"
-    [fullscreen]="true"
-    text="Cargando información de la O.C..."
-  >
+  <app-loading-overlay [visible]="true" [fullscreen]="true" text="Cargando información de la O.C...">
   </app-loading-overlay>
   }
 
@@ -116,12 +108,7 @@
   </section>
   }
 
-  <form
-    id="form"
-    [formGroup]="form"
-    class="record-oc-xml-board"
-    (submit)="$event.preventDefault()"
-  >
+  <form id="form" [formGroup]="form" class="record-oc-xml-board" (submit)="$event.preventDefault()">
     <!-- IZQUIERDA -->
     <aside class="record-oc-xml-column record-oc-xml-column--left">
       <section class="record-oc-xml-card">
@@ -140,18 +127,10 @@
 
         <div class="record-oc-xml-photo">
           @if (loadingPhoto()) {
-          <app-loading-overlay
-            [visible]="true"
-            [fullscreen]="false"
-            text="Cargando foto..."
-          >
+          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Cargando foto...">
           </app-loading-overlay>
           } @if (!loadingPhoto() && photoUrl && !imageError) {
-          <img
-            [src]="photoUrl"
-            [alt]="ticketFileName"
-            (error)="onImageError()"
-          />
+          <img [src]="photoUrl" [alt]="ticketFileName" (error)="onImageError()" />
           } @if (!loadingPhoto() && (!photoUrl || imageError)) {
           <div class="record-oc-xml-photo__empty">
             <mat-icon>broken_image</mat-icon>
@@ -196,12 +175,8 @@
           </div>
         </div>
 
-        <button
-          type="button"
-          class="btn-outline record-oc-xml-photo-button"
-          [disabled]="!photoUrl"
-          (click)="openPhotoInNewTab()"
-        >
+        <button type="button" class="btn-outline record-oc-xml-photo-button" [disabled]="!photoUrl"
+          (click)="openPhotoInNewTab()">
           <mat-icon>open_in_new</mat-icon>
           <span>Abrir imagen</span>
         </button>
@@ -266,53 +241,27 @@
           </p>
         </section>
 
-        <section
-          class="record-oc-xml-filters c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5"
-        >
-          <app-input-date
-            formControlName="dateRange"
-            label="Rango de fecha"
-            mode="range"
-          >
+        <section class="record-oc-xml-filters c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+          <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">
           </app-input-date>
 
-          <app-input-field
-            formControlName="search"
-            label="Folio o UUID"
-            type="text"
-          >
+          <app-input-field formControlName="search" label="Folio o UUID" type="text">
           </app-input-field>
 
-          <app-autocomplete
-            formControlName="supplier"
-            label="Proveedor"
-            placeholder="Buscar proveedor"
-            catalogType="supplier"
-          >
-          </app-autocomplete>
+          <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedor" [remote]="true"
+            catalogType="supplier" valueMode="objects">
+          </app-autocomplete-multiple>
 
-          <app-input-field
-            formControlName="amount"
-            label="Total del XML"
-            type="money"
-          >
+          <app-input-field formControlName="amount" label="Total del XML" type="money">
           </app-input-field>
 
-          <app-btns-section
-            type="search"
-            [hasActiveFilters]="hasActiveXmlFilters"
-            (action)="onFilterAction($event)"
-          >
+          <app-btns-section type="search" [hasActiveFilters]="hasActiveXmlFilters" (action)="onFilterAction($event)">
           </app-btns-section>
         </section>
 
         <div class="record-oc-xml-list-wrapper">
           @if (loadingXmlExpenses()) {
-          <app-loading-overlay
-            [visible]="true"
-            [fullscreen]="false"
-            text="Buscando XML disponibles..."
-          >
+          <app-loading-overlay [visible]="true" [fullscreen]="false" text="Buscando XML disponibles...">
           </app-loading-overlay>
           } @if (!loadingXmlExpenses() && availableXmlExpenses.length === 0) {
           <div class="record-oc-xml-empty">
@@ -328,26 +277,18 @@
           <div class="record-oc-xml-list">
             @for (expense of availableXmlExpenses; track
             trackByExpenseId($index, expense)) {
-            <article
-              class="record-oc-xml-available-card"
+            <article class="record-oc-xml-available-card"
               [class.record-oc-xml-available-card--selected]="isXmlExpenseSelected(expense)"
-              [class.record-oc-xml-available-card--disabled]="!expense.can_select"
-            >
+              [class.record-oc-xml-available-card--disabled]="!expense.can_select">
               <div class="record-oc-xml-available-card__header">
                 <div>
-                  <small
-                    >{{ expense.supplier?.company_name || 'Sin proveedor'
-                    }}</small
-                  >
+                  <small>{{ expense.supplier?.company_name || 'Sin proveedor'
+                    }}</small>
                   <strong>{{ expense.internal_folio }}</strong>
                 </div>
 
-                <button
-                  type="button"
-                  class="btn-outline"
-                  [disabled]="!expense.can_select || hasExistingPhotoLink"
-                  (click)="selectXmlExpense(expense)"
-                >
+                <button type="button" class="btn-outline" [disabled]="!expense.can_select || hasExistingPhotoLink"
+                  (click)="selectXmlExpense(expense)">
                   @if (isXmlExpenseSelected(expense)) { Seleccionado } @else {
                   Seleccionar }
                 </button>
@@ -410,16 +351,10 @@
           <div class="record-oc-xml-items">
             @for (item of selectedXmlExpense.available_items; track
             trackByItemId($index, item)) {
-            <article
-              class="record-oc-xml-item c-soft-gradient-bg"
-              [class.record-oc-xml-item--selected]="isXmlItemSelected(item)"
-            >
+            <article class="record-oc-xml-item c-soft-gradient-bg"
+              [class.record-oc-xml-item--selected]="isXmlItemSelected(item)">
               <label class="record-oc-xml-check">
-                <input
-                  type="checkbox"
-                  [checked]="isXmlItemSelected(item)"
-                  (change)="toggleXmlItem(item)"
-                />
+                <input type="checkbox" [checked]="isXmlItemSelected(item)" (change)="toggleXmlItem(item)" />
                 <span></span>
               </label>
 
@@ -436,10 +371,8 @@
 
               <div class="record-oc-xml-item__data">
                 <span>Cantidad</span>
-                <strong
-                  >{{ item.quantity || '—' }} {{ item.unit || item.unit_name ||
-                  '' }}</strong
-                >
+                <strong>{{ item.quantity || '—' }} {{ item.unit || item.unit_name ||
+                  '' }}</strong>
               </div>
 
               <div class="record-oc-xml-item__data">
@@ -514,18 +447,14 @@
         <div class="record-oc-xml-summary-box">
           <div>
             <span>Gasto XML</span>
-            <strong
-              >{{ selectedXmlExpense?.internal_folio || 'Sin seleccionar'
-              }}</strong
-            >
+            <strong>{{ selectedXmlExpense?.internal_folio || 'Sin seleccionar'
+              }}</strong>
           </div>
 
           <div>
             <span>Proveedor</span>
-            <strong
-              >{{ selectedXmlExpense?.supplier?.company_name || 'Sin proveedor'
-              }}</strong
-            >
+            <strong>{{ selectedXmlExpense?.supplier?.company_name || 'Sin proveedor'
+              }}</strong>
           </div>
 
           <div>
@@ -545,9 +474,7 @@
         </div>
 
         @if (shouldShowAmountDifferenceWarning) {
-        <div
-          class="record-oc-xml-alert record-oc-xml-alert--warning record-oc-xml-alert--inline"
-        >
+        <div class="record-oc-xml-alert record-oc-xml-alert--warning record-oc-xml-alert--inline">
           <mat-icon>info</mat-icon>
 
           <p>
@@ -556,9 +483,7 @@
           </p>
         </div>
         } @if (shouldShowZeroAmountXmlInfo) {
-        <div
-          class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline"
-        >
+        <div class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline">
           <mat-icon>info</mat-icon>
 
           <p>
@@ -568,9 +493,7 @@
         </div>
         }
 
-        <div
-          class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline"
-        >
+        <div class="record-oc-xml-alert record-oc-xml-alert--info record-oc-xml-alert--inline">
           <mat-icon>link</mat-icon>
 
           <p>
@@ -580,14 +503,8 @@
           </p>
         </div>
 
-        <app-btns-section
-          form="form"
-          type="save"
-          cancelLabel="Cancelar"
-          saveLabel="Relacionar XML"
-          [saveDisabled]="!canSave"
-          (action)="onFooterAction($event)"
-        >
+        <app-btns-section form="form" type="save" cancelLabel="Cancelar" saveLabel="Relacionar XML"
+          [saveDisabled]="!canSave" (action)="onFooterAction($event)">
         </app-btns-section>
       </section>
     </aside>

@@ -326,27 +326,42 @@ export class PurchaseOrdersService {
     let params = new HttpParams();
 
     if (filters) {
-      // params = params.set('page', String(filters.page ?? 1));
-      // params = params.set('limit', String(filters.limit ?? 20));
-
       if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
+        params = params.set(
+          'search',
+          filters.search.trim(),
+        );
       }
 
-      if (
-        filters.supplier_id !== undefined &&
-        filters.supplier_id !== null &&
-        String(filters.supplier_id).trim() !== ''
-      ) {
-        params = params.set('supplier_id', String(filters.supplier_id));
+      const supplierIds = (
+        filters.supplierIds ?? []
+      )
+        .map(Number)
+        .filter(
+          (id) =>
+            Number.isInteger(id) &&
+            id > 0,
+        );
+
+      if (supplierIds.length > 0) {
+        params = params.set(
+          'supplierIds',
+          supplierIds.join(','),
+        );
       }
 
       if (filters.date_from?.trim()) {
-        params = params.set('date_from', filters.date_from.trim());
+        params = params.set(
+          'date_from',
+          filters.date_from.trim(),
+        );
       }
 
       if (filters.date_to?.trim()) {
-        params = params.set('date_to', filters.date_to.trim());
+        params = params.set(
+          'date_to',
+          filters.date_to.trim(),
+        );
       }
 
       if (
@@ -354,7 +369,10 @@ export class PurchaseOrdersService {
         filters.amount !== null &&
         String(filters.amount).trim() !== ''
       ) {
-        params = params.set('amount', String(filters.amount));
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
       }
     }
 
@@ -392,23 +410,41 @@ export class PurchaseOrdersService {
 
     if (filters) {
       if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
+        params = params.set(
+          'search',
+          filters.search.trim(),
+        );
       }
 
-      if (
-        filters.supplier_id !== undefined &&
-        filters.supplier_id !== null &&
-        String(filters.supplier_id).trim() !== ''
-      ) {
-        params = params.set('supplier_id', String(filters.supplier_id));
+      const supplierIds = (
+        filters.supplierIds ?? []
+      )
+        .map(Number)
+        .filter(
+          (id) =>
+            Number.isInteger(id) &&
+            id > 0,
+        );
+
+      if (supplierIds.length > 0) {
+        params = params.set(
+          'supplierIds',
+          supplierIds.join(','),
+        );
       }
 
       if (filters.date_from?.trim()) {
-        params = params.set('date_from', filters.date_from.trim());
+        params = params.set(
+          'date_from',
+          filters.date_from.trim(),
+        );
       }
 
       if (filters.date_to?.trim()) {
-        params = params.set('date_to', filters.date_to.trim());
+        params = params.set(
+          'date_to',
+          filters.date_to.trim(),
+        );
       }
 
       if (
@@ -416,7 +452,10 @@ export class PurchaseOrdersService {
         filters.amount !== null &&
         String(filters.amount).trim() !== ''
       ) {
-        params = params.set('amount', String(filters.amount));
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
       }
     }
 

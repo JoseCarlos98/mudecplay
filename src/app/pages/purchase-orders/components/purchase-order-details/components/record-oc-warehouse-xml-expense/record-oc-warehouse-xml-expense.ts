@@ -17,7 +17,7 @@ import {
   InputDate,
 } from '../../../../../../shared/ui/input-date/input-date';
 import { InputField } from '../../../../../../shared/ui/input-field/input-field';
-import { Autocomplete } from '../../../../../../shared/ui/autocomplete/autocomplete';
+import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { Catalog } from '../../../../../../shared/interfaces/general-interfaces';
 
 import { PurchaseOrdersService } from '../../../../services/purchase-orders.service';
@@ -46,7 +46,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     LoadingOverlay,
     InputDate,
     InputField,
-    Autocomplete,
+    SearchMultiSelect,
     BtnsSection,
 
     MatIconModule,
@@ -85,7 +85,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   form = this.fb.group({
     dateRange: this.fb.control<DateRangeValue | null>(null),
     search: this.fb.control<string | null>(null),
-    supplier: this.fb.control<Catalog | number | string | null>(null),
+    suppliersIds: this.fb.control<Catalog[]>([]),
     amount: this.fb.control<number | string | null>(null),
     notes: this.fb.control<string | null>(null),
   });
@@ -174,9 +174,9 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return this.order.expense_links.some((link) => {
       const ticketPhotoId = Number(
         (link as any).ticket_photo?.id ??
-          (link as any).ticketPhoto?.id ??
-          link.ticket_photo_id ??
-          0,
+        (link as any).ticketPhoto?.id ??
+        link.ticket_photo_id ??
+        0,
       );
 
       return ticketPhotoId === this.photoId;
@@ -194,7 +194,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     return !!(
       hasDates ||
       raw.search?.trim() ||
-      this.getCatalogId(raw.supplier) !== null ||
+      (raw.suppliersIds?.length ?? 0) > 0 ||
       this.toNumberOrNull(raw.amount) !== null
     );
   }
@@ -340,7 +340,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
       {
         dateRange: null,
         search: null,
-        supplier: null,
+        suppliersIds: [],
         amount: null,
       },
       { emitEvent: false },
@@ -634,18 +634,17 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
     const amount =
       this.toNumberOrNull(raw.amount);
 
-    const filters: FiltersAvailableWarehouseXmlExpenses =
-      {
-        search: raw.search?.trim() || null,
-        supplier_id: this.getCatalogId(
-          raw.supplier,
-        ),
-        amount,
-        date_from:
-          raw.dateRange?.startDate ?? null,
-        date_to:
-          raw.dateRange?.endDate ?? null,
-      };
+    const filters: FiltersAvailableWarehouseXmlExpenses = {
+      search: raw.search?.trim() || null,
+      supplierIds: this.getSupplierIds(
+        raw.suppliersIds,
+      ),
+      amount,
+      date_from:
+        raw.dateRange?.startDate ?? null,
+      date_to:
+        raw.dateRange?.endDate ?? null,
+    };
 
     this.loadingXmlExpenses.set(true);
 
@@ -691,6 +690,8 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
         },
       });
   }
+
+
 
   private loadPhotoUrl(): void {
     if (!this.photoId) return;
@@ -820,30 +821,22 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
       : null;
   }
 
-  private getCatalogId(
-    value:
-      | Catalog
-      | number
-      | string
-      | null
-      | undefined,
-  ): number | null {
-    if (
-      value === null ||
-      value === undefined ||
-      value === ''
-    ) {
-      return null;
-    }
-
-    const id =
-      typeof value === 'object'
-        ? Number(value.id)
-        : Number(value);
-
-    return Number.isInteger(id) && id > 0
-      ? id
-      : null;
+  private getSupplierIds(
+    values: Catalog[] | null | undefined,
+  ): number[] {
+    return Array.from(
+      new Set(
+        (values ?? [])
+          .map((supplier) =>
+            Number(supplier?.id),
+          )
+          .filter(
+            (id) =>
+              Number.isInteger(id) &&
+              id > 0,
+          ),
+      ),
+    );
   }
 
   private round2(value: number): number {
