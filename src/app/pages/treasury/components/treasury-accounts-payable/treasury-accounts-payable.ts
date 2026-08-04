@@ -161,28 +161,6 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     type: 'date',
   },
   {
-    key: 'available_amount',
-    label: 'Disponible',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'description_original',
-    label: 'Descripción',
-  },
-  {
-    key: 'bank_name',
-    label: 'Banco',
-  },
-  {
-    key: 'bank_account_display',
-    label: 'Cuenta',
-  },
-  {
-    key: 'company_name',
-    label: 'Empresa',
-  },
-  {
     key: 'reference_display',
     label: 'Referencia',
   },
@@ -191,6 +169,28 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     label: 'Monto original',
     type: 'money',
     align: 'right',
+  },
+  {
+    key: 'available_amount',
+    label: 'Disponible actual',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'description_original',
+    label: 'Descripción',
+  },
+  {
+    key: 'company_name',
+    label: 'Empresa',
+  },
+  {
+    key: 'bank_name',
+    label: 'Banco',
+  },
+  {
+    key: 'bank_account_display',
+    label: 'Cuenta',
   },
   {
     key: 'status_label',
