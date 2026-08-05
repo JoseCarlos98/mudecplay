@@ -159,7 +159,7 @@ export class TreasuryBankMovementUpload implements OnInit {
   }
 
   // =========================================================
-  // ARCHIVO TXT
+  // ARCHIVO BANCARIO TXT O PDF
   // =========================================================
 
   openFileSelector(): void {
@@ -215,15 +215,20 @@ export class TreasuryBankMovementUpload implements OnInit {
   private setSelectedFile(file: File | null): void {
     if (!file) return;
 
-    const isTxt = file.name.toLowerCase().endsWith('.txt');
+    const fileName = file.name.toLowerCase();
 
-    if (!isTxt) {
+    const isAllowedFile =
+      fileName.endsWith('.txt') ||
+      fileName.endsWith('.pdf');
+
+    if (!isAllowedFile) {
       this.removeSelectedFile();
 
       this.dialogService
         .confirm({
           title: 'Archivo no válido',
-          message: 'Solo se permiten archivos con extensión .txt.',
+          message:
+            'Solo se permiten archivos con extensión .txt o .pdf.',
           confirmText: 'OK',
           cancelText: '',
         })
@@ -263,7 +268,7 @@ export class TreasuryBankMovementUpload implements OnInit {
         this.dialogService
           .confirm({
             title: 'Archivo requerido',
-            message: 'Selecciona un archivo TXT para importar movimientos.',
+            message: 'Selecciona un archivo TXT o PDF para importar movimientos.', 
             confirmText: 'OK',
             cancelText: '',
           })
@@ -297,7 +302,7 @@ export class TreasuryBankMovementUpload implements OnInit {
             /**
              * Importante:
              * Después de una importación correcta se limpia solo el archivo.
-             * La cuenta bancaria se mantiene seleccionada para poder subir otro TXT
+             * La cuenta bancaria se mantiene seleccionada para poder subir otro archivo
              * de la misma cuenta sin volver a elegirla.
              *
              * Como selectedFile queda null, el botón "Importar movimientos"

@@ -145,6 +145,7 @@ export interface TreasuryImportBankMovementsResponse {
   import_file_id: number;
   status: TreasuryImportFileStatus | string;
   parser_code: string;
+  file_format: string;
 
   total_rows: number;
   inserted_rows: number;
@@ -295,7 +296,7 @@ export interface TreasuryBankMovement {
   bank_account: {
     id: number;
     account_identifier: string;
-    alias: string | null; 
+    alias: string | null;
     currency: string;
   } | null;
 
@@ -366,7 +367,7 @@ export type TreasuryBankMovementsTablePaginatedResponse =
   TreasuryPaginatedResponse<TreasuryBankMovementTableRow>;
 
 
-  // =========================================================
+// =========================================================
 // TESORERÍA: RECLASIFICACIÓN MANUAL DE MOVIMIENTOS
 // =========================================================
 
@@ -392,7 +393,7 @@ export interface TreasuryUpdateBankMovementClassificationResponse {
     previous_classification: string | null;
 
     classification:
-      TreasuryManualBankMovementClassification;
+    TreasuryManualBankMovementClassification;
 
     classification_label: string;
 
@@ -409,7 +410,7 @@ export interface TreasuryUpdateBankMovementClassificationResponse {
     bank: TreasuryBank | null;
 
     bank_account:
-      TreasuryBankMovement['bank_account'];
+    TreasuryBankMovement['bank_account'];
   };
 
   audit: {
