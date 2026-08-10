@@ -1,0 +1,907 @@
+<div class="purchase-order-reports">
+
+  <!-- =====================================================
+       HEADER + TABS PRINCIPALES
+       SE CONSERVAN SIN CAMBIOS VISUALES
+       ===================================================== -->
+
+  <div class="card-content shadow-md purchase-order-reports__header">
+
+    <app-module-header
+      title="Reportes de órdenes de compra"
+      [config]="headerConfig">
+    </app-module-header>
+
+
+    <nav class="purchase-order-reports-tabs">
+
+      <button
+        type="button"
+        class="purchase-order-reports-tab"
+        [class.purchase-order-reports-tab--active]="
+          activeTab() === 'operational_summary'
+        "
+        (click)="
+          setActiveTab(
+            'operational_summary'
+          )
+        ">
+
+        <mat-icon>
+          dashboard
+        </mat-icon>
+
+        Corte operativo
+
+      </button>
+
+
+      <button
+        type="button"
+        class="purchase-order-reports-tab"
+        [class.purchase-order-reports-tab--active]="
+          activeTab() === 'pending_details'
+        "
+        (click)="
+          setActiveTab(
+            'pending_details'
+          )
+        ">
+
+        <mat-icon>
+          pending_actions
+        </mat-icon>
+
+        Detalle de pendientes
+
+      </button>
+
+    </nav>
+
+  </div>
+
+
+  <!-- =====================================================
+       TAB: CORTE OPERATIVO
+       ===================================================== -->
+
+  @if (
+    activeTab() ===
+    'operational_summary'
+  ) {
+
+    <section
+      class="
+        card-content
+        shadow-md
+        reports-panel
+        reports-panel--operational
+      ">
+
+      <div class="reports-panel__header">
+
+        <div class="reports-panel__heading">
+
+          <h2>
+            Corte operativo
+          </h2>
+
+          <p>
+            Estado actual del flujo de órdenes de compra.
+          </p>
+
+        </div>
+
+        @if (
+          operationalSummary.generated_at
+        ) {
+
+          <small class="reports-generated-at">
+
+            <mat-icon>
+              schedule
+            </mat-icon>
+
+            <span>
+              Actualizado:
+              {{
+                operationalSummary.generated_at
+                  | date:'dd/MM/yyyy HH:mm'
+              }}
+            </span>
+
+          </small>
+
+        }
+
+      </div>
+
+
+      <!-- ===============================================
+           ÓRDENES DE COMPRA
+           =============================================== -->
+
+      <div class="reports-summary-group">
+
+        <div class="reports-summary-group__title">
+
+          <span class="reports-summary-group__icon">
+
+            <mat-icon>
+              shopping_cart
+            </mat-icon>
+
+          </span>
+
+          <span>
+            Órdenes de compra
+          </span>
+
+        </div>
+
+
+        <div class="
+          reports-summary-grid
+          reports-summary-grid--purchase-orders
+        ">
+
+          @for (
+            card
+            of purchaseOrderSummaryCards;
+            track card.key
+          ) {
+
+            <article
+              class="
+                reports-summary-card
+                reports-summary-card--{{ card.key }}
+              "
+              [class.reports-summary-card--clickable]="
+                !!card.category
+              "
+              [matTooltip]="card.tooltip"
+              matTooltipPosition="above"
+              (click)="
+                onOperationalCardClick(
+                  card
+                )
+              ">
+
+              <mat-icon class="reports-summary-card__icon">
+                {{ card.icon }}
+              </mat-icon>
+
+
+              <div class="reports-summary-card__content">
+
+                <span>
+                  {{ card.label }}
+                </span>
+
+                <strong>
+                  {{ card.value }}
+                </strong>
+
+              </div>
+
+
+              @if (card.category) {
+
+                <mat-icon class="reports-summary-card__arrow">
+                  chevron_right
+                </mat-icon>
+
+              } @else {
+
+                <mat-icon class="reports-summary-card__completed">
+                  check_circle
+                </mat-icon>
+
+              }
+
+            </article>
+
+          }
+
+        </div>
+
+      </div>
+
+
+      <!-- ===============================================
+           CRUCE OPERATIVO
+           =============================================== -->
+
+      <div class="reports-summary-group">
+
+        <div class="reports-summary-group__title">
+
+          <span class="reports-summary-group__icon">
+
+            <mat-icon>
+              compare_arrows
+            </mat-icon>
+
+          </span>
+
+          <span>
+            Cruce operativo
+          </span>
+
+        </div>
+
+
+        <div class="
+          reports-summary-grid
+          reports-summary-grid--crosscheck
+        ">
+
+          @for (
+            card
+            of operationalCrosscheckCards;
+            track card.key
+          ) {
+
+            <article
+              class="
+                reports-summary-card
+                reports-summary-card--{{ card.key }}
+                reports-summary-card--clickable
+              "
+              [matTooltip]="card.tooltip"
+              matTooltipPosition="above"
+              (click)="
+                onOperationalCardClick(
+                  card
+                )
+              ">
+
+              <mat-icon class="reports-summary-card__icon">
+                {{ card.icon }}
+              </mat-icon>
+
+
+              <div class="reports-summary-card__content">
+
+                <span>
+                  {{ card.label }}
+                </span>
+
+                <strong>
+                  {{ card.value }}
+                </strong>
+
+              </div>
+
+
+              <mat-icon class="reports-summary-card__arrow">
+                chevron_right
+              </mat-icon>
+
+            </article>
+
+          }
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         PENDIENTES MÁS RECIENTES
+         =================================================== -->
+
+    <section
+      class="
+        card-content
+        shadow-md
+        reports-panel
+        reports-panel--recent
+      ">
+
+      <div class="reports-panel__header">
+
+        <div class="reports-panel__heading">
+
+          <h2>
+            Pendientes más recientes
+          </h2>
+
+          <p>
+            Últimas órdenes de compra que requieren seguimiento.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="
+            reports-link-button
+            reports-link-button--outlined
+          "
+          (click)="
+            setActiveTab(
+              'pending_details'
+            )
+          ">
+
+          Ver todos los pendientes
+
+          <mat-icon>
+            arrow_forward
+          </mat-icon>
+
+        </button>
+
+      </div>
+
+
+      <div class="
+        c-module-table
+        reports-table-shell
+        reports-table-shell--recent
+      ">
+
+        <app-data-table
+          [data]="recentPendingRows"
+          [columnsConfig]="recentPendingColumns"
+          [displayedColumns]="recentPendingDisplayedColumns"
+          [extraActions]="recentPendingExtraActions"
+          [actionPermissions]="tableActionPermissions"
+          (action)="
+            onRecentPendingTableAction(
+              $event
+            )
+          ">
+        </app-data-table>
+
+      </div>
+
+    </section>
+
+  }
+
+
+  <!-- =====================================================
+       TAB: DETALLE DE PENDIENTES
+       ===================================================== -->
+
+  @if (
+    activeTab() ===
+    'pending_details'
+  ) {
+
+    <section
+      class="
+        card-content
+        shadow-md
+        reports-panel
+        reports-panel--detail
+      ">
+
+      <!-- ===============================================
+           HEADER
+           =============================================== -->
+
+      <div class="reports-panel__header">
+
+        <div class="
+          reports-panel__heading
+          reports-panel__heading--detail
+        ">
+
+          <h2>
+            Detalle de pendientes
+          </h2>
+
+          <p>
+            Consulta los registros que componen cada pendiente operativo.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ===============================================
+           SELECTOR DE CATEGORÍAS
+           =============================================== -->
+
+      <nav class="reports-category-tabs">
+
+        @for (
+          option
+          of detailCategoryOptions;
+          track option.category
+        ) {
+
+          <button
+            type="button"
+            class="
+              reports-category-tab
+              reports-category-tab--{{ option.category }}
+            "
+            [class.reports-category-tab--active]="
+              activeDetailCategory() ===
+              option.category
+            "
+            (click)="
+              setDetailCategory(
+                option.category
+              )
+            ">
+
+            <span class="reports-category-tab__icon">
+
+              <mat-icon>
+                {{ option.icon }}
+              </mat-icon>
+
+            </span>
+
+            <span>
+              {{ option.label }}
+            </span>
+
+          </button>
+
+        }
+
+      </nav>
+
+
+      <!-- ===============================================
+           BUSCADOR
+           =============================================== -->
+
+      <form
+        [formGroup]="detailFilterForm"
+        class="reports-detail-search">
+
+        <div class="
+          c-filters
+          reports-detail-filters
+        ">
+
+          <app-input-field
+            formControlName="search"
+            label="Buscar"
+            placeholder="Folio, proyecto, concepto, proveedor, XML..."
+            type="text"
+            [isFilter]="true">
+          </app-input-field>
+
+
+          <app-btns-section
+            type="search"
+            [hasActiveFilters]="
+              hasActiveDetailFilters
+            "
+            (action)="
+              onDetailBtnsSectionAction(
+                $event
+              )
+            ">
+          </app-btns-section>
+
+        </div>
+
+      </form>
+
+
+      <!-- =================================================
+           TODOS
+           ================================================= -->
+
+      @if (
+        activeDetailCategory() ===
+        'all'
+      ) {
+
+        <div class="reports-all-sections">
+
+          @for (
+            section
+            of allPendingDetails.sections;
+            track section.category
+          ) {
+
+            <article
+              class="
+                reports-detail-section
+                reports-detail-section--preview-mode
+                reports-detail-section--{{ section.category }}
+              ">
+
+              <!-- ===========================================
+                   HEADER DE LA SECCIÓN
+                   =========================================== -->
+
+              <header class="reports-detail-section__header">
+
+                <div class="reports-detail-section__header-content">
+
+                  <div class="reports-detail-section__title">
+
+                    <span class="reports-detail-section__accent">
+                    </span>
+
+
+                    <h3>
+                      {{ section.label }}
+                    </h3>
+
+
+                    <span class="reports-count-chip">
+                      {{ section.total }}
+                    </span>
+
+                  </div>
+
+
+                  <small>
+
+                    @if (section.total === 0) {
+
+                      Sin registros pendientes
+
+                    } @else if (section.total === 1) {
+
+                      1 registro pendiente
+
+                    } @else {
+
+                      {{ section.total }}
+                      registros pendientes
+
+                    }
+
+                  </small>
+
+                </div>
+
+
+                @if (
+                  section.total > 0
+                ) {
+
+                  <button
+                    type="button"
+                    class="
+                      reports-link-button
+                      reports-link-button--section
+                    "
+                    (click)="
+                      setDetailCategory(
+                        section.category
+                      )
+                    ">
+
+                    <span>
+                      Ver todos
+                      ({{ section.total }})
+                    </span>
+
+                    <mat-icon>
+                      arrow_forward
+                    </mat-icon>
+
+                  </button>
+
+                }
+
+              </header>
+
+
+              <!-- ===========================================
+                   TABLA PREVIEW
+                   Sin altura fija.
+                   Máximo 5 filas vienen del backend.
+                   =========================================== -->
+
+              @if (
+                section.total > 0
+              ) {
+
+                <div class="
+                  c-module-table
+                  reports-table-shell
+                  reports-table-shell--preview
+                ">
+
+                  <app-data-table
+                    [data]="
+                      getSectionRows(
+                        section.category
+                      )
+                    "
+                    [columnsConfig]="
+                      getDetailColumns(
+                        section.category
+                      )
+                    "
+                    [displayedColumns]="
+                      getDetailDisplayedColumns(
+                        section.category
+                      )
+                    "
+                    [extraActions]="
+                      detailExtraActions
+                    "
+                    [actionPermissions]="
+                      tableActionPermissions
+                    "
+                    (action)="
+                      onDetailTableAction(
+                        $event
+                      )
+                    ">
+                  </app-data-table>
+
+                </div>
+
+              } @else {
+
+                <div class="reports-empty-state">
+
+                  <span class="reports-empty-state__icon">
+
+                    <mat-icon>
+                      task_alt
+                    </mat-icon>
+
+                  </span>
+
+                  <div>
+
+                    <strong>
+                      Todo en orden
+                    </strong>
+
+                    <span>
+                      No hay registros pendientes en esta categoría.
+                    </span>
+
+                  </div>
+
+                </div>
+
+              }
+
+            </article>
+
+          }
+
+        </div>
+
+      }
+
+
+      <!-- =================================================
+           CATEGORÍA INDIVIDUAL
+           ================================================= -->
+
+      @else {
+
+        <article class="
+          reports-detail-section
+          reports-detail-section--active
+        ">
+
+          <header class="reports-detail-section__header">
+
+            <div class="reports-detail-section__header-content">
+
+              <div class="reports-detail-section__title">
+
+                <span class="reports-detail-section__accent">
+                </span>
+
+
+                <h3>
+                  {{
+                    getActiveDetailLabel()
+                  }}
+                </h3>
+
+
+                @if (
+                  paginatedPendingDetails
+                ) {
+
+                  <span class="reports-count-chip">
+
+                    {{
+                      paginatedPendingDetails
+                        .pagination
+                        .total
+                    }}
+
+                  </span>
+
+                }
+
+              </div>
+
+
+              @if (
+                paginatedPendingDetails
+              ) {
+
+                <small>
+
+                  @if (
+                    paginatedPendingDetails
+                      .pagination
+                      .total === 0
+                  ) {
+
+                    Sin registros
+
+                  } @else if (
+                    paginatedPendingDetails
+                      .pagination
+                      .total === 1
+                  ) {
+
+                    1 registro
+
+                  } @else {
+
+                    {{
+                      paginatedPendingDetails
+                        .pagination
+                        .total
+                    }}
+                    registros
+
+                  }
+
+                </small>
+
+              }
+
+            </div>
+
+
+            <button
+              type="button"
+              class="
+                reports-link-button
+                reports-link-button--back
+              "
+              (click)="
+                setDetailCategory(
+                  'all'
+                )
+              ">
+
+              <mat-icon>
+                arrow_back
+              </mat-icon>
+
+              Ver resumen
+
+            </button>
+
+          </header>
+
+
+          @if (
+            paginatedPendingDetails &&
+            paginatedPendingDetails
+              .pagination
+              .total > 0
+          ) {
+
+            <div class="
+              c-module-table
+              reports-table-shell
+              reports-table-shell--detail
+            ">
+
+              <app-data-table
+                [data]="detailRows"
+                [columnsConfig]="
+                  getDetailColumns(
+                    paginatedPendingDetails.category
+                  )
+                "
+                [displayedColumns]="
+                  getDetailDisplayedColumns(
+                    paginatedPendingDetails.category
+                  )
+                "
+                [extraActions]="
+                  detailExtraActions
+                "
+                [actionPermissions]="
+                  tableActionPermissions
+                "
+                (action)="
+                  onDetailTableAction(
+                    $event
+                  )
+                ">
+              </app-data-table>
+
+
+              <mat-paginator
+                [length]="
+                  paginatedPendingDetails
+                    .pagination
+                    .total
+                "
+                [pageSize]="
+                  paginatedPendingDetails
+                    .pagination
+                    .limit
+                "
+                [pageIndex]="
+                  paginatedPendingDetails
+                    .pagination
+                    .page - 1
+                "
+                [pageSizeOptions]="
+                  [10, 20, 50]
+                "
+                (page)="
+                  onPendingDetailsPageChange(
+                    $event
+                  )
+                "
+                showFirstLastButtons>
+              </mat-paginator>
+
+            </div>
+
+          } @else {
+
+            <div class="
+              reports-empty-state
+              reports-empty-state--large
+            ">
+
+              <span class="reports-empty-state__icon">
+
+                <mat-icon>
+                  task_alt
+                </mat-icon>
+
+              </span>
+
+              <div>
+
+                <strong>
+                  Sin pendientes
+                </strong>
+
+                <span>
+                  No existen registros para esta categoría.
+                </span>
+
+              </div>
+
+            </div>
+
+          }
+
+        </article>
+
+      }
+
+    </section>
+
+  }
+
+</div>
+
+
+<app-loading-overlay
+  [visible]="loadingPage()"
+  [fullscreen]="true"
+  text="Cargando reportes de órdenes de compra...">
+</app-loading-overlay>

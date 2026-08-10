@@ -1,0 +1,2227 @@
+:host {
+  display: block;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+}
+
+
+// =========================================================
+// PÁGINA
+// =========================================================
+
+.purchase-order-reports {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  display: grid;
+
+  > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  &__header {
+    padding-bottom: 0;
+  }
+}
+
+
+// =========================================================
+// TABS PRINCIPALES
+//
+// NO MODIFICAR.
+// Se conserva exactamente la misma línea visual.
+// =========================================================
+
+.purchase-order-reports-tabs {
+  margin-top: 1rem;
+
+  display: flex;
+  gap: 0.25rem;
+
+  border-bottom:
+    1px solid #e4e7ec;
+}
+
+
+.purchase-order-reports-tab {
+  position: relative;
+
+  min-height: 2.8rem;
+
+  padding:
+    0.65rem
+    0.9rem;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.4rem;
+
+  border: 0;
+
+  background:
+    transparent;
+
+  color:
+    #667085;
+
+  font: inherit;
+
+  font-size:
+    0.84rem;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  mat-icon {
+    width:
+      1.15rem;
+
+    height:
+      1.15rem;
+
+    font-size:
+      1.15rem;
+  }
+
+  &::after {
+    content: '';
+
+    position:
+      absolute;
+
+    right: 0;
+    bottom: -1px;
+    left: 0;
+
+    height: 2px;
+
+    background:
+      transparent;
+  }
+
+  &:hover {
+    color:
+      var(--primary-color);
+  }
+
+  &--active {
+    color:
+      var(--primary-color);
+
+    &::after {
+      background:
+        var(--primary-color);
+    }
+  }
+}
+
+
+// =========================================================
+// PANEL GENERAL
+// =========================================================
+
+.reports-panel {
+  position: relative;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding-bottom:
+    1rem;
+
+  display: grid;
+
+  gap: 1.15rem;
+
+  overflow: hidden;
+
+
+  &__header {
+    display: flex;
+
+    align-items:
+      flex-start;
+
+    justify-content:
+      space-between;
+
+    gap: 1rem;
+
+
+    h2 {
+      margin: 0;
+
+      color:
+        #101828;
+
+      font-size:
+        1.02rem;
+
+      font-weight:
+        700;
+
+      line-height:
+        1.2;
+    }
+
+
+    p {
+      margin:
+        0.25rem
+        0
+        0;
+
+      color:
+        #667085;
+
+      font-size:
+        0.8rem;
+
+      line-height:
+        1.4;
+    }
+  }
+
+
+  &__heading {
+    position: relative;
+
+    min-width: 0;
+
+
+    &--detail {
+      padding-left:
+        0.72rem;
+
+
+      &::before {
+        content: '';
+
+        position:
+          absolute;
+
+        top:
+          0.05rem;
+
+        bottom:
+          0.05rem;
+
+        left: 0;
+
+        width:
+          3px;
+
+        border-radius:
+          999px;
+
+        background:
+          linear-gradient(
+            180deg,
+            #2563eb,
+            #0ea5e9
+          );
+      }
+    }
+  }
+
+
+  &--operational {
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #fbfdff 100%
+      );
+
+
+    .reports-panel__heading {
+      padding-left:
+        0.72rem;
+
+
+      &::before {
+        content: '';
+
+        position:
+          absolute;
+
+        top:
+          0.05rem;
+
+        bottom:
+          0.05rem;
+
+        left: 0;
+
+        width:
+          3px;
+
+        border-radius:
+          999px;
+
+        background:
+          var(--primary-color);
+      }
+    }
+  }
+
+
+  &--recent {
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #fcfdff 100%
+      );
+  }
+
+
+  &--detail {
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #fbfdff 100%
+      );
+  }
+}
+
+
+// =========================================================
+// ACTUALIZADO
+// =========================================================
+
+.reports-generated-at {
+  min-height:
+    1.8rem;
+
+  padding:
+    0.3rem
+    0.55rem;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.3rem;
+
+  border:
+    1px solid #e4e7ec;
+
+  border-radius:
+    999px;
+
+  background:
+    #f8fafc;
+
+  color:
+    #667085;
+
+  font-size:
+    0.7rem;
+
+  white-space:
+    nowrap;
+
+
+  mat-icon {
+    width:
+      0.9rem;
+
+    height:
+      0.9rem;
+
+    color:
+      #64748b;
+
+    font-size:
+      0.9rem;
+  }
+}
+
+
+// =========================================================
+// CORTE - GRUPOS
+// =========================================================
+
+.reports-summary-group {
+  display: grid;
+
+  gap:
+    0.72rem;
+
+
+  &__title {
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    gap:
+      0.45rem;
+
+    color:
+      #1d2939;
+
+    font-size:
+      0.84rem;
+
+    font-weight:
+      700;
+  }
+
+
+  &__icon {
+    width:
+      1.5rem;
+
+    height:
+      1.5rem;
+
+    display:
+      inline-grid;
+
+    place-items:
+      center;
+
+    flex:
+      0 0 auto;
+
+    border-radius:
+      0.42rem;
+
+    background:
+      #eff6ff;
+
+
+    mat-icon {
+      width:
+        0.95rem;
+
+      height:
+        0.95rem;
+
+      color:
+        var(--primary-color);
+
+      font-size:
+        0.95rem;
+    }
+  }
+}
+
+
+// =========================================================
+// CORTE - GRID
+// =========================================================
+
+.reports-summary-grid {
+  display:
+    grid;
+
+  gap:
+    0.75rem;
+
+
+  &--purchase-orders {
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  &--crosscheck {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+
+// =========================================================
+// CORTE - TARJETAS
+// =========================================================
+
+.reports-summary-card {
+  --report-accent:
+    #2563eb;
+
+  --report-icon-background:
+    #eff6ff;
+
+  --report-border:
+    #bfdbfe;
+
+  --report-surface:
+    #f8fbff;
+
+
+  position:
+    relative;
+
+  min-width:
+    0;
+
+  min-height:
+    5.45rem;
+
+  padding:
+    0.86rem
+    0.9rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.78rem;
+
+  border:
+    1px solid
+    var(--report-border);
+
+  border-left:
+    3px solid
+    var(--report-accent);
+
+  border-radius:
+    0.75rem;
+
+  background:
+    linear-gradient(
+      105deg,
+      var(--report-surface) 0%,
+      #ffffff 85%
+    );
+
+  box-shadow:
+    0
+    1px
+    2px
+    rgb(16 24 40 / 3%);
+
+  transition:
+    border-color
+    140ms ease,
+    box-shadow
+    140ms ease,
+    transform
+    140ms ease;
+
+
+  &__icon {
+    width:
+      2.45rem;
+
+    height:
+      2.45rem;
+
+    display:
+      grid;
+
+    place-items:
+      center;
+
+    flex:
+      0 0 auto;
+
+    border:
+      1px solid
+      var(--report-border);
+
+    border-radius:
+      0.72rem;
+
+    color:
+      var(--report-accent);
+
+    background:
+      var(--report-icon-background);
+
+    font-size:
+      1.3rem;
+  }
+
+
+  &__content {
+    min-width:
+      0;
+
+    display:
+      grid;
+
+    gap:
+      0.12rem;
+
+
+    span {
+      color:
+        #667085;
+
+      font-size:
+        0.76rem;
+
+      line-height:
+        1.3;
+    }
+
+
+    strong {
+      color:
+        #101828;
+
+      font-size:
+        1.28rem;
+
+      font-weight:
+        750;
+
+      line-height:
+        1.2;
+
+      letter-spacing:
+        -0.015em;
+    }
+  }
+
+
+  &__arrow,
+  &__completed {
+    width:
+      1.05rem;
+
+    height:
+      1.05rem;
+
+    margin-left:
+      auto;
+
+    flex:
+      0 0 auto;
+
+    font-size:
+      1.05rem;
+
+    transition:
+      color
+      140ms ease,
+      transform
+      140ms ease;
+  }
+
+
+  &__arrow {
+    color:
+      #94a3b8;
+  }
+
+
+  &__completed {
+    color:
+      var(--report-accent);
+
+    opacity:
+      0.75;
+  }
+
+
+  &--clickable {
+    cursor:
+      pointer;
+
+
+    &:hover {
+      border-color:
+        var(--report-accent);
+
+      box-shadow:
+        0
+        7px
+        18px
+        rgb(16 24 40 / 7%);
+
+      transform:
+        translateY(-2px);
+
+
+      .reports-summary-card__arrow {
+        color:
+          var(--report-accent);
+
+        transform:
+          translateX(2px);
+      }
+    }
+  }
+}
+
+
+// =========================================================
+// CORTE - COLORES
+// =========================================================
+
+.reports-summary-card--pending_authorization {
+  --report-accent:
+    #f59e0b;
+
+  --report-icon-background:
+    #fff7ed;
+
+  --report-border:
+    #fed7aa;
+
+  --report-surface:
+    #fffaf3;
+}
+
+
+.reports-summary-card--pending_photo {
+  --report-accent:
+    #0891b2;
+
+  --report-icon-background:
+    #ecfeff;
+
+  --report-border:
+    #a5f3fc;
+
+  --report-surface:
+    #f5feff;
+}
+
+
+.reports-summary-card--pending_reconciliation {
+  --report-accent:
+    #7c3aed;
+
+  --report-icon-background:
+    #f5f3ff;
+
+  --report-border:
+    #ddd6fe;
+
+  --report-surface:
+    #fbfaff;
+}
+
+
+.reports-summary-card--invoice_pending_xml {
+  --report-accent:
+    #2563eb;
+
+  --report-icon-background:
+    #eff6ff;
+
+  --report-border:
+    #bfdbfe;
+
+  --report-surface:
+    #f7faff;
+}
+
+
+.reports-summary-card--no_invoice_pending_expense {
+  --report-accent:
+    #9333ea;
+
+  --report-icon-background:
+    #faf5ff;
+
+  --report-border:
+    #e9d5ff;
+
+  --report-surface:
+    #fdfaff;
+}
+
+
+.reports-summary-card--pending_payment {
+  --report-accent:
+    #e5484d;
+
+  --report-icon-background:
+    #fff1f2;
+
+  --report-border:
+    #fecdd3;
+
+  --report-surface:
+    #fff8f8;
+}
+
+
+.reports-summary-card--payment_completed {
+  --report-accent:
+    #16a34a;
+
+  --report-icon-background:
+    #f0fdf4;
+
+  --report-border:
+    #bbf7d0;
+
+  --report-surface:
+    #f7fef9;
+}
+
+
+.reports-summary-card--loose_pending_photos {
+  --report-accent:
+    #0f9f9a;
+
+  --report-icon-background:
+    #ecfdfb;
+
+  --report-border:
+    #99f6e4;
+
+  --report-surface:
+    #f5fffd;
+}
+
+
+.reports-summary-card--available_xml {
+  --report-accent:
+    #2563eb;
+
+  --report-icon-background:
+    #eff6ff;
+
+  --report-border:
+    #bfdbfe;
+
+  --report-surface:
+    #f7faff;
+}
+
+
+.reports-summary-card--available_xml_items {
+  --report-accent:
+    #475569;
+
+  --report-icon-background:
+    #f1f5f9;
+
+  --report-border:
+    #cbd5e1;
+
+  --report-surface:
+    #f8fafc;
+}
+
+
+// =========================================================
+// DETAIL - SELECTOR DE CATEGORÍAS
+// =========================================================
+
+.reports-category-tabs {
+  display:
+    flex;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    0.42rem;
+}
+
+
+.reports-category-tab {
+  --category-color:
+    #475569;
+
+  --category-soft:
+    #f8fafc;
+
+  --category-border:
+    #d0d5dd;
+
+
+  min-height:
+    2.35rem;
+
+  padding:
+    0.35rem
+    0.68rem
+    0.35rem
+    0.42rem;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    0.4rem;
+
+  border:
+    1px solid
+    var(--category-border);
+
+  border-radius:
+    0.58rem;
+
+  background:
+    #ffffff;
+
+  color:
+    #475467;
+
+  font:
+    inherit;
+
+  font-size:
+    0.74rem;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  transition:
+    border-color
+    120ms ease,
+    background
+    120ms ease,
+    color
+    120ms ease,
+    box-shadow
+    120ms ease,
+    transform
+    120ms ease;
+
+
+  &__icon {
+    width:
+      1.55rem;
+
+    height:
+      1.55rem;
+
+    display:
+      inline-grid;
+
+    place-items:
+      center;
+
+    flex:
+      0 0 auto;
+
+    border-radius:
+      0.42rem;
+
+    background:
+      var(--category-soft);
+
+    color:
+      var(--category-color);
+
+
+    mat-icon {
+      width:
+        0.95rem;
+
+      height:
+        0.95rem;
+
+      font-size:
+        0.95rem;
+    }
+  }
+
+
+  &:hover {
+    border-color:
+      var(--category-color);
+
+    color:
+      var(--category-color);
+
+    transform:
+      translateY(-1px);
+  }
+
+
+  &--active {
+    border-color:
+      var(--category-color);
+
+    background:
+      var(--category-soft);
+
+    color:
+      var(--category-color);
+
+    box-shadow:
+      0
+      2px
+      6px
+      rgb(16 24 40 / 5%);
+  }
+}
+
+
+// =========================================================
+// DETAIL - COLORES DE CATEGORÍAS
+// =========================================================
+
+.reports-category-tab--all {
+  --category-color:
+    #2563eb;
+
+  --category-soft:
+    #eff6ff;
+
+  --category-border:
+    #bfdbfe;
+}
+
+
+.reports-category-tab--pending_authorization {
+  --category-color:
+    #d97706;
+
+  --category-soft:
+    #fff7ed;
+
+  --category-border:
+    #fed7aa;
+}
+
+
+.reports-category-tab--pending_photo {
+  --category-color:
+    #0891b2;
+
+  --category-soft:
+    #ecfeff;
+
+  --category-border:
+    #a5f3fc;
+}
+
+
+.reports-category-tab--pending_reconciliation {
+  --category-color:
+    #7c3aed;
+
+  --category-soft:
+    #f5f3ff;
+
+  --category-border:
+    #ddd6fe;
+}
+
+
+.reports-category-tab--invoice_pending_xml {
+  --category-color:
+    #2563eb;
+
+  --category-soft:
+    #eff6ff;
+
+  --category-border:
+    #bfdbfe;
+}
+
+
+.reports-category-tab--no_invoice_pending_expense {
+  --category-color:
+    #9333ea;
+
+  --category-soft:
+    #faf5ff;
+
+  --category-border:
+    #e9d5ff;
+}
+
+
+.reports-category-tab--pending_payment {
+  --category-color:
+    #dc2626;
+
+  --category-soft:
+    #fff1f2;
+
+  --category-border:
+    #fecdd3;
+}
+
+
+.reports-category-tab--loose_pending_photos {
+  --category-color:
+    #0f9f9a;
+
+  --category-soft:
+    #ecfdfb;
+
+  --category-border:
+    #99f6e4;
+}
+
+
+.reports-category-tab--available_xml {
+  --category-color:
+    #2563eb;
+
+  --category-soft:
+    #eff6ff;
+
+  --category-border:
+    #bfdbfe;
+}
+
+
+.reports-category-tab--available_xml_items {
+  --category-color:
+    #475569;
+
+  --category-soft:
+    #f1f5f9;
+
+  --category-border:
+    #cbd5e1;
+}
+
+
+// =========================================================
+// DETAIL - BUSCADOR
+// =========================================================
+
+.reports-detail-search {
+  width:
+    100%;
+
+  min-width:
+    0;
+}
+
+
+.reports-detail-filters {
+  width:
+    100%;
+
+  max-width:
+    100%;
+
+  min-width:
+    0;
+
+  box-sizing:
+    border-box;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      16rem,
+      1fr
+    )
+    auto;
+
+  align-items:
+    end;
+
+  gap:
+    0.75rem;
+
+  padding:
+    0.7rem;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    0.72rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      #fbfdff,
+      #f8fafc
+    );
+
+
+  > * {
+    min-width:
+      0;
+  }
+}
+
+
+// =========================================================
+// DETAIL - CONTENEDOR "TODOS"
+// =========================================================
+
+.reports-all-sections {
+  display:
+    grid;
+
+  gap:
+    0.9rem;
+}
+
+
+// =========================================================
+// DETAIL - SECCIÓN
+// =========================================================
+
+.reports-detail-section {
+  --section-accent:
+    #2563eb;
+
+  --section-soft:
+    #eff6ff;
+
+  --section-border:
+    #dbeafe;
+
+
+  position:
+    relative;
+
+  min-width:
+    0;
+
+  padding:
+    0;
+
+  display:
+    grid;
+
+  gap:
+    0;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    0.78rem;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0
+    1px
+    3px
+    rgb(16 24 40 / 3%);
+
+  transition:
+    border-color
+    140ms ease,
+    box-shadow
+    140ms ease;
+
+
+  &::before {
+    content: '';
+
+    position:
+      absolute;
+
+    top:
+      0;
+
+    bottom:
+      0;
+
+    left:
+      0;
+
+    width:
+      3px;
+
+    background:
+      var(--section-accent);
+  }
+
+
+  &:hover {
+    border-color:
+      var(--section-border);
+
+    box-shadow:
+      0
+      3px
+      10px
+      rgb(16 24 40 / 5%);
+  }
+
+
+  &__header {
+    min-height:
+      4.3rem;
+
+    padding:
+      0.72rem
+      0.9rem
+      0.7rem
+      1rem;
+
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      space-between;
+
+    gap:
+      1rem;
+
+    border-bottom:
+      1px solid #eef2f6;
+
+    background:
+      linear-gradient(
+        90deg,
+        var(--section-soft) 0%,
+        #ffffff 18%,
+        #ffffff 100%
+      );
+  }
+
+
+  &__header-content {
+    min-width:
+      0;
+  }
+
+
+  &__title {
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    gap:
+      0.45rem;
+
+
+    h3 {
+      margin:
+        0;
+
+      color:
+        #101828;
+
+      font-size:
+        0.88rem;
+
+      font-weight:
+        700;
+
+      line-height:
+        1.25;
+    }
+  }
+
+
+  &__accent {
+    width:
+      0.48rem;
+
+    height:
+      0.48rem;
+
+    flex:
+      0 0 auto;
+
+    border-radius:
+      999px;
+
+    background:
+      var(--section-accent);
+
+    box-shadow:
+      0
+      0
+      0
+      3px
+      var(--section-soft);
+  }
+
+
+  small {
+    display:
+      block;
+
+    margin-top:
+      0.22rem;
+
+    margin-left:
+      0.95rem;
+
+    color:
+      #667085;
+
+    font-size:
+      0.69rem;
+
+    line-height:
+      1.3;
+  }
+
+
+  &--active {
+    border-color:
+      #bfdbfe;
+
+    box-shadow:
+      0
+      4px
+      14px
+      rgb(37 99 235 / 6%);
+  }
+}
+
+
+// =========================================================
+// DETAIL - COLORES DE SECCIONES
+// =========================================================
+
+.reports-detail-section--pending_authorization {
+  --section-accent:
+    #f59e0b;
+
+  --section-soft:
+    #fff7ed;
+
+  --section-border:
+    #fed7aa;
+}
+
+
+.reports-detail-section--pending_photo {
+  --section-accent:
+    #0891b2;
+
+  --section-soft:
+    #ecfeff;
+
+  --section-border:
+    #a5f3fc;
+}
+
+
+.reports-detail-section--pending_reconciliation {
+  --section-accent:
+    #7c3aed;
+
+  --section-soft:
+    #f5f3ff;
+
+  --section-border:
+    #ddd6fe;
+}
+
+
+.reports-detail-section--invoice_pending_xml {
+  --section-accent:
+    #2563eb;
+
+  --section-soft:
+    #eff6ff;
+
+  --section-border:
+    #bfdbfe;
+}
+
+
+.reports-detail-section--no_invoice_pending_expense {
+  --section-accent:
+    #9333ea;
+
+  --section-soft:
+    #faf5ff;
+
+  --section-border:
+    #e9d5ff;
+}
+
+
+.reports-detail-section--pending_payment {
+  --section-accent:
+    #e5484d;
+
+  --section-soft:
+    #fff1f2;
+
+  --section-border:
+    #fecdd3;
+}
+
+
+.reports-detail-section--loose_pending_photos {
+  --section-accent:
+    #0f9f9a;
+
+  --section-soft:
+    #ecfdfb;
+
+  --section-border:
+    #99f6e4;
+}
+
+
+.reports-detail-section--available_xml {
+  --section-accent:
+    #2563eb;
+
+  --section-soft:
+    #eff6ff;
+
+  --section-border:
+    #bfdbfe;
+}
+
+
+.reports-detail-section--available_xml_items {
+  --section-accent:
+    #475569;
+
+  --section-soft:
+    #f1f5f9;
+
+  --section-border:
+    #cbd5e1;
+}
+
+
+// =========================================================
+// DETAIL - CONTADOR
+// =========================================================
+
+.reports-count-chip {
+  min-width:
+    1.48rem;
+
+  height:
+    1.35rem;
+
+  padding:
+    0
+    0.4rem;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border:
+    1px solid
+    var(--section-border, #dbeafe);
+
+  border-radius:
+    999px;
+
+  background:
+    var(--section-soft, #eff6ff);
+
+  color:
+    var(--section-accent, #1d4ed8);
+
+  font-size:
+    0.66rem;
+
+  font-weight:
+    700;
+
+  line-height:
+    1;
+}
+
+
+// =========================================================
+// BOTONES TIPO LINK
+// =========================================================
+
+.reports-link-button {
+  min-height:
+    1.8rem;
+
+  padding:
+    0.25rem
+    0;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    0.25rem;
+
+  border:
+    0;
+
+  background:
+    transparent;
+
+  color:
+    var(--primary-color);
+
+  font:
+    inherit;
+
+  font-size:
+    0.74rem;
+
+  font-weight:
+    600;
+
+  cursor:
+    pointer;
+
+  white-space:
+    nowrap;
+
+
+  mat-icon {
+    width:
+      1rem;
+
+    height:
+      1rem;
+
+    font-size:
+      1rem;
+  }
+
+
+  &:hover {
+    text-decoration:
+      underline;
+  }
+
+
+  &--section {
+    padding:
+      0.36rem
+      0.52rem;
+
+    border-radius:
+      0.45rem;
+
+    color:
+      var(--section-accent);
+
+    transition:
+      background
+      120ms ease,
+      color
+      120ms ease;
+
+
+    &:hover {
+      background:
+        var(--section-soft);
+
+      text-decoration:
+        none;
+    }
+  }
+
+
+  &--outlined {
+    min-height:
+      2.1rem;
+
+    padding:
+      0.4rem
+      0.65rem;
+
+    border:
+      1px solid #dbeafe;
+
+    border-radius:
+      0.5rem;
+
+    background:
+      #f8fbff;
+
+
+    &:hover {
+      border-color:
+        #93c5fd;
+
+      background:
+        #eff6ff;
+
+      text-decoration:
+        none;
+    }
+  }
+
+
+  &--back {
+    padding:
+      0.35rem
+      0.55rem;
+
+    border:
+      1px solid #e4e7ec;
+
+    border-radius:
+      0.5rem;
+
+    background:
+      #fff;
+
+    color:
+      #475467;
+
+
+    &:hover {
+      border-color:
+        #bfdbfe;
+
+      background:
+        #f8fbff;
+
+      color:
+        var(--primary-color);
+
+      text-decoration:
+        none;
+    }
+  }
+}
+
+
+// =========================================================
+// DETAIL - ESTADO VACÍO
+// =========================================================
+
+.reports-empty-state {
+  min-height:
+    4.2rem;
+
+  padding:
+    0.7rem
+    1rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    0.65rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #fbfdfc
+    );
+
+  color:
+    #667085;
+
+
+  &__icon {
+    width:
+      2rem;
+
+    height:
+      2rem;
+
+    display:
+      inline-grid;
+
+    place-items:
+      center;
+
+    flex:
+      0 0 auto;
+
+    border-radius:
+      999px;
+
+    background:
+      #ecfdf3;
+
+    color:
+      #16a34a;
+
+
+    mat-icon {
+      width:
+        1.1rem;
+
+      height:
+        1.1rem;
+
+      font-size:
+        1.1rem;
+    }
+  }
+
+
+  > div {
+    display:
+      grid;
+
+    gap:
+      0.05rem;
+
+
+    strong {
+      color:
+        #344054;
+
+      font-size:
+        0.75rem;
+
+      font-weight:
+        700;
+    }
+
+
+    span {
+      color:
+        #667085;
+
+      font-size:
+        0.7rem;
+    }
+  }
+
+
+  &--large {
+    min-height:
+      9rem;
+  }
+}
+
+
+// =========================================================
+// DATATABLE
+// =========================================================
+
+.reports-table-shell {
+  width:
+    100%;
+
+  max-width:
+    100%;
+
+  min-width:
+    0;
+
+  box-sizing:
+    border-box;
+
+  overflow:
+    hidden;
+
+
+  > app-data-table {
+    display:
+      block;
+
+    width:
+      100%;
+
+    max-width:
+      100%;
+
+    min-width:
+      0;
+
+    min-height:
+      0;
+  }
+
+
+  // -------------------------------------------------------
+  // Corte operativo
+  // -------------------------------------------------------
+
+  &--recent {
+    min-height:
+      260px;
+
+    border-radius:
+      0.6rem;
+  }
+
+
+  // -------------------------------------------------------
+  // Vista "Todos"
+  //
+  // IMPORTANTE:
+  // sin altura fija.
+  //
+  // 1 fila  -> ocupa 1 fila
+  // 2 filas -> ocupa 2 filas
+  // 5 filas -> ocupa 5 filas
+  //
+  // El backend ya limita el preview a máximo 5.
+  // -------------------------------------------------------
+
+  &--preview {
+    height:
+      auto;
+
+    min-height:
+      0;
+
+    max-height:
+      none;
+
+    overflow:
+      visible;
+
+    border-radius:
+      0;
+
+
+    > app-data-table {
+      height:
+        auto;
+
+      min-height:
+        0;
+    }
+  }
+
+
+  // -------------------------------------------------------
+  // Categoría individual
+  //
+  // Aquí sí conservamos área fija porque puede tener
+  // 20 / 50 registros y paginator.
+  // -------------------------------------------------------
+
+  &--detail {
+    height:
+      clamp(
+        380px,
+        50vh,
+        580px
+      );
+
+    display:
+      grid;
+
+    grid-template-rows:
+      minmax(
+        0,
+        1fr
+      )
+      auto;
+
+    border:
+      1px solid #eef0f3;
+
+    border-radius:
+      0.62rem;
+
+
+    > app-data-table {
+      height:
+        100%;
+    }
+
+
+    > mat-paginator {
+      position:
+        relative;
+
+      z-index:
+        2;
+
+      border-top:
+        1px solid #e4e7ec;
+
+      background:
+        #ffffff;
+    }
+  }
+}
+
+
+// =========================================================
+// RESPONSIVE - TABLET
+// =========================================================
+
+@media (
+  max-width: 1280px
+) {
+
+  .reports-summary-grid {
+
+    &--purchase-orders {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+
+
+    &--crosscheck {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+  }
+}
+
+
+// =========================================================
+// RESPONSIVE - MOBILE
+// =========================================================
+
+@media (
+  max-width: 768px
+) {
+
+  // =======================================================
+  // TABS PRINCIPALES
+  // Solo scroll. No se cambia diseño.
+  // =======================================================
+
+  .purchase-order-reports-tabs {
+    overflow-x:
+      auto;
+  }
+
+
+  .purchase-order-reports-tab {
+    flex:
+      0 0 auto;
+  }
+
+
+  .reports-panel__header {
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+
+  .reports-generated-at {
+    align-self:
+      flex-start;
+  }
+
+
+  // =======================================================
+  // CORTE
+  // =======================================================
+
+  .reports-summary-grid {
+
+    &--purchase-orders,
+    &--crosscheck {
+      grid-template-columns:
+        minmax(
+          0,
+          1fr
+        );
+    }
+  }
+
+
+  // =======================================================
+  // DETAIL
+  // =======================================================
+
+  .reports-category-tabs {
+    flex-wrap:
+      nowrap;
+
+    overflow-x:
+      auto;
+
+    padding-bottom:
+      0.25rem;
+  }
+
+
+  .reports-category-tab {
+    flex:
+      0 0 auto;
+  }
+
+
+  .reports-detail-filters {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+
+  .reports-detail-section {
+
+    &__header {
+      align-items:
+        stretch;
+
+      flex-direction:
+        column;
+
+      gap:
+        0.5rem;
+    }
+
+
+    .reports-link-button--section {
+      align-self:
+        flex-start;
+    }
+  }
+
+
+  .reports-table-shell {
+
+    &--detail {
+      height:
+        440px;
+    }
+
+
+    &--preview {
+      height:
+        auto;
+
+      min-height:
+        0;
+    }
+  }
+}
+
+
+// =========================================================
+// RESPONSIVE - MOBILE PEQUEÑO
+// =========================================================
+
+@media (
+  max-width: 480px
+) {
+
+  .reports-summary-card {
+    min-height:
+      5rem;
+
+    padding:
+      0.75rem;
+
+
+    &__icon {
+      width:
+        2.25rem;
+
+      height:
+        2.25rem;
+    }
+
+
+    &__content {
+
+      strong {
+        font-size:
+          1.15rem;
+      }
+    }
+  }
+
+
+  .reports-category-tab {
+    min-height:
+      2.2rem;
+
+    padding-right:
+      0.55rem;
+  }
+
+
+  .reports-detail-filters {
+    padding:
+      0.6rem;
+  }
+
+
+  .reports-detail-section {
+
+    &__header {
+      padding:
+        0.68rem
+        0.72rem
+        0.65rem
+        0.82rem;
+    }
+
+
+    small {
+      margin-left:
+        0.95rem;
+    }
+  }
+
+
+  .reports-empty-state {
+    justify-content:
+      flex-start;
+  }
+}

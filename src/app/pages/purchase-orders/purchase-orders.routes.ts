@@ -74,6 +74,28 @@ export const PURCHASE_ORDERS_ROUTES: Routes = [
     data: { roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'] },
   },
   {
+    path: 'reportes',
+
+    loadComponent: () =>
+      import(
+        './components/purchase-order-reports/purchase-order-reports'
+      )
+        .then(
+          (m) =>
+            m.PurchaseOrderReports,
+        ),
+
+    canActivate: [
+      rolesGuard,
+    ],
+
+    data: {
+      roles: [
+        'ORDENES_COMPRA_EDITOR',
+      ],
+    },
+  },
+  {
     path: 'registrar-almacen/:photoId',
     loadComponent: () =>
       import('./components/purchase-order-details/components/record-oc-warehouse-expense/record-oc-warehouse-expense')

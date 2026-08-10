@@ -186,6 +186,12 @@ export class Sidebar {
           roles: ['ORDENES_COMPRA_EDITOR'],
         },
         {
+          name: 'Reportes',
+          icon: 'bar_chart',
+          route: '/ordenes-compra/reportes',
+          roles: ['ORDENES_COMPRA_EDITOR'],
+        },
+        {
           name: 'Subir Ticket de gasto',
           icon: 'image_search',
           route: '/ordenes-compra/subir-ticket-gasto',

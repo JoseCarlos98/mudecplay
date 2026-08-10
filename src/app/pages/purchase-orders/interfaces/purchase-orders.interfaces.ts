@@ -825,3 +825,520 @@ export interface DeleteTicketPhotoResponse {
     deleted: boolean;
   };
 }
+
+
+// =========================================================
+// REPORTES DE ÓRDENES DE COMPRA
+// =========================================================
+
+/**
+ * Categorías disponibles dentro del reporte
+ * "Detalle de pendientes".
+ *
+ * ALL:
+ * muestra un resumen de todas las categorías,
+ * con máximo 5 registros por sección.
+ */
+export type PurchaseOrderReportPendingCategory =
+  | 'all'
+  | 'pending_authorization'
+  | 'pending_photo'
+  | 'pending_reconciliation'
+  | 'invoice_pending_xml'
+  | 'no_invoice_pending_expense'
+  | 'pending_payment'
+  | 'loose_pending_photos'
+  | 'available_xml'
+  | 'available_xml_items';
+
+/**
+ * Categorías individuales.
+ *
+ * Se utiliza cuando necesitamos una categoría
+ * concreta y paginada.
+ */
+export type PurchaseOrderReportDetailCategory =
+  Exclude<
+    PurchaseOrderReportPendingCategory,
+    'all'
+  >;
+
+
+// =========================================================
+// CORTE OPERATIVO
+// =========================================================
+
+/**
+ * Contadores relacionados directamente
+ * con órdenes de compra.
+ */
+export interface PurchaseOrderOperationalSummaryCounters {
+  pending_authorization: number;
+  pending_photo: number;
+  pending_reconciliation: number;
+
+  invoice_pending_xml: number;
+  no_invoice_pending_expense: number;
+
+  pending_payment: number;
+  payment_completed: number;
+}
+
+/**
+ * Contadores de apoyo para detectar elementos
+ * que pueden relacionarse con órdenes de compra.
+ */
+export interface PurchaseOrderOperationalCrosscheckCounters {
+  loose_pending_photos: number;
+  available_xml: number;
+  available_xml_items: number;
+}
+
+/**
+ * Fila del bloque "Pendientes más recientes".
+ */
+export interface PurchaseOrderRecentPendingReportRow {
+  category:
+    | 'pending_authorization'
+    | 'pending_photo'
+    | 'pending_reconciliation'
+    | 'invoice_pending_xml'
+    | 'no_invoice_pending_expense'
+    | 'pending_payment';
+
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project_name: string | null;
+
+  concept: string;
+
+  requested_amount: number;
+
+  status_label: string;
+}
+
+/**
+ * Respuesta completa del endpoint:
+ *
+ * GET /purchase-orders/reports/operational-summary
+ */
+export interface PurchaseOrderOperationalSummaryResponse {
+  purchase_orders:
+    PurchaseOrderOperationalSummaryCounters;
+
+  operational_crosscheck:
+    PurchaseOrderOperationalCrosscheckCounters;
+
+  recent_pending:
+    PurchaseOrderRecentPendingReportRow[];
+
+  generated_at: string;
+}
+
+
+// =========================================================
+// REFERENCIAS COMUNES DEL DETAIL
+// =========================================================
+
+export interface PurchaseOrderReportProjectRef {
+  id: number;
+  name: string;
+}
+
+export interface PurchaseOrderReportUserRef {
+  id: number;
+  name: string;
+}
+
+export interface PurchaseOrderReportExpenseRef {
+  id: number;
+  folio: string | null;
+}
+
+
+// =========================================================
+// DETAIL - PENDIENTE DE AUTORIZACIÓN
+// =========================================================
+
+export interface PendingAuthorizationReportRow {
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  concept: string;
+
+  requested_by_name: string | null;
+
+  requested_amount: number;
+}
+
+
+// =========================================================
+// DETAIL - PENDIENTE DE FOTO
+// =========================================================
+
+export interface PendingPhotoReportRow {
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  concept: string;
+
+  authorized_at: string | null;
+
+  requested_amount: number;
+}
+
+
+// =========================================================
+// DETAIL - FOTO POR CONCILIAR
+// =========================================================
+
+export interface PendingReconciliationReportRow {
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  concept: string;
+
+  requested_amount: number;
+
+  photo_count: number;
+
+  latest_photo_at: string | null;
+}
+
+
+// =========================================================
+// DETAIL - PENDIENTE DE XML / GASTO
+// =========================================================
+
+export interface PendingExpenseRegistrationReportRow {
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  concept: string;
+
+  destination_type:
+    PurchaseOrderDestinationType;
+
+  requested_amount: number;
+}
+
+
+// =========================================================
+// DETAIL - PENDIENTE DE PAGO
+// =========================================================
+
+export interface PendingPaymentReportRow {
+  purchase_order_id: number;
+
+  folio: string;
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  /**
+   * Una O.C. puede tener uno o varios
+   * gastos relacionados.
+   */
+  expenses:
+    PurchaseOrderReportExpenseRef[];
+
+  related_amount: number;
+  paid_amount: number;
+  balance: number;
+}
+
+
+// =========================================================
+// DETAIL - FOTO SUELTA
+// =========================================================
+
+export interface LoosePendingPhotoReportRow {
+  photo_id: number;
+
+  date: string;
+
+  project:
+    PurchaseOrderReportProjectRef | null;
+
+  file_name: string;
+
+  uploaded_by:
+    PurchaseOrderReportUserRef | null;
+}
+
+
+// =========================================================
+// DETAIL - XML DISPONIBLE
+// =========================================================
+
+export interface AvailableXmlReportRow {
+  expense_id: number;
+
+  date: string;
+
+  internal_folio: string;
+
+  cfdi_uuid: string;
+
+  supplier_name: string | null;
+
+  available_items_count: number;
+
+  available_amount: number;
+}
+
+
+// =========================================================
+// DETAIL - PARTIDA XML DISPONIBLE
+// =========================================================
+
+export interface AvailableXmlItemReportRow {
+  expense_id: number;
+  expense_item_id: number;
+
+  date: string;
+
+  internal_folio: string;
+
+  supplier_name: string | null;
+
+  concept: string;
+
+  product_name: string | null;
+
+  item_type:
+    PurchaseOrderDestinationType;
+
+  amount: number;
+}
+
+
+// =========================================================
+// UNION DE FILAS DEL DETAIL
+// =========================================================
+
+export type PurchaseOrderPendingReportRow =
+  | PendingAuthorizationReportRow
+  | PendingPhotoReportRow
+  | PendingReconciliationReportRow
+  | PendingExpenseRegistrationReportRow
+  | PendingPaymentReportRow
+  | LoosePendingPhotoReportRow
+  | AvailableXmlReportRow
+  | AvailableXmlItemReportRow;
+
+
+// =========================================================
+// PAGINACIÓN DEL DETAIL
+// =========================================================
+
+export interface PurchaseOrderPendingDetailPagination {
+  page: number;
+  limit: number;
+
+  total: number;
+  total_pages: number;
+}
+
+/**
+ * Respuesta cuando se consulta una
+ * categoría individual.
+ */
+export interface PurchaseOrderPendingDetailPaginatedResponse<
+  T extends PurchaseOrderPendingReportRow =
+    PurchaseOrderPendingReportRow,
+> {
+  category:
+    PurchaseOrderReportDetailCategory;
+
+  label: string;
+
+  data: T[];
+
+  pagination:
+    PurchaseOrderPendingDetailPagination;
+
+  generated_at: string;
+}
+
+
+// =========================================================
+// DETAIL - CATEGORY ALL
+// =========================================================
+
+export interface PurchaseOrderPendingReportSection {
+  category:
+    PurchaseOrderReportDetailCategory;
+
+  label: string;
+
+  total: number;
+
+  /**
+   * En category=all contiene como máximo
+   * 5 registros por sección.
+   */
+  data:
+    PurchaseOrderPendingReportRow[];
+}
+
+export interface PurchaseOrderPendingDetailAllResponse {
+  category: 'all';
+
+  sections:
+    PurchaseOrderPendingReportSection[];
+
+  generated_at: string;
+}
+
+
+// =========================================================
+// FILTROS DEL DETAIL
+// =========================================================
+
+export interface PurchaseOrderPendingDetailFilters {
+  category?:
+    PurchaseOrderReportPendingCategory;
+
+  search?: string | null;
+
+  page?: number;
+
+  limit?: number;
+}
+
+
+// =========================================================
+// FILA NORMALIZADA PARA EL DATATABLE
+// =========================================================
+
+/**
+ * Modelo exclusivamente de frontend.
+ *
+ * Permite utilizar el mismo DataTable para
+ * las diferentes categorías del reporte.
+ */
+// =========================================================
+// FILA NORMALIZADA PARA EL DATATABLE
+// =========================================================
+
+/**
+ * Modelo exclusivamente de frontend.
+ *
+ * Permite utilizar el mismo DataTable para
+ * las diferentes categorías del reporte.
+ *
+ * Los campos opcionales pueden venir en null
+ * porque varios valores del backend son realmente
+ * opcionales: proyecto, solicitante, proveedor,
+ * producto, fechas de seguimiento, etc.
+ */
+export interface PurchaseOrderReportTableRow {
+  id: number;
+
+  category?:
+    PurchaseOrderReportDetailCategory;
+
+  purchase_order_id?: number;
+
+  photo_id?: number;
+
+  expense_id?: number;
+
+  expense_item_id?: number;
+
+  date?: string;
+
+  folio?: string;
+
+  project_name?:
+    string | null;
+
+  concept?:
+    string | null;
+
+  requested_by_name?:
+    string | null;
+
+  requested_amount?: number;
+
+  authorized_at?:
+    string | null;
+
+  destination_type?:
+    PurchaseOrderDestinationType;
+
+  destination_type_label?:
+    string | null;
+
+  photo_count?: number;
+
+  latest_photo_at?:
+    string | null;
+
+  expenses_display?:
+    string | null;
+
+  related_amount?: number;
+
+  paid_amount?: number;
+
+  balance?: number;
+
+  file_name?:
+    string | null;
+
+  uploaded_by_name?:
+    string | null;
+
+  internal_folio?:
+    string | null;
+
+  cfdi_uuid?:
+    string | null;
+
+  supplier_name?:
+    string | null;
+
+  available_items_count?: number;
+
+  available_amount?: number;
+
+  product_name?:
+    string | null;
+
+  item_type?:
+    PurchaseOrderDestinationType;
+
+  item_type_label?:
+    string | null;
+
+  amount?: number;
+
+  status_label?:
+    string | null;
+}
