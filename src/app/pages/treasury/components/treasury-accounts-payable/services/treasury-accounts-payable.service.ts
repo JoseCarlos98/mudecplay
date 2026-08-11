@@ -56,6 +56,16 @@ export class TreasuryAccountsPayableService {
       }
 
       if (
+        filters.amount !== undefined &&
+        filters.amount !== null
+      ) {
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
+      }
+
+      if (
         filters.minimum_available_amount !== undefined &&
         filters.minimum_available_amount !== null
       ) {
@@ -147,6 +157,16 @@ export class TreasuryAccountsPayableService {
         params = params.set(
           'search',
           filters.search.trim(),
+        );
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null
+      ) {
+        params = params.set(
+          'amount',
+          String(filters.amount),
         );
       }
 

@@ -60,6 +60,8 @@ export interface TreasuryAvailableOutflowFilters {
   date_from?: string | null;
   date_to?: string | null;
 
+  amount?: number | null;
+
   search?: string;
 
   page: number;
@@ -70,6 +72,7 @@ export interface TreasuryAvailableOutflowUiFilters {
   dateRange: TreasuryAccountsPayableDateRange | null;
 
   search: string;
+    amount: number | null;
 
   company_id: Catalog | number | string | null;
   bank_id: Catalog | number | string | null;
@@ -157,7 +160,7 @@ export interface TreasuryPendingExpenseItemFilters {
 
   item_type?: TreasuryPendingExpenseItemType | null;
   origin_type?: string | null;
-
+ amount?: number | null;
   search?: string;
 
   page: number;
@@ -173,6 +176,7 @@ export interface TreasuryPendingExpenseItemUiFilters {
   project_id: Catalog | number | string | null;
 
   item_type: TreasuryPendingExpenseItemType | '';
+  amount: number | null;
 
   page: number;
   limit: number;

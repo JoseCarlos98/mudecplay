@@ -550,6 +550,7 @@ export class TreasuryAccountsPayable
       page: 1,
       limit: 10,
       search: '',
+      amount: null,
       company_id: null,
       bank_id: null,
       bank_account_id: null,
@@ -562,6 +563,7 @@ export class TreasuryAccountsPayable
       page: 1,
       limit: 10,
       search: '',
+      amount: null,
       supplier_id: null,
       project_id: null,
       item_type: null,
@@ -600,6 +602,11 @@ export class TreasuryAccountsPayable
           Catalog | number | string | null
         >(null),
 
+      amount:
+        this.fb.control<
+          number | string | null
+        >(null),
+
       bank_id:
         this.fb.control<
           Catalog | number | string | null
@@ -618,6 +625,11 @@ export class TreasuryAccountsPayable
 
       search:
         this.fb.control<string>(''),
+
+      amount:
+        this.fb.control<
+          number | string | null
+        >(null),
 
       supplier_id:
         this.fb.control<
@@ -1446,6 +1458,11 @@ export class TreasuryAccountsPayable
       search:
         value.search?.trim() || '',
 
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
+
       company_id:
         value.company_id ?? null,
 
@@ -1477,6 +1494,7 @@ export class TreasuryAccountsPayable
       {
         dateRange: null,
         search: '',
+        amount: null,
         company_id: null,
         bank_id: null,
         bank_account_id: null,
@@ -1491,6 +1509,7 @@ export class TreasuryAccountsPayable
       limit:
         this.outflowFilters.limit,
 
+      amount: null,
       search: '',
       company_id: null,
       bank_id: null,
@@ -1523,6 +1542,10 @@ export class TreasuryAccountsPayable
         this.getNumberId(
           ui.company_id,
         ),
+
+      amount:
+        ui.amount ?? null,
+
 
       bank_id:
         this.getNumberId(
@@ -1571,9 +1594,13 @@ export class TreasuryAccountsPayable
       this.getCatalogValue(
         value.bank_id,
       ) ||
+      this.normalizeAmountFilter(
+        value.amount,
+      ) !== null ||
       this.getCatalogValue(
         value.bank_account_id,
       ),
+
     );
   }
 
@@ -1595,6 +1622,11 @@ export class TreasuryAccountsPayable
 
       supplier_id:
         value.supplier_id ?? null,
+
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
 
       project_id:
         value.project_id ?? null,
@@ -1624,6 +1656,7 @@ export class TreasuryAccountsPayable
       {
         dateRange: null,
         search: '',
+        amount: null,
         supplier_id: null,
         project_id: null,
         item_type: '',
@@ -1644,6 +1677,7 @@ export class TreasuryAccountsPayable
       item_type: null,
       date_from: null,
       date_to: null,
+      amount: null,
     };
 
     this.storage.removeItem(
@@ -1670,6 +1704,9 @@ export class TreasuryAccountsPayable
         this.getNumberId(
           ui.supplier_id,
         ),
+
+      amount:
+        ui.amount ?? null,
 
       project_id:
         this.getNumberId(
@@ -1707,6 +1744,9 @@ export class TreasuryAccountsPayable
       this.pendingItemFilterForm.getRawValue();
 
     return Boolean(
+      this.normalizeAmountFilter(
+        value.amount,
+      ) !== null ||
       value.dateRange?.startDate ||
       value.dateRange?.endDate ||
       value.search?.trim() ||
@@ -2689,6 +2729,9 @@ export class TreasuryAccountsPayable
       {
         dateRange,
 
+        amount:
+          saved.amount ?? null,
+
         search:
           saved.search ?? '',
 
@@ -2743,6 +2786,9 @@ export class TreasuryAccountsPayable
 
         search:
           saved.search ?? '',
+
+        amount:
+          saved.amount ?? null,
 
         supplier_id:
           saved.supplier_id ?? null,
@@ -2880,6 +2926,11 @@ export class TreasuryAccountsPayable
         search:
           value.search?.trim() || '',
 
+        amount:
+          this.normalizeAmountFilter(
+            value.amount,
+          ),
+
         company_id:
           value.company_id ?? null,
 
@@ -2920,6 +2971,11 @@ export class TreasuryAccountsPayable
 
         supplier_id:
           value.supplier_id ?? null,
+
+        amount:
+          this.normalizeAmountFilter(
+            value.amount,
+          ),
 
         project_id:
           value.project_id ?? null,
@@ -3205,5 +3261,29 @@ export class TreasuryAccountsPayable
       'regularized'
       ? HISTORICAL_REGULARIZED_FILTERS_KEY
       : HISTORICAL_PENDING_FILTERS_KEY;
+  }
+
+  private normalizeAmountFilter(
+    value: unknown,
+  ): number | null {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
+    }
+
+    const amount =
+      Number(value);
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      return null;
+    }
+
+    return roundMoney(amount);
   }
 }

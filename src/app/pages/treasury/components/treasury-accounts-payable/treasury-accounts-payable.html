@@ -225,6 +225,10 @@
             placeholder="Referencia, descripción, contraparte o cuenta" type="text" [isFilter]="true">
           </app-input-field>
 
+          <app-input-field formControlName="amount" label="Importe" placeholder="Monto original o disponible"
+            type="money" [isFilter]="true">
+          </app-input-field>
+
           <app-input-select formControlName="company_id" label="Empresa" [options]="companyOptions">
           </app-input-select>
 
@@ -416,6 +420,10 @@
 
           <app-input-field formControlName="search" label="Buscar"
             placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto" type="text" [isFilter]="true">
+          </app-input-field>
+
+          <app-input-field formControlName="amount" label="Importe" placeholder="Monto del concepto" type="number"
+            [isFilter]="true">
           </app-input-field>
 
           <app-input-select formControlName="item_type" label="Tipo" [options]="itemTypeOptions">

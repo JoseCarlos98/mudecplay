@@ -1,4 +1,7 @@
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -225,6 +228,7 @@ export class PurchaseOrderDetails implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
+  private readonly location = inject(Location);
   private readonly dialogService = inject(DialogService);
   private readonly permissionsService = inject(PermissionsService);
 
@@ -740,7 +744,7 @@ export class PurchaseOrderDetails implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigateByUrl('/ordenes-compra');
+    this.location.back();
   }
 
   canCancelPurchaseOrder(): boolean {

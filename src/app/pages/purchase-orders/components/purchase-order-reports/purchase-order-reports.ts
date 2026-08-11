@@ -1,4 +1,7 @@
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
 
 import {
   Component,
@@ -76,6 +79,28 @@ type PurchaseOrderReportsTab =
 
 
 // =========================================================
+// ESTADO DE NAVEGACIÓN DEL REPORTE
+//
+// Se guarda dentro de history.state.
+// No modifica la URL.
+// =========================================================
+
+interface PurchaseOrderReportsNavigationState {
+  tab: PurchaseOrderReportsTab;
+
+  category:
+  entity.PurchaseOrderReportPendingCategory;
+
+  search: string;
+
+  page: number;
+
+  limit: number;
+
+  scrollY: number;
+}
+
+// =========================================================
 // CONFIGURACIÓN DE TARJETAS
 // =========================================================
 
@@ -98,8 +123,8 @@ interface PurchaseOrderReportSummaryCard {
    * no representa un pendiente.
    */
   category:
-    entity.PurchaseOrderReportDetailCategory
-    | null;
+  entity.PurchaseOrderReportDetailCategory
+  | null;
 }
 
 
@@ -109,7 +134,7 @@ interface PurchaseOrderReportSummaryCard {
 
 interface PurchaseOrderReportCategoryOption {
   category:
-    entity.PurchaseOrderReportPendingCategory;
+  entity.PurchaseOrderReportPendingCategory;
 
   label: string;
 
@@ -234,309 +259,309 @@ const DETAIL_COLUMNS:
     ColumnsConfig[]
   > = {
 
-    pending_authorization: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'requested_by_name',
-        label: 'Solicitante',
-      },
-      {
-        key: 'requested_amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+  pending_authorization: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'requested_by_name',
+      label: 'Solicitante',
+    },
+    {
+      key: 'requested_amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    pending_photo: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'authorized_at',
-        label: 'Autorizada',
-        type: 'date',
-      },
-      {
-        key: 'requested_amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+  pending_photo: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'authorized_at',
+      label: 'Autorizada',
+      type: 'date',
+    },
+    {
+      key: 'requested_amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    pending_reconciliation: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'photo_count',
-        label: 'Fotos',
-        align: 'center',
-      },
-      {
-        key: 'latest_photo_at',
-        label: 'Última foto',
-        type: 'date',
-      },
-      {
-        key: 'requested_amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+  pending_reconciliation: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'photo_count',
+      label: 'Fotos',
+      align: 'center',
+    },
+    {
+      key: 'latest_photo_at',
+      label: 'Última foto',
+      type: 'date',
+    },
+    {
+      key: 'requested_amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    invoice_pending_xml: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'destination_type_label',
-        label: 'Destino',
-        type: 'chip',
+  invoice_pending_xml: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'destination_type_label',
+      label: 'Destino',
+      type: 'chip',
 
-        variantResolver: (
-          row:
-            entity.PurchaseOrderReportTableRow,
-        ) =>
-          resolveDestinationVariant(
-            row.destination_type,
-          ),
-      },
-      {
-        key: 'requested_amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+      variantResolver: (
+        row:
+          entity.PurchaseOrderReportTableRow,
+      ) =>
+        resolveDestinationVariant(
+          row.destination_type,
+        ),
+    },
+    {
+      key: 'requested_amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    no_invoice_pending_expense: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'destination_type_label',
-        label: 'Destino',
-        type: 'chip',
+  no_invoice_pending_expense: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'destination_type_label',
+      label: 'Destino',
+      type: 'chip',
 
-        variantResolver: (
-          row:
-            entity.PurchaseOrderReportTableRow,
-        ) =>
-          resolveDestinationVariant(
-            row.destination_type,
-          ),
-      },
-      {
-        key: 'requested_amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+      variantResolver: (
+        row:
+          entity.PurchaseOrderReportTableRow,
+      ) =>
+        resolveDestinationVariant(
+          row.destination_type,
+        ),
+    },
+    {
+      key: 'requested_amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    pending_payment: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'folio',
-        label: 'O.C.',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'expenses_display',
-        label: 'Gasto(s)',
-      },
-      {
-        key: 'related_amount',
-        label: 'Relacionado',
-        type: 'money',
-        align: 'right',
-      },
-      {
-        key: 'paid_amount',
-        label: 'Pagado',
-        type: 'money',
-        align: 'right',
-      },
-      {
-        key: 'balance',
-        label: 'Saldo',
-        type: 'money',
-        align: 'right',
-      },
-    ],
+  pending_payment: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'folio',
+      label: 'O.C.',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'expenses_display',
+      label: 'Gasto(s)',
+    },
+    {
+      key: 'related_amount',
+      label: 'Relacionado',
+      type: 'money',
+      align: 'right',
+    },
+    {
+      key: 'paid_amount',
+      label: 'Pagado',
+      type: 'money',
+      align: 'right',
+    },
+    {
+      key: 'balance',
+      label: 'Saldo',
+      type: 'money',
+      align: 'right',
+    },
+  ],
 
-    loose_pending_photos: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'file_name',
-        label: 'Archivo',
-      },
-      {
-        key: 'project_name',
-        label: 'Proyecto',
-      },
-      {
-        key: 'uploaded_by_name',
-        label: 'Subida por',
-      },
-    ],
+  loose_pending_photos: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'file_name',
+      label: 'Archivo',
+    },
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+    {
+      key: 'uploaded_by_name',
+      label: 'Subida por',
+    },
+  ],
 
-    available_xml: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'internal_folio',
-        label: 'Folio',
-      },
-      {
-        key: 'supplier_name',
-        label: 'Proveedor',
-      },
-      {
-        key: 'available_items_count',
-        label: 'Partidas disponibles',
-        align: 'center',
-      },
-      {
-        key: 'available_amount',
-        label: 'Importe disponible',
-        type: 'money',
-        align: 'right',
-      },
-      {
-        key: 'cfdi_uuid',
-        label: 'UUID',
-      },
-    ],
+  available_xml: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'internal_folio',
+      label: 'Folio',
+    },
+    {
+      key: 'supplier_name',
+      label: 'Proveedor',
+    },
+    {
+      key: 'available_items_count',
+      label: 'Partidas disponibles',
+      align: 'center',
+    },
+    {
+      key: 'available_amount',
+      label: 'Importe disponible',
+      type: 'money',
+      align: 'right',
+    },
+    {
+      key: 'cfdi_uuid',
+      label: 'UUID',
+    },
+  ],
 
-    available_xml_items: [
-      {
-        key: 'date',
-        label: 'Fecha',
-        type: 'date',
-      },
-      {
-        key: 'internal_folio',
-        label: 'Folio',
-      },
-      {
-        key: 'supplier_name',
-        label: 'Proveedor',
-      },
-      {
-        key: 'concept',
-        label: 'Concepto',
-      },
-      {
-        key: 'item_type_label',
-        label: 'Tipo',
-        type: 'chip',
+  available_xml_items: [
+    {
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
+    },
+    {
+      key: 'internal_folio',
+      label: 'Folio',
+    },
+    {
+      key: 'supplier_name',
+      label: 'Proveedor',
+    },
+    {
+      key: 'concept',
+      label: 'Concepto',
+    },
+    {
+      key: 'item_type_label',
+      label: 'Tipo',
+      type: 'chip',
 
-        variantResolver: (
-          row:
-            entity.PurchaseOrderReportTableRow,
-        ) =>
-          resolveDestinationVariant(
-            row.item_type,
-          ),
-      },
-      {
-        key: 'amount',
-        label: 'Monto',
-        type: 'money',
-        align: 'right',
-      },
-    ],
-  };
+      variantResolver: (
+        row:
+          entity.PurchaseOrderReportTableRow,
+      ) =>
+        resolveDestinationVariant(
+          row.item_type,
+        ),
+    },
+    {
+      key: 'amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+    },
+  ],
+};
 
 
 // =========================================================
@@ -647,6 +672,8 @@ export class PurchaseOrderReports
   private readonly fb =
     inject(FormBuilder);
 
+  private readonly location =
+    inject(Location);
 
   // =========================================================
   // HEADER / TABS
@@ -694,7 +721,32 @@ export class PurchaseOrderReports
    */
   private detailRequestSequence = 0;
 
+  /**
+   * Scroll que debe restaurarse después
+   * de que el Detail termine de cargar.
+   */
+  private pendingRestoreScrollY:
+    number | null = null;
 
+
+  // =========================================================
+  // NAVEGACIÓN - CONTENEDOR REAL DE SCROLL
+  // =========================================================
+
+  private getScrollContainer():
+    HTMLElement | null {
+
+    return document.querySelector<HTMLElement>(
+      '.content',
+    );
+  }
+
+  /**
+   * Indica si el componente fue restaurado
+   * desde una navegación anterior.
+   */
+  private restoredNavigationState =
+    false;
   // =========================================================
   // CORTE OPERATIVO
   // =========================================================
@@ -846,10 +898,28 @@ export class PurchaseOrderReports
   // =========================================================
 
   ngOnInit(): void {
+
+    this.restoredNavigationState =
+      this.restoreNavigationState();
+
+    /*
+     * El Corte siempre puede cargarse.
+     */
     this.loadOperationalSummary();
+
+    /*
+     * Si regresamos desde una O.C. y estábamos
+     * en Detalle, reconstruimos también ese estado.
+     */
+    if (
+      this.restoredNavigationState &&
+      this.activeTab() ===
+      'pending_details'
+    ) {
+
+      this.loadPendingDetails();
+    }
   }
-
-
   // =========================================================
   // TARJETAS DEL CORTE
   // =========================================================
@@ -1163,6 +1233,13 @@ export class PurchaseOrderReports
                   row.category,
               }),
             );
+
+          if (
+            this.activeTab() ===
+            'operational_summary'
+          ) {
+            this.restorePendingScroll();
+          }
         },
 
         error: (
@@ -1346,6 +1423,11 @@ export class PurchaseOrderReports
           this.detailsLoaded =
             true;
 
+
+          // =======================================================
+          // TODOS
+          // =======================================================
+
           if (
             response.category === 'all'
           ) {
@@ -1363,8 +1445,25 @@ export class PurchaseOrderReports
               response,
             );
 
+
+            /*
+             * Restauramos después de construir
+             * todas las secciones del preview.
+             */
+            if (
+              this.activeTab() ===
+              'pending_details'
+            ) {
+              this.restorePendingScroll();
+            }
+
             return;
           }
+
+
+          // =======================================================
+          // CATEGORÍA INDIVIDUAL
+          // =======================================================
 
           this.paginatedPendingDetails =
             response;
@@ -1380,6 +1479,19 @@ export class PurchaseOrderReports
                   response.category,
                 ),
             );
+
+
+          /*
+           * Importante:
+           * primero cargamos los datos y después
+           * restauramos la posición vertical.
+           */
+          if (
+            this.activeTab() ===
+            'pending_details'
+          ) {
+            this.restorePendingScroll();
+          }
         },
 
         error: (
@@ -1474,29 +1586,29 @@ export class PurchaseOrderReports
     const purchaseOrderId =
       'purchase_order_id' in row
         ? Number(
-            row.purchase_order_id,
-          )
+          row.purchase_order_id,
+        )
         : undefined;
 
     const photoId =
       'photo_id' in row
         ? Number(
-            row.photo_id,
-          )
+          row.photo_id,
+        )
         : undefined;
 
     const expenseId =
       'expense_id' in row
         ? Number(
-            row.expense_id,
-          )
+          row.expense_id,
+        )
         : undefined;
 
     const expenseItemId =
       'expense_item_id' in row
         ? Number(
-            row.expense_item_id,
-          )
+          row.expense_item_id,
+        )
         : undefined;
 
     const project =
@@ -1592,7 +1704,7 @@ export class PurchaseOrderReports
       supplier_name:
         'supplier_name' in row
           ? row.supplier_name?.trim() ||
-            'Sin proveedor'
+          'Sin proveedor'
           : undefined,
     };
   }
@@ -1719,7 +1831,7 @@ export class PurchaseOrderReports
 
     return (
       DETAIL_COLUMNS[
-        category
+      category
       ] ??
       []
     );
@@ -1852,10 +1964,14 @@ export class PurchaseOrderReports
       return;
     }
 
+
     /*
-     * El reporte y detalle/:id son rutas
-     * hermanas dentro del módulo de O.C.
+     * Guardamos dónde estaba el usuario
+     * antes de abandonar Reportes.
      */
+    this.saveNavigationState();
+
+
     this.router.navigate(
       [
         '../detalle',
@@ -1866,5 +1982,217 @@ export class PurchaseOrderReports
           this.route,
       },
     );
+  }
+
+  // =========================================================
+  // NAVEGACIÓN - GUARDAR ESTADO DEL REPORTE
+  // =========================================================
+
+  private saveNavigationState(): void {
+
+    const scrollContainer =
+      this.getScrollContainer();
+
+
+    const state:
+      PurchaseOrderReportsNavigationState = {
+
+      tab:
+        this.activeTab(),
+
+      category:
+        this.activeDetailCategory(),
+
+      search:
+        this.detailFilters
+          .search
+          ?.trim() ??
+        '',
+
+      page:
+        this.detailFilters.page ??
+        1,
+
+      limit:
+        this.detailFilters.limit ??
+        20,
+
+      /*
+       * El scroll real pertenece a .content,
+       * no a window.
+       */
+      scrollY:
+        scrollContainer
+          ?.scrollTop ??
+        0,
+    };
+
+
+    this.location.replaceState(
+      this.router.url,
+      '',
+      {
+        ...window.history.state,
+
+        purchaseOrderReportsState:
+          state,
+      },
+    );
+  }
+
+  // =========================================================
+  // NAVEGACIÓN - RESTAURAR ESTADO DEL REPORTE
+  // =========================================================
+
+  private restoreNavigationState():
+    boolean {
+
+    const savedState =
+      window.history.state
+        ?.purchaseOrderReportsState as
+      PurchaseOrderReportsNavigationState
+      | undefined;
+
+
+    if (!savedState) {
+      return false;
+    }
+
+
+    const tab:
+      PurchaseOrderReportsTab =
+      savedState.tab ===
+        'pending_details'
+        ? 'pending_details'
+        : 'operational_summary';
+
+
+    const category =
+      savedState.category ??
+      'all';
+
+
+    const search =
+      String(
+        savedState.search ?? '',
+      );
+
+
+    const page =
+      Math.max(
+        Number(
+          savedState.page ?? 1,
+        ),
+        1,
+      );
+
+
+    const limit =
+      Math.max(
+        Number(
+          savedState.limit ?? 20,
+        ),
+        1,
+      );
+
+
+    this.activeTab.set(
+      tab,
+    );
+
+
+    this.activeDetailCategory.set(
+      category,
+    );
+
+
+    this.detailFilterForm.reset(
+      {
+        search,
+      },
+      {
+        emitEvent: false,
+      },
+    );
+
+
+    this.detailFilters = {
+      category,
+
+      search,
+
+      page,
+
+      limit,
+    };
+
+
+    this.pendingRestoreScrollY =
+      Math.max(
+        Number(
+          savedState.scrollY ?? 0,
+        ),
+        0,
+      );
+
+
+    return true;
+  }
+
+  // =========================================================
+  // NAVEGACIÓN - RESTAURAR SCROLL
+  // =========================================================
+
+  private restorePendingScroll(): void {
+
+    const targetScrollY =
+      this.pendingRestoreScrollY;
+
+
+    if (
+      targetScrollY === null
+    ) {
+      return;
+    }
+
+
+    /*
+     * Consumimos el valor una sola vez.
+     */
+    this.pendingRestoreScrollY =
+      null;
+
+
+    setTimeout(() => {
+
+      requestAnimationFrame(() => {
+
+        requestAnimationFrame(() => {
+
+          const scrollContainer =
+            this.getScrollContainer();
+
+
+          if (!scrollContainer) {
+            return;
+          }
+
+
+          scrollContainer.scrollTo({
+            top:
+              targetScrollY,
+
+            left:
+              0,
+
+            behavior:
+              'auto',
+          });
+
+        });
+
+      });
+
+    }, 0);
   }
 }
