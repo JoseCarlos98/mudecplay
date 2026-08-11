@@ -11,13 +11,12 @@
       <div
         class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"
       >
-        <app-input-field
-          formControlName="search"
-          label="Folio o concepto"
-          type="text"
-          [isFilter]="true"
+        <app-input-date
+          formControlName="dateRange"
+          label="Fecha"
+          mode="range"
         >
-        </app-input-field>
+        </app-input-date>
 
         <app-input-field
           formControlName="requested_amount"
@@ -70,8 +69,13 @@
               class="btn-outline purchase-orders-catalog-actions__button"
               (click)="openRequestersModal()"
             >
-              <mat-icon>manage_accounts</mat-icon>
-              <span>Solicitantes</span>
+              <mat-icon>
+                manage_accounts
+              </mat-icon>
+
+              <span>
+                Solicitantes
+              </span>
             </button>
 
             <button
@@ -79,14 +83,20 @@
               class="btn-outline purchase-orders-catalog-actions__button"
               (click)="openAuthorizersModal()"
             >
-              <mat-icon>verified_user</mat-icon>
-              <span>Autorizadores</span>
+              <mat-icon>
+                verified_user
+              </mat-icon>
+
+              <span>
+                Autorizadores
+              </span>
             </button>
           </div>
         }
       </div>
     </form>
   </div>
+
 
   @if (purchaseOrdersTableData?.data) {
     <div class="c-module-table">
@@ -109,45 +119,68 @@
       >
       </app-data-table>
 
+
       <ng-template
         #purchaseOrderDetailTemplate
         let-row="row"
       >
         <div class="purchase-order-expanded">
+
           @if (isExpandedOrderLoading(row.id)) {
+
             <div class="purchase-order-expanded__loading">
-              <mat-icon>progress_activity</mat-icon>
+              <mat-icon>
+                progress_activity
+              </mat-icon>
 
               <span>
                 Cargando gastos y XML relacionados...
               </span>
             </div>
+
           } @else if (
             getExpandedOrderError(row.id);
             as error
           ) {
+
             <div class="purchase-order-expanded__error">
               <div>
-                <mat-icon>error_outline</mat-icon>
-                <span>{{ error }}</span>
+                <mat-icon>
+                  error_outline
+                </mat-icon>
+
+                <span>
+                  {{ error }}
+                </span>
               </div>
 
               <button
                 type="button"
                 class="btn-outline"
-                (click)="loadExpandedOrderDetail(row, true)"
+                (click)="
+                  loadExpandedOrderDetail(
+                    row,
+                    true
+                  )
+                "
               >
                 Reintentar
               </button>
             </div>
+
           } @else if (
             getExpandedOrderDetail(row.id);
             as detail
           ) {
+
             <section class="purchase-order-expenses">
+
               <header class="purchase-order-expenses__header">
+
                 <div class="purchase-order-expenses__title">
-                  <mat-icon>receipt_long</mat-icon>
+                  <mat-icon>
+                    receipt_long
+                  </mat-icon>
 
                   <strong>
                     Gastos / XML relacionados
@@ -155,21 +188,37 @@
                 </div>
 
                 <span class="purchase-order-expenses__count">
-                  {{ getExpandedExpenses(detail).length }}
+                  {{
+                    getExpandedExpenses(
+                      detail
+                    ).length
+                  }}
                 </span>
+
               </header>
 
-              @if (getExpandedExpenses(detail).length > 0) {
+
+              @if (
+                getExpandedExpenses(detail).length > 0
+              ) {
+
                 <div class="purchase-order-expenses__list">
+
                   @for (
                     expenseLink of getExpandedExpenses(detail);
                     track expenseLink.id
                   ) {
+
                     <article class="purchase-order-expense">
+
                       <div class="purchase-order-expense__summary">
+
                         <div class="purchase-order-expense__metadata">
+
                           <div class="purchase-order-expense__field">
-                            <span>Proveedor</span>
+                            <span>
+                              Proveedor
+                            </span>
 
                             <strong>
                               {{
@@ -180,8 +229,11 @@
                             </strong>
                           </div>
 
+
                           <div class="purchase-order-expense__field">
-                            <span>Folio / factura</span>
+                            <span>
+                              Folio / factura
+                            </span>
 
                             <strong>
                               {{
@@ -192,10 +244,13 @@
                             </strong>
                           </div>
 
+
                           <div
                             class="purchase-order-expense__field purchase-order-expense__field--amount"
                           >
-                            <span>Total gasto / XML</span>
+                            <span>
+                              Total gasto / XML
+                            </span>
 
                             <strong>
                               {{
@@ -210,10 +265,13 @@
                             </strong>
                           </div>
 
+
                           <div
                             class="purchase-order-expense__field purchase-order-expense__field--amount"
                           >
-                            <span>Monto relacionado</span>
+                            <span>
+                              Monto relacionado
+                            </span>
 
                             <strong>
                               {{
@@ -227,9 +285,12 @@
                               }}
                             </strong>
                           </div>
+
                         </div>
 
+
                         <div class="purchase-order-expense__actions">
+
                           <span class="purchase-order-expense__type">
                             {{
                               getExpandedExpenseTypeLabel(
@@ -238,21 +299,35 @@
                             }}
                           </span>
 
+
                           @if (
-                            getExpandedExpensePhoto(expenseLink);
+                            getExpandedExpensePhoto(
+                              expenseLink
+                            );
                             as photo
                           ) {
+
                             <button
                               type="button"
                               class="btn-outline purchase-order-expense__button"
                               (click)="
-                                openExpandedPhoto(photo, row)
+                                openExpandedPhoto(
+                                  photo,
+                                  row
+                                )
                               "
                             >
-                              <mat-icon>visibility</mat-icon>
-                              <span>Ver imagen</span>
+                              <mat-icon>
+                                visibility
+                              </mat-icon>
+
+                              <span>
+                                Ver imagen
+                              </span>
                             </button>
+
                           } @else {
+
                             <button
                               type="button"
                               class="btn-outline purchase-order-expense__button"
@@ -262,38 +337,65 @@
                                 image_not_supported
                               </mat-icon>
 
-                              <span>Sin imagen</span>
+                              <span>
+                                Sin imagen
+                              </span>
                             </button>
+
                           }
 
+
                           @if (
-                            getExpandedExpenseId(expenseLink)
+                            getExpandedExpenseId(
+                              expenseLink
+                            )
                           ) {
+
                             <button
                               type="button"
                               class="btn-outline purchase-order-expense__button"
                               (click)="
-                                openExpandedExpense(expenseLink)
+                                openExpandedExpense(
+                                  expenseLink
+                                )
                               "
                             >
-                              <mat-icon>open_in_new</mat-icon>
-                              <span>Ver gasto</span>
+                              <mat-icon>
+                                open_in_new
+                              </mat-icon>
+
+                              <span>
+                                Ver gasto
+                              </span>
                             </button>
+
                           }
+
                         </div>
                       </div>
+
 
                       <div
                         class="purchase-order-expense__items-wrap"
                       >
+
                         <table
                           class="purchase-order-expense__items"
                         >
+
                           <thead>
                             <tr>
-                              <th>Concepto</th>
-                              <th>Cantidad</th>
-                              <th>Unidad</th>
+                              <th>
+                                Concepto
+                              </th>
+
+                              <th>
+                                Cantidad
+                              </th>
+
+                              <th>
+                                Unidad
+                              </th>
 
                               <th class="is-amount">
                                 Monto relacionado
@@ -301,12 +403,15 @@
                             </tr>
                           </thead>
 
+
                           <tbody>
+
                             @if (
                               getExpandedExpenseLinkedItems(
                                 expenseLink
                               ).length > 0
                             ) {
+
                               @for (
                                 item of
                                   getExpandedExpenseLinkedItems(
@@ -317,7 +422,9 @@
                                   item.expense_item_id ||
                                   item.id
                               ) {
+
                                 <tr>
+
                                   <td>
                                     <strong>
                                       {{
@@ -328,6 +435,7 @@
                                     </strong>
                                   </td>
 
+
                                   <td>
                                     {{
                                       getExpandedExpenseItemQuantity(
@@ -336,6 +444,7 @@
                                     }}
                                   </td>
 
+
                                   <td>
                                     {{
                                       getExpandedExpenseItemUnit(
@@ -343,6 +452,7 @@
                                       )
                                     }}
                                   </td>
+
 
                                   <td class="is-amount">
                                     {{
@@ -355,9 +465,13 @@
                                           : '1.2-2'
                                     }}
                                   </td>
+
                                 </tr>
+
                               }
+
                             } @else {
+
                               <tr>
                                 <td
                                   class="purchase-order-expense__items-empty"
@@ -367,16 +481,27 @@
                                   para mostrar.
                                 </td>
                               </tr>
+
                             }
+
                           </tbody>
                         </table>
+
                       </div>
+
                     </article>
+
                   }
+
                 </div>
+
               } @else {
+
                 <div class="purchase-order-expenses__empty">
-                  <mat-icon>receipt</mat-icon>
+
+                  <mat-icon>
+                    receipt
+                  </mat-icon>
 
                   <div>
                     <strong>
@@ -388,12 +513,18 @@
                       XML vinculados.
                     </span>
                   </div>
+
                 </div>
+
               }
+
             </section>
+
           }
+
         </div>
       </ng-template>
+
 
       <mat-paginator
         [length]="purchaseOrdersTableData.pagination.total"
@@ -407,6 +538,7 @@
     </div>
   }
 </div>
+
 
 <app-loading-overlay
   [visible]="loadingTable()"

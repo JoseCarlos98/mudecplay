@@ -17,15 +17,22 @@ export class PurchaseOrdersService {
 
   getPurchaseOrders(
     filters?: entity.PurchaseOrderFilters,
-  ): Observable<entity.PurchaseOrdersPaginatedResponse> {
-    let params = new HttpParams();
+  ): Observable<
+    entity.PurchaseOrdersPaginatedResponse
+  > {
+
+    let params =
+      new HttpParams();
+
 
     if (filters) {
+
       params = setScalar(
         params,
         'page',
         filters.page,
       );
+
 
       params = setScalar(
         params,
@@ -33,11 +40,20 @@ export class PurchaseOrdersService {
         filters.limit,
       );
 
+
       params = setScalar(
         params,
-        'search',
-        filters.search?.trim(),
+        'startDate',
+        filters.startDate,
       );
+
+
+      params = setScalar(
+        params,
+        'endDate',
+        filters.endDate,
+      );
+
 
       params = setScalar(
         params,
@@ -45,11 +61,13 @@ export class PurchaseOrdersService {
         filters.requested_amount,
       );
 
+
       params = setScalar(
         params,
         'related_expense_amount',
         filters.related_expense_amount,
       );
+
 
       params = setScalar(
         params,
@@ -57,17 +75,20 @@ export class PurchaseOrdersService {
         filters.tracking_status,
       );
 
+
       params = setScalar(
         params,
         'destination_type',
         filters.destination_type,
       );
 
+
       params = setScalar(
         params,
         'will_have_invoice',
         filters.will_have_invoice,
       );
+
 
       params = setScalar(
         params,
@@ -76,9 +97,14 @@ export class PurchaseOrdersService {
       );
     }
 
-    return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
+
+    return this.http.get<
+      entity.PurchaseOrdersPaginatedResponse
+    >(
       this.apiUrl,
-      { params },
+      {
+        params,
+      },
     );
   }
 
@@ -319,68 +345,68 @@ export class PurchaseOrdersService {
     );
   }
 
-getAvailableXmlExpensesForPurchaseOrder(
-  purchaseOrderId: number | string,
-  filters?: entity.FiltersAvailableXmlExpenses,
-): Observable<entity.AvailableXmlExpensesResponse> {
-  let params = new HttpParams();
+  getAvailableXmlExpensesForPurchaseOrder(
+    purchaseOrderId: number | string,
+    filters?: entity.FiltersAvailableXmlExpenses,
+  ): Observable<entity.AvailableXmlExpensesResponse> {
+    let params = new HttpParams();
 
-  if (filters) {
-    if (filters.search?.trim()) {
-      params = params.set(
-        'search',
-        filters.search.trim(),
-      );
+    if (filters) {
+      if (filters.search?.trim()) {
+        params = params.set(
+          'search',
+          filters.search.trim(),
+        );
+      }
+
+      const supplierIds = (
+        filters.supplierIds ?? []
+      )
+        .map(Number)
+        .filter(
+          (id) =>
+            Number.isInteger(id) &&
+            id > 0,
+        );
+
+      if (supplierIds.length > 0) {
+        params = params.set(
+          'supplierIds',
+          supplierIds.join(','),
+        );
+      }
+
+      if (filters.date_from?.trim()) {
+        params = params.set(
+          'date_from',
+          filters.date_from.trim(),
+        );
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set(
+          'date_to',
+          filters.date_to.trim(),
+        );
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null &&
+        String(filters.amount).trim() !== ''
+      ) {
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
+      }
     }
 
-    const supplierIds = (
-      filters.supplierIds ?? []
-    )
-      .map(Number)
-      .filter(
-        (id) =>
-          Number.isInteger(id) &&
-          id > 0,
-      );
-
-    if (supplierIds.length > 0) {
-      params = params.set(
-        'supplierIds',
-        supplierIds.join(','),
-      );
-    }
-
-    if (filters.date_from?.trim()) {
-      params = params.set(
-        'date_from',
-        filters.date_from.trim(),
-      );
-    }
-
-    if (filters.date_to?.trim()) {
-      params = params.set(
-        'date_to',
-        filters.date_to.trim(),
-      );
-    }
-
-    if (
-      filters.amount !== undefined &&
-      filters.amount !== null &&
-      String(filters.amount).trim() !== ''
-    ) {
-      params = params.set(
-        'amount',
-        String(filters.amount),
-      );
-    }
+    return this.http.get<entity.AvailableXmlExpensesResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/available-xml-expenses`,
+      { params },
+    );
   }
-
-  return this.http.get<entity.AvailableXmlExpensesResponse>(
-    `${this.apiUrl}/${purchaseOrderId}/available-xml-expenses`,
-    { params },
-  );
-}
 
   linkExistingXmlExpenseToTicketPhoto(
     photoId: number | string,
@@ -402,68 +428,68 @@ getAvailableXmlExpensesForPurchaseOrder(
     );
   }
 
-getAvailableWarehouseXmlExpensesForPurchaseOrder(
-  purchaseOrderId: number | string,
-  filters?: entity.FiltersAvailableWarehouseXmlExpenses,
-): Observable<entity.AvailableWarehouseXmlExpensesResponse> {
-  let params = new HttpParams();
+  getAvailableWarehouseXmlExpensesForPurchaseOrder(
+    purchaseOrderId: number | string,
+    filters?: entity.FiltersAvailableWarehouseXmlExpenses,
+  ): Observable<entity.AvailableWarehouseXmlExpensesResponse> {
+    let params = new HttpParams();
 
-  if (filters) {
-    if (filters.search?.trim()) {
-      params = params.set(
-        'search',
-        filters.search.trim(),
-      );
+    if (filters) {
+      if (filters.search?.trim()) {
+        params = params.set(
+          'search',
+          filters.search.trim(),
+        );
+      }
+
+      const supplierIds = (
+        filters.supplierIds ?? []
+      )
+        .map(Number)
+        .filter(
+          (id) =>
+            Number.isInteger(id) &&
+            id > 0,
+        );
+
+      if (supplierIds.length > 0) {
+        params = params.set(
+          'supplierIds',
+          supplierIds.join(','),
+        );
+      }
+
+      if (filters.date_from?.trim()) {
+        params = params.set(
+          'date_from',
+          filters.date_from.trim(),
+        );
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set(
+          'date_to',
+          filters.date_to.trim(),
+        );
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null &&
+        String(filters.amount).trim() !== ''
+      ) {
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
+      }
     }
 
-    const supplierIds = (
-      filters.supplierIds ?? []
-    )
-      .map(Number)
-      .filter(
-        (id) =>
-          Number.isInteger(id) &&
-          id > 0,
-      );
-
-    if (supplierIds.length > 0) {
-      params = params.set(
-        'supplierIds',
-        supplierIds.join(','),
-      );
-    }
-
-    if (filters.date_from?.trim()) {
-      params = params.set(
-        'date_from',
-        filters.date_from.trim(),
-      );
-    }
-
-    if (filters.date_to?.trim()) {
-      params = params.set(
-        'date_to',
-        filters.date_to.trim(),
-      );
-    }
-
-    if (
-      filters.amount !== undefined &&
-      filters.amount !== null &&
-      String(filters.amount).trim() !== ''
-    ) {
-      params = params.set(
-        'amount',
-        String(filters.amount),
-      );
-    }
+    return this.http.get<entity.AvailableWarehouseXmlExpensesResponse>(
+      `${this.apiUrl}/${purchaseOrderId}/available-warehouse-xml-expenses`,
+      { params },
+    );
   }
-
-  return this.http.get<entity.AvailableWarehouseXmlExpensesResponse>(
-    `${this.apiUrl}/${purchaseOrderId}/available-warehouse-xml-expenses`,
-    { params },
-  );
-}
 
   linkExistingWarehouseXmlExpenseToTicketPhoto(
     photoId: number | string,
@@ -515,77 +541,77 @@ getAvailableWarehouseXmlExpensesForPurchaseOrder(
   }
 
   // =========================================================
-// REPORTES - CORTE OPERATIVO
-// =========================================================
+  // REPORTES - CORTE OPERATIVO
+  // =========================================================
 
-getPurchaseOrderOperationalSummary():
-  Observable<
-    entity.PurchaseOrderOperationalSummaryResponse
-  > {
+  getPurchaseOrderOperationalSummary():
+    Observable<
+      entity.PurchaseOrderOperationalSummaryResponse
+    > {
 
-  return this.http.get<
-    entity.PurchaseOrderOperationalSummaryResponse
-  >(
-    `${this.apiUrl}/reports/operational-summary`,
-  );
-}
-
-
-// =========================================================
-// REPORTES - DETALLE DE PENDIENTES
-// =========================================================
-
-getPurchaseOrderPendingDetails(
-  filters?:
-    entity.PurchaseOrderPendingDetailFilters,
-): Observable<
-  | entity.PurchaseOrderPendingDetailAllResponse
-  | entity.PurchaseOrderPendingDetailPaginatedResponse
-> {
-
-  let params =
-    new HttpParams();
-
-  if (filters) {
-
-    params =
-      setScalar(
-        params,
-        'category',
-        filters.category,
-      );
-
-    params =
-      setScalar(
-        params,
-        'search',
-        filters.search?.trim(),
-      );
-
-    params =
-      setScalar(
-        params,
-        'page',
-        filters.page,
-      );
-
-    params =
-      setScalar(
-        params,
-        'limit',
-        filters.limit,
-      );
+    return this.http.get<
+      entity.PurchaseOrderOperationalSummaryResponse
+    >(
+      `${this.apiUrl}/reports/operational-summary`,
+    );
   }
 
-  return this.http.get<
+
+  // =========================================================
+  // REPORTES - DETALLE DE PENDIENTES
+  // =========================================================
+
+  getPurchaseOrderPendingDetails(
+    filters?:
+      entity.PurchaseOrderPendingDetailFilters,
+  ): Observable<
     | entity.PurchaseOrderPendingDetailAllResponse
     | entity.PurchaseOrderPendingDetailPaginatedResponse
-  >(
-    `${this.apiUrl}/reports/pending-details`,
-    {
-      params,
-    },
-  );
-}
+  > {
+
+    let params =
+      new HttpParams();
+
+    if (filters) {
+
+      params =
+        setScalar(
+          params,
+          'category',
+          filters.category,
+        );
+
+      params =
+        setScalar(
+          params,
+          'search',
+          filters.search?.trim(),
+        );
+
+      params =
+        setScalar(
+          params,
+          'page',
+          filters.page,
+        );
+
+      params =
+        setScalar(
+          params,
+          'limit',
+          filters.limit,
+        );
+    }
+
+    return this.http.get<
+      | entity.PurchaseOrderPendingDetailAllResponse
+      | entity.PurchaseOrderPendingDetailPaginatedResponse
+    >(
+      `${this.apiUrl}/reports/pending-details`,
+      {
+        params,
+      },
+    );
+  }
 
 }

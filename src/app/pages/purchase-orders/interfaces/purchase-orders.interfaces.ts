@@ -1,4 +1,5 @@
 import { Catalog } from '../../../shared/interfaces/general-interfaces';
+import { DateRangeValue } from '../../../shared/ui/input-date/input-date';
 
 export type PurchaseOrderStatus =
   | 'in_review'
@@ -263,36 +264,67 @@ export interface PurchaseOrderFilters {
   page: number;
   limit: number;
 
-  search?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+
   requested_amount?: number | null;
   related_expense_amount?: number | null;
+
+   search?: string | null;
+
   status?: PurchaseOrderStatus | null;
-  destination_type?: PurchaseOrderDestinationType | null;
+
+  destination_type?:
+    | PurchaseOrderDestinationType
+    | null;
+
   will_have_invoice?: boolean | null;
+
   project_id?: number | null;
-  ticket_filter?: 'all' | 'with_photo' | 'without_photo';
+
+  ticket_filter?:
+    | 'all'
+    | 'with_photo'
+    | 'without_photo';
+
   tracking_status?:
     | PurchaseOrderTrackingStatus
     | string
     | null;
 }
 
+
 export interface PurchaseOrderUiFilters {
   page: number;
   limit: number;
 
+  dateRange:
+    DateRangeValue | null;
+
+  requested_amount:
+    number | null;
+
+  related_expense_amount:
+    number | null;
+
   search?: string | null;
-  requested_amount: number | null;
-  related_expense_amount: number | null;
+
   tracking_status:
     | PurchaseOrderTrackingStatus
     | string
     | '';
+
   destination_type?:
     | PurchaseOrderDestinationType
     | ''
     | null;
-  will_have_invoice?: 'true' | 'false' | '' | null;
+
+  will_have_invoice?:
+    | 'true'
+    | 'false'
+    | ''
+    | null;
+
   projects?: Catalog[];
 }
 

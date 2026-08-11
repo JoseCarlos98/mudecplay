@@ -24,10 +24,13 @@ import {
 } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 // UI compartidos
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { DataTable } from '../../shared/ui/data-table/data-table';
+
 import {
   ColumnsConfig,
   ColumnVariant,
@@ -36,11 +39,20 @@ import {
   DataTableExtraAction,
   DataTableRowExpansionEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
+
+import {
+  DateRangeValue,
+  InputDate,
+} from '../../shared/ui/input-date/input-date';
+
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../shared/ui/input-select/input-select';
 import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
-import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
+
+import {
+  ModuleHeaderConfig,
+} from '../../shared/ui/module-header/interfaces/module-header-interface';
 
 // Servicios
 import { AuthService } from '../../auth/services/auth.service';
@@ -55,14 +67,16 @@ import { ModalPurchaseCancel } from './components/modal-purchase-cancel/modal-pu
 import { ModalPurchaseDecline } from './components/modal-purchase-decline/modal-purchase-decline';
 import { ModalPurchaseOrderAuthorized } from './components/modal-purchase-order-authorized/modal-purchase-order-authorized';
 import { ModalPurchaseOrderRequester } from './components/modal-purchase-order-requester/modal-purchase-order-requester';
+import { ModalSeePhoto } from './components/photo-without-cost/components/modal-see-photo/modal-see-photo';
 
 // Interfaces
 import { Catalog } from '../../shared/interfaces/general-interfaces';
 import * as entity from './interfaces/purchase-orders.interfaces';
-import { ModalSeePhoto } from './components/photo-without-cost/components/modal-see-photo/modal-see-photo';
+
 
 const PURCHASE_ORDERS_FILTERS_KEY =
   'mp_purchase_orders_filters_v1';
+
 
 const TRACKING_STATUS_OPTIONS: Catalog[] = [
   {
@@ -99,6 +113,7 @@ const TRACKING_STATUS_OPTIONS: Catalog[] = [
   },
 ];
 
+
 const DESTINATION_TYPE_OPTIONS: Catalog[] = [
   {
     id: 'direct',
@@ -110,6 +125,7 @@ const DESTINATION_TYPE_OPTIONS: Catalog[] = [
   },
 ];
 
+
 const INVOICE_OPTIONS: Catalog[] = [
   {
     id: 'true',
@@ -120,6 +136,7 @@ const INVOICE_OPTIONS: Catalog[] = [
     name: 'Sin factura',
   },
 ];
+
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
@@ -180,14 +197,17 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   },
 ];
 
+
 function resolvePurchaseOrderTrackingVariant(
   row: entity.PurchaseOrderResponseDto,
 ): ColumnVariant {
+
   const variant = String(
     row.tracking_status_variant ?? 'neutral',
   );
 
   switch (variant) {
+
     case 'success':
       return 'chip-success';
 
@@ -205,27 +225,38 @@ function resolvePurchaseOrderTrackingVariant(
   }
 }
 
+
 const DISPLAYED_COLUMNS: string[] = [
-  ...COLUMNS_CONFIG.map((column) => column.key),
+  ...COLUMNS_CONFIG.map(
+    (column) => column.key,
+  ),
   'actions',
 ];
+
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
 };
 
+
 type PurchaseOrderTableExtraAction =
-  DataTableExtraAction<entity.PurchaseOrderResponseDto>;
+  DataTableExtraAction<
+    entity.PurchaseOrderResponseDto
+  >;
+
 
 @Component({
   selector: 'app-purchase-orders',
+
   standalone: true,
+
   imports: [
     CommonModule,
 
     ModuleHeader,
     DataTable,
     BtnsSection,
+    InputDate,
     InputField,
     InputSelect,
     LoadingOverlay,
@@ -237,31 +268,57 @@ type PurchaseOrderTableExtraAction =
     MatIconModule,
     MatTableModule,
     MatButtonModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
 
     FormsModule,
     ReactiveFormsModule,
   ],
+
   templateUrl: './purchase-orders.html',
   styleUrl: './purchase-orders.scss',
 })
-export class PurchaseOrders implements OnInit {
-  private readonly purchaseOrdersService = inject(
-    PurchaseOrdersService,
-  );
+export class PurchaseOrders
+  implements OnInit {
 
-  private readonly fb = inject(FormBuilder);
-  private readonly storage = inject(LocalStorageService);
-  private readonly router = inject(Router);
-  private readonly dialogService = inject(DialogService);
-  private readonly auth = inject(AuthService);
+  // =========================================================
+  // INYECCIONES
+  // =========================================================
 
-  private readonly permissionsService = inject(
-    PermissionsService,
-  );
+  private readonly purchaseOrdersService =
+    inject(PurchaseOrdersService);
 
-  readonly columnsConfig = COLUMNS_CONFIG;
-  readonly displayedColumns = DISPLAYED_COLUMNS;
-  readonly headerConfig = HEADER_CONFIG;
+  private readonly fb =
+    inject(FormBuilder);
+
+  private readonly storage =
+    inject(LocalStorageService);
+
+  private readonly router =
+    inject(Router);
+
+  private readonly dialogService =
+    inject(DialogService);
+
+  private readonly auth =
+    inject(AuthService);
+
+  private readonly permissionsService =
+    inject(PermissionsService);
+
+
+  // =========================================================
+  // CONFIGURACIÓN
+  // =========================================================
+
+  readonly columnsConfig =
+    COLUMNS_CONFIG;
+
+  readonly displayedColumns =
+    DISPLAYED_COLUMNS;
+
+  readonly headerConfig =
+    HEADER_CONFIG;
 
   readonly trackingStatusOptions =
     TRACKING_STATUS_OPTIONS;
@@ -269,144 +326,305 @@ export class PurchaseOrders implements OnInit {
   readonly destinationTypeOptions =
     DESTINATION_TYPE_OPTIONS;
 
-  readonly invoiceOptions = INVOICE_OPTIONS;
+  readonly invoiceOptions =
+    INVOICE_OPTIONS;
 
-  readonly loadingTable = signal(false);
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  readonly loadingTable =
+    signal(false);
+
 
   readonly expandedOrderDetails = signal<
-    Record<number, entity.PurchaseOrderFlowDetailResponse>
+    Record<
+      number,
+      entity.PurchaseOrderFlowDetailResponse
+    >
   >({});
 
-  readonly expandedOrderLoading = signal<Set<number>>(
-    new Set<number>(),
-  );
+
+  readonly expandedOrderLoading =
+    signal<Set<number>>(
+      new Set<number>(),
+    );
+
 
   readonly expandedOrderErrors = signal<
     Record<number, string>
   >({});
 
-  filters: entity.PurchaseOrderFilters = {
+
+  // =========================================================
+  // FILTROS
+  // =========================================================
+
+  filters:
+    entity.PurchaseOrderFilters = {
+
     page: 1,
+
     limit: 5,
-    search: '',
+
+    startDate: null,
+
+    endDate: null,
+
     requested_amount: null,
+
     related_expense_amount: null,
+
     status: null,
+
     tracking_status: null,
+
     destination_type: null,
+
     will_have_invoice: null,
+
     project_id: null,
   };
+
 
   purchaseOrdersTableData!:
     entity.PurchaseOrdersPaginatedResponse;
 
-  formFilters = this.fb.group({
-    search: this.fb.control<string>(''),
 
-    requested_amount:
-      this.fb.control<number | null>(null),
+  formFilters =
+    this.fb.group({
 
-    related_expense_amount:
-      this.fb.control<number | null>(null),
+      dateRange:
+        this.fb.control<
+          DateRangeValue | null
+        >(
+          null,
+        ),
 
-    tracking_status:
-      this.fb.control<Catalog | string | null>(null),
+      requested_amount:
+        this.fb.control<
+          number | null
+        >(
+          null,
+        ),
 
-    destination_type:
-      this.fb.control<
-        entity.PurchaseOrderDestinationType | ''
-      >(''),
+      related_expense_amount:
+        this.fb.control<
+          number | null
+        >(
+          null,
+        ),
 
-    will_have_invoice:
-      this.fb.control<'true' | 'false' | ''>(''),
-  });
+      tracking_status:
+        this.fb.control<
+          Catalog | string | null
+        >(
+          null,
+        ),
+
+      destination_type:
+        this.fb.control<
+          entity.PurchaseOrderDestinationType
+          | ''
+        >(
+          '',
+        ),
+
+      will_have_invoice:
+        this.fb.control<
+          'true'
+          | 'false'
+          | ''
+        >(
+          '',
+        ),
+    });
+
+
+  // =========================================================
+  // ACCIONES DE TABLA
+  // =========================================================
 
   readonly extraActions:
     PurchaseOrderTableExtraAction[] = [
+
       {
-        type: 'viewPurchaseOrderDetail',
-        icon: 'visibility',
-        tooltip: () => 'Ver detalle',
-        visible: () => true,
-        disabled: () => false,
+        type:
+          'viewPurchaseOrderDetail',
+
+        icon:
+          'visibility',
+
+        tooltip:
+          () => 'Ver detalle',
+
+        visible:
+          () => true,
+
+        disabled:
+          () => false,
       },
+
       {
-        type: 'editPurchaseOrder',
-        icon: 'edit',
-        tooltip: (row) => this.getEditTooltip(row),
-        popoverContent: (row) =>
-          this.getEditPopover(row),
-        visible: () => true,
-        disabled: (row) => !this.canEdit(row),
+        type:
+          'editPurchaseOrder',
+
+        icon:
+          'edit',
+
+        tooltip:
+          (row) =>
+            this.getEditTooltip(row),
+
+        popoverContent:
+          (row) =>
+            this.getEditPopover(row),
+
+        visible:
+          () => true,
+
+        disabled:
+          (row) =>
+            !this.canEdit(row),
       },
+
       {
-        type: 'authorizePurchaseOrder',
-        icon: 'verified',
-        tooltip: (row) =>
-          this.getAuthorizeTooltip(row),
-        popoverContent: (row) =>
-          this.getAuthorizePopover(row),
-        visible: () => true,
-        disabled: (row) =>
-          !this.canAuthorize(row),
+        type:
+          'authorizePurchaseOrder',
+
+        icon:
+          'verified',
+
+        tooltip:
+          (row) =>
+            this.getAuthorizeTooltip(row),
+
+        popoverContent:
+          (row) =>
+            this.getAuthorizePopover(row),
+
+        visible:
+          () => true,
+
+        disabled:
+          (row) =>
+            !this.canAuthorize(row),
       },
+
       {
-        type: 'rejectPurchaseOrder',
-        icon: 'block',
-        tooltip: (row) =>
-          this.getRejectTooltip(row),
-        popoverContent: (row) =>
-          this.getRejectPopover(row),
-        visible: () => true,
-        disabled: (row) =>
-          !this.canReject(row),
+        type:
+          'rejectPurchaseOrder',
+
+        icon:
+          'block',
+
+        tooltip:
+          (row) =>
+            this.getRejectTooltip(row),
+
+        popoverContent:
+          (row) =>
+            this.getRejectPopover(row),
+
+        visible:
+          () => true,
+
+        disabled:
+          (row) =>
+            !this.canReject(row),
       },
+
       {
-        type: 'cancelPurchaseOrder',
-        icon: 'cancel',
-        tooltip: (row) =>
-          this.getCancelTooltip(row),
-        popoverContent: (row) =>
-          this.getCancelPopover(row),
-        visible: () => true,
-        disabled: (row) =>
-          !this.canCancel(row),
+        type:
+          'cancelPurchaseOrder',
+
+        icon:
+          'cancel',
+
+        tooltip:
+          (row) =>
+            this.getCancelTooltip(row),
+
+        popoverContent:
+          (row) =>
+            this.getCancelPopover(row),
+
+        visible:
+          () => true,
+
+        disabled:
+          (row) =>
+            !this.canCancel(row),
       },
     ];
+
+
+  // =========================================================
+  // CICLO DE VIDA
+  // =========================================================
 
   ngOnInit(): void {
     this.restoreFiltersFromStorage();
   }
 
-  get canManageRequesters(): boolean {
-    return this.hasRole('ADMIN_GENERAL');
+
+  // =========================================================
+  // PERMISOS
+  // =========================================================
+
+  get canManageRequesters():
+    boolean {
+
+    return this.hasRole(
+      'ADMIN_GENERAL',
+    );
   }
 
-  get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
 
-    const hasSearch = !!form.search?.trim();
+  // =========================================================
+  // FILTROS ACTIVOS
+  // =========================================================
+
+  get hasActiveFilters():
+    boolean {
+
+    const form =
+      this.formFilters
+        .getRawValue();
+
+
+    const hasDates =
+      !!(
+        form.dateRange?.startDate ||
+        form.dateRange?.endDate
+      );
+
 
     const hasRequestedAmount =
       form.requested_amount !== null;
+
 
     const hasTrackingStatus =
       !!this.getCatalogValue(
         form.tracking_status ?? null,
       );
 
+
     const hasRelatedExpenseAmount =
       form.related_expense_amount !== null;
+
 
     const hasDestinationType =
       !!form.destination_type;
 
+
     const hasInvoice =
       !!form.will_have_invoice;
 
+
     return (
-      hasSearch ||
+      hasDates ||
       hasRequestedAmount ||
       hasRelatedExpenseAmount ||
       hasTrackingStatus ||
@@ -415,113 +633,205 @@ export class PurchaseOrders implements OnInit {
     );
   }
 
+
+  // =========================================================
+  // MAPEO FILTROS UI -> BACKEND
+  // =========================================================
+
   private buildBackendFiltersFromUi(
-    ui: entity.PurchaseOrderUiFilters,
-  ): entity.PurchaseOrderFilters {
-    const trackingStatus = String(
-      ui.tracking_status ?? '',
-    ).trim();
+    ui:
+      entity.PurchaseOrderUiFilters,
+  ):
+    entity.PurchaseOrderFilters {
+
+    const trackingStatus =
+      String(
+        ui.tracking_status ?? '',
+      ).trim();
+
 
     return {
-      page: ui.page,
-      limit: ui.limit,
-      search: ui.search?.trim() || '',
+
+      page:
+        ui.page,
+
+      limit:
+        ui.limit,
+
+
+      startDate:
+        ui.dateRange
+          ?.startDate ??
+        null,
+
+
+      endDate:
+        ui.dateRange
+          ?.endDate ??
+        null,
+
+
       requested_amount:
-        ui.requested_amount ?? null,
+        ui.requested_amount ??
+        null,
+
 
       related_expense_amount:
-        ui.related_expense_amount ?? null,
+        ui.related_expense_amount ??
+        null,
 
-      status: null,
+
+      status:
+        null,
+
 
       tracking_status:
-        trackingStatus || null,
+        trackingStatus ||
+        null,
+
 
       destination_type:
-        ui.destination_type || null,
+        ui.destination_type ||
+        null,
+
 
       will_have_invoice:
-        ui.will_have_invoice === 'true'
+        ui.will_have_invoice ===
+          'true'
           ? true
-          : ui.will_have_invoice === 'false'
+          : ui.will_have_invoice ===
+            'false'
             ? false
             : null,
 
-      project_id: null,
+
+      project_id:
+        null,
     };
   }
 
+
+  // =========================================================
+  // MAPEO TABLA
+  // =========================================================
+
   private mapPurchaseOrderRow(
-    row: entity.PurchaseOrderResponseDto,
-  ): entity.PurchaseOrderResponseDto {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    entity.PurchaseOrderResponseDto {
+
     return {
+
       ...row,
 
+
       project_name:
-        row.project?.name ?? 'Sin proyecto',
+        row.project?.name ??
+        'Sin proyecto',
+
 
       requested_by_display:
         row.requested_by_employee?.name ??
         row.requested_by_name ??
         'Sin solicitante',
 
+
       destination_name:
         row.destination_type_label,
 
+
       invoice_name:
         row.will_have_invoice_label,
+
 
       tracking_status_label:
         row.tracking_status_label ??
         row.status_label ??
         'Sin seguimiento',
 
+
       created_at_date:
         row.created_at,
 
+
       authorized_at_date:
-        row.authorized_at ?? null,
+        row.authorized_at ??
+        null,
+
 
       authorized_by_name:
         row.authorized_by_name,
     };
   }
 
-  private canEdit(
-    row: entity.PurchaseOrderResponseDto,
-  ): boolean {
-    if (!row?.id) return false;
 
-    if (row.status === 'cancelled') {
+  // =========================================================
+  // EDICIÓN
+  // =========================================================
+
+  private canEdit(
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    boolean {
+
+    if (!row?.id) {
       return false;
     }
 
+
     if (
-      row.status === 'in_review' ||
-      row.status === 'not_authorized'
+      row.status ===
+      'cancelled'
+    ) {
+      return false;
+    }
+
+
+    if (
+      row.status ===
+        'in_review' ||
+      row.status ===
+        'not_authorized'
     ) {
       return true;
     }
 
-    if (row.status === 'authorized') {
-      return this.canEditAuthorizedPurchaseOrder(
-        row,
-      );
+
+    if (
+      row.status ===
+      'authorized'
+    ) {
+      return this
+        .canEditAuthorizedPurchaseOrder(
+          row,
+        );
     }
+
 
     return false;
   }
 
+
   private canEditAuthorizedPurchaseOrder(
-    row: entity.PurchaseOrderResponseDto,
-  ): boolean {
-    if (!this.isAdminGeneral()) {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    boolean {
+
+    if (
+      !this.isAdminGeneral()
+    ) {
       return false;
     }
 
-    const trackingStatus = String(
-      row.tracking_status ?? '',
-    ).trim();
+
+    const trackingStatus =
+      String(
+        row.tracking_status ?? '',
+      ).trim();
+
 
     const editableTrackingStatuses = [
       'authorized',
@@ -529,164 +839,309 @@ export class PurchaseOrders implements OnInit {
       'ticket_reconciled',
     ];
 
-    return editableTrackingStatuses.includes(
-      trackingStatus,
-    );
+
+    return editableTrackingStatuses
+      .includes(
+        trackingStatus,
+      );
   }
+
 
   private canAuthorize(
-    row: entity.PurchaseOrderResponseDto,
-  ): boolean {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    boolean {
+
     return (
-      row.status === 'in_review' ||
-      row.status === 'not_authorized'
+      row.status ===
+        'in_review' ||
+      row.status ===
+        'not_authorized'
     );
   }
+
 
   private canReject(
-    row: entity.PurchaseOrderResponseDto,
-  ): boolean {
-    return row.status === 'in_review';
-  }
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    boolean {
 
-  private canCancel(
-    row: entity.PurchaseOrderResponseDto,
-  ): boolean {
     return (
-      row.status === 'in_review' ||
-      row.status === 'not_authorized'
+      row.status ===
+      'in_review'
     );
   }
 
+
+  private canCancel(
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    boolean {
+
+    return (
+      row.status ===
+        'in_review' ||
+      row.status ===
+        'not_authorized'
+    );
+  }
+
+
+  // =========================================================
+  // TOOLTIPS
+  // =========================================================
+
   private getEditTooltip(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
-    if (this.canEdit(row)) {
-      if (row.status === 'authorized') {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
+    if (
+      this.canEdit(row)
+    ) {
+
+      if (
+        row.status ===
+        'authorized'
+      ) {
         return 'Editar O.C. autorizada sin gasto relacionado';
       }
 
       return 'Editar orden';
     }
 
-    return this.getUnavailableEditReason(row);
+
+    return this
+      .getUnavailableEditReason(
+        row,
+      );
   }
 
+
   private getAuthorizeTooltip(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     return this.canAuthorize(row)
       ? 'Autorizar orden'
       : '';
   }
 
+
   private getRejectTooltip(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     return this.canReject(row)
       ? 'Marcar como no autorizada'
       : '';
   }
 
+
   private getCancelTooltip(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     return this.canCancel(row)
       ? 'Cancelar orden'
       : '';
   }
 
+
+  // =========================================================
+  // POPOVERS
+  // =========================================================
+
   private getEditPopover(
-    row: entity.PurchaseOrderResponseDto,
-  ): DataTableActionPopover | null {
-    if (this.canEdit(row)) {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    DataTableActionPopover | null {
+
+    if (
+      this.canEdit(row)
+    ) {
       return null;
     }
 
+
     return {
-      title: 'No disponible',
-      message: null,
+      title:
+        'No disponible',
+
+      message:
+        null,
+
       items: [
-        this.getUnavailableEditReason(row),
+        this.getUnavailableEditReason(
+          row,
+        ),
       ],
-      kind: 'warning',
+
+      kind:
+        'warning',
     };
   }
+
 
   private getAuthorizePopover(
-    row: entity.PurchaseOrderResponseDto,
-  ): DataTableActionPopover | null {
-    if (this.canAuthorize(row)) {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    DataTableActionPopover | null {
+
+    if (
+      this.canAuthorize(row)
+    ) {
       return null;
     }
 
+
     return {
-      title: 'No disponible',
-      message: null,
+      title:
+        'No disponible',
+
+      message:
+        null,
+
       items: [
-        this.getUnavailableAuthorizeReason(row),
+        this.getUnavailableAuthorizeReason(
+          row,
+        ),
       ],
-      kind: 'warning',
+
+      kind:
+        'warning',
     };
   }
+
 
   private getRejectPopover(
-    row: entity.PurchaseOrderResponseDto,
-  ): DataTableActionPopover | null {
-    if (this.canReject(row)) {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    DataTableActionPopover | null {
+
+    if (
+      this.canReject(row)
+    ) {
       return null;
     }
 
+
     return {
-      title: 'No disponible',
-      message: null,
+      title:
+        'No disponible',
+
+      message:
+        null,
+
       items: [
-        this.getUnavailableRejectReason(row),
+        this.getUnavailableRejectReason(
+          row,
+        ),
       ],
-      kind: 'warning',
+
+      kind:
+        'warning',
     };
   }
+
 
   private getCancelPopover(
-    row: entity.PurchaseOrderResponseDto,
-  ): DataTableActionPopover | null {
-    if (this.canCancel(row)) {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    DataTableActionPopover | null {
+
+    if (
+      this.canCancel(row)
+    ) {
       return null;
     }
 
+
     return {
-      title: 'No disponible',
-      message: null,
+      title:
+        'No disponible',
+
+      message:
+        null,
+
       items: [
-        this.getUnavailableCancelReason(row),
+        this.getUnavailableCancelReason(
+          row,
+        ),
       ],
-      kind: 'warning',
+
+      kind:
+        'warning',
     };
   }
 
-  private isAdminGeneral(): boolean {
-    return this.permissionsService.hasAnyRole([
-      'ADMIN_GENERAL',
-    ]);
+
+  // =========================================================
+  // ADMIN
+  // =========================================================
+
+  private isAdminGeneral():
+    boolean {
+
+    return this.permissionsService
+      .hasAnyRole([
+        'ADMIN_GENERAL',
+      ]);
   }
 
+
+  // =========================================================
+  // RAZONES DE ACCIONES NO DISPONIBLES
+  // =========================================================
+
   private getUnavailableEditReason(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
-    if (row.status === 'cancelled') {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
+    if (
+      row.status ===
+      'cancelled'
+    ) {
       return 'Esta orden fue cancelada y ya no se puede editar.';
     }
 
-    if (row.status === 'authorized') {
-      if (!this.isAdminGeneral()) {
+
+    if (
+      row.status ===
+      'authorized'
+    ) {
+
+      if (
+        !this.isAdminGeneral()
+      ) {
         return 'Solo un administrador puede editar una O.C. autorizada.';
       }
 
-      const trackingStatus = String(
-        row.tracking_status ?? '',
-      ).trim();
+
+      const trackingStatus =
+        String(
+          row.tracking_status ?? '',
+        ).trim();
+
 
       switch (trackingStatus) {
+
         case 'expense_registered':
           return 'Esta O.C. ya tiene gasto registrado. Primero elimina o quita el gasto relacionado desde el detalle.';
 
@@ -698,13 +1153,19 @@ export class PurchaseOrders implements OnInit {
       }
     }
 
+
     return 'Solo se puede editar una orden en revisión, no autorizada o autorizada sin gasto relacionado.';
   }
 
+
   private getUnavailableAuthorizeReason(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     switch (row.status) {
+
       case 'authorized':
         return 'Esta orden ya fue autorizada.';
 
@@ -716,10 +1177,15 @@ export class PurchaseOrders implements OnInit {
     }
   }
 
+
   private getUnavailableRejectReason(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     switch (row.status) {
+
       case 'not_authorized':
         return 'Esta orden ya está marcada como no autorizada.';
 
@@ -734,10 +1200,15 @@ export class PurchaseOrders implements OnInit {
     }
   }
 
+
   private getUnavailableCancelReason(
-    row: entity.PurchaseOrderResponseDto,
-  ): string {
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    string {
+
     switch (row.status) {
+
       case 'authorized':
         return 'Esta orden ya fue autorizada y no se puede cancelar.';
 
@@ -749,106 +1220,216 @@ export class PurchaseOrders implements OnInit {
     }
   }
 
+
+  // =========================================================
+  // BUSCAR
+  // =========================================================
+
   searchWithFilters(): void {
+
     const value =
-      this.formFilters.getRawValue();
+      this.formFilters
+        .getRawValue();
+
 
     const uiState:
       entity.PurchaseOrderUiFilters = {
-      search:
-        value.search?.trim() || '',
+
+      dateRange:
+        value.dateRange ??
+        null,
+
 
       requested_amount:
-        value.requested_amount ?? null,
+        value.requested_amount ??
+        null,
+
 
       related_expense_amount:
-        value.related_expense_amount ?? null,
+        value.related_expense_amount ??
+        null,
+
 
       tracking_status:
-        (this.getCatalogValue(
-          value.tracking_status ?? null,
-        ) as string) || '',
+        (
+          this.getCatalogValue(
+            value.tracking_status ??
+            null,
+          ) as string
+        ) || '',
+
 
       destination_type:
-        value.destination_type || '',
+        value.destination_type ||
+        '',
+
 
       will_have_invoice:
-        value.will_have_invoice || '',
+        value.will_have_invoice ||
+        '',
 
-      page: 1,
-      limit: this.filters.limit,
+
+      page:
+        1,
+
+
+      limit:
+        this.filters.limit,
     };
 
-    this.filters =
-      this.buildBackendFiltersFromUi(uiState);
 
-    this.saveFiltersToStorage(uiState);
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+
+    this.saveFiltersToStorage(
+      uiState,
+    );
+
+
     this.loadPurchaseOrders();
   }
 
+
+  // =========================================================
+  // LIMPIAR FILTROS
+  // =========================================================
+
   clearAllAndSearch(): void {
+
     this.formFilters.reset(
       {
-        search: '',
-        requested_amount: null,
-        tracking_status: null,
-        destination_type: '',
-        will_have_invoice: '',
-        related_expense_amount: null,
+
+        dateRange:
+          null,
+
+        requested_amount:
+          null,
+
+        tracking_status:
+          null,
+
+        destination_type:
+          '',
+
+        will_have_invoice:
+          '',
+
+        related_expense_amount:
+          null,
       },
       {
-        emitEvent: false,
+        emitEvent:
+          false,
       },
     );
 
+
     this.filters = {
-      page: 1,
-      limit: this.filters.limit,
-      search: '',
-      requested_amount: null,
-      status: null,
-      tracking_status: null,
-      destination_type: null,
-      will_have_invoice: null,
-      project_id: null,
-      related_expense_amount: null,
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
+
+      startDate:
+        null,
+
+      endDate:
+        null,
+
+      requested_amount:
+        null,
+
+      status:
+        null,
+
+      tracking_status:
+        null,
+
+      destination_type:
+        null,
+
+      will_have_invoice:
+        null,
+
+      project_id:
+        null,
+
+      related_expense_amount:
+        null,
     };
+
 
     this.storage.removeItem(
       PURCHASE_ORDERS_FILTERS_KEY,
     );
 
+
     this.loadPurchaseOrders();
   }
 
+
+  // =========================================================
+  // CARGAR ÓRDENES
+  // =========================================================
+
   loadPurchaseOrders(): void {
-    if (this.loadingTable()) {
+
+    if (
+      this.loadingTable()
+    ) {
       return;
     }
 
-    this.loadingTable.set(true);
+
+    this.loadingTable.set(
+      true,
+    );
+
 
     this.purchaseOrdersService
-      .getPurchaseOrders(this.filters)
+      .getPurchaseOrders(
+        this.filters,
+      )
       .pipe(
-        finalize(() =>
-          this.loadingTable.set(false),
+        finalize(
+          () =>
+            this.loadingTable
+              .set(false),
         ),
       )
       .subscribe({
-        next: (response) => {
-          const data = response.data.map(
-            (row) =>
-              this.mapPurchaseOrderRow(row),
-          );
+
+        next: (
+          response,
+        ) => {
+
+          const data =
+            response.data.map(
+              (row) =>
+                this.mapPurchaseOrderRow(
+                  row,
+                ),
+            );
+
 
           this.purchaseOrdersTableData = {
             data,
-            pagination: response.pagination,
+
+            pagination:
+              response.pagination,
           };
         },
 
-        error: (error) => {
+
+        error: (
+          error,
+        ) => {
+
           console.error(
             'Error al cargar órdenes de compra:',
             error,
@@ -857,119 +1438,213 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
-  onPageChange(event: PageEvent): void {
+
+  // =========================================================
+  // PAGINACIÓN
+  // =========================================================
+
+  onPageChange(
+    event:
+      PageEvent,
+  ): void {
+
     this.filters = {
       ...this.filters,
-      page: event.pageIndex + 1,
-      limit: event.pageSize,
+
+      page:
+        event.pageIndex + 1,
+
+      limit:
+        event.pageSize,
     };
 
+
     this.saveFiltersToStorage();
+
     this.loadPurchaseOrders();
   }
 
-  onHeaderAction(action: string): void {
+
+  // =========================================================
+  // HEADER
+  // =========================================================
+
+  onHeaderAction(
+    action:
+      string,
+  ): void {
+
     switch (action) {
+
       case 'new':
+
         this.router.navigate([
           '/ordenes-compra/nueva',
         ]);
+
         break;
+
 
       default:
         break;
     }
   }
 
-  onBtnsSectionAction(action: string): void {
+
+  // =========================================================
+  // BOTONES DE FILTROS
+  // =========================================================
+
+  onBtnsSectionAction(
+    action:
+      string,
+  ): void {
+
     switch (action) {
+
       case 'search':
+
         this.searchWithFilters();
+
         break;
+
 
       case 'clean':
+
         this.clearAllAndSearch();
+
         break;
+
 
       default:
         break;
     }
   }
 
+
+  // =========================================================
+  // ACCIONES TABLA
+  // =========================================================
+
   onTableAction(
-    event: DataTableActionEvent<
-      entity.PurchaseOrderResponseDto
-    >,
+    event:
+      DataTableActionEvent<
+        entity.PurchaseOrderResponseDto
+      >,
   ): void {
+
     switch (event.type) {
+
       case 'viewPurchaseOrderDetail':
+
         this.viewPurchaseOrderDetail(
           event.row,
         );
+
         break;
 
+
       case 'editPurchaseOrder':
+
         this.editPurchaseOrder(
           event.row,
         );
+
         break;
 
+
       case 'authorizePurchaseOrder':
+
         this.openAuthorizePurchaseOrderModal(
           event.row,
         );
+
         break;
 
+
       case 'rejectPurchaseOrder':
+
         this.rejectPurchaseOrder(
           event.row,
         );
+
         break;
 
+
       case 'cancelPurchaseOrder':
+
         this.cancelPurchaseOrder(
           event.row,
         );
+
         break;
+
 
       default:
         break;
     }
   }
 
+
+  // =========================================================
+  // VER DETALLE
+  // =========================================================
+
   private viewPurchaseOrderDetail(
-    row: entity.PurchaseOrderResponseDto,
+    row:
+      entity.PurchaseOrderResponseDto,
   ): void {
+
     if (!row?.id) {
       return;
     }
+
 
     this.router.navigateByUrl(
       `/ordenes-compra/detalle/${row.id}`,
     );
   }
 
+
+  // =========================================================
+  // EDITAR
+  // =========================================================
+
   private editPurchaseOrder(
-    row: entity.PurchaseOrderResponseDto,
+    row:
+      entity.PurchaseOrderResponseDto,
   ): void {
-    if (!row?.id || !this.canEdit(row)) {
+
+    if (
+      !row?.id ||
+      !this.canEdit(row)
+    ) {
       return;
     }
+
 
     this.router.navigateByUrl(
       `/ordenes-compra/editar/${row.id}`,
     );
   }
 
+
+  // =========================================================
+  // AUTORIZAR
+  // =========================================================
+
   private openAuthorizePurchaseOrderModal(
-    row: entity.PurchaseOrderResponseDto,
+    row:
+      entity.PurchaseOrderResponseDto,
   ): void {
+
     if (
       !row?.id ||
       !this.canAuthorize(row)
     ) {
       return;
     }
+
 
     this.dialogService
       .open(
@@ -978,22 +1653,33 @@ export class PurchaseOrders implements OnInit {
         'small',
       )
       .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
+      .subscribe(
+        (result) => {
+
+          if (result) {
+            this.loadPurchaseOrders();
+          }
+        },
+      );
   }
 
+
+  // =========================================================
+  // NO AUTORIZAR
+  // =========================================================
+
   private rejectPurchaseOrder(
-    row: entity.PurchaseOrderResponseDto,
+    row:
+      entity.PurchaseOrderResponseDto,
   ): void {
+
     if (
       !row?.id ||
       !this.canReject(row)
     ) {
       return;
     }
+
 
     this.dialogService
       .open(
@@ -1002,22 +1688,33 @@ export class PurchaseOrders implements OnInit {
         'small',
       )
       .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
+      .subscribe(
+        (result) => {
+
+          if (result) {
+            this.loadPurchaseOrders();
+          }
+        },
+      );
   }
 
+
+  // =========================================================
+  // CANCELAR
+  // =========================================================
+
   private cancelPurchaseOrder(
-    row: entity.PurchaseOrderResponseDto,
+    row:
+      entity.PurchaseOrderResponseDto,
   ): void {
+
     if (
       !row?.id ||
       !this.canCancel(row)
     ) {
       return;
     }
+
 
     this.dialogService
       .open(
@@ -1026,17 +1723,29 @@ export class PurchaseOrders implements OnInit {
         'small',
       )
       .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
+      .subscribe(
+        (result) => {
+
+          if (result) {
+            this.loadPurchaseOrders();
+          }
+        },
+      );
   }
 
+
+  // =========================================================
+  // SOLICITANTES
+  // =========================================================
+
   openRequestersModal(): void {
-    if (!this.canManageRequesters) {
+
+    if (
+      !this.canManageRequesters
+    ) {
       return;
     }
+
 
     this.dialogService
       .open(
@@ -1045,17 +1754,29 @@ export class PurchaseOrders implements OnInit {
         'small',
       )
       .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
+      .subscribe(
+        (result) => {
+
+          if (result) {
+            this.loadPurchaseOrders();
+          }
+        },
+      );
   }
 
+
+  // =========================================================
+  // AUTORIZADORES
+  // =========================================================
+
   openAuthorizersModal(): void {
-    if (!this.canManageRequesters) {
+
+    if (
+      !this.canManageRequesters
+    ) {
       return;
     }
+
 
     this.dialogService
       .open(
@@ -1064,14 +1785,24 @@ export class PurchaseOrders implements OnInit {
         'small',
       )
       .afterClosed()
-      .subscribe((result) => {
-        if (result) {
-          this.loadPurchaseOrders();
-        }
-      });
+      .subscribe(
+        (result) => {
+
+          if (result) {
+            this.loadPurchaseOrders();
+          }
+        },
+      );
   }
 
-  private restoreFiltersFromStorage(): void {
+
+  // =========================================================
+  // RESTAURAR FILTROS
+  // =========================================================
+
+  private restoreFiltersFromStorage():
+    void {
+
     const saved =
       this.storage.getItem<
         entity.PurchaseOrderUiFilters
@@ -1079,95 +1810,155 @@ export class PurchaseOrders implements OnInit {
         PURCHASE_ORDERS_FILTERS_KEY,
       );
 
+
     if (!saved) {
+
       this.loadPurchaseOrders();
+
       return;
     }
 
+
     this.formFilters.patchValue(
       {
-        search:
-          saved.search ?? '',
+
+        dateRange:
+          saved.dateRange ??
+          null,
+
 
         requested_amount:
-          saved.requested_amount ?? null,
+          saved.requested_amount ??
+          null,
+
 
         related_expense_amount:
-          saved.related_expense_amount ?? null,
+          saved.related_expense_amount ??
+          null,
+
 
         tracking_status:
-          saved.tracking_status ?? null,
+          saved.tracking_status ??
+          null,
+
 
         destination_type:
-          saved.destination_type ?? '',
+          saved.destination_type ??
+          '',
+
 
         will_have_invoice:
-          saved.will_have_invoice ?? '',
+          saved.will_have_invoice ??
+          '',
       },
       {
-        emitEvent: false,
+        emitEvent:
+          false,
       },
     );
+
 
     this.filters =
       this.buildBackendFiltersFromUi({
         ...saved,
 
+
+        dateRange:
+          saved.dateRange ??
+          null,
+
+
         requested_amount:
-          saved.requested_amount ?? null,
+          saved.requested_amount ??
+          null,
+
 
         related_expense_amount:
-          saved.related_expense_amount ?? null,
+          saved.related_expense_amount ??
+          null,
+
 
         tracking_status:
-          saved.tracking_status ?? '',
+          saved.tracking_status ??
+          '',
+
 
         page:
-          saved.page ?? 1,
+          saved.page ??
+          1,
+
 
         limit:
           saved.limit ??
           this.filters.limit,
       });
 
+
     this.loadPurchaseOrders();
   }
 
+
+  // =========================================================
+  // GUARDAR FILTROS
+  // =========================================================
+
   private saveFiltersToStorage(
-    state?: entity.PurchaseOrderUiFilters,
+    state?:
+      entity.PurchaseOrderUiFilters,
   ): void {
+
     if (!state) {
+
       const value =
-        this.formFilters.getRawValue();
+        this.formFilters
+          .getRawValue();
+
 
       state = {
-        search:
-          value.search?.trim() || '',
+
+        dateRange:
+          value.dateRange ??
+          null,
+
 
         related_expense_amount:
-          value.related_expense_amount ?? null,
+          value.related_expense_amount ??
+          null,
+
 
         requested_amount:
-          value.requested_amount ?? null,
+          value.requested_amount ??
+          null,
+
 
         tracking_status:
-          (this.getCatalogValue(
-            value.tracking_status ?? null,
-          ) as string) || '',
+          (
+            this.getCatalogValue(
+              value.tracking_status ??
+              null,
+            ) as string
+          ) || '',
+
 
         destination_type:
-          value.destination_type || '',
+          value.destination_type ||
+          '',
+
 
         will_have_invoice:
-          value.will_have_invoice || '',
+          value.will_have_invoice ||
+          '',
+
 
         page:
           this.filters.page,
+
 
         limit:
           this.filters.limit,
       };
     }
+
 
     this.storage.setItem(
       PURCHASE_ORDERS_FILTERS_KEY,
@@ -1175,13 +1966,22 @@ export class PurchaseOrders implements OnInit {
     );
   }
 
+
+  // =========================================================
+  // CATÁLOGO
+  // =========================================================
+
   private getCatalogValue(
     value:
       | Catalog
       | number
       | string
       | null,
-  ): string | number | null {
+  ):
+    string
+    | number
+    | null {
+
     if (
       value === null ||
       value === undefined ||
@@ -1190,130 +1990,222 @@ export class PurchaseOrders implements OnInit {
       return null;
     }
 
+
     if (
-      typeof value === 'number' ||
-      typeof value === 'string'
+      typeof value ===
+        'number' ||
+      typeof value ===
+        'string'
     ) {
       return value;
     }
 
+
     return value.id;
   }
 
+
+  // =========================================================
+  // ROLES
+  // =========================================================
+
   private hasRole(
-    roleCode: string,
-  ): boolean {
-    const expectedRole = String(
-      roleCode || '',
-    )
-      .trim()
-      .toUpperCase();
+    roleCode:
+      string,
+  ):
+    boolean {
+
+    const expectedRole =
+      String(
+        roleCode || '',
+      )
+        .trim()
+        .toUpperCase();
+
 
     const roles =
-      this.auth.currentUser()?.roles ?? [];
+      this.auth.currentUser()
+        ?.roles ??
+      [];
 
-    return roles.some((role: any) => {
-      if (!role) {
-        return false;
-      }
 
-      if (typeof role === 'string') {
+    return roles.some(
+      (role: any) => {
+
+        if (!role) {
+          return false;
+        }
+
+
+        if (
+          typeof role ===
+          'string'
+        ) {
+
+          return (
+            role
+              .trim()
+              .toUpperCase() ===
+            expectedRole
+          );
+        }
+
+
+        const value =
+          role.code ??
+          role.name ??
+          role.role ??
+          role.roleCode ??
+          role.role_code ??
+          null;
+
+
         return (
-          role.trim().toUpperCase() ===
+          String(
+            value || '',
+          )
+            .trim()
+            .toUpperCase() ===
           expectedRole
         );
-      }
-
-      const value =
-        role.code ??
-        role.name ??
-        role.role ??
-        role.roleCode ??
-        role.role_code ??
-        null;
-
-      return (
-        String(value || '')
-          .trim()
-          .toUpperCase() ===
-        expectedRole
-      );
-    });
+      },
+    );
   }
 
+
+  // =========================================================
+  // EXPANSIÓN
+  // =========================================================
+
   onPurchaseOrderExpansionChange(
-    event: DataTableRowExpansionEvent<
-      entity.PurchaseOrderResponseDto
-    >,
+    event:
+      DataTableRowExpansionEvent<
+        entity.PurchaseOrderResponseDto
+      >,
   ): void {
-    if (!event.expanded || !event.row?.id) {
+
+    if (
+      !event.expanded ||
+      !event.row?.id
+    ) {
       return;
     }
 
-    this.loadExpandedOrderDetail(event.row);
+
+    this.loadExpandedOrderDetail(
+      event.row,
+    );
   }
 
+
   loadExpandedOrderDetail(
-    row: entity.PurchaseOrderResponseDto,
-    forceReload = false,
+    row:
+      entity.PurchaseOrderResponseDto,
+
+    forceReload =
+      false,
   ): void {
-    const orderId = Number(row?.id);
+
+    const orderId =
+      Number(
+        row?.id,
+      );
+
 
     if (!orderId) {
       return;
     }
 
-    if (this.expandedOrderLoading().has(orderId)) {
-      return;
-    }
 
     if (
-      !forceReload &&
-      this.expandedOrderDetails()[orderId]
+      this.expandedOrderLoading()
+        .has(orderId)
     ) {
       return;
     }
 
-    this.setExpandedOrderLoading(orderId, true);
-    this.clearExpandedOrderError(orderId);
+
+    if (
+      !forceReload &&
+      this.expandedOrderDetails()[
+        orderId
+      ]
+    ) {
+      return;
+    }
+
+
+    this.setExpandedOrderLoading(
+      orderId,
+      true,
+    );
+
+
+    this.clearExpandedOrderError(
+      orderId,
+    );
+
 
     this.purchaseOrdersService
-      .getFlowDetail(orderId)
+      .getFlowDetail(
+        orderId,
+      )
       .pipe(
-        finalize(() => {
-          this.setExpandedOrderLoading(
-            orderId,
-            false,
-          );
-        }),
+        finalize(
+          () => {
+
+            this.setExpandedOrderLoading(
+              orderId,
+              false,
+            );
+          },
+        ),
       )
       .subscribe({
-        next: (response) => {
-          const detail = (
-            response?.data ?? response
-          ) as entity.PurchaseOrderFlowDetailResponse;
+
+        next: (
+          response,
+        ) => {
+
+          const detail =
+            (
+              response?.data ??
+              response
+            ) as
+              entity.PurchaseOrderFlowDetailResponse;
+
 
           if (!detail?.id) {
+
             this.setExpandedOrderError(
               orderId,
               'No se encontró la información de esta orden.',
             );
+
             return;
           }
+
 
           this.expandedOrderDetails.update(
             (current) => ({
               ...current,
-              [orderId]: detail,
+
+              [orderId]:
+                detail,
             }),
           );
         },
 
-        error: (error) => {
+
+        error: (
+          error,
+        ) => {
+
           console.error(
             'Error al cargar el detalle expandido de la O.C.:',
             error,
           );
+
 
           this.setExpandedOrderError(
             orderId,
@@ -1323,45 +2215,82 @@ export class PurchaseOrders implements OnInit {
       });
   }
 
+
   getExpandedOrderDetail(
-    orderId: number,
-  ): entity.PurchaseOrderFlowDetailResponse | null {
+    orderId:
+      number,
+  ):
+    entity.PurchaseOrderFlowDetailResponse
+    | null {
+
     return (
-      this.expandedOrderDetails()[orderId] ??
+      this.expandedOrderDetails()[
+        orderId
+      ] ??
       null
     );
   }
+
 
   isExpandedOrderLoading(
-    orderId: number,
-  ): boolean {
-    return this.expandedOrderLoading().has(orderId);
+    orderId:
+      number,
+  ):
+    boolean {
+
+    return this
+      .expandedOrderLoading()
+      .has(orderId);
   }
 
+
   getExpandedOrderError(
-    orderId: number,
-  ): string | null {
+    orderId:
+      number,
+  ):
+    string | null {
+
     return (
-      this.expandedOrderErrors()[orderId] ??
+      this.expandedOrderErrors()[
+        orderId
+      ] ??
       null
     );
   }
 
+
   getExpandedPhotos(
-    detail: entity.PurchaseOrderFlowDetailResponse,
-  ): entity.PurchaseOrderTicketPhotoDto[] {
-    return detail.ticket_photos ?? [];
+    detail:
+      entity.PurchaseOrderFlowDetailResponse,
+  ):
+    entity.PurchaseOrderTicketPhotoDto[] {
+
+    return (
+      detail.ticket_photos ??
+      []
+    );
   }
+
 
   getExpandedExpenses(
-    detail: entity.PurchaseOrderFlowDetailResponse,
-  ): entity.PurchaseOrderExpenseLinkDto[] {
-    return detail.expense_links ?? [];
+    detail:
+      entity.PurchaseOrderFlowDetailResponse,
+  ):
+    entity.PurchaseOrderExpenseLinkDto[] {
+
+    return (
+      detail.expense_links ??
+      []
+    );
   }
 
+
   getExpandedPhotoFileName(
-    photo: entity.PurchaseOrderTicketPhotoDto,
-  ): string {
+    photo:
+      entity.PurchaseOrderTicketPhotoDto,
+  ):
+    string {
+
     return (
       photo.file_name ??
       photo.fileName ??
@@ -1370,10 +2299,15 @@ export class PurchaseOrders implements OnInit {
     );
   }
 
+
   getExpandedPhotoStatusLabel(
-    photo: entity.PurchaseOrderTicketPhotoDto,
-  ): string {
+    photo:
+      entity.PurchaseOrderTicketPhotoDto,
+  ):
+    string {
+
     switch (photo.status) {
+
       case 'reconciled':
         return 'Foto conciliada';
 
@@ -1386,43 +2320,69 @@ export class PurchaseOrders implements OnInit {
     }
   }
 
+
   getExpandedExpenseId(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): number | null {
-    const expenseId = Number(
-      link.expense?.id ??
-      link.expense_id ??
-      0,
-    );
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    number | null {
+
+    const expenseId =
+      Number(
+        link.expense?.id ??
+        link.expense_id ??
+        0,
+      );
+
 
     return expenseId > 0
       ? expenseId
       : null;
   }
 
+
   getExpandedExpenseFolio(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): string {
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    string {
+
     return (
       link.expense?.internal_folio ??
       link.expense?.folio ??
-      `Gasto #${this.getExpandedExpenseId(link) ?? '—'}`
+      `Gasto #${
+        this.getExpandedExpenseId(
+          link,
+        ) ??
+        '—'
+      }`
     );
   }
 
+
+  // =========================================================
+  // FOTO EXPANDIDA
+  // =========================================================
+
   openExpandedPhoto(
-    photo: entity.PurchaseOrderTicketPhotoDto,
-    order: entity.PurchaseOrderResponseDto,
+    photo:
+      entity.PurchaseOrderTicketPhotoDto,
+
+    order:
+      entity.PurchaseOrderResponseDto,
   ): void {
+
     if (!photo?.id) {
       return;
     }
+
 
     const createdAt =
       photo.uploaded_at ??
       photo.created_at ??
       photo.createdAt ??
       order.created_at;
+
 
     const publicUrl =
       photo.preview_url ??
@@ -1432,21 +2392,31 @@ export class PurchaseOrders implements OnInit {
       photo.url ??
       null;
 
-    const modalData: entity.PendingTicketPhotoRow = {
-      id: photo.id,
+
+    const modalData:
+      entity.PendingTicketPhotoRow = {
+
+      id:
+        photo.id,
+
 
       project_id:
         photo.project?.id ??
         order.project?.id ??
         null,
 
+
       project_name:
         photo.project?.name ??
         order.project?.name ??
         'Sin proyecto',
 
+
       file_name:
-        this.getExpandedPhotoFileName(photo),
+        this.getExpandedPhotoFileName(
+          photo,
+        ),
+
 
       uploaded_by_name:
         photo.uploaded_by_user?.name ??
@@ -1454,18 +2424,34 @@ export class PurchaseOrders implements OnInit {
         photo.user?.name ??
         'Sin dato',
 
+
       status:
-        photo.status ?? 'pending',
+        photo.status ??
+        'pending',
+
 
       status_label:
-        this.getExpandedPhotoStatusLabel(photo),
+        this.getExpandedPhotoStatusLabel(
+          photo,
+        ),
 
-      created_at: createdAt,
-      created_at_date: createdAt,
 
-      preview_url: publicUrl,
-      public_url: publicUrl,
+      created_at:
+        createdAt,
+
+
+      created_at_date:
+        createdAt,
+
+
+      preview_url:
+        publicUrl,
+
+
+      public_url:
+        publicUrl,
     };
+
 
     this.dialogService.open(
       ModalSeePhoto,
@@ -1474,188 +2460,357 @@ export class PurchaseOrders implements OnInit {
     );
   }
 
+
+  // =========================================================
+  // GASTO EXPANDIDO
+  // =========================================================
+
   openExpandedExpense(
-    link: entity.PurchaseOrderExpenseLinkDto,
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
   ): void {
+
     const expenseId =
-      this.getExpandedExpenseId(link);
+      this.getExpandedExpenseId(
+        link,
+      );
+
 
     if (!expenseId) {
       return;
     }
 
+
     this.router.navigate(
-      ['/gastos/editar', expenseId],
+      [
+        '/gastos/editar',
+        expenseId,
+      ],
       {
         queryParams: {
-          returnUrl: this.router.url,
+          returnUrl:
+            this.router.url,
         },
       },
     );
   }
 
+
+  // =========================================================
+  // ESTADO EXPANSIÓN
+  // =========================================================
+
   private setExpandedOrderLoading(
-    orderId: number,
-    loading: boolean,
+    orderId:
+      number,
+
+    loading:
+      boolean,
   ): void {
+
     this.expandedOrderLoading.update(
       (current) => {
-        const next = new Set(current);
+
+        const next =
+          new Set(
+            current,
+          );
+
 
         if (loading) {
-          next.add(orderId);
+
+          next.add(
+            orderId,
+          );
+
         } else {
-          next.delete(orderId);
+
+          next.delete(
+            orderId,
+          );
         }
+
 
         return next;
       },
     );
   }
 
+
   private setExpandedOrderError(
-    orderId: number,
-    message: string,
+    orderId:
+      number,
+
+    message:
+      string,
   ): void {
+
     this.expandedOrderErrors.update(
       (current) => ({
         ...current,
-        [orderId]: message,
+
+        [orderId]:
+          message,
       }),
     );
   }
 
+
   private clearExpandedOrderError(
-    orderId: number,
+    orderId:
+      number,
   ): void {
+
     this.expandedOrderErrors.update(
       (current) => {
-        const next = { ...current };
-        delete next[orderId];
+
+        const next = {
+          ...current,
+        };
+
+
+        delete next[
+          orderId
+        ];
+
 
         return next;
       },
     );
   }
 
+
+  // =========================================================
+  // DATOS EXPANDIDOS DE GASTO
+  // =========================================================
+
   getExpandedExpenseSupplierName(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): string {
-    const supplier = link.expense?.supplier;
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    string {
+
+    const supplier =
+      link.expense?.supplier;
+
 
     return (
-      supplier?.company_name?.trim() ||
-      supplier?.name?.trim() ||
+      supplier?.company_name
+        ?.trim() ||
+      supplier?.name
+        ?.trim() ||
       'Proveedor no registrado'
     );
   }
 
-  getExpandedExpenseUuid(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): string | null {
-    const uuid = link.expense?.cfdi_uuid?.trim();
 
-    return uuid || null;
+  getExpandedExpenseUuid(
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    string | null {
+
+    const uuid =
+      link.expense
+        ?.cfdi_uuid
+        ?.trim();
+
+
+    return (
+      uuid ||
+      null
+    );
   }
 
+
   getExpandedExpenseUuidDisplay(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): string {
-    const uuid = this.getExpandedExpenseUuid(link);
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    string {
+
+    const uuid =
+      this.getExpandedExpenseUuid(
+        link,
+      );
+
 
     if (!uuid) {
-      return this.isExpandedXmlExpense(link)
+
+      return this
+        .isExpandedXmlExpense(
+          link,
+        )
         ? 'UUID no disponible'
         : 'Sin XML';
     }
 
-    if (uuid.length <= 20) {
+
+    if (
+      uuid.length <= 20
+    ) {
       return uuid;
     }
 
-    return `${uuid.slice(0, 8)}…${uuid.slice(-4)}`;
+
+    return `${
+      uuid.slice(
+        0,
+        8,
+      )
+    }…${
+      uuid.slice(
+        -4,
+      )
+    }`;
   }
 
+
   getExpandedExpenseTypeLabel(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): string {
-    return this.isExpandedXmlExpense(link)
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    string {
+
+    return this
+      .isExpandedXmlExpense(
+        link,
+      )
       ? 'XML'
       : 'Gasto sin XML';
   }
 
-  getExpandedExpenseLinkedItems(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): entity.PurchaseOrderExpenseLinkedItemDto[] {
-    return link.linked_items ?? [];
-  }
 
-  getExpandedExpenseItemConcept(
-    item: entity.PurchaseOrderExpenseLinkedItemDto,
-  ): string {
+  getExpandedExpenseLinkedItems(
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    entity.PurchaseOrderExpenseLinkedItemDto[] {
+
     return (
-      item.product?.name?.trim() ||
-      item.concept?.trim() ||
-      `Partida #${item.expense_item_id || item.id}`
+      link.linked_items ??
+      []
     );
   }
 
-  getExpandedExpenseItemQuantity(
-    item: entity.PurchaseOrderExpenseLinkedItemDto,
-  ): number | string {
-    const quantity = item.quantity;
 
-    return quantity === null ||
+  getExpandedExpenseItemConcept(
+    item:
+      entity.PurchaseOrderExpenseLinkedItemDto,
+  ):
+    string {
+
+    return (
+      item.product?.name
+        ?.trim() ||
+      item.concept
+        ?.trim() ||
+      `Partida #${
+        item.expense_item_id ||
+        item.id
+      }`
+    );
+  }
+
+
+  getExpandedExpenseItemQuantity(
+    item:
+      entity.PurchaseOrderExpenseLinkedItemDto,
+  ):
+    number | string {
+
+    const quantity =
+      item.quantity;
+
+
+    return (
+      quantity === null ||
       quantity === undefined ||
       quantity === ''
+    )
       ? '—'
       : quantity;
   }
 
+
   getExpandedExpenseItemUnit(
-    item: entity.PurchaseOrderExpenseLinkedItemDto,
-  ): string {
+    item:
+      entity.PurchaseOrderExpenseLinkedItemDto,
+  ):
+    string {
+
     return (
-      item.unit_name?.trim() ||
-      item.unit?.trim() ||
+      item.unit_name
+        ?.trim() ||
+      item.unit
+        ?.trim() ||
       'Sin unidad'
     );
   }
 
+
   getExpandedExpenseItemAmount(
-    item: entity.PurchaseOrderExpenseLinkedItemDto,
-  ): number {
+    item:
+      entity.PurchaseOrderExpenseLinkedItemDto,
+  ):
+    number {
+
     return (
       this.toNullableExpandedAmount(
         item.amount_snapshot,
       ) ??
-      this.toNullableExpandedAmount(item.amount) ??
+      this.toNullableExpandedAmount(
+        item.amount,
+      ) ??
       0
     );
   }
 
-  getExpandedExpenseLinkedTotal(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): number {
-    const snapshot = this.toNullableExpandedAmount(
-      link.amount_snapshot,
-    );
 
-    if (snapshot !== null) {
+  getExpandedExpenseLinkedTotal(
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    number {
+
+    const snapshot =
+      this.toNullableExpandedAmount(
+        link.amount_snapshot,
+      );
+
+
+    if (
+      snapshot !== null
+    ) {
       return snapshot;
     }
 
-    return this.getExpandedExpenseLinkedItems(link).reduce(
-      (total, item) =>
-        total +
-        this.getExpandedExpenseItemAmount(item),
-      0,
-    );
+
+    return this
+      .getExpandedExpenseLinkedItems(
+        link,
+      )
+      .reduce(
+        (
+          total,
+          item,
+        ) =>
+          total +
+          this.getExpandedExpenseItemAmount(
+            item,
+          ),
+        0,
+      );
   }
 
+
   getExpandedExpensePhoto(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): entity.PurchaseOrderTicketPhotoDto | null {
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    entity.PurchaseOrderTicketPhotoDto
+    | null {
+
     return (
       link.ticket_photo ??
       link.ticketPhoto ??
@@ -1663,18 +2818,32 @@ export class PurchaseOrders implements OnInit {
     );
   }
 
+
   private isExpandedXmlExpense(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): boolean {
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    boolean {
+
     return (
-      link.registration_type === 'xml' ||
-      !!this.getExpandedExpenseUuid(link)
+      link.registration_type ===
+        'xml' ||
+      !!this.getExpandedExpenseUuid(
+        link,
+      )
     );
   }
 
+
   private toNullableExpandedAmount(
-    value: number | string | null | undefined,
-  ): number | null {
+    value:
+      | number
+      | string
+      | null
+      | undefined,
+  ):
+    number | null {
+
     if (
       value === null ||
       value === undefined ||
@@ -1683,77 +2852,126 @@ export class PurchaseOrders implements OnInit {
       return null;
     }
 
-    const amount = Number(value);
 
-    return Number.isFinite(amount)
+    const amount =
+      Number(
+        value,
+      );
+
+
+    return Number.isFinite(
+      amount,
+    )
       ? amount
       : null;
   }
 
+
   getExpandedExpensesForDisplay(
-    detail: entity.PurchaseOrderFlowDetailResponse,
-  ): entity.PurchaseOrderExpenseLinkDto[] {
+    detail:
+      entity.PurchaseOrderFlowDetailResponse,
+  ):
+    entity.PurchaseOrderExpenseLinkDto[] {
+
     const expenses = [
-      ...this.getExpandedExpenses(detail),
+      ...this.getExpandedExpenses(
+        detail,
+      ),
     ];
 
+
     if (
-      this.getActiveRelatedExpenseAmount() === null
+      this.getActiveRelatedExpenseAmount() ===
+      null
     ) {
       return expenses;
     }
 
+
     return expenses.sort(
-      (left, right) =>
+      (
+        left,
+        right,
+      ) =>
         Number(
-          this.isExpandedExpenseAmountMatch(right),
+          this.isExpandedExpenseAmountMatch(
+            right,
+          ),
         ) -
         Number(
-          this.isExpandedExpenseAmountMatch(left),
+          this.isExpandedExpenseAmountMatch(
+            left,
+          ),
         ),
     );
   }
 
+
   getExpandedExpenseTotal(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): number {
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    number {
+
     return (
       this.toNullableExpandedAmount(
         link.expense?.total_amount,
       ) ??
-      this.getExpandedExpenseLinkedTotal(link)
+      this.getExpandedExpenseLinkedTotal(
+        link,
+      )
     );
   }
 
+
   isExpandedExpenseAmountMatch(
-    link: entity.PurchaseOrderExpenseLinkDto,
-  ): boolean {
+    link:
+      entity.PurchaseOrderExpenseLinkDto,
+  ):
+    boolean {
+
     const filterAmount =
       this.getActiveRelatedExpenseAmount();
 
-    if (filterAmount === null) {
+
+    if (
+      filterAmount === null
+    ) {
       return false;
     }
+
 
     const expenseTotal =
       this.toNullableExpandedAmount(
         link.expense?.total_amount,
       );
 
-    if (expenseTotal === null) {
+
+    if (
+      expenseTotal === null
+    ) {
       return false;
     }
 
+
     return (
-      Math.round(expenseTotal * 100) ===
-      Math.round(filterAmount * 100)
+      Math.round(
+        expenseTotal * 100,
+      ) ===
+      Math.round(
+        filterAmount * 100,
+      )
     );
   }
 
+
   private getActiveRelatedExpenseAmount():
     number | null {
-    return this.toNullableExpandedAmount(
-      this.filters.related_expense_amount,
-    );
+
+    return this
+      .toNullableExpandedAmount(
+        this.filters
+          .related_expense_amount,
+      );
   }
 }
