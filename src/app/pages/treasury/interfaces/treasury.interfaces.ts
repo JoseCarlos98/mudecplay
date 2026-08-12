@@ -332,6 +332,8 @@ export interface TreasuryBankMovementFilters {
   movement_type?: TreasuryBankMovementType | string | null;
   status?: TreasuryBankMovementStatus | string | null;
 
+  classifications?: string[] | null;
+
   search?: string;
 
   page: number;
@@ -352,6 +354,8 @@ export interface TreasuryBankMovementUiFilters {
 
   movement_type: TreasuryBankMovementType | '';
   status: TreasuryBankMovementStatus | '';
+
+  classifications: string[];
 
   search: string;
 

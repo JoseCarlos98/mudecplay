@@ -26,6 +26,10 @@
         <app-input-select formControlName="status" label="Estatus" [options]="movementStatusOptions">
         </app-input-select>
 
+           <app-input-select formControlName="classifications" label="Clasificación" [options]="classificationOptions"
+          [multiple]="true">
+        </app-input-select>
+
         <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
         </app-btns-section>
       </div>

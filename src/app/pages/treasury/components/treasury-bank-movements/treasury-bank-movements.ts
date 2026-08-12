@@ -207,6 +207,7 @@ export class TreasuryBankMovements implements OnInit {
   companyOptions: Catalog[] = [];
   bankOptions: Catalog[] = [];
   bankAccountOptions: Catalog[] = [];
+  classificationOptions: Catalog[] = [];
 
   // =========================================================
   // ESTADO / DATA
@@ -221,6 +222,7 @@ export class TreasuryBankMovements implements OnInit {
     bank_account_id: null,
     date_from: null,
     date_to: null,
+    classifications: null,
     movement_type: null,
     status: null,
   };
@@ -235,6 +237,8 @@ export class TreasuryBankMovements implements OnInit {
     bank_account_id: this.fb.control<Catalog | number | string | null>(null),
     movement_type: this.fb.control<entity.TreasuryBankMovementType | ''>(''),
     status: this.fb.control<entity.TreasuryBankMovementStatus | ''>(''),
+    classifications: this.fb.control<string[]>([]),
+
   });
 
   // =========================================================
@@ -266,7 +270,8 @@ export class TreasuryBankMovements implements OnInit {
     );
     const hasMovementType = !!form.movement_type;
     const hasStatus = !!form.status;
-
+    const hasClassifications =
+      !!form.classifications?.length;
     return (
       hasDates ||
       hasSearch ||
@@ -274,7 +279,8 @@ export class TreasuryBankMovements implements OnInit {
       hasBank ||
       hasBankAccount ||
       hasMovementType ||
-      hasStatus
+      hasStatus ||
+      hasClassifications
     );
   }
 
@@ -289,13 +295,16 @@ export class TreasuryBankMovements implements OnInit {
       companies: this.catalogsService.treasuryCompaniesCatalog(),
       banks: this.catalogsService.treasuryBanksCatalog(),
       bankAccounts: this.catalogsService.treasuryBankAccountsCatalog(false),
+      classifications:
+        this.treasuryService.getBankMovementClassifications(),
     })
       .pipe(finalize(() => this.loadingCatalogs.set(false)))
       .subscribe({
-        next: ({ companies, banks, bankAccounts }) => {
+        next: ({ companies, banks, bankAccounts, classifications }) => {
           this.companyOptions = companies ?? [];
           this.bankOptions = banks ?? [];
           this.bankAccountOptions = bankAccounts ?? [];
+          this.classificationOptions = classifications ?? [];
         },
         error: (err) => {
           console.error('Error cargando catálogos de movimientos:', err);
@@ -318,6 +327,7 @@ export class TreasuryBankMovements implements OnInit {
       bank_account_id: value.bank_account_id ?? null,
       movement_type: value.movement_type || '',
       status: value.status || '',
+      classifications: value.classifications ?? [],
       page: 1,
       limit: this.filters.limit,
     };
@@ -336,6 +346,7 @@ export class TreasuryBankMovements implements OnInit {
         bank_id: null,
         bank_account_id: null,
         movement_type: '',
+        classifications: [],
         status: '',
       },
       { emitEvent: false },
@@ -347,6 +358,7 @@ export class TreasuryBankMovements implements OnInit {
       search: '',
       company_id: null,
       bank_id: null,
+      classifications: null,
       bank_account_id: null,
       date_from: null,
       date_to: null,
@@ -394,6 +406,11 @@ export class TreasuryBankMovements implements OnInit {
       company_id: this.getNumberId(ui.company_id),
       bank_id: this.getNumberId(ui.bank_id),
       bank_account_id: this.getNumberId(ui.bank_account_id),
+
+      classifications:
+        ui.classifications?.length
+          ? ui.classifications
+          : null,
 
       date_from: ui.dateRange?.startDate ?? null,
       date_to: ui.dateRange?.endDate ?? null,
@@ -487,6 +504,7 @@ export class TreasuryBankMovements implements OnInit {
         search: saved.search ?? '',
         company_id: saved.company_id ?? null,
         bank_id: saved.bank_id ?? null,
+        classifications: saved.classifications ?? [],
         bank_account_id: saved.bank_account_id ?? null,
         movement_type: saved.movement_type ?? '',
         status: saved.status ?? '',
@@ -501,6 +519,7 @@ export class TreasuryBankMovements implements OnInit {
       company_id: saved.company_id ?? null,
       bank_id: saved.bank_id ?? null,
       bank_account_id: saved.bank_account_id ?? null,
+      classifications: saved.classifications ?? [],
       movement_type: saved.movement_type ?? '',
       status: saved.status ?? '',
       page: saved.page ?? 1,
@@ -520,6 +539,7 @@ export class TreasuryBankMovements implements OnInit {
         dateRange: value.dateRange ?? null,
         search: value.search?.trim() || '',
         company_id: value.company_id ?? null,
+        classifications: value.classifications ?? [],
         bank_id: value.bank_id ?? null,
         bank_account_id: value.bank_account_id ?? null,
         movement_type: value.movement_type || '',

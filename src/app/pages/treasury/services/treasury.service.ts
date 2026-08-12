@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
 import * as entity from '../interfaces/treasury.interfaces';
+import { Catalog } from '../../../shared/interfaces/general-interfaces';
 
 @Injectable({
   providedIn: 'root',
@@ -137,88 +138,97 @@ export class TreasuryService {
     >(`${this.apiUrl}/import-files`, { params });
   }
 
-// =========================================================
-// TESORERÍA: MOVIMIENTOS BANCARIOS
-// =========================================================
+  // =========================================================
+  // TESORERÍA: MOVIMIENTOS BANCARIOS
+  // =========================================================
 
-getBankMovements(
-  filters?: entity.TreasuryBankMovementFilters,
-): Observable<entity.TreasuryBankMovementsPaginatedResponse> {
-  let params = new HttpParams();
+  getBankMovements(
+    filters?: entity.TreasuryBankMovementFilters,
+  ): Observable<entity.TreasuryBankMovementsPaginatedResponse> {
+    let params = new HttpParams();
 
-  if (filters) {
-    params = params.set('page', String(filters.page));
-    params = params.set('limit', String(filters.limit));
+    if (filters) {
+      params = params.set('page', String(filters.page));
+      params = params.set('limit', String(filters.limit));
 
-    if (filters.company_id) {
-      params = params.set('company_id', String(filters.company_id));
+      if (filters.company_id) {
+        params = params.set('company_id', String(filters.company_id));
+      }
+
+      if (filters.bank_account_id) {
+        params = params.set('bank_account_id', String(filters.bank_account_id));
+      }
+
+      if (filters.bank_id) {
+        params = params.set('bank_id', String(filters.bank_id));
+      }
+
+      if (filters.date_from) {
+        params = params.set('date_from', String(filters.date_from));
+      }
+
+      if (filters.date_to) {
+        params = params.set('date_to', String(filters.date_to));
+      }
+
+      if (filters.movement_type) {
+        params = params.set('movement_type', String(filters.movement_type));
+      }
+
+      if (filters.status) {
+        params = params.set('status', String(filters.status));
+      }
+
+      if (filters.classifications?.length) {
+        params = params.set(
+          'classifications',
+          filters.classifications.join(','),
+        );
+      }
+
+      if (filters.search?.trim()) {
+        params = params.set('search', filters.search.trim());
+      }
     }
 
-    if (filters.bank_account_id) {
-      params = params.set('bank_account_id', String(filters.bank_account_id));
-    }
-
-    if (filters.bank_id) {
-      params = params.set('bank_id', String(filters.bank_id));
-    }
-
-    if (filters.date_from) {
-      params = params.set('date_from', String(filters.date_from));
-    }
-
-    if (filters.date_to) {
-      params = params.set('date_to', String(filters.date_to));
-    }
-
-    if (filters.movement_type) {
-      params = params.set('movement_type', String(filters.movement_type));
-    }
-
-    if (filters.status) {
-      params = params.set('status', String(filters.status));
-    }
-
-    if (filters.search?.trim()) {
-      params = params.set('search', filters.search.trim());
-    }
+    return this.http.get<entity.TreasuryBankMovementsPaginatedResponse>(
+      `${this.apiUrl}/bank-movements`,
+      { params },
+    );
   }
 
-  return this.http.get<entity.TreasuryBankMovementsPaginatedResponse>(
-    `${this.apiUrl}/bank-movements`,
-    { params },
-  );
-}
 
+  // =========================================================
+  // TESORERÍA: RECLASIFICACIÓN MANUAL DE MOVIMIENTOS
+  // =========================================================
 
-// =========================================================
-// TESORERÍA: RECLASIFICACIÓN MANUAL DE MOVIMIENTOS
-// =========================================================
-
-updateBankMovementClassification(
-  movementId: number | string,
-  payload:
-    entity.TreasuryUpdateBankMovementClassificationPayload,
-): Observable<
-  entity.TreasuryUpdateBankMovementClassificationResponse
-> {
-  return this.http.patch<
+  updateBankMovementClassification(
+    movementId: number | string,
+    payload:
+      entity.TreasuryUpdateBankMovementClassificationPayload,
+  ): Observable<
     entity.TreasuryUpdateBankMovementClassificationResponse
-  >(
-    `${this.apiUrl}/bank-movements/${movementId}/classification`,
-    payload,
-  );
-}
+  > {
+    return this.http.patch<
+      entity.TreasuryUpdateBankMovementClassificationResponse
+    >(
+      `${this.apiUrl}/bank-movements/${movementId}/classification`,
+      payload,
+    );
+  }
 
 
+  // catalog 
+  getBankMovementClassifications(): Observable<
+    Catalog[]
+  > {
+    return this.http.get<
+      Catalog[]
+    >(
+      `${this.apiUrl}/bank-movements/classifications`,
+    );
+  }
 
-
-
-
-
-
-
-
-  
 
 }
 
