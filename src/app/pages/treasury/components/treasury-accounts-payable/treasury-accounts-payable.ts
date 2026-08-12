@@ -177,7 +177,7 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     align: 'right',
   },
   {
-    key: 'description_original',
+    key: 'description_display',
     label: 'Descripción',
   },
   {
@@ -1318,44 +1318,47 @@ export class TreasuryAccountsPayable
   // =========================================================
 
   private mapAvailableOutflowRow(
-    row: entity.TreasuryAvailableOutflow,
-  ): entity.TreasuryAvailableOutflowTableRow {
-    return {
-      ...row,
+  row: entity.TreasuryAvailableOutflow,
+): entity.TreasuryAvailableOutflowTableRow {
+  return {
+    ...row,
 
-      company_name:
-        row.company?.name ??
-        'Empresa no identificada',
+    company_name:
+      row.company?.name ??
+      'Empresa no identificada',
 
-      bank_name:
-        row.bank?.name ??
-        'Sin banco',
+    bank_name:
+      row.bank?.name ??
+      'Sin banco',
 
-      bank_account_display:
-        this.getBankAccountDisplay(row),
+    bank_account_display:
+      this.getBankAccountDisplay(row),
 
-      reference_display:
-        row.bank_reference?.trim() ||
-        row.receipt_number?.trim() ||
-        row.tracking_key?.trim() ||
-        `Movimiento ${row.id}`,
+    reference_display:
+      row.bank_reference?.trim() ||
+      row.receipt_number?.trim() ||
+      row.tracking_key?.trim() ||
+      `Movimiento ${row.id}`,
 
-      counterparty_display:
-        row.counterparty_name?.trim() ||
-        row.counterparty_account?.trim() ||
-        'Sin contraparte',
+    counterparty_display:
+      row.counterparty_name?.trim() ||
+      row.counterparty_account?.trim() ||
+      'Sin contraparte',
 
-      status_label:
-        this.getMovementStatusLabel(
-          row.status,
-        ),
+    description_display:
+      this.getMovementDescriptionDisplay(row),
 
-      classification_label:
-        this.getClassificationLabel(
-          row.classification,
-        ),
-    };
-  }
+    status_label:
+      this.getMovementStatusLabel(
+        row.status,
+      ),
+
+    classification_label:
+      this.getClassificationLabel(
+        row.classification,
+      ),
+  };
+}
 
   private mapPendingExpenseItemRow(
     row: entity.TreasuryPendingExpenseItem,
@@ -3062,6 +3065,306 @@ export class TreasuryAccountsPayable
   // =========================================================
   // HELPERS
   // =========================================================
+  private getMovementDescriptionDisplay(
+  row: entity.TreasuryAvailableOutflow,
+): string {
+  const description =
+    row.description_original?.trim() || '';
+
+  if (!description) {
+    return 'Sin descripción';
+  }
+
+  /*
+   * 1. Prioridad principal:
+   * si el banco envía BENEFICIARIO,
+   * mostramos únicamente el nombre.
+   */
+  const beneficiaryMatch =
+    description.match(
+      /BENEFICIARIO\s*:\s*([^|]+)/i,
+    );
+
+  if (
+    beneficiaryMatch?.[1]?.trim()
+  ) {
+    return this.cleanMovementDisplayText(
+      beneficiaryMatch[1],
+    );
+  }
+
+  /*
+   * 2. Si el parser ya identificó
+   * correctamente la contraparte.
+   */
+  if (
+    row.counterparty_name?.trim()
+  ) {
+    return this.cleanMovementDisplayText(
+      row.counterparty_name,
+    );
+  }
+
+  const parts =
+    description
+      .split('|')
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+  /*
+   * 3. Algunos formatos BBVA dejan
+   * la contraparte como último bloque.
+   *
+   * Ejemplo:
+   * ... | BNET... | HERRAJES ANGELES SA DE CV
+   */
+  if (parts.length >= 4) {
+    const lastPart =
+      parts[parts.length - 1];
+
+    if (
+      this.looksLikeCounterpartyName(
+        lastPart,
+      )
+    ) {
+      return this.cleanMovementDisplayText(
+        lastPart,
+      );
+    }
+  }
+
+  /*
+   * 4. Si no existe contraparte,
+   * extraemos únicamente el concepto útil.
+   */
+  const concept =
+    this.extractMovementConcept(
+      description,
+    );
+
+  if (concept) {
+    return this.limitMovementDisplayText(
+      concept,
+    );
+  }
+
+  /*
+   * 5. Último fallback:
+   * nunca dejamos crecer indefinidamente
+   * la columna.
+   */
+  return this.limitMovementDisplayText(
+    description,
+  );
+}
+
+private extractMovementConcept(
+  description: string,
+): string {
+  const parts =
+    description
+      .split('|')
+      .map((part) => part.trim())
+      .filter(Boolean);
+
+  for (
+    const part of parts
+  ) {
+    const candidate =
+      this.cleanMovementConceptPart(
+        part,
+      );
+
+    if (
+      this.isUsefulMovementConcept(
+        candidate,
+      )
+    ) {
+      return candidate;
+    }
+  }
+
+  return '';
+}
+
+private cleanMovementConceptPart(
+  value: string,
+): string {
+  let result =
+    value.trim();
+
+  /*
+   * BanBajío.
+   */
+  result = result
+    .replace(
+      /^ENV[IÍ]O\s+SPEI\s*:\s*/i,
+      '',
+    )
+    .replace(
+      /^DEP[ÓO]SITO\s+SPEI\s*:\s*/i,
+      '',
+    );
+
+  /*
+   * BBVA:
+   *
+   * SPEI ENVIADO HSBC ...
+   * SPEI ENVIADO HSBC/0099000001 ...
+   */
+  result = result.replace(
+    /^SPEI\s+(?:ENVIADO|RECIBIDO)\s+[A-ZÁÉÍÓÚÑ0-9.-]+(?:\/\d+)?\s*/i,
+    '',
+  );
+
+  /*
+   * Quita códigos iniciales como:
+   *
+   * 0090826PAGO...
+   * 021 0020826PRUEBA...
+   */
+  result = result.replace(
+    /^(?:\d{3}\s+)?\d{6,8}(?=[A-ZÁÉÍÓÚÑ])/i,
+    '',
+  );
+
+  /*
+   * Quita referencias que ya tenemos
+   * en otros campos de la tabla.
+   */
+  result = result.replace(
+    /\s+REF\.?\s*.*$/i,
+    '',
+  );
+
+  return result.trim();
+}
+
+private isUsefulMovementConcept(
+  value: string,
+): boolean {
+  const text =
+    value.trim();
+
+  if (!text) {
+    return false;
+  }
+
+  const compact =
+    text.replace(/\s+/g, '');
+
+  /*
+   * Números de banco, cuentas y códigos.
+   */
+  if (
+    /^\d+$/.test(compact)
+  ) {
+    return false;
+  }
+
+  if (
+    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+  /*
+   * Bloques técnicos que no sirven
+   * como descripción para el usuario.
+   */
+  if (
+    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+
+  return /[A-ZÁÉÍÓÚÑ]/i.test(
+    text,
+  );
+}
+
+private looksLikeCounterpartyName(
+  value: string,
+): boolean {
+  const text =
+    value.trim();
+
+  if (!text) {
+    return false;
+  }
+
+  const compact =
+    text.replace(/\s+/g, '');
+
+  if (
+    /^\d+$/.test(compact)
+  ) {
+    return false;
+  }
+
+  if (
+    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+  if (
+    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+
+  return (
+    text.split(/\s+/).length >= 2 &&
+    /[A-ZÁÉÍÓÚÑ]{2,}/i.test(text)
+  );
+}
+
+private cleanMovementDisplayText(
+  value: string,
+): string {
+  return value
+    /*
+     * Limpia terminaciones del banco:
+     *
+     * (BI-7784326123218)
+     * (BI-7784326123218
+     * (BI- )
+     * (B
+     */
+    .replace(
+      /\s*\(B(?:I)?(?:-[^)]*)?\)?\s*$/i,
+      '',
+    )
+    .trim();
+}
+
+private limitMovementDisplayText(
+  value: string,
+  maxLength = 90,
+): string {
+  const text =
+    value.trim();
+
+  if (
+    text.length <= maxLength
+  ) {
+    return text;
+  }
+
+  return `${text.slice(
+    0,
+    maxLength - 1,
+  ).trim()}…`;
+}
 
   private getBankAccountDisplay(
     row: entity.TreasuryAvailableOutflow,

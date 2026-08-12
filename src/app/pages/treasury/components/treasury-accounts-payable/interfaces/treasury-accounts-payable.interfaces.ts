@@ -104,6 +104,7 @@ export interface TreasuryAvailableOutflow {
 
   counterparty_name: string | null;
   counterparty_account: string | null;
+  description_display?: string;
 
   amount: number;
   available_amount: number;
