@@ -533,8 +533,9 @@
             [isFilter]="true">
           </app-input-field>
 
-          <app-input-select formControlName="item_type" label="Tipo" [options]="itemTypeOptions">
-          </app-input-select>
+          <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+            catalogType="supplier" valueMode="objects">
+          </app-autocomplete-multiple>
 
           <!--
             Se habilitan cuando conectemos sus catálogos.
@@ -801,5 +802,3 @@
 
 <app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por pagar...">
 </app-loading-overlay>
-
-

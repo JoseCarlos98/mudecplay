@@ -82,6 +82,7 @@ import { ModalCashPayment } from './components/modal-cash-payment/modal-cash-pay
 import { PermissionsService } from '../../../../auth/services/permissions.service';
 import { ModalAccountsPayableClassification } from './components/modal-accounts-payable-classification.ts/modal-accounts-payable-classification';
 import { ModalAccountsPayableBulkClassification } from './components/modal-accounts-payable-bulk-classification/modal-accounts-payable-bulk-classification';
+import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 
 // =========================================================
 // STORAGE
@@ -110,16 +111,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {};
 // OPCIONES
 // =========================================================
 
-const ITEM_TYPE_OPTIONS: Catalog[] = [
-  {
-    id: 'direct',
-    name: 'Directo',
-  },
-  {
-    id: 'warehouse',
-    name: 'Almacén',
-  },
-];
 
 const REGULARIZATION_TYPE_OPTIONS: Catalog[] = [
   {
@@ -526,7 +517,7 @@ type AccountsPayableTab =
     InputSelect,
     BtnsSection,
     LoadingOverlay,
-
+    SearchMultiSelect,
     MatPaginatorModule,
     MatIconModule,
     MatButtonModule,
@@ -584,9 +575,6 @@ export class TreasuryAccountsPayable
 
   readonly historicalPaymentDisplayedColumns =
     HISTORICAL_PAYMENT_DISPLAYED_COLUMNS;
-
-  readonly itemTypeOptions =
-    ITEM_TYPE_OPTIONS;
 
   readonly regularizationTypeOptions =
     REGULARIZATION_TYPE_OPTIONS;
@@ -664,18 +652,23 @@ export class TreasuryAccountsPayable
       date_to: null,
     };
 
-  pendingItemFilters:
-    entity.TreasuryPendingExpenseItemFilters = {
-      page: 1,
-      limit: 10,
-      search: '',
-      amount: null,
-      supplier_id: null,
-      project_id: null,
-      item_type: null,
-      date_from: null,
-      date_to: null,
-    };
+pendingItemFilters:
+  entity.TreasuryPendingExpenseItemFilters = {
+    page: 1,
+    limit: 10,
+
+    search: '',
+    amount: null,
+
+    supplier_ids: [],
+    supplier_id: null,
+
+    project_id: null,
+    item_type: null,
+
+    date_from: null,
+    date_to: null,
+  };
 
   historicalFilters:
     entity.TreasuryHistoricalPaymentFilters = {
@@ -737,20 +730,15 @@ export class TreasuryAccountsPayable
           number | string | null
         >(null),
 
-      supplier_id:
-        this.fb.control<
-          Catalog | number | string | null
-        >(null),
+
 
       project_id:
         this.fb.control<
           Catalog | number | string | null
         >(null),
 
-      item_type:
-        this.fb.control<
-          entity.TreasuryPendingExpenseItemType | ''
-        >(''),
+      suppliersIds:
+        this.fb.control<Catalog[]>([]),
     });
 
   readonly historicalFilterForm =
@@ -1860,8 +1848,8 @@ export class TreasuryAccountsPayable
       search:
         value.search?.trim() || '',
 
-      supplier_id:
-        value.supplier_id ?? null,
+      suppliersIds:
+        value.suppliersIds ?? [],
 
       amount:
         this.normalizeAmountFilter(
@@ -1871,8 +1859,6 @@ export class TreasuryAccountsPayable
       project_id:
         value.project_id ?? null,
 
-      item_type:
-        value.item_type || '',
 
       page: 1,
       limit:
@@ -1897,9 +1883,9 @@ export class TreasuryAccountsPayable
         dateRange: null,
         search: '',
         amount: null,
-        supplier_id: null,
+        suppliersIds: [],
         project_id: null,
-        item_type: '',
+        // item_type: '',
       },
       {
         emitEvent: false,
@@ -1908,16 +1894,21 @@ export class TreasuryAccountsPayable
 
     this.pendingItemFilters = {
       page: 1,
+
       limit:
         this.pendingItemFilters.limit,
 
       search: '',
-      supplier_id: null,
+      amount: null,
+
+      supplier_ids: [],
+      // supplier_id: null,
+
       project_id: null,
-      item_type: null,
+      // item_type: null,
+
       date_from: null,
       date_to: null,
-      amount: null,
     };
 
     this.storage.removeItem(
@@ -1940,11 +1931,6 @@ export class TreasuryAccountsPayable
       search:
         ui.search?.trim() || '',
 
-      supplier_id:
-        this.getNumberId(
-          ui.supplier_id,
-        ),
-
       amount:
         ui.amount ?? null,
 
@@ -1953,8 +1939,17 @@ export class TreasuryAccountsPayable
           ui.project_id,
         ),
 
-      item_type:
-        ui.item_type || null,
+      supplier_ids:
+        (ui.suppliersIds ?? [])
+          .map(
+            (supplier) =>
+              Number(supplier.id),
+          )
+          .filter(
+            (id) =>
+              Number.isInteger(id) &&
+              id > 0,
+          ),
 
       date_from:
         ui.dateRange?.startDate ??
@@ -1982,6 +1977,8 @@ export class TreasuryAccountsPayable
   get hasActivePendingItemFilters(): boolean {
     const value =
       this.pendingItemFilterForm.getRawValue();
+    const hasSuppliers =
+      (value.suppliersIds?.length ?? 0) > 0;
 
     return Boolean(
       this.normalizeAmountFilter(
@@ -1990,13 +1987,10 @@ export class TreasuryAccountsPayable
       value.dateRange?.startDate ||
       value.dateRange?.endDate ||
       value.search?.trim() ||
-      this.getCatalogValue(
-        value.supplier_id,
-      ) ||
+      hasSuppliers ||
       this.getCatalogValue(
         value.project_id,
-      ) ||
-      value.item_type,
+      ),
     );
   }
 
@@ -3283,29 +3277,26 @@ export class TreasuryAccountsPayable
         saved.dateRange,
       );
 
-    this.pendingItemFilterForm.patchValue(
-      {
-        dateRange,
+this.pendingItemFilterForm.patchValue(
+  {
+    dateRange,
 
-        search:
-          saved.search ?? '',
+    search:
+      saved.search ?? '',
 
-        amount:
-          saved.amount ?? null,
+    amount:
+      saved.amount ?? null,
 
-        supplier_id:
-          saved.supplier_id ?? null,
+    suppliersIds:
+      saved.suppliersIds ?? [],
 
-        project_id:
-          saved.project_id ?? null,
-
-        item_type:
-          saved.item_type ?? '',
-      },
-      {
-        emitEvent: false,
-      },
-    );
+    project_id:
+      saved.project_id ?? null,
+  },
+  {
+    emitEvent: false,
+  },
+);
 
     this.pendingItemFilters =
       this.buildPendingItemsBackendFiltersFromUi({
@@ -3458,47 +3449,46 @@ export class TreasuryAccountsPayable
     );
   }
 
-  private savePendingItemFiltersToStorage(
-    state?: entity.TreasuryPendingExpenseItemUiFilters,
-  ): void {
-    if (!state) {
-      const value =
-        this.pendingItemFilterForm.getRawValue();
+private savePendingItemFiltersToStorage(
+  state?:
+    entity.TreasuryPendingExpenseItemUiFilters,
+): void {
+  if (!state) {
+    const value =
+      this.pendingItemFilterForm
+        .getRawValue();
 
-      state = {
-        dateRange:
-          value.dateRange ?? null,
+    state = {
+      dateRange:
+        value.dateRange ?? null,
 
-        search:
-          value.search?.trim() || '',
+      search:
+        value.search?.trim() || '',
 
-        supplier_id:
-          value.supplier_id ?? null,
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
 
-        amount:
-          this.normalizeAmountFilter(
-            value.amount,
-          ),
+      suppliersIds:
+        value.suppliersIds ?? [],
 
-        project_id:
-          value.project_id ?? null,
+      project_id:
+        value.project_id ?? null,
 
-        item_type:
-          value.item_type || '',
+      page:
+        this.pendingItemFilters.page,
 
-        page:
-          this.pendingItemFilters.page,
-
-        limit:
-          this.pendingItemFilters.limit,
-      };
-    }
-
-    this.storage.setItem(
-      PENDING_EXPENSE_ITEMS_FILTERS_KEY,
-      state,
-    );
+      limit:
+        this.pendingItemFilters.limit,
+    };
   }
+
+  this.storage.setItem(
+    PENDING_EXPENSE_ITEMS_FILTERS_KEY,
+    state,
+  );
+}
 
   private saveHistoricalFiltersToStorage(
     state?:

@@ -176,6 +176,7 @@ export type TreasuryPendingExpenseItemType =
 
 export interface TreasuryPendingExpenseItemFilters {
   supplier_id?: number | null;
+  supplier_ids?: number[];
   project_id?: number | null;
 
   date_from?: string | null;
@@ -194,11 +195,11 @@ export interface TreasuryPendingExpenseItemUiFilters {
   dateRange: TreasuryAccountsPayableDateRange | null;
 
   search: string;
-
-  supplier_id: Catalog | number | string | null;
+  suppliersIds: Catalog[];
+  supplier_id?: Catalog | number | string | null;
   project_id: Catalog | number | string | null;
 
-  item_type: TreasuryPendingExpenseItemType | '';
+  // item_type: TreasuryPendingExpenseItemType | '';
   amount: number | null;
 
   page: number;
@@ -1688,7 +1689,7 @@ export interface TreasuryBankMovementClassificationModalData {
 
 export interface TreasuryBulkBankMovementClassificationModalData {
   movements:
-    TreasuryAvailableOutflowTableRow[];
+  TreasuryAvailableOutflowTableRow[];
 }
 
 
@@ -1701,19 +1702,19 @@ export interface TreasuryConfirmedBankMovement {
   id: string;
 
   previous_classification:
-    string | null;
+  string | null;
 
   classification:
-    TreasuryBankMovementReviewClassification;
+  TreasuryBankMovementReviewClassification;
 
   classification_label:
-    string;
+  string;
 
   previous_status:
-    TreasuryBankMovementStatus;
+  TreasuryBankMovementStatus;
 
   status:
-    TreasuryBankMovementStatus;
+  TreasuryBankMovementStatus;
 
   amount: number;
 
@@ -1730,5 +1731,5 @@ export interface TreasuryConfirmBankMovementsClassificationResponse {
   processed_count: number;
 
   movements:
-    TreasuryConfirmedBankMovement[];
+  TreasuryConfirmedBankMovement[];
 }

@@ -140,97 +140,154 @@ export class TreasuryAccountsPayableService {
   // CONCEPTOS PENDIENTES
   // =========================================================
 
-  getPendingExpenseItems(
-    filters?: entity.TreasuryPendingExpenseItemFilters,
-  ): Observable<entity.TreasuryPendingExpenseItemsResponse> {
-    let params = new HttpParams();
+getPendingExpenseItems(
+  filters?:
+    entity.TreasuryPendingExpenseItemFilters,
+): Observable<
+  entity.TreasuryPendingExpenseItemsResponse
+> {
+  let params =
+    new HttpParams();
 
-    if (filters) {
+  if (filters) {
+    params = params.set(
+      'page',
+      String(
+        filters.page,
+      ),
+    );
+
+    params = params.set(
+      'limit',
+      String(
+        filters.limit,
+      ),
+    );
+
+    if (
+      filters.search?.trim()
+    ) {
       params = params.set(
-        'page',
-        String(filters.page),
+        'search',
+        filters.search.trim(),
       );
+    }
 
+    if (
+      filters.amount !== undefined &&
+      filters.amount !== null
+    ) {
       params = params.set(
-        'limit',
-        String(filters.limit),
+        'amount',
+        String(
+          filters.amount,
+        ),
       );
+    }
 
-      if (filters.search?.trim()) {
-        params = params.set(
-          'search',
-          filters.search.trim(),
-        );
-      }
-
+    /*
+     * Proveedores múltiples.
+     *
+     * Angular genera:
+     *
+     * ?supplier_ids=3&supplier_ids=8
+     */
+    for (
+      const supplierId of
+      filters.supplier_ids ??
+      []
+    ) {
       if (
-        filters.amount !== undefined &&
-        filters.amount !== null
+        Number.isInteger(
+          Number(
+            supplierId,
+          ),
+        ) &&
+        Number(
+          supplierId,
+        ) > 0
       ) {
-        params = params.set(
-          'amount',
-          String(filters.amount),
-        );
-      }
-
-      if (
-        filters.supplier_id !== undefined &&
-        filters.supplier_id !== null
-      ) {
-        params = params.set(
-          'supplier_id',
-          String(filters.supplier_id),
-        );
-      }
-
-      if (
-        filters.project_id !== undefined &&
-        filters.project_id !== null
-      ) {
-        params = params.set(
-          'project_id',
-          String(filters.project_id),
-        );
-      }
-
-      if (filters.date_from?.trim()) {
-        params = params.set(
-          'date_from',
-          filters.date_from.trim(),
-        );
-      }
-
-      if (filters.date_to?.trim()) {
-        params = params.set(
-          'date_to',
-          filters.date_to.trim(),
-        );
-      }
-
-      if (filters.item_type) {
-        params = params.set(
-          'item_type',
-          filters.item_type,
-        );
-      }
-
-      if (filters.origin_type?.trim()) {
-        params = params.set(
-          'origin_type',
-          filters.origin_type.trim(),
+        params = params.append(
+          'supplier_ids',
+          String(
+            supplierId,
+          ),
         );
       }
     }
 
-    return this.http.get<
-      entity.TreasuryPendingExpenseItemsResponse
-    >(
-      `${this.apiUrl}/pending-expense-items`,
-      {
-        params,
-      },
-    );
+    /*
+     * Compatibilidad temporal.
+     * Puede eliminarse cuando confirmemos
+     * que ningún otro flujo usa supplier_id.
+     */
+    if (
+      filters.supplier_id !==
+        undefined &&
+      filters.supplier_id !==
+        null
+    ) {
+      params = params.set(
+        'supplier_id',
+        String(
+          filters.supplier_id,
+        ),
+      );
+    }
+
+    if (
+      filters.project_id !==
+        undefined &&
+      filters.project_id !==
+        null
+    ) {
+      params = params.set(
+        'project_id',
+        String(
+          filters.project_id,
+        ),
+      );
+    }
+
+    if (
+      filters.item_type
+    ) {
+      params = params.set(
+        'item_type',
+        filters.item_type,
+      );
+    }
+
+    if (
+      filters.date_from
+        ?.trim()
+    ) {
+      params = params.set(
+        'date_from',
+        filters.date_from.trim(),
+      );
+    }
+
+    if (
+      filters.date_to
+        ?.trim()
+    ) {
+      params = params.set(
+        'date_to',
+        filters.date_to.trim(),
+      );
+    }
   }
+
+  return this.http.get<
+    entity.TreasuryPendingExpenseItemsResponse
+  >(
+    `${this.apiUrl}/pending-expense-items`,
+    {
+      params,
+    },
+  );
+}
 
   // =========================================================
   // CUENTAS POR PAGAR:
