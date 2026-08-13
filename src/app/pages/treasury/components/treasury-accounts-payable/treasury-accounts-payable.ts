@@ -80,6 +80,8 @@ import { ModalHistoricalPaymentHistory } from './components/modal-historical-pay
 import { ModalExpenseItemPaymentHistory } from './components/modal-expense-item-payment-history/modal-expense-item-payment-history';
 import { ModalCashPayment } from './components/modal-cash-payment/modal-cash-payment';
 import { PermissionsService } from '../../../../auth/services/permissions.service';
+import { ModalAccountsPayableClassification } from './components/modal-accounts-payable-classification.ts/modal-accounts-payable-classification';
+import { ModalAccountsPayableBulkClassification } from './components/modal-accounts-payable-bulk-classification/modal-accounts-payable-bulk-classification';
 
 // =========================================================
 // STORAGE
@@ -156,13 +158,55 @@ const MISSING_PAYMENT_DATE_OPTIONS: Catalog[] = [
 
 const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
   {
+    key: 'classification_selected',
+    label: 'Elegir',
+    type: 'select',
+    align: 'center',
+
+    selectActionType:
+      'toggleClassificationSelection',
+
+    selectedResolver: (
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
+    ) =>
+      row.classification_selected === true,
+
+    /*
+     * Solo los movimientos completamente
+     * disponibles pueden reclasificarse.
+     *
+     * Los parcialmente conciliados permanecen
+     * visibles, pero no deben entrar a esta
+     * selección administrativa.
+     */
+    selectDisabledResolver: (
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
+    ) =>
+      row.status !== 'unmatched',
+
+    selectTooltip: (
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
+    ) => {
+      if (
+        row.status !== 'unmatched'
+      ) {
+        return (
+          'El movimiento ya tiene aplicaciones y no puede reclasificarse.'
+        );
+      }
+
+      return row.classification_selected
+        ? 'Quitar de la selección'
+        : 'Seleccionar para revisión';
+    },
+  },
+  {
     key: 'movement_date',
     label: 'Fecha',
     type: 'date',
-  },
-  {
-    key: 'reference_display',
-    label: 'Referencia',
   },
   {
     key: 'amount',
@@ -172,13 +216,35 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
   },
   {
     key: 'available_amount',
-    label: 'Disponible actual',
+    label: 'Disponible',
     type: 'money',
     align: 'right',
   },
   {
     key: 'description_display',
     label: 'Descripción',
+  },
+  {
+    key: 'classification_label',
+    label: 'Clasificación',
+    type: 'chip',
+    variantResolver: (
+      row: entity.TreasuryAvailableOutflowTableRow,
+    ) =>
+      resolveAvailableOutflowClassificationVariant(
+        row,
+      ),
+  },
+  {
+    key: 'classification_review_label',
+    label: 'Revisión',
+    type: 'chip',
+    variantResolver: (
+      row: entity.TreasuryAvailableOutflowTableRow,
+    ) =>
+      resolveAvailableOutflowReviewVariant(
+        row,
+      ),
   },
   {
     key: 'company_name',
@@ -198,7 +264,10 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     type: 'chip',
     variantResolver: (
       row: entity.TreasuryAvailableOutflowTableRow,
-    ) => resolveAvailableOutflowStatusVariant(row),
+    ) =>
+      resolveAvailableOutflowStatusVariant(
+        row,
+      ),
   },
 ];
 
@@ -365,6 +434,39 @@ function resolveAvailableOutflowStatusVariant(
   }
 }
 
+function resolveAvailableOutflowClassificationVariant(
+  row: entity.TreasuryAvailableOutflowTableRow,
+): ColumnVariant {
+  if (!row.is_payable) {
+    return 'chip-warning';
+  }
+
+  switch (row.classification) {
+    case 'gasto_por_comprobar':
+      return 'chip-success';
+
+    case 'impuesto':
+    case 'pago_tercero':
+    case 'transferencia_salida':
+      return 'chip-neutral';
+
+    case 'prestamo':
+    case 'traspaso_interno_salida':
+      return 'chip-warning';
+
+    default:
+      return 'chip-neutral';
+  }
+}
+
+function resolveAvailableOutflowReviewVariant(
+  row: entity.TreasuryAvailableOutflowTableRow,
+): ColumnVariant {
+  return row.classification_reviewed
+    ? 'chip-success'
+    : 'chip-warning';
+}
+
 function resolveExpenseItemTypeVariant(
   row: entity.TreasuryPendingExpenseItemTableRow,
 ): ColumnVariant {
@@ -501,6 +603,9 @@ export class TreasuryAccountsPayable
   // LOADING
   // =========================================================
 
+  readonly loadingClassification =
+    signal(false);
+
   readonly loadingCatalogs =
     signal(false);
 
@@ -525,7 +630,8 @@ export class TreasuryAccountsPayable
       this.loadingCatalogs() ||
       this.loadingOutflows() ||
       this.loadingPendingItems() ||
-      this.loadingHistorical(),
+      this.loadingHistorical() ||
+      this.loadingClassification(),
   );
 
   // =========================================================
@@ -745,6 +851,87 @@ export class TreasuryAccountsPayable
   historicalPaymentRows:
     entity.TreasuryHistoricalPaymentTableRow[] = [];
 
+
+  // =========================================================
+  // SELECCIÓN PARA REVISIÓN / CLASIFICACIÓN
+  // =========================================================
+
+  readonly selectedClassificationMovements =
+    signal<
+      Map<
+        string,
+        entity.TreasuryAvailableOutflowTableRow
+      >
+    >(
+      new Map<
+        string,
+        entity.TreasuryAvailableOutflowTableRow
+      >(),
+    );
+
+  readonly selectedClassificationCount =
+    computed(
+      () =>
+        this
+          .selectedClassificationMovements()
+          .size,
+    );
+
+  readonly selectedClassificationAmount =
+    computed(() => {
+      const total =
+        Array.from(
+          this
+            .selectedClassificationMovements()
+            .values(),
+        )
+          .reduce(
+            (
+              sum,
+              movement,
+            ) =>
+              sum +
+              Number(
+                movement.available_amount ||
+                0,
+              ),
+            0,
+          );
+
+      return roundMoney(total);
+    });
+
+  readonly selectedClassificationRows =
+    computed(() =>
+      Array.from(
+        this
+          .selectedClassificationMovements()
+          .values(),
+      ),
+    );
+
+
+  readonly canConfirmSelectedClassifications =
+    computed(() => {
+      const rows =
+        this.selectedClassificationRows();
+
+      if (
+        rows.length === 0
+      ) {
+        return false;
+      }
+
+      return rows.every(
+        (row) =>
+          row.status === 'unmatched' &&
+          row.requires_classification_review &&
+          this.isReviewClassification(
+            row.classification,
+          ),
+      );
+    });
+
   // =========================================================
   // SELECCIÓN PARA PAGO
   // =========================================================
@@ -886,36 +1073,78 @@ export class TreasuryAccountsPayable
       entity.TreasuryAvailableOutflowTableRow
     >[] = [
       {
+        type: 'confirmClassification',
+        icon: 'task_alt',
+
+        tooltip: (row) =>
+          row.classification
+            ? `Confirmar: ${row.classification_label}`
+            : 'El movimiento no tiene clasificación',
+
+        iconClass:
+          'table-action-icon--success',
+
+        visible: (row) =>
+          row.status === 'unmatched' &&
+          row.requires_classification_review &&
+          !!row.classification,
+      },
+
+      {
+        type: 'changeClassification',
+        icon: 'edit',
+        tooltip: 'Cambiar clasificación',
+
+        visible: (row) =>
+          row.status === 'unmatched',
+      },
+
+      {
         type: 'selectMovement',
         icon: 'check_circle',
-        tooltip: 'Seleccionar movimiento',
 
-        /*
-         * El icono para seleccionar solamente aparece
-         * cuando esta fila todavía no está seleccionada.
-         */
+        tooltip: (row) => {
+          if (
+            row.requires_classification_review
+          ) {
+            return 'Primero confirma o cambia la clasificación';
+          }
+
+          if (!row.is_payable) {
+            return 'Esta clasificación no es conciliable';
+          }
+
+          return 'Seleccionar movimiento para pago';
+        },
+
+        disabled: (row) =>
+          row.requires_classification_review ||
+          !row.is_payable,
+
         visible: (row) =>
-          this.selectedMovement()?.id !== row.id,
+          this.selectedMovement()?.id !==
+          row.id,
       },
+
       {
         type: 'clearMovementSelection',
         icon: 'cancel',
         tooltip: 'Deseleccionar movimiento',
 
-        /*
-         * La X roja solamente aparece en el movimiento
-         * que se encuentra seleccionado actualmente.
-         */
-        iconClass: 'table-action-icon--danger',
+        iconClass:
+          'table-action-icon--danger',
 
         visible: (row) =>
-          this.selectedMovement()?.id === row.id,
+          this.selectedMovement()?.id ===
+          row.id,
       },
+
       {
         type: 'movementHistory',
         icon: 'history',
         tooltip: 'Ver historial',
       },
+
       {
         type: 'manualClose',
         icon: 'lock',
@@ -926,6 +1155,7 @@ export class TreasuryAccountsPayable
         ],
 
         visible: (row) =>
+          row.is_payable &&
           Number(
             row.available_amount,
           ) > 0,
@@ -1318,47 +1548,54 @@ export class TreasuryAccountsPayable
   // =========================================================
 
   private mapAvailableOutflowRow(
-  row: entity.TreasuryAvailableOutflow,
-): entity.TreasuryAvailableOutflowTableRow {
-  return {
-    ...row,
+    row: entity.TreasuryAvailableOutflow,
+  ): entity.TreasuryAvailableOutflowTableRow {
+    return {
+      ...row,
 
-    company_name:
-      row.company?.name ??
-      'Empresa no identificada',
+      company_name:
+        row.company?.name ??
+        'Empresa no identificada',
 
-    bank_name:
-      row.bank?.name ??
-      'Sin banco',
+      classification_selected: false,
 
-    bank_account_display:
-      this.getBankAccountDisplay(row),
+      bank_name:
+        row.bank?.name ??
+        'Sin banco',
 
-    reference_display:
-      row.bank_reference?.trim() ||
-      row.receipt_number?.trim() ||
-      row.tracking_key?.trim() ||
-      `Movimiento ${row.id}`,
+      bank_account_display:
+        this.getBankAccountDisplay(row),
 
-    counterparty_display:
-      row.counterparty_name?.trim() ||
-      row.counterparty_account?.trim() ||
-      'Sin contraparte',
+      reference_display:
+        row.bank_reference?.trim() ||
+        row.receipt_number?.trim() ||
+        row.tracking_key?.trim() ||
+        `Movimiento ${row.id}`,
 
-    description_display:
-      this.getMovementDescriptionDisplay(row),
+      counterparty_display:
+        row.counterparty_name?.trim() ||
+        row.counterparty_account?.trim() ||
+        'Sin contraparte',
 
-    status_label:
-      this.getMovementStatusLabel(
-        row.status,
-      ),
+      description_display:
+        this.getMovementDescriptionDisplay(row),
 
-    classification_label:
-      this.getClassificationLabel(
-        row.classification,
-      ),
-  };
-}
+      status_label:
+        this.getMovementStatusLabel(
+          row.status,
+        ),
+
+      classification_label:
+        this.getClassificationLabel(
+          row.classification,
+        ),
+
+      classification_review_label:
+        row.classification_reviewed
+          ? 'Revisada'
+          : 'Pendiente',
+    };
+  }
 
   private mapPendingExpenseItemRow(
     row: entity.TreasuryPendingExpenseItem,
@@ -2044,15 +2281,278 @@ export class TreasuryAccountsPayable
         this.openManualClose(event.row);
         break;
 
+      case 'toggleClassificationSelection':
+        this.toggleClassificationSelection(
+          event.row,
+        );
+        break;
+
+      case 'confirmClassification':
+        this.confirmMovementClassification(
+          event.row,
+        );
+        break;
+
+      case 'changeClassification':
+        this.openClassificationModal(
+          event.row,
+        );
+        break;
+
       default:
         break;
     }
+  }
+
+
+  private openClassificationModal(
+    movement:
+      entity.TreasuryAvailableOutflowTableRow,
+  ): void {
+    if (
+      !movement?.id ||
+      movement.status !== 'unmatched'
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryBankMovementClassificationModalData = {
+      movement,
+    };
+
+    this.dialogService
+      .open(
+        ModalAccountsPayableClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryUpdateBankMovementClassificationResponse
+            | null,
+        ) => {
+          if (!result?.success) {
+            return;
+          }
+
+          /*
+           * Si estaba preparado para pagar,
+           * eliminamos cualquier estado anterior
+           * antes de refrescar.
+           */
+          if (
+            this.selectedMovement()?.id ===
+            movement.id
+          ) {
+            this.clearPaymentSelection();
+          }
+
+          /*
+           * Un traspaso interno confirmado
+           * desaparecerá automáticamente.
+           *
+           * Las demás clasificaciones
+           * permanecerán y mostrarán
+           * el nuevo estado de revisión.
+           */
+          this.loadAvailableOutflows();
+        },
+      );
+  }
+
+  private toggleClassificationSelection(
+    row:
+      entity.TreasuryAvailableOutflowTableRow,
+  ): void {
+    if (
+      !row?.id ||
+      row.status !== 'unmatched'
+    ) {
+      return;
+    }
+
+    const movementId =
+      String(row.id);
+
+    const isSelected =
+      this
+        .selectedClassificationMovements()
+        .has(
+          movementId,
+        );
+
+    /*
+     * Actualiza el Map independiente
+     * usado posteriormente por el endpoint bulk.
+     */
+    this
+      .selectedClassificationMovements
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          if (isSelected) {
+            next.delete(
+              movementId,
+            );
+          } else {
+            next.set(
+              movementId,
+              {
+                ...row,
+
+                classification_selected:
+                  true,
+              },
+            );
+          }
+
+          return next;
+        },
+      );
+
+    /*
+     * Creamos un array nuevo para que el DataTable
+     * OnPush reciba el cambio inmediatamente.
+     */
+    this.availableOutflowRows =
+      this.availableOutflowRows.map(
+        (movement) => {
+          if (
+            String(
+              movement.id,
+            ) !== movementId
+          ) {
+            return movement;
+          }
+
+          return {
+            ...movement,
+
+            classification_selected:
+              !isSelected,
+          };
+        },
+      );
+  }
+
+  clearClassificationSelection(): void {
+    if (
+      this
+        .selectedClassificationMovements()
+        .size === 0
+    ) {
+      return;
+    }
+
+    this
+      .selectedClassificationMovements
+      .set(
+        new Map<
+          string,
+          entity.TreasuryAvailableOutflowTableRow
+        >(),
+      );
+
+    this.availableOutflowRows =
+      this.availableOutflowRows.map(
+        (movement) => ({
+          ...movement,
+
+          classification_selected:
+            false,
+        }),
+      );
+  }
+
+  private confirmMovementClassification(
+    row:
+      entity.TreasuryAvailableOutflowTableRow,
+  ): void {
+    if (
+      this.loadingClassification() ||
+      !row?.id ||
+      row.status !== 'unmatched' ||
+      !row.classification ||
+      !row.requires_classification_review
+    ) {
+      return;
+    }
+
+    this.loadingClassification.set(
+      true,
+    );
+
+    this.accountsPayableService
+      .updateBankMovementClassification(
+        row.id,
+        {
+          classification:
+            row.classification as
+            entity.TreasuryBankMovementReviewClassification,
+
+          reason:
+            'Clasificación revisada y confirmada desde Cuentas por pagar.',
+        },
+      )
+      .pipe(
+        finalize(() =>
+          this.loadingClassification.set(
+            false,
+          ),
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+          if (!response?.success) {
+            return;
+          }
+
+          /*
+           * Si por cualquier motivo este movimiento
+           * estuviera seleccionado para pago,
+           * eliminamos la selección antes de refrescar.
+           */
+          if (
+            this.selectedMovement()?.id ===
+            row.id
+          ) {
+            this.clearPaymentSelection();
+          }
+
+          /*
+           * No mostramos diálogo de éxito.
+           * El interceptor global utiliza el mensaje
+           * retornado por backend.
+           */
+          this.loadAvailableOutflows();
+        },
+
+        error: (error: unknown) => {
+          console.error(
+            'Error confirmando clasificación del movimiento:',
+            error,
+          );
+        },
+      });
   }
 
   private selectMovement(
     row:
       entity.TreasuryAvailableOutflowTableRow,
   ): void {
+
+    if (
+      !row.is_payable ||
+      row.requires_classification_review
+    ) {
+      return;
+    }
+
     const current =
       this.selectedMovement();
 
@@ -3065,306 +3565,328 @@ export class TreasuryAccountsPayable
   // =========================================================
   // HELPERS
   // =========================================================
+  private isReviewClassification(
+    value:
+      string |
+      null |
+      undefined,
+  ): value is
+    entity.TreasuryBankMovementReviewClassification {
+
+    return [
+      'transferencia_salida',
+      'traspaso_interno_salida',
+      'pago_tercero',
+      'gasto_por_comprobar',
+      'prestamo',
+      'impuesto',
+    ].includes(
+      String(
+        value ?? '',
+      ),
+    );
+  }
+
   private getMovementDescriptionDisplay(
-  row: entity.TreasuryAvailableOutflow,
-): string {
-  const description =
-    row.description_original?.trim() || '';
+    row: entity.TreasuryAvailableOutflow,
+  ): string {
+    const description =
+      row.description_original?.trim() || '';
 
-  if (!description) {
-    return 'Sin descripción';
-  }
+    if (!description) {
+      return 'Sin descripción';
+    }
 
-  /*
-   * 1. Prioridad principal:
-   * si el banco envía BENEFICIARIO,
-   * mostramos únicamente el nombre.
-   */
-  const beneficiaryMatch =
-    description.match(
-      /BENEFICIARIO\s*:\s*([^|]+)/i,
-    );
-
-  if (
-    beneficiaryMatch?.[1]?.trim()
-  ) {
-    return this.cleanMovementDisplayText(
-      beneficiaryMatch[1],
-    );
-  }
-
-  /*
-   * 2. Si el parser ya identificó
-   * correctamente la contraparte.
-   */
-  if (
-    row.counterparty_name?.trim()
-  ) {
-    return this.cleanMovementDisplayText(
-      row.counterparty_name,
-    );
-  }
-
-  const parts =
-    description
-      .split('|')
-      .map((part) => part.trim())
-      .filter(Boolean);
-
-  /*
-   * 3. Algunos formatos BBVA dejan
-   * la contraparte como último bloque.
-   *
-   * Ejemplo:
-   * ... | BNET... | HERRAJES ANGELES SA DE CV
-   */
-  if (parts.length >= 4) {
-    const lastPart =
-      parts[parts.length - 1];
+    /*
+     * 1. Prioridad principal:
+     * si el banco envía BENEFICIARIO,
+     * mostramos únicamente el nombre.
+     */
+    const beneficiaryMatch =
+      description.match(
+        /BENEFICIARIO\s*:\s*([^|]+)/i,
+      );
 
     if (
-      this.looksLikeCounterpartyName(
-        lastPart,
-      )
+      beneficiaryMatch?.[1]?.trim()
     ) {
       return this.cleanMovementDisplayText(
-        lastPart,
+        beneficiaryMatch[1],
       );
     }
-  }
 
-  /*
-   * 4. Si no existe contraparte,
-   * extraemos únicamente el concepto útil.
-   */
-  const concept =
-    this.extractMovementConcept(
+    /*
+     * 2. Si el parser ya identificó
+     * correctamente la contraparte.
+     */
+    if (
+      row.counterparty_name?.trim()
+    ) {
+      return this.cleanMovementDisplayText(
+        row.counterparty_name,
+      );
+    }
+
+    const parts =
+      description
+        .split('|')
+        .map((part) => part.trim())
+        .filter(Boolean);
+
+    /*
+     * 3. Algunos formatos BBVA dejan
+     * la contraparte como último bloque.
+     *
+     * Ejemplo:
+     * ... | BNET... | HERRAJES ANGELES SA DE CV
+     */
+    if (parts.length >= 4) {
+      const lastPart =
+        parts[parts.length - 1];
+
+      if (
+        this.looksLikeCounterpartyName(
+          lastPart,
+        )
+      ) {
+        return this.cleanMovementDisplayText(
+          lastPart,
+        );
+      }
+    }
+
+    /*
+     * 4. Si no existe contraparte,
+     * extraemos únicamente el concepto útil.
+     */
+    const concept =
+      this.extractMovementConcept(
+        description,
+      );
+
+    if (concept) {
+      return this.limitMovementDisplayText(
+        concept,
+      );
+    }
+
+    /*
+     * 5. Último fallback:
+     * nunca dejamos crecer indefinidamente
+     * la columna.
+     */
+    return this.limitMovementDisplayText(
       description,
     );
-
-  if (concept) {
-    return this.limitMovementDisplayText(
-      concept,
-    );
   }
 
-  /*
-   * 5. Último fallback:
-   * nunca dejamos crecer indefinidamente
-   * la columna.
-   */
-  return this.limitMovementDisplayText(
-    description,
-  );
-}
+  private extractMovementConcept(
+    description: string,
+  ): string {
+    const parts =
+      description
+        .split('|')
+        .map((part) => part.trim())
+        .filter(Boolean);
 
-private extractMovementConcept(
-  description: string,
-): string {
-  const parts =
-    description
-      .split('|')
-      .map((part) => part.trim())
-      .filter(Boolean);
+    for (
+      const part of parts
+    ) {
+      const candidate =
+        this.cleanMovementConceptPart(
+          part,
+        );
 
-  for (
-    const part of parts
-  ) {
-    const candidate =
-      this.cleanMovementConceptPart(
-        part,
+      if (
+        this.isUsefulMovementConcept(
+          candidate,
+        )
+      ) {
+        return candidate;
+      }
+    }
+
+    return '';
+  }
+
+  private cleanMovementConceptPart(
+    value: string,
+  ): string {
+    let result =
+      value.trim();
+
+    /*
+     * BanBajío.
+     */
+    result = result
+      .replace(
+        /^ENV[IÍ]O\s+SPEI\s*:\s*/i,
+        '',
+      )
+      .replace(
+        /^DEP[ÓO]SITO\s+SPEI\s*:\s*/i,
+        '',
       );
 
-    if (
-      this.isUsefulMovementConcept(
-        candidate,
-      )
-    ) {
-      return candidate;
-    }
-  }
-
-  return '';
-}
-
-private cleanMovementConceptPart(
-  value: string,
-): string {
-  let result =
-    value.trim();
-
-  /*
-   * BanBajío.
-   */
-  result = result
-    .replace(
-      /^ENV[IÍ]O\s+SPEI\s*:\s*/i,
-      '',
-    )
-    .replace(
-      /^DEP[ÓO]SITO\s+SPEI\s*:\s*/i,
+    /*
+     * BBVA:
+     *
+     * SPEI ENVIADO HSBC ...
+     * SPEI ENVIADO HSBC/0099000001 ...
+     */
+    result = result.replace(
+      /^SPEI\s+(?:ENVIADO|RECIBIDO)\s+[A-ZÁÉÍÓÚÑ0-9.-]+(?:\/\d+)?\s*/i,
       '',
     );
 
-  /*
-   * BBVA:
-   *
-   * SPEI ENVIADO HSBC ...
-   * SPEI ENVIADO HSBC/0099000001 ...
-   */
-  result = result.replace(
-    /^SPEI\s+(?:ENVIADO|RECIBIDO)\s+[A-ZÁÉÍÓÚÑ0-9.-]+(?:\/\d+)?\s*/i,
-    '',
-  );
-
-  /*
-   * Quita códigos iniciales como:
-   *
-   * 0090826PAGO...
-   * 021 0020826PRUEBA...
-   */
-  result = result.replace(
-    /^(?:\d{3}\s+)?\d{6,8}(?=[A-ZÁÉÍÓÚÑ])/i,
-    '',
-  );
-
-  /*
-   * Quita referencias que ya tenemos
-   * en otros campos de la tabla.
-   */
-  result = result.replace(
-    /\s+REF\.?\s*.*$/i,
-    '',
-  );
-
-  return result.trim();
-}
-
-private isUsefulMovementConcept(
-  value: string,
-): boolean {
-  const text =
-    value.trim();
-
-  if (!text) {
-    return false;
-  }
-
-  const compact =
-    text.replace(/\s+/g, '');
-
-  /*
-   * Números de banco, cuentas y códigos.
-   */
-  if (
-    /^\d+$/.test(compact)
-  ) {
-    return false;
-  }
-
-  if (
-    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
-      compact,
-    )
-  ) {
-    return false;
-  }
-
-  /*
-   * Bloques técnicos que no sirven
-   * como descripción para el usuario.
-   */
-  if (
-    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
-      text,
-    )
-  ) {
-    return false;
-  }
-
-  return /[A-ZÁÉÍÓÚÑ]/i.test(
-    text,
-  );
-}
-
-private looksLikeCounterpartyName(
-  value: string,
-): boolean {
-  const text =
-    value.trim();
-
-  if (!text) {
-    return false;
-  }
-
-  const compact =
-    text.replace(/\s+/g, '');
-
-  if (
-    /^\d+$/.test(compact)
-  ) {
-    return false;
-  }
-
-  if (
-    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
-      compact,
-    )
-  ) {
-    return false;
-  }
-
-  if (
-    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
-      text,
-    )
-  ) {
-    return false;
-  }
-
-  return (
-    text.split(/\s+/).length >= 2 &&
-    /[A-ZÁÉÍÓÚÑ]{2,}/i.test(text)
-  );
-}
-
-private cleanMovementDisplayText(
-  value: string,
-): string {
-  return value
     /*
-     * Limpia terminaciones del banco:
+     * Quita códigos iniciales como:
      *
-     * (BI-7784326123218)
-     * (BI-7784326123218
-     * (BI- )
-     * (B
+     * 0090826PAGO...
+     * 021 0020826PRUEBA...
      */
-    .replace(
-      /\s*\(B(?:I)?(?:-[^)]*)?\)?\s*$/i,
+    result = result.replace(
+      /^(?:\d{3}\s+)?\d{6,8}(?=[A-ZÁÉÍÓÚÑ])/i,
       '',
-    )
-    .trim();
-}
+    );
 
-private limitMovementDisplayText(
-  value: string,
-  maxLength = 90,
-): string {
-  const text =
-    value.trim();
+    /*
+     * Quita referencias que ya tenemos
+     * en otros campos de la tabla.
+     */
+    result = result.replace(
+      /\s+REF\.?\s*.*$/i,
+      '',
+    );
 
-  if (
-    text.length <= maxLength
-  ) {
-    return text;
+    return result.trim();
   }
 
-  return `${text.slice(
-    0,
-    maxLength - 1,
-  ).trim()}…`;
-}
+  private isUsefulMovementConcept(
+    value: string,
+  ): boolean {
+    const text =
+      value.trim();
+
+    if (!text) {
+      return false;
+    }
+
+    const compact =
+      text.replace(/\s+/g, '');
+
+    /*
+     * Números de banco, cuentas y códigos.
+     */
+    if (
+      /^\d+$/.test(compact)
+    ) {
+      return false;
+    }
+
+    if (
+      /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+        compact,
+      )
+    ) {
+      return false;
+    }
+
+    /*
+     * Bloques técnicos que no sirven
+     * como descripción para el usuario.
+     */
+    if (
+      /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+        text,
+      )
+    ) {
+      return false;
+    }
+
+    return /[A-ZÁÉÍÓÚÑ]/i.test(
+      text,
+    );
+  }
+
+  private looksLikeCounterpartyName(
+    value: string,
+  ): boolean {
+    const text =
+      value.trim();
+
+    if (!text) {
+      return false;
+    }
+
+    const compact =
+      text.replace(/\s+/g, '');
+
+    if (
+      /^\d+$/.test(compact)
+    ) {
+      return false;
+    }
+
+    if (
+      /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+        compact,
+      )
+    ) {
+      return false;
+    }
+
+    if (
+      /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+        text,
+      )
+    ) {
+      return false;
+    }
+
+    return (
+      text.split(/\s+/).length >= 2 &&
+      /[A-ZÁÉÍÓÚÑ]{2,}/i.test(text)
+    );
+  }
+
+  private cleanMovementDisplayText(
+    value: string,
+  ): string {
+    return value
+      /*
+       * Limpia terminaciones del banco:
+       *
+       * (BI-7784326123218)
+       * (BI-7784326123218
+       * (BI- )
+       * (B
+       */
+      .replace(
+        /\s*\(B(?:I)?(?:-[^)]*)?\)?\s*$/i,
+        '',
+      )
+      .trim();
+  }
+
+  private limitMovementDisplayText(
+    value: string,
+    maxLength = 90,
+  ): string {
+    const text =
+      value.trim();
+
+    if (
+      text.length <= maxLength
+    ) {
+      return text;
+    }
+
+    return `${text.slice(
+      0,
+      maxLength - 1,
+    ).trim()}…`;
+  }
 
   private getBankAccountDisplay(
     row: entity.TreasuryAvailableOutflow,
@@ -3456,19 +3978,28 @@ private limitMovementDisplayText(
     classification:
       string | null | undefined,
   ): string {
-    if (!classification) {
-      return 'Sin clasificación';
-    }
+    switch (classification) {
+      case 'transferencia_salida':
+        return 'Transferencia de salida';
 
-    return classification
-      .split('_')
-      .filter(Boolean)
-      .map(
-        (part) =>
-          part.charAt(0).toUpperCase() +
-          part.slice(1),
-      )
-      .join(' ');
+      case 'traspaso_interno_salida':
+        return 'Traspaso interno';
+
+      case 'pago_tercero':
+        return 'Pago a tercero';
+
+      case 'gasto_por_comprobar':
+        return 'Gasto por comprobar';
+
+      case 'prestamo':
+        return 'Préstamo';
+
+      case 'impuesto':
+        return 'Impuesto';
+
+      default:
+        return 'Sin clasificación';
+    }
   }
 
   private getCatalogValue(
@@ -3588,5 +4119,169 @@ private limitMovementDisplayText(
     }
 
     return roundMoney(amount);
+  }
+
+  confirmSelectedClassifications(): void {
+    if (
+      this.loadingClassification() ||
+      !this.canConfirmSelectedClassifications()
+    ) {
+      return;
+    }
+
+    const rows =
+      this.selectedClassificationRows();
+
+    if (
+      rows.length === 0
+    ) {
+      return;
+    }
+
+    const movementIds =
+      rows.map(
+        (row) =>
+          String(
+            row.id,
+          ),
+      );
+
+    this.loadingClassification.set(
+      true,
+    );
+
+    this.accountsPayableService
+      .confirmBankMovementsClassification({
+        movement_ids:
+          movementIds,
+
+        reason:
+          'Clasificaciones revisadas y confirmadas de forma masiva desde Cuentas por pagar.',
+      })
+      .pipe(
+        finalize(() =>
+          this.loadingClassification.set(
+            false,
+          ),
+        ),
+      )
+      .subscribe({
+        next: (
+          response:
+            entity.TreasuryConfirmBankMovementsClassificationResponse,
+        ) => {
+          if (
+            !response?.success
+          ) {
+            return;
+          }
+
+          const selectedPaymentMovement =
+            this.selectedMovement();
+
+          if (
+            selectedPaymentMovement &&
+            movementIds.includes(
+              String(
+                selectedPaymentMovement.id,
+              ),
+            )
+          ) {
+            this.clearPaymentSelection();
+          }
+
+          this.clearClassificationSelection();
+
+          /*
+           * Un traspaso interno confirmado
+           * desaparecerá automáticamente.
+           *
+           * Los demás seguirán visibles,
+           * ahora como revisados.
+           */
+          this.loadAvailableOutflows();
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+          console.error(
+            'Error confirmando clasificaciones masivas:',
+            error,
+          );
+        },
+      });
+  }
+
+  openBulkClassificationModal(): void {
+    if (
+      this.loadingClassification()
+    ) {
+      return;
+    }
+
+    const movements =
+      this.selectedClassificationRows();
+
+    if (
+      movements.length === 0
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryBulkBankMovementClassificationModalData = {
+      movements:
+        [...movements],
+    };
+
+    const movementIds =
+      movements.map(
+        (movement) =>
+          String(
+            movement.id,
+          ),
+      );
+
+    this.dialogService
+      .open(
+        ModalAccountsPayableBulkClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryUpdateBankMovementsClassificationResponse
+            | null,
+        ) => {
+
+          if (
+            !result?.success
+          ) {
+            return;
+          }
+
+          const selectedPaymentMovement =
+            this.selectedMovement();
+
+          if (
+            selectedPaymentMovement &&
+            movementIds.includes(
+              String(
+                selectedPaymentMovement.id,
+              ),
+            )
+          ) {
+            this.clearPaymentSelection();
+          }
+
+          this.clearClassificationSelection();
+
+          this.loadAvailableOutflows();
+        },
+      );
   }
 }

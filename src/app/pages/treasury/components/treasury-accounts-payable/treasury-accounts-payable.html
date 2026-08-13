@@ -195,11 +195,11 @@
     <section class="card-content shadow-md accounts-payable-panel">
       <div class="accounts-payable-panel__header">
         <div>
-          <h2>Salidas bancarias disponibles aqui toy</h2>
+          <h2>Salidas bancarias disponibles</h2>
 
           <p>
-            Selecciona el movimiento que se
-            utilizará para pagar los conceptos.
+            Revisa la clasificación de cada salida
+            y selecciona las conciliables para pagar conceptos.
           </p>
         </div>
 
@@ -243,6 +243,113 @@
           </app-btns-section>
         </div>
       </form>
+
+
+      @if (
+      selectedClassificationCount() > 0
+      ) {
+
+      <div class="classification-bulk-selection">
+
+        <div class="classification-bulk-selection__summary">
+
+          <mat-icon>
+            checklist
+          </mat-icon>
+
+          <div>
+            <strong>
+              {{
+              selectedClassificationCount()
+              }}
+              movimiento{{
+              selectedClassificationCount() === 1
+              ? ''
+              : 's'
+              }}
+              seleccionado{{
+              selectedClassificationCount() === 1
+              ? ''
+              : 's'
+              }}
+            </strong>
+
+            <span>
+              Disponible:
+              {{
+              selectedClassificationAmount()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
+              }}
+            </span>
+          </div>
+
+        </div>
+
+        <div class="classification-bulk-selection__actions">
+
+          <button type="button" class="
+      accounts-payable-button
+      accounts-payable-button--primary
+    " [disabled]="
+      !canConfirmSelectedClassifications() ||
+      loadingClassification()
+    " (click)="
+      confirmSelectedClassifications()
+    ">
+
+            <mat-icon>
+              task_alt
+            </mat-icon>
+
+            Confirmar seleccionados
+
+          </button>
+
+
+          <button type="button" class="
+      accounts-payable-button
+      accounts-payable-button--info
+    " [disabled]="
+      selectedClassificationCount() === 0 ||
+      loadingClassification()
+    " (click)="
+      openBulkClassificationModal()
+    ">
+
+            <mat-icon>
+              edit
+            </mat-icon>
+
+            Cambiar clasificación
+
+          </button>
+
+
+          <button type="button" class="
+      accounts-payable-button
+      accounts-payable-button--neutral
+    " [disabled]="
+      loadingClassification()
+    " (click)="
+      clearClassificationSelection()
+    ">
+
+            <mat-icon>
+              close
+            </mat-icon>
+
+            Limpiar selección
+
+          </button>
+
+        </div>
+
+      </div>
+
+      }
 
       <div class="c-module-table accounts-payable-table-shell">
         <app-data-table [data]="availableOutflowRows" [columnsConfig]="availableOutflowColumns"
@@ -645,6 +752,8 @@
 
     </form>
 
+
+
     <!-- ===============================================
          TABLA
          =============================================== -->
@@ -692,3 +801,5 @@
 
 <app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por pagar...">
 </app-loading-overlay>
+
+

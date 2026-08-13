@@ -24,6 +24,9 @@ export class TreasuryAccountsPayableService {
   private readonly apiUrl =
     `${environment.apiUrl}/treasury/accounts-payable`;
 
+  private readonly treasuryApiUrl =
+    `${environment.apiUrl}/treasury`;
+
   private readonly http =
     inject(HttpClient);
 
@@ -501,6 +504,66 @@ export class TreasuryAccountsPayableService {
       entity.TreasuryApplyCashPaymentResponse
     >(
       `${this.apiUrl}/apply-cash-payment`,
+      payload,
+    );
+  }
+
+
+  // =========================================================
+  // MOVIMIENTOS BANCARIOS:
+  // CONFIRMAR / CAMBIAR CLASIFICACIÓN INDIVIDUAL
+  // =========================================================
+
+  updateBankMovementClassification(
+    movementId: string,
+    payload:
+      entity.TreasuryUpdateBankMovementClassificationPayload,
+  ): Observable<
+    entity.TreasuryUpdateBankMovementClassificationResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryUpdateBankMovementClassificationResponse
+    >(
+      `${this.treasuryApiUrl}/bank-movements/${movementId}/classification`,
+      payload,
+    );
+  }
+
+  // =========================================================
+  // MOVIMIENTOS BANCARIOS:
+  // CLASIFICACIÓN MASIVA
+  // =========================================================
+
+  updateBankMovementsClassification(
+    payload:
+      entity.TreasuryUpdateBankMovementsClassificationPayload,
+  ): Observable<
+    entity.TreasuryUpdateBankMovementsClassificationResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryUpdateBankMovementsClassificationResponse
+    >(
+      `${this.treasuryApiUrl}/bank-movements/classification/bulk`,
+      payload,
+    );
+  }
+
+
+  // =========================================================
+  // MOVIMIENTOS BANCARIOS:
+  // CONFIRMAR CLASIFICACIONES MASIVAS
+  // =========================================================
+
+  confirmBankMovementsClassification(
+    payload:
+      entity.TreasuryConfirmBankMovementsClassificationPayload,
+  ): Observable<
+    entity.TreasuryConfirmBankMovementsClassificationResponse
+  > {
+    return this.http.patch<
+      entity.TreasuryConfirmBankMovementsClassificationResponse
+    >(
+      `${this.treasuryApiUrl}/bank-movements/classification/confirm-bulk`,
       payload,
     );
   }

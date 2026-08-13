@@ -146,7 +146,7 @@ const MOVEMENT_COLUMNS: ColumnsConfig[] = [
     label: 'Referencia',
   },
   {
-    key: 'description_original',
+    key: 'description_display',
     label: 'Descripción',
   },
   {
@@ -377,6 +377,11 @@ export class ModalRegularizeHistoricalPayment
           DateRangeValue | null
         >(null),
 
+      amount:
+        this.fb.control<
+          number | string | null
+        >(null),
+
       search:
         this.fb.control<string>(
           '',
@@ -416,6 +421,7 @@ export class ModalRegularizeHistoricalPayment
       limit: 10,
 
       search: '',
+      amount: null,
 
       company_id: null,
       bank_id: null,
@@ -874,6 +880,11 @@ export class ModalRegularizeHistoricalPayment
       search:
         value.search.trim(),
 
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
+
       company_id:
         this.getNumberId(
           value.company_id,
@@ -912,6 +923,7 @@ export class ModalRegularizeHistoricalPayment
         dateRange: null,
         search: '',
         company_id: null,
+        amount: null,
         bank_id: null,
         bank_account_id: null,
       },
@@ -927,7 +939,7 @@ export class ModalRegularizeHistoricalPayment
         this.movementFilters.limit,
 
       search: '',
-
+      amount: null,
       company_id: null,
       bank_id: null,
       bank_account_id: null,
@@ -992,6 +1004,9 @@ export class ModalRegularizeHistoricalPayment
       this.getCatalogValue(
         value.company_id,
       ) ||
+      this.normalizeAmountFilter(
+        value.amount,
+      ) !== null ||
       this.getCatalogValue(
         value.bank_id,
       ) ||
@@ -1055,57 +1070,57 @@ export class ModalRegularizeHistoricalPayment
   // TIPO DE REGULARIZACIÓN
   // =========================================================
 
- private handleRegularizationTypeChange(
-  type:
-    | entity.TreasuryHistoricalRegularizationType
-    | '',
-): void {
-  const companyControl =
-    this.form.controls.company_id;
+  private handleRegularizationTypeChange(
+    type:
+      | entity.TreasuryHistoricalRegularizationType
+      | '',
+  ): void {
+    const companyControl =
+      this.form.controls.company_id;
 
-  if (
-    type ===
-    'bank_transfer_matched'
-  ) {
-    companyControl.setValue(
-      null,
-      {
-        emitEvent: false,
-      },
-    );
-
-    this.movementFilters = {
-      ...this.movementFilters,
-
-      page: 1,
-
-      minimum_available_amount:
-        this.paymentAmount,
-    };
-
-    this.loadAvailableMovements();
-
-    return;
-  }
-
-  this.clearMovementSelection();
-
-  if (
-    type ===
-      'historical_transfer_without_movement' ||
-    type ===
-      'cash'
-  ) {
-    if (!companyControl.value) {
+    if (
+      type ===
+      'bank_transfer_matched'
+    ) {
       companyControl.setValue(
-        UNIDENTIFIED_COMPANY_OPTION,
+        null,
         {
           emitEvent: false,
         },
       );
+
+      this.movementFilters = {
+        ...this.movementFilters,
+
+        page: 1,
+
+        minimum_available_amount:
+          this.paymentAmount,
+      };
+
+      this.loadAvailableMovements();
+
+      return;
+    }
+
+    this.clearMovementSelection();
+
+    if (
+      type ===
+      'historical_transfer_without_movement' ||
+      type ===
+      'cash'
+    ) {
+      if (!companyControl.value) {
+        companyControl.setValue(
+          UNIDENTIFIED_COMPANY_OPTION,
+          {
+            emitEvent: false,
+          },
+        );
+      }
     }
   }
-}
 
   // =========================================================
   // GUARDAR
@@ -1315,12 +1330,44 @@ export class ModalRegularizeHistoricalPayment
         this.getClassificationLabel(
           row.classification,
         ),
+
+      classification_review_label:
+        row.classification_reviewed
+          ? 'Revisada'
+          : 'Pendiente',
     };
   }
 
   // =========================================================
   // HELPERS
   // =========================================================
+
+  private normalizeAmountFilter(
+    value:
+      unknown,
+  ): number | null {
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
+    }
+
+    const amount =
+      Number(value);
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      return null;
+    }
+
+    return roundMoney(
+      amount,
+    );
+  }
 
   formatDate(
     value:

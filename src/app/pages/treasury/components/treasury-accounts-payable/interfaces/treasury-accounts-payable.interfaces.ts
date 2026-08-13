@@ -47,8 +47,22 @@ export interface TreasuryAccountsPayableDateRange {
 }
 
 // =========================================================
+// CLASIFICACIÓN DE SALIDAS BANCARIAS
+// =========================================================
+
+export type TreasuryBankMovementReviewClassification =
+  | 'transferencia_salida'
+  | 'traspaso_interno_salida'
+  | 'pago_tercero'
+  | 'gasto_por_comprobar'
+  | 'prestamo'
+  | 'impuesto';
+
+
+// =========================================================
 // FILTROS: SALIDAS DISPONIBLES
 // =========================================================
+
 
 export interface TreasuryAvailableOutflowFilters {
   company_id?: number | null;
@@ -72,7 +86,7 @@ export interface TreasuryAvailableOutflowUiFilters {
   dateRange: TreasuryAccountsPayableDateRange | null;
 
   search: string;
-    amount: number | null;
+  amount: number | null;
 
   company_id: Catalog | number | string | null;
   bank_id: Catalog | number | string | null;
@@ -94,7 +108,15 @@ export interface TreasuryAvailableOutflow {
   movement_type: 'outflow';
 
   status: TreasuryBankMovementStatus;
-  classification: string | null;
+
+  classification:
+  TreasuryBankMovementReviewClassification
+  | string
+  | null;
+
+  classification_reviewed: boolean;
+  requires_classification_review: boolean;
+  is_payable: boolean;
 
   description_original: string;
 
@@ -123,10 +145,10 @@ export interface TreasuryAvailableOutflowTableRow
   company_name: string;
   bank_name: string;
   bank_account_display: string;
-
+  classification_review_label: string;
   reference_display: string;
   counterparty_display: string;
-
+  classification_selected?: boolean;
   status_label: string;
   classification_label: string;
 }
@@ -161,7 +183,7 @@ export interface TreasuryPendingExpenseItemFilters {
 
   item_type?: TreasuryPendingExpenseItemType | null;
   origin_type?: string | null;
- amount?: number | null;
+  amount?: number | null;
   search?: string;
 
   page: number;
@@ -1521,4 +1543,192 @@ export interface TreasuryCurrentPaymentReverseModalData {
 
   expense_item:
   TreasuryCurrentPaymentReverseModalExpenseItem;
+}
+
+
+// =========================================================
+// REVISIÓN / CLASIFICACIÓN DE MOVIMIENTOS
+// =========================================================
+
+export interface TreasuryUpdateBankMovementClassificationPayload {
+  classification:
+  TreasuryBankMovementReviewClassification;
+
+  reason: string;
+}
+
+export interface TreasuryUpdateBankMovementsClassificationPayload {
+  movement_ids: string[];
+
+  classification:
+  TreasuryBankMovementReviewClassification;
+
+  reason: string;
+}
+
+export interface TreasuryBankMovementClassificationAudit {
+  action_id: string;
+
+  action_type:
+  'classification_change'
+  | string;
+
+  reason: string;
+
+  created_by_user_id: number;
+
+  created_at: string;
+}
+
+export interface TreasuryUpdateBankMovementClassificationResponse {
+  success: boolean;
+
+  message: string;
+
+  bank_movement: {
+    id: string;
+
+    movement_type: 'outflow';
+
+    previous_classification:
+    string | null;
+
+    classification:
+    TreasuryBankMovementReviewClassification;
+
+    classification_label:
+    string;
+
+    amount: number;
+
+    available_amount: number;
+
+    manual_closed_amount: number;
+
+    previous_status:
+    TreasuryBankMovementStatus;
+
+    status:
+    TreasuryBankMovementStatus;
+
+    bank_reference:
+    string | null;
+
+    description_original:
+    string;
+
+    company:
+    TreasuryAccountsPayableCompanyReference
+    | null;
+
+    bank:
+    TreasuryAccountsPayableBankReference
+    | null;
+
+    bank_account:
+    TreasuryAccountsPayableBankAccountReference
+    | null;
+  };
+
+  audit:
+  TreasuryBankMovementClassificationAudit;
+}
+
+export interface TreasuryBulkClassifiedBankMovement {
+  id: string;
+
+  previous_classification:
+  string | null;
+
+  classification:
+  TreasuryBankMovementReviewClassification;
+
+  classification_label: string;
+
+  previous_status:
+  TreasuryBankMovementStatus;
+
+  status:
+  TreasuryBankMovementStatus;
+
+  amount: number;
+
+  available_amount: number;
+
+  audit_action_id: string;
+}
+
+export interface TreasuryUpdateBankMovementsClassificationResponse {
+  success: boolean;
+
+  message: string;
+
+  processed_count: number;
+
+  classification:
+  TreasuryBankMovementReviewClassification;
+
+  movements:
+  TreasuryBulkClassifiedBankMovement[];
+}
+
+// =========================================================
+// MODAL: CAMBIAR CLASIFICACIÓN DE MOVIMIENTO
+// =========================================================
+
+export interface TreasuryBankMovementClassificationModalData {
+  movement:
+  TreasuryAvailableOutflowTableRow;
+}
+
+
+// =========================================================
+// MODAL: CLASIFICACIÓN MASIVA
+// =========================================================
+
+export interface TreasuryBulkBankMovementClassificationModalData {
+  movements:
+    TreasuryAvailableOutflowTableRow[];
+}
+
+
+export interface TreasuryConfirmBankMovementsClassificationPayload {
+  movement_ids: string[];
+  reason: string;
+}
+
+export interface TreasuryConfirmedBankMovement {
+  id: string;
+
+  previous_classification:
+    string | null;
+
+  classification:
+    TreasuryBankMovementReviewClassification;
+
+  classification_label:
+    string;
+
+  previous_status:
+    TreasuryBankMovementStatus;
+
+  status:
+    TreasuryBankMovementStatus;
+
+  amount: number;
+
+  available_amount: number;
+
+  audit_action_id: string;
+}
+
+export interface TreasuryConfirmBankMovementsClassificationResponse {
+  success: boolean;
+
+  message: string;
+
+  processed_count: number;
+
+  movements:
+    TreasuryConfirmedBankMovement[];
 }

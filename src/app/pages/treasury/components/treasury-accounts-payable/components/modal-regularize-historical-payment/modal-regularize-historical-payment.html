@@ -175,6 +175,12 @@
             [isFilter]="true">
           </app-input-field>
 
+          <app-input-field class="
+    movement-filter
+    movement-filter--amount
+  " formControlName="amount" label="Importe" placeholder="Monto original o disponible" type="money" [isFilter]="true">
+          </app-input-field>
+
           <app-input-select class="movement-filter movement-filter--company" formControlName="company_id"
             label="Empresa" [options]="companyOptions">
           </app-input-select>

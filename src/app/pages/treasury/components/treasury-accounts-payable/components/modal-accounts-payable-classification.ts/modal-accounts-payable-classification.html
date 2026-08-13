@@ -1,0 +1,237 @@
+<div class="c-modal accounts-payable-classification-modal">
+
+  <app-module-header
+    title="Cambiar clasificación"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="accounts-payable-classification-modal__body">
+
+    <!-- ===============================================
+         MOVIMIENTO
+         =============================================== -->
+
+    <section class="classification-movement-card">
+
+      <div class="classification-movement-card__header">
+
+        <div class="classification-movement-card__icon">
+          <mat-icon>
+            account_balance
+          </mat-icon>
+        </div>
+
+        <div>
+          <span>
+            Movimiento bancario
+          </span>
+
+          <strong>
+            {{
+              movement.description_display ||
+              movement.description_original ||
+              ('Movimiento ' + movement.id)
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="classification-movement-card__grid">
+
+        <div>
+          <span>Fecha</span>
+
+          <strong>
+            {{
+              movement.movement_date
+                | date:'dd/MM/yyyy'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Monto</span>
+
+          <strong>
+            {{
+              movement.amount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Banco</span>
+
+          <strong>
+            {{
+              movement.bank_name ||
+              movement.bank?.name ||
+              'Sin banco'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Cuenta</span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         CLASIFICACIÓN ACTUAL
+         =============================================== -->
+
+    <section class="classification-current">
+
+      <div>
+        <span>
+          Clasificación actual
+        </span>
+
+        <strong>
+          {{ currentClassificationLabel }}
+        </strong>
+      </div>
+
+      @if (
+        movement.classification_reviewed
+      ) {
+
+        <span class="classification-current__reviewed">
+          <mat-icon>
+            task_alt
+          </mat-icon>
+
+          Revisada
+        </span>
+
+      } @else {
+
+        <span class="classification-current__pending">
+          <mat-icon>
+            pending
+          </mat-icon>
+
+          Pendiente de revisión
+        </span>
+
+      }
+
+    </section>
+
+    <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+    <form
+      id="classificationForm"
+      class="classification-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-select
+        formControlName="classification"
+        label="Nueva clasificación"
+        [options]="classificationOptions">
+      </app-input-select>
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo del cambio"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+    <!-- ===============================================
+         AVISOS SEGÚN CLASIFICACIÓN
+         =============================================== -->
+
+    @if (
+      selectedClassification ===
+      'traspaso_interno_salida'
+    ) {
+
+      <section class="classification-notice classification-notice--warning">
+
+        <mat-icon>
+          sync_alt
+        </mat-icon>
+
+        <div>
+          <strong>
+            Traspaso interno
+          </strong>
+
+          <span>
+            Al guardar, el movimiento quedará
+            confirmado como traspaso interno
+            y dejará de aparecer entre las
+            salidas disponibles.
+          </span>
+        </div>
+
+      </section>
+
+    }
+
+    @if (
+      selectedClassification ===
+      'prestamo'
+    ) {
+
+      <section class="classification-notice">
+
+        <mat-icon>
+          info
+        </mat-icon>
+
+        <div>
+          <strong>
+            Movimiento no conciliable
+          </strong>
+
+          <span>
+            Los movimientos clasificados como
+            préstamo permanecen visibles para
+            revisión, pero no pueden utilizarse
+            para pagar conceptos.
+          </span>
+        </div>
+
+      </section>
+
+    }
+
+  </div>
+
+  <app-btns-section
+    class="accounts-payable-classification-modal__footer"
+    type="save"
+    form="classificationForm"
+    cancelLabel="Cerrar"
+    saveLabel="Guardar clasificación"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Actualizando clasificación...">
+  </app-loading-overlay>
+
+</div>

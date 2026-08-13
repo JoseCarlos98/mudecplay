@@ -1,0 +1,158 @@
+<div class="
+  c-modal
+  bulk-classification-modal
+">
+
+  <app-module-header
+    title="Cambiar clasificación"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+
+  <div class="bulk-classification-modal__body">
+
+    <section class="bulk-classification-summary">
+
+      <mat-icon>
+        checklist
+      </mat-icon>
+
+      <div>
+
+        <span>
+          Movimientos seleccionados
+        </span>
+
+        <strong>
+          {{ movementsCount }}
+        </strong>
+
+        <small>
+          Disponible total:
+          {{
+            totalAvailable
+              | currency:
+                'MXN':
+                'symbol':
+                '1.2-2'
+          }}
+        </small>
+
+      </div>
+
+    </section>
+
+
+    <div class="bulk-classification-message">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <span>
+        La clasificación seleccionada
+        se aplicará a todos los
+        movimientos elegidos.
+      </span>
+
+    </div>
+
+
+    <form
+      id="bulkClassificationForm"
+      class="bulk-classification-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-select
+        formControlName="classification"
+        label="Nueva clasificación"
+        [options]="classificationOptions">
+      </app-input-select>
+
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+
+    @if (
+      selectedClassification ===
+      'traspaso_interno_salida'
+    ) {
+
+      <div class="
+        bulk-classification-message
+        bulk-classification-message--warning
+      ">
+
+        <mat-icon>
+          sync_alt
+        </mat-icon>
+
+        <span>
+          Todos los movimientos seleccionados
+          quedarán confirmados como traspasos
+          internos y dejarán de aparecer entre
+          las salidas bancarias disponibles.
+        </span>
+
+      </div>
+
+    }
+
+
+    @if (
+      selectedClassification ===
+      'prestamo'
+    ) {
+
+      <div class="
+        bulk-classification-message
+        bulk-classification-message--warning
+      ">
+
+        <mat-icon>
+          info
+        </mat-icon>
+
+        <span>
+          Los movimientos quedarán clasificados
+          como préstamo y no podrán utilizarse
+          para conciliar conceptos.
+        </span>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <app-btns-section
+    type="save"
+    form="bulkClassificationForm"
+    cancelLabel="Cerrar"
+    saveLabel="Aplicar clasificación"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="
+      onBtnsSectionAction(
+        $event
+      )
+    ">
+  </app-btns-section>
+
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Actualizando movimientos...">
+  </app-loading-overlay>
+
+</div>

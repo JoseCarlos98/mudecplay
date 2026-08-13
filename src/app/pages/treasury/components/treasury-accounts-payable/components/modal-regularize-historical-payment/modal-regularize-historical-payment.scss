@@ -298,13 +298,13 @@
 
 .movement-selection-filters {
   display: grid;
-  grid-template-columns:
-    minmax(10rem, 0.8fr)
-    minmax(10rem, 1.1fr)
-    minmax(10rem, 1fr)
-    minmax(9rem, 0.8fr)
-    minmax(10rem, 1fr)
-    auto;
+grid-template-columns:
+  minmax(10rem, 0.8fr)
+  minmax(10rem, 1.1fr)
+  minmax(10rem, 1fr)
+  minmax(9rem, 0.8fr)
+  minmax(10rem, 1fr)
+  auto;
   gap: 0.65rem;
   align-items: end;
 
