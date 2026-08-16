@@ -1,0 +1,121 @@
+.c-module-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid rgba(39, 170, 225, 0.2);
+
+  >div {
+    display: flex;
+    align-items: center;
+
+    .go-back {
+        color: var(--color-third) !important;
+        display: flex;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    >div {
+      background-color: rgba(30, 134, 177, 0.1);
+      color: var(--color-primary-two) !important;
+      padding: 0.5rem;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 30px;
+      letter-spacing: 2px;
+      border-left: 3px solid var(--color-primary-two);
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+    }
+
+    button:not(.btn-close-modal) {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      font-size: 15px;
+    }
+
+    .btn-close-modal {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      right: 2px;
+      top: 2px;
+    }
+
+    .cursor-pointer {
+      color: #878787;
+    }
+  }
+}
+
+.modal-text-format {
+  font-size: 25px !important;
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+  border-left: unset !important;
+  color: var(--color-third) !important;
+  padding-left: 0 !important;
+}
+
+@media screen and (max-width: 500px) {
+  .c-module-header {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    // gap: 8px;
+
+    > div:first-child {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    h2 {
+      font-size: clamp(20px, 4vw, 22px)!important;
+      line-height: 20px!important;
+      letter-spacing: 1.5px;
+    }
+  }
+
+  .section-btns-module-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 6px;
+    width: 100%;
+    flex-wrap: wrap;
+
+    button:not(.btn-close-modal) {
+      min-height: 32px;
+      padding: 4px 10px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    mat-icon {
+      width: 19px;
+      height: 19px;
+      font-size: 19px;
+      line-height: 19px;
+    }
+
+    &:has(> button:only-child) {
+      justify-content: flex-end;
+      margin-top: 0;
+      width: auto;
+      margin-left: auto;
+    }
+  }
+}

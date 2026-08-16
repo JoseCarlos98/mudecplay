@@ -1,0 +1,44 @@
+<div class="c-modal c-modal--advance">
+  <app-module-header
+    [title]="'Registrar anticipo'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="advance-body">
+    <div class="advance-summary">
+      <div><strong>Factura:</strong> {{ invoiceDisplay }}</div>
+      <div><strong>Cliente:</strong> {{ data.receiver_name }}</div>
+      <div><strong>Total factura:</strong> {{ totalAmount | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+      <div><strong>Anticipo acumulado:</strong> {{ currentAdvanceAmount | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+      <div><strong>Disponible:</strong> {{ availableAdvanceAmount | currency:'MXN':'symbol-narrow':'1.2-2' }}</div>
+    </div>
+
+    <form [formGroup]="form" id="advanceForm" class="c-form">
+      <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
+        <div>
+          <app-input-field
+            formControlName="amount"
+            label="Monto del anticipo"
+            type="money">
+          </app-input-field>
+        </div>
+
+        <div>
+          <app-input-date
+            formControlName="advance_date"
+            label="Fecha del anticipo"
+            mode="single"
+            [showClear]="true">
+          </app-input-date>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <app-btns-section
+    form="advanceForm"
+    [saveDisabled]="saveDisabled"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

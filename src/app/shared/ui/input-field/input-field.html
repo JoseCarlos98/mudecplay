@@ -1,0 +1,47 @@
+<div class="c-input-field">
+  <div class="c-input">
+    <p class="label">
+      {{ label }}
+      @if (showRequiredMark) { <span class="required">*</span> }
+    </p>
+
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
+      <!-- prefijo solo si es phone -->
+      @if (type === 'phone') {
+        <span matPrefix class="phone-prefix">{{ phonePrefix }}</span>
+      }
+
+      <input
+        matInput
+        type="text"
+        [placeholder]="resolvedPlaceholder"
+        [value]="displayValue"
+        (input)="onInput($event)"
+        (focus)="onFocus()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
+        [disabled]="disabled"
+        [attr.inputmode]="inputMode"
+        [attr.autocomplete]="autoComplete"
+        [attr.autocapitalize]="autoCapitalize"
+        [attr.pattern]="pattern"
+        [attr.maxlength]="type === 'phone' ? null : 255"
+      />
+
+      @if (displayValue && !disabled) {
+        <button 
+          type="button"
+          matSuffix
+          mat-icon-button
+          (mousedown)="$event.preventDefault()"
+          (click)="clear()">
+          <mat-icon class="color-third">close</mat-icon>
+        </button>
+      }
+    </mat-form-field>
+
+    @if (hasError) {
+      <span class="field-error">{{ firstErrorMessage }}</span>
+    }
+  </div>
+</div>

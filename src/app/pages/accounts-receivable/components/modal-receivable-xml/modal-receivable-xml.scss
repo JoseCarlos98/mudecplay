@@ -1,0 +1,103 @@
+.c-modal.c-modal--xml {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+
+  ::ng-deep .table-container {
+    height: auto !important;
+    max-height: calc(100vh - 350px) !important;
+  }
+
+  .xml-body {
+    padding: 1.5rem 2rem;
+    overflow: auto;
+  }
+
+  .xml-section {
+    & + .xml-section {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    &__title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    &__subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.75rem;
+    }
+  }
+
+  .xml-empty {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  .xml-section--duplicates {
+    .xml-dup-header {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+
+      mat-icon {
+        color: #f97316;
+      }
+
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #b45309;
+      }
+
+      p {
+        margin: 0.15rem 0 0;
+        font-size: 0.875rem;
+        color: #92400e;
+      }
+    }
+
+    .xml-dup-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .xml-dup-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.5rem;
+      background: #fffbeb;
+
+      &__file {
+        font-weight: 500;
+        font-size: 0.9rem;
+      }
+
+      &__meta {
+        font-size: 0.8rem;
+        color: #92400e;
+      }
+    }
+  }
+
+  .xml-footnote {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #6b7280;
+  }
+
+  .xml-actions {
+    padding: 0.75rem 2rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+  }
+}

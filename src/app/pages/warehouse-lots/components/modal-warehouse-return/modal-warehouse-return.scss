@@ -1,0 +1,54 @@
+.c-modal {
+  .warehouse-return-body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .return-summary {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    strong {
+      color: #1f2937;
+      font-weight: 800;
+    }
+  }
+
+  .return-preview {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+
+    strong {
+      color: #1f2937;
+      font-weight: 800;
+    }
+  }
+
+  .return-form {
+    display: grid;
+
+    ::ng-deep .c-input-field {
+      margin-bottom: 0;
+    }
+  }
+}

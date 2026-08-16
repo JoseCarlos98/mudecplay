@@ -1,0 +1,35 @@
+<div class="c-modal">
+    <app-module-header [title]="this.data?.id ? 'Editar responsable' : 'Registrar responsable'" [config]="headerConfig"
+        (action)="closeModal()">
+    </app-module-header>
+
+    <form [formGroup]="form" (ngSubmit)="data?.id ? updateData() :  saveData()" id="form" class="c-form">
+        <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="name" 
+                    label="Nombre" 
+                    type="text">
+                </app-input-field>
+            </div>
+          
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="last_name" 
+                    label="Apellidos" 
+                    type="text">
+                </app-input-field>
+            </div>
+            
+            <div class="md:col-span-1">
+                 <app-input-field 
+                    formControlName="phone" 
+                    label="Telefono" 
+                    type="phone">
+                </app-input-field>
+            </div>
+        </div>
+    </form>
+
+    <app-btns-section type="save" (action)="onBtnsSectionAction($event)" [saveDisabled]="!form.valid"></app-btns-section>
+</div>

@@ -1,0 +1,45 @@
+<div class="c-modal">
+  <app-module-header
+    title="Generar domingo automático"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="sunday-modal-body">
+    <div class="sunday-summary">
+      <div>
+        <strong>Fecha domingo:</strong>
+        {{ data.work_date | date:'dd/MM/yyyy' }}
+      </div>
+
+      <div>
+        <strong>Fuente:</strong>
+        {{ sourceLabel }} {{ sourceDateLabel | date:'dd/MM/yyyy' }}
+      </div>
+
+      <div>
+        <strong>Asignaciones a replicar:</strong>
+        {{ data.source_assignments_count }}
+      </div>
+    </div>
+
+    <div class="sunday-preview sunday-preview--info">
+      <div>
+        <strong>Acción:</strong>
+        Se generarán automáticamente las jornadas, asignaciones y gastos de mano de obra del domingo.
+      </div>
+
+      <div>
+        <strong>Regla aplicada:</strong>
+        El sistema copiará las asignaciones activas del sábado. Si no hubiera sábado trabajado, usaría viernes.
+      </div>
+    </div>
+  </div>
+
+  <app-btns-section
+    class="modal-actions-spacer"
+    type="save"
+    [saveDisabled]="saving"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

@@ -1,0 +1,253 @@
+<div class="c-modal bank-classification-modal">
+
+  <app-module-header
+    title="Cambiar clasificación"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="bank-classification-modal__body">
+
+    <!-- ===============================================
+         MOVIMIENTO BANCARIO
+         =============================================== -->
+
+    <section class="classification-movement-card">
+
+      <div class="classification-movement-card__header">
+
+        <div class="classification-movement-card__identity">
+
+          <div class="classification-movement-card__icon">
+            <mat-icon>label</mat-icon>
+          </div>
+
+          <div>
+            <span>Referencia bancaria</span>
+
+            <strong>
+              {{ referenceDisplay }}
+            </strong>
+          </div>
+
+        </div>
+
+        <span class="classification-current-status">
+          {{ currentClassificationLabel }}
+        </span>
+
+      </div>
+
+      <div class="classification-movement-card__grid">
+
+        <div>
+          <span>Empresa</span>
+
+          <strong>
+            {{
+              movement.company?.name ||
+              'Empresa no identificada'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Banco</span>
+
+          <strong>
+            {{
+              movement.bank?.name ||
+              'Sin banco'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Cuenta</span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+
+          <strong>
+            {{
+              formatDate(
+                movement.movement_date
+              )
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="classification-movement-card__description">
+
+        <span>Descripción original del banco</span>
+
+        <strong>
+          {{
+            movement.description_original ||
+            'Sin descripción'
+          }}
+        </strong>
+
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         IMPORTES
+         =============================================== -->
+
+    <section class="classification-amounts">
+
+      <article class="classification-amount-card">
+
+        <div class="classification-amount-card__icon">
+          <mat-icon>payments</mat-icon>
+        </div>
+
+        <div>
+          <span>Monto original</span>
+
+          <strong class="classification-amount--original">
+            {{
+              originalAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="classification-amount-card">
+
+        <div class="classification-amount-card__icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+
+        <div>
+          <span>Disponible actual</span>
+
+          <strong class="classification-amount--available">
+            {{
+              availableAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+    <form
+      id="classification-form"
+      class="classification-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-select
+        formControlName="classification"
+        label="Nueva clasificación"
+        [options]="classificationOptions">
+      </app-input-select>
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo del cambio"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+    <!-- ===============================================
+         IMPACTO DE LA CLASIFICACIÓN
+         =============================================== -->
+
+    <section class="classification-information">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <div>
+        <strong>
+          La reclasificación no modifica el movimiento
+        </strong>
+
+        <p>
+          Solo cambiará su clasificación administrativa.
+          No se modificarán el monto original, el disponible,
+          el estatus ni se crearán pagos.
+        </p>
+
+        @if (selectedClassification) {
+
+          @if (excludesFromAccountsPayable) {
+
+            <p class="classification-information__warning">
+              Al clasificarlo como
+              <strong>
+                {{ selectedClassificationLabel }}
+              </strong>,
+              el movimiento dejará de estar disponible en
+              Cuentas por pagar.
+            </p>
+
+          } @else {
+
+            <p class="classification-information__success">
+              Al clasificarlo como
+              <strong>
+                {{ selectedClassificationLabel }}
+              </strong>,
+              podrá utilizarse en Cuentas por pagar mientras
+              siga pendiente y sin aplicaciones.
+            </p>
+
+          }
+
+        }
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ===============================================
+       BOTONES
+       =============================================== -->
+
+  <app-btns-section
+    class="bank-classification-modal__footer"
+    type="save"
+    form="classification-form"
+    cancelLabel="Cerrar"
+    saveLabel="Actualizar clasificación"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Actualizando clasificación...">
+  </app-loading-overlay>
+
+</div>

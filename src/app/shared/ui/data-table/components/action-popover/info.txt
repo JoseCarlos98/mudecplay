@@ -1,0 +1,14 @@
+<app-action-popover
+  title="No disponible"
+  message="El comprobante no puede generarse todavía."
+  [items]="[
+    'El gasto debe estar en estado Asignado.',
+    'El gasto debe tener proveedor asignado.'
+  ]"
+  kind="warning">
+
+  <button popover-trigger type="button">
+    Ver motivo
+  </button>
+
+</app-action-popover>

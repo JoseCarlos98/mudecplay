@@ -1,0 +1,27 @@
+.c-modal {
+  .archive-body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .archive-summary {
+    display: grid;
+    gap: 0.45rem;
+    padding: 0.9rem 1rem;
+    border-radius: 0.75rem;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+
+    div {
+      color: #374151;
+      font-size: 0.92rem;
+      line-height: 1.35;
+    }
+  }
+
+  .archive-message {
+    color: #374151;
+    font-size: 0.95rem;
+  }
+}
+

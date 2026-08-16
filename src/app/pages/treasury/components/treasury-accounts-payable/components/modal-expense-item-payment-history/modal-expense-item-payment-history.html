@@ -1,0 +1,482 @@
+<div class="c-modal expense-payment-history-modal">
+  <app-module-header title="Historial de pagos del concepto" [config]="headerConfig" (action)="closeModal()">
+  </app-module-header>
+
+  <div class="expense-payment-history-modal__body">
+    @if (historyResponse; as response) {
+    <!-- =============================================
+           CONCEPTO
+           ============================================= -->
+
+    <section class="concept-summary-card">
+      <div class="concept-summary-card__header">
+        <div class="concept-summary-card__identity">
+          <span class="concept-summary-card__icon">
+            <mat-icon>
+              receipt_long
+            </mat-icon>
+          </span>
+
+          <div>
+            <span>
+              Concepto del gasto
+            </span>
+
+            <strong>
+              {{ internalFolio }}
+            </strong>
+          </div>
+        </div>
+
+        <span class="concept-status" [ngClass]="paymentStatusClass">
+          {{ paymentStatusLabel }}
+        </span>
+      </div>
+
+      <div class="concept-summary-card__grid">
+        <div>
+          <span>
+            Concepto
+          </span>
+
+          <strong>
+            {{ concept }}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Proveedor
+          </span>
+
+          <strong>
+            {{ supplierName }}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Proyecto
+          </span>
+
+          <strong>
+            {{ projectName }}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Tipo
+          </span>
+
+          <strong>
+            {{ itemTypeLabel }}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Fecha del gasto
+          </span>
+
+          <strong>
+            {{
+            response.expense_item.expense_date
+            | date: 'dd/MM/yyyy'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            CFDI
+          </span>
+
+          <strong>
+            {{
+            response.expense_item.has_cfdi
+            ? 'Con XML'
+            : 'Sin XML'
+            }}
+          </strong>
+        </div>
+      </div>
+
+      @if (
+      response.expense_item.cfdi_uuid
+      ) {
+      <div class="concept-summary-card__uuid">
+        <span>
+          UUID
+        </span>
+
+        <strong>
+          {{
+          response.expense_item.cfdi_uuid
+          }}
+        </strong>
+      </div>
+      }
+    </section>
+
+    <!-- =============================================
+           SALDOS ACTUALES
+           ============================================= -->
+
+    <section class="current-balances">
+      <article>
+        <span class="current-balances__icon">
+          <mat-icon>
+            request_quote
+          </mat-icon>
+        </span>
+
+        <div>
+          <span>
+            Monto del concepto
+          </span>
+
+          <strong>
+            {{
+            originalAmount
+            | currency: 'MXN' : 'symbol' : '1.2-2'
+            }}
+          </strong>
+        </div>
+      </article>
+
+      <article>
+        <span class="current-balances__icon">
+          <mat-icon>
+            payments
+          </mat-icon>
+        </span>
+
+        <div>
+          <span>
+            Total pagado
+          </span>
+
+          <strong class="current-balances__paid">
+            {{
+            paidAmount
+            | currency: 'MXN' : 'symbol' : '1.2-2'
+            }}
+          </strong>
+        </div>
+      </article>
+
+      <article>
+        <span class="current-balances__icon">
+          <mat-icon>
+            account_balance_wallet
+          </mat-icon>
+        </span>
+
+        <div>
+          <span>
+            Saldo pendiente
+          </span>
+
+          <strong class="current-balances__pending">
+            {{
+            pendingAmount
+            | currency: 'MXN' : 'symbol' : '1.2-2'
+            }}
+          </strong>
+        </div>
+      </article>
+
+      <article>
+        <span class="current-balances__icon">
+          <mat-icon>
+            format_list_numbered
+          </mat-icon>
+        </span>
+
+        <div>
+          <span>
+            Aplicaciones
+          </span>
+
+          <strong>
+            {{ applicationsCount }}
+          </strong>
+
+          <small>
+            {{ activeApplicationsCount }} activas ·
+            {{ reversedApplicationsCount }} revertidas
+          </small>
+        </div>
+      </article>
+    </section>
+
+    <!-- =============================================
+           BITÁCORA
+           ============================================= -->
+
+    <section class="payment-history">
+      <div class="payment-history__header">
+        <div>
+          <h3>
+            Bitácora de pagos
+          </h3>
+
+          <p>
+            Aplicaciones y reversiones registradas para este concepto.
+          </p>
+        </div>
+
+        <span class="payment-history__count">
+          {{ history.length }}
+        </span>
+      </div>
+
+      @if (history.length > 0) {
+      <div class="payment-timeline">
+        @for (
+        event of history;
+        track event.event_id
+        ) {
+        <article class="payment-event" [ngClass]="getEventClass(event)">
+          <div class="payment-event__marker">
+            <mat-icon>
+              {{ getEventIcon(event) }}
+            </mat-icon>
+          </div>
+
+          <div class="payment-event__content">
+            <header class="payment-event__header">
+              <div>
+                <strong>
+                  {{ getEventTitle(event) }}
+                </strong>
+
+                <span>
+                  Usuario
+                  @if (
+                  getEventUserId(event);
+                  as userId
+                  ) {
+                  #{{ userId }}
+                  } @else {
+                  no identificado
+                  }
+                </span>
+              </div>
+
+              <div class="payment-event__header-right">
+
+                @if (
+                canReverseEvent(event)
+                ) {
+                <button type="button" class="payment-event__reverse-button" title="Revertir pago"
+                  (click)="openReversePayment(event)">
+
+                  <mat-icon>
+                    undo
+                  </mat-icon>
+
+                  <span>
+                    Revertir
+                  </span>
+
+                </button>
+                }
+
+                <span class="event-status" [ngClass]="
+      getEventStatusClass(event)
+    ">
+                  {{
+                  getEventStatusLabel(event)
+                  }}
+                </span>
+
+                <time>
+                  {{
+                  event.event_at
+                  | date: 'dd/MM/yyyy HH:mm'
+                  }}
+                </time>
+
+              </div>
+            </header>
+
+            <div class="payment-event__amounts">
+              <div>
+                <span>
+                  Importe
+                </span>
+
+                <strong>
+                  {{
+                  event.amount
+                  | currency: 'MXN' : 'symbol' : '1.2-2'
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Saldo anterior
+                </span>
+
+                <strong>
+                  {{
+                  event.previous_pending_amount
+                  | currency: 'MXN' : 'symbol' : '1.2-2'
+                  }}
+                </strong>
+              </div>
+
+              <span class="payment-event__arrow">
+                <mat-icon>
+                  arrow_forward
+                </mat-icon>
+              </span>
+
+              <div>
+                <span>
+                  Saldo posterior
+                </span>
+
+                <strong>
+                  {{
+                  event.new_pending_amount
+                  | currency: 'MXN' : 'symbol' : '1.2-2'
+                  }}
+                </strong>
+              </div>
+            </div>
+
+            <div class="payment-event__details">
+              <div>
+                <span>
+                  Pago
+                </span>
+
+                <strong>
+                  #{{ event.payment.id }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Aplicación
+                </span>
+
+                <strong>
+                  #{{ event.application.id }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Método
+                </span>
+
+                <strong>
+                  {{
+                  getPaymentMethodLabel(
+                  event.payment
+                  )
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Empresa
+                </span>
+
+                <strong>
+                  {{
+                  getCompanyName(event)
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Movimiento / referencia
+                </span>
+
+                <strong>
+                  {{
+                  getMovementDisplay(event)
+                  }}
+                </strong>
+              </div>
+
+              <div>
+                <span>
+                  Banco / cuenta
+                </span>
+
+                <strong>
+                  {{ getBankName(event) }}
+                  ·
+                  {{
+                  getBankAccountDisplay(event)
+                  }}
+                </strong>
+              </div>
+            </div>
+
+            @if (
+            getEventReason(event);
+            as eventReason
+            ) {
+            <p class="payment-event__reason">
+              <mat-icon>
+                notes
+              </mat-icon>
+
+              <span>
+                {{ eventReason }}
+              </span>
+            </p>
+            }
+          </div>
+        </article>
+        }
+      </div>
+      } @else if (!loading()) {
+      <div class="payment-history-empty">
+        <mat-icon>
+          history
+        </mat-icon>
+
+        <strong>
+          Sin pagos registrados
+        </strong>
+
+        <span>
+          Este concepto todavía no cuenta con aplicaciones bancarias.
+        </span>
+      </div>
+      }
+    </section>
+    } @else if (!loading()) {
+    <div class="payment-history-empty">
+      <mat-icon>
+        history
+      </mat-icon>
+
+      <strong>
+        No fue posible mostrar el historial
+      </strong>
+
+      <span>
+        No se encontraron datos para el concepto seleccionado.
+      </span>
+    </div>
+    }
+  </div>
+
+  <app-btns-section type="close" (action)="onFooterAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay [visible]="loading()" [fullscreen]="false" text="Cargando historial de pagos.">
+  </app-loading-overlay>
+</div>

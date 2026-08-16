@@ -1,0 +1,136 @@
+:host {
+  display: block;
+}
+
+.c-loading-host {
+  .c-filters{
+    padding-top: 5px;
+  }
+}
+
+.overtime-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.overtime-summary-card {
+  background: #fff;
+  border: 1px solid rgba(35, 31, 32, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-height: 88px;
+  padding: 14px 16px;
+
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    border-color: rgba(39, 170, 225, 0.18);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+    transform: translateY(-1px);
+  }
+
+  &__icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 22px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 13px;
+    color: #6b7280;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  &__value {
+    color: var(--color-secundary);
+    font-size: 19px;
+    line-height: 1.05;
+    font-weight: 800;
+  }
+
+  &--warning {
+    .overtime-summary-card__icon {
+      background: rgba(245, 158, 11, 0.12);
+      color: #d97706;
+    }
+
+    .overtime-summary-card__value {
+      color: #c96a04;
+    }
+  }
+
+  &--success {
+    .overtime-summary-card__icon {
+      background: rgba(16, 185, 129, 0.12);
+      color: #059669;
+    }
+
+    .overtime-summary-card__value {
+      color: #0b8a61;
+    }
+  }
+
+  &--info {
+    .overtime-summary-card__icon {
+      background: rgba(39, 170, 225, 0.12);
+      color: var(--color-primary-strong);
+    }
+
+    .overtime-summary-card__value {
+      color: var(--color-primary-strong);
+    }
+  }
+
+  &--purple {
+    .overtime-summary-card__icon {
+      background: rgba(99, 102, 241, 0.10);
+      color: #5b5fc7;
+    }
+
+    .overtime-summary-card__value {
+      color: #5b5fc7;
+    }
+  }
+}
+
+.c-table-loading-host {
+  position: relative;
+}
+
+@media screen and (max-width: 1180px) {
+  .overtime-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .overtime-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

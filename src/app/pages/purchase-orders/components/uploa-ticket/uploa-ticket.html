@@ -1,0 +1,98 @@
+<div class="card-content-form">
+    <div class="ticket-upload-page">
+        <div class="ticket-upload-shell">
+            <header class="ticket-upload-header">
+
+                <div class="ticket-upload-header__content">
+                    <h1>Subir ticket</h1>
+                    <p>Selecciona el proyecto y sube la foto del comprobante.</p>
+                </div>
+            </header>
+
+            <form class="ticket-upload-form" [formGroup]="form" (submit)="$event.preventDefault()">
+                <section class="ticket-upload-section">
+                    <app-autocomplete formControlName="project_id" label="Proyecto" placeholder="Buscar proyecto"
+                        [remote]="true" catalogType="project">
+                    </app-autocomplete>
+                </section>
+
+                <section class="ticket-upload-card">
+                    <div class="ticket-upload-card__header">
+                        <div class="ticket-upload-card__title">
+                            <span>
+                                <mat-icon>receipt_long</mat-icon>
+                            </span>
+
+                            <div>
+                                <h2>Ticket del gasto</h2>
+                                <p>Solo puedes subir un archivo.</p>
+                            </div>
+                        </div>
+
+                        <strong>1 archivo</strong>
+                    </div>
+
+                    <label class="ticket-upload-dropzone" [class.ticket-upload-dropzone--active]="isDragging"
+                        [class.ticket-upload-dropzone--filled]="!!selectedFile" (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
+
+                        <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" />
+
+                        @if (!filePreview) {
+                        <div class="ticket-upload-dropzone__empty">
+                            <span>
+                                <mat-icon>photo_camera</mat-icon>
+                            </span>
+
+                            <strong>Toca para tomar o subir foto</strong>
+                            <p>Formatos permitidos: JPG, PNG o WEBP.</p>
+                        </div>
+                        } @else {
+                        <div class="ticket-upload-preview">
+                            <div class="ticket-upload-preview__image">
+                                @if (filePreview.previewUrl) {
+                                <img [src]="filePreview.previewUrl" alt="Vista previa del ticket" />
+                                } @else {
+                                <mat-icon>insert_drive_file</mat-icon>
+                                }
+                            </div>
+
+                            <div class="ticket-upload-preview__info">
+                                <strong>{{ filePreview.name }}</strong>
+                                <span>{{ filePreview.sizeLabel }} · {{ filePreview.typeLabel }}</span>
+
+                                <em>
+                                    <mat-icon>check_circle</mat-icon>
+                                    Archivo cargado
+                                </em>
+                            </div>
+                        </div>
+                        }
+                    </label>
+
+                    @if (filePreview) {
+                    <button type="button" class="ticket-upload-remove" (click)="removeFile()">
+                        <mat-icon>delete</mat-icon>
+                        <span>Quitar ticket</span>
+                    </button>
+                    }
+                </section>
+
+                <div class="ticket-upload-info">
+                    <mat-icon>info</mat-icon>
+
+                    <p>
+                        La foto quedará pendiente para revisión y conciliación con una orden de compra.
+                    </p>
+                </div>
+
+                <footer class="ticket-upload-actions">
+                    <app-btns-section type="save" cancelLabel="Cancelar"
+                        saveLabel="Subir foto" [saveDisabled]="!canSave"
+                        [cancelDisabled]="saving" (action)="onBtnsSectionAction($event)">
+                    </app-btns-section>
+                </footer>
+            </form>
+        </div>
+    </div>
+</div>

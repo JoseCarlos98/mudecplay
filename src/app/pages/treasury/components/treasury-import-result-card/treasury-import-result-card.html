@@ -1,0 +1,58 @@
+<div class="treasury-import-result" [ngClass]="cardClass">
+  <div class="treasury-import-result__header">
+    <div class="treasury-import-result__icon">
+      <mat-icon>
+        {{ isSuccess ? 'check_circle' : 'error' }}
+      </mat-icon>
+    </div>
+
+    <div>
+      <h3 class="treasury-import-result__title">
+        Resultado de importación
+      </h3>
+
+      <p class="treasury-import-result__subtitle">
+        {{ result.message }}
+      </p>
+    </div>
+  </div>
+
+  <div class="treasury-import-result__body">
+    <div class="treasury-import-result__row">
+      <span>Estado:</span>
+      <strong class="treasury-import-result__badge" [ngClass]="statusClass">
+        {{ statusLabel }}
+      </strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Parser:</span>
+      <strong>{{ result.parser_code }}</strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Filas totales:</span>
+      <strong>{{ result.total_rows }}</strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Insertadas:</span>
+      <strong>{{ result.inserted_rows }}</strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Duplicadas:</span>
+      <strong>{{ result.duplicate_rows }}</strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Omitidas:</span>
+      <strong>{{ result.skipped_rows }}</strong>
+    </div>
+
+    <div class="treasury-import-result__row">
+      <span>Errores:</span>
+      <strong>{{ result.error_rows }}</strong>
+    </div>
+  </div>
+</div>

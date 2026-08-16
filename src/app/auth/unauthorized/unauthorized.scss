@@ -1,0 +1,83 @@
+.unauth-page {
+  min-height: calc(100vh - 64px); // si tu toolbar mide distinto, ajusta
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.unauth-card {
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  padding: 24px !important; // card-content trae padding, aquí lo hacemos consistente
+}
+
+.unauth-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 9999px;
+  margin: 0 auto 14px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(30, 134, 177, 0.10);
+  border: 1px solid rgba(30, 134, 177, 0.20);
+
+  mat-icon {
+    color: var(--color-primary-strong);
+    font-size: 34px;
+    width: 34px;
+    height: 34px;
+  }
+}
+
+.unauth-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.unauth-subtitle {
+  margin: 8px 0 18px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.unauth-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  a {
+    text-decoration: none;
+    height: 34px;
+  }
+}
+
+.unauth-tip {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+
+  .tip-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 9999px;
+
+    background: rgba(30, 134, 177, 0.06);
+    border: 1px solid rgba(30, 134, 177, 0.14);
+    color: var(--color-primary-strong);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}

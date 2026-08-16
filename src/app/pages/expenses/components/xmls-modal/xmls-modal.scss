@@ -1,0 +1,287 @@
+.c-modal.c-modal--xml {
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  app-module-header {
+    flex: 0 0 auto;
+  }
+
+  .xml-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 1.5rem 2rem 0.75rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .xml-section {
+    & + .xml-section {
+      margin-top: 1.75rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    &__title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    &__subtitle {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-bottom: 0.75rem;
+      line-height: 1.45;
+    }
+  }
+
+  .xml-empty {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+
+  /* ============================
+   * Tabla
+   * ============================ */
+
+  .c-module-table {
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .c-module-table app-data-table {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .c-module-table ::ng-deep .table-container {
+    height: auto !important;
+    max-height: calc(100vh - 350px) !important;
+    min-height: 110px;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .c-module-table ::ng-deep table {
+    min-width: 860px;
+  }
+
+  .c-module-table ::ng-deep th,
+  .c-module-table ::ng-deep td {
+    white-space: nowrap;
+  }
+
+  /* ============================
+   * Duplicados
+   * ============================ */
+
+  .xml-section--duplicates {
+    .xml-dup-header {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+
+      mat-icon {
+        color: #f97316;
+      }
+
+      h3 {
+        margin: 0;
+        font-weight: 600;
+        color: #b45309;
+      }
+
+      p {
+        margin: 0.15rem 0 0;
+        font-size: 0.875rem;
+        color: #92400e;
+      }
+    }
+
+    .xml-dup-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .xml-dup-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 0.6rem 0.75rem;
+      border-radius: 0.5rem;
+      background: #fffbeb;
+
+      &__text {
+        min-width: 0;
+      }
+
+      &__file {
+        font-weight: 500;
+        font-size: 0.9rem;
+        word-break: break-word;
+      }
+
+      &__meta {
+        font-size: 0.8rem;
+        color: #92400e;
+        word-break: break-word;
+      }
+    }
+  }
+
+  /* ============================
+   * Nota + paginador en misma zona
+   * ============================ */
+
+  .xml-footer-row {
+    flex: 0 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.55rem 2rem;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .xml-footnote {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #6b7280;
+    line-height: 1.35;
+  }
+
+  .xml-footer-row .mat-mdc-paginator {
+    position: static !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: auto;
+    min-width: 0;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  .xml-footer-row ::ng-deep .mat-mdc-paginator-container {
+    min-height: 42px !important;
+    padding: 0 !important;
+    justify-content: flex-end !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .xml-footer-row ::ng-deep .mat-mdc-paginator-page-size {
+    margin-right: 6px !important;
+  }
+
+  .xml-footer-row ::ng-deep .mat-mdc-paginator-range-label {
+    margin: 0 8px !important;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* Mantener botones del sistema tal cual */
+  > app-btns-section {
+    flex: 0 0 auto;
+    display: block;
+  }
+}
+
+/* ============================
+ * Responsive
+ * ============================ */
+
+@media screen and (max-width: 875px) {
+  .c-modal.c-modal--xml {
+    max-height: calc(100dvh - 28px);
+
+    .xml-body {
+      padding: 1rem 1rem 0.75rem;
+    }
+
+    .c-module-table ::ng-deep .table-container {
+      max-height: 34dvh !important;
+      min-height: 120px;
+    }
+
+    .c-module-table ::ng-deep table {
+      min-width: 760px;
+    }
+
+    .xml-footer-row {
+      grid-template-columns: 1fr;
+      gap: 0.35rem;
+      padding: 0.6rem 1rem;
+    }
+
+    .xml-footer-row .mat-mdc-paginator {
+      width: 100%;
+    }
+
+    .xml-footer-row ::ng-deep .mat-mdc-paginator-container {
+      justify-content: space-between !important;
+      min-height: 42px !important;
+    }
+
+    .xml-footer-row ::ng-deep .mat-mdc-paginator-page-size-label {
+      display: none !important;
+    }
+
+    .xml-footer-row ::ng-deep .mat-mdc-paginator-range-label {
+      margin: 0 4px !important;
+      font-size: 11.5px;
+    }
+
+    .xml-footer-row ::ng-deep .mat-mdc-icon-button {
+      width: 30px !important;
+      height: 30px !important;
+      padding: 0 !important;
+    }
+
+    .xml-dup-item {
+      align-items: stretch;
+      flex-direction: column;
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .c-modal.c-modal--xml {
+    max-height: calc(100dvh - 22px);
+
+    .xml-body {
+      padding: 0.85rem 0.85rem 0.65rem;
+    }
+
+    .c-module-table ::ng-deep .table-container {
+      max-height: 30dvh !important;
+      min-height: 110px;
+    }
+
+    .c-module-table ::ng-deep table {
+      min-width: 700px;
+    }
+
+    .xml-footer-row {
+      padding: 0.55rem 0.85rem;
+    }
+
+    .xml-footer-row ::ng-deep .mat-mdc-paginator-range-label {
+      max-width: 78px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

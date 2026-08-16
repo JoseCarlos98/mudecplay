@@ -1,0 +1,70 @@
+<section class="report-tab">
+  <header class="report-tab__header">
+    <h2 class="report-tab__title">Gasto por área</h2>
+    <p class="report-tab__desc">Selecciona filtros y genera el preview del PDF.</p>
+  </header>
+
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">
+      <div class="md:col-span-1">
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de fecha"
+          mode="range">
+        </app-input-date>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="areaIds"
+          label="Área"
+          [multiple]="true"
+          [options]="catalogArea">
+        </app-input-select>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-btns-section
+          type="search"
+          [hasActiveSearch]="hasActiveSearch"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+
+      <div></div>
+
+      <div class="md:col-span-1 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="onSaveHistory()"
+          [disabled]="!hasActiveSearch || loadingPreview() || loadingHistory()">
+          <mat-icon>history</mat-icon>
+          <span>{{ loadingHistory() ? 'Guardando...' : 'Guardar en historial' }}</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  @if (pdfUrl() || loadingPreview()) {
+    <div class="c-pdf-wrap">
+      @if (pdfUrl()) {
+        <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+      } @else {
+        <div class="c-pdf-placeholder"></div>
+      }
+
+      <app-loading-overlay
+        [visible]="loadingPreview()"
+        text="Generando preview...">
+      </app-loading-overlay>
+    </div>
+  }
+
+  @if (errorPreview()) {
+    <div class="c-preview-error">
+      {{ errorPreview() }}
+    </div>
+  }
+</section>

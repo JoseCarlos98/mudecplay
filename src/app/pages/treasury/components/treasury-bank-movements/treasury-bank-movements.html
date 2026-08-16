@@ -1,0 +1,58 @@
+<div class="c-table-page c-banck-movements-page">
+  <div class="card-content shadow-md">
+    <app-module-header title="Movimientos bancarios" [config]="headerConfig">
+    </app-module-header>
+
+    <form [formGroup]="formFilters">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
+        <app-input-date formControlName="dateRange" label="Fecha" mode="range">
+        </app-input-date>
+
+        <app-input-field formControlName="search" label="Buscar" type="text" [isFilter]="true">
+        </app-input-field>
+
+        <app-input-select formControlName="company_id" label="Empresa" [options]="companyOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="bank_id" label="Banco" [options]="bankOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="bank_account_id" label="Cuenta" [options]="bankAccountOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="movement_type" label="Tipo" [options]="movementTypeOptions">
+        </app-input-select>
+
+        <app-input-select formControlName="status" label="Estatus" [options]="movementStatusOptions">
+        </app-input-select>
+
+           <app-input-select formControlName="classifications" label="Clasificación" [options]="classificationOptions"
+          [multiple]="true">
+        </app-input-select>
+
+        <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+    </form>
+  </div>
+
+  @if (bankMovementsTableData?.data) {
+  <div class="c-module-table">
+    <app-data-table [data]="bankMovementsTableData.data" [columnsConfig]="columnsConfig"
+      [displayedColumns]="displayedColumns" [extraActions]="bankMovementExtraActions" [actionPermissions]="{
+    showEdit: false,
+    showDelete: false
+  }" (action)="onBankMovementTableAction($event)">
+    </app-data-table>
+
+    <mat-paginator [length]="bankMovementsTableData.meta.total" [pageSize]="filters.limit"
+      [pageIndex]="filters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]" (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  </div>
+  }
+</div>
+
+<app-loading-overlay [visible]="loadingTable() || loadingCatalogs()" [fullscreen]="true"
+  text="Cargando movimientos bancarios...">
+</app-loading-overlay>

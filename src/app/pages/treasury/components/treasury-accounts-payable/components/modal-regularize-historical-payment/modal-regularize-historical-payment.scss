@@ -1,0 +1,726 @@
+.regularize-historical-payment-modal {
+  position: relative;
+
+  max-height: 92vh;
+
+  display: grid;
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  overflow: hidden;
+
+  &__body {
+    min-height: 0;
+
+    padding: 0.85rem 1rem 0 1rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    overflow-y: auto;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * PAGO HISTÓRICO
+ * ========================================================= */
+
+.historical-payment-card {
+  padding: 0.9rem;
+
+  border: 1px solid #d9e2ec;
+  border-radius: 0.75rem;
+
+  background: #f8fafc;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  &__identity {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    > div:last-child {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.65rem;
+
+    background: #ede9fe;
+    color: #7c3aed;
+
+    mat-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      font-size: 1.25rem;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.85rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__concept {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    border-top: 1px dashed #cbd5e1;
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.74rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.historical-payment-status {
+  flex-shrink: 0;
+
+  padding: 0.3rem 0.65rem;
+
+  border-radius: 999px;
+
+  background: #fef3c7;
+  color: #b45309;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.historical-payment-amount {
+  color: #047857 !important;
+  font-size: 0.86rem !important;
+}
+
+/* =========================================================
+ * INFORMACIÓN
+ * ========================================================= */
+
+.regularization-information {
+  padding: 0.8rem 0.85rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+
+  border: 1px solid #bae6fd;
+  border-radius: 0.7rem;
+
+  background: #f0f9ff;
+  color: #075985;
+
+  > mat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+
+    flex-shrink: 0;
+
+    font-size: 1.25rem;
+  }
+
+  div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  strong {
+    font-size: 0.76rem;
+  }
+
+  p {
+    margin: 0;
+
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+/* =========================================================
+ * FORMULARIO
+ * ========================================================= */
+
+.regularization-form {
+  width: 100%;
+
+  padding-bottom: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+
+  app-input-select,
+  app-input-field,
+  app-input-date {
+    width: 100%;
+  }
+
+  &__fields {
+    display: grid;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 0.7rem;
+  }
+}
+
+/* =========================================================
+ * SECCIÓN DINÁMICA
+ * ========================================================= */
+
+.regularization-dynamic-section {
+  padding: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  border: 1px solid #dbe4ee;
+  border-radius: 0.75rem;
+
+  background: #ffffff;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+
+    > mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      flex-shrink: 0;
+
+      color: #2563eb;
+      font-size: 1.2rem;
+    }
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+/* =========================================================
+ * FILTROS DE MOVIMIENTOS
+ * ========================================================= */
+
+.movement-selection-filters {
+  display: grid;
+grid-template-columns:
+  minmax(10rem, 0.8fr)
+  minmax(10rem, 1.1fr)
+  minmax(10rem, 1fr)
+  minmax(9rem, 0.8fr)
+  minmax(10rem, 1fr)
+  auto;
+  gap: 0.65rem;
+  align-items: end;
+
+  ::ng-deep .btns-action-filters {
+    gap: 10px;
+    display: flex;
+    margin-bottom: 25px!important;
+  }
+
+
+  .movement-filter--date {
+    margin-bottom: 25px;
+  }
+}
+
+/* =========================================================
+ * TABLA DE MOVIMIENTOS
+ * ========================================================= */
+
+.movement-selection-table {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+
+    color: #64748b;
+    font-size: 0.67rem;
+
+    strong {
+      color: #172033;
+    }
+  }
+
+  /**
+   * Contenedor general.
+   * Mantiene separadas la tabla y la paginación.
+   */
+  &__shell {
+    min-width: 0;
+
+    display: grid;
+    grid-template-rows:
+      minmax(0, 1fr)
+      auto;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 0.7rem;
+
+    background: #ffffff;
+
+    overflow: hidden;
+  }
+
+  /**
+   * Solamente las filas tienen scroll.
+   */
+  &__viewport {
+    min-width: 0;
+    width: 100%;
+    max-height: 22rem;
+
+    border: 0;
+    border-radius: 0;
+
+    overflow-x: auto;
+    overflow-y: auto;
+  }
+
+  /**
+   * El paginador ocupa su propia fila.
+   * Se neutraliza cualquier position global.
+   */
+  &__paginator {
+    position: static !important;
+    inset: auto !important;
+    z-index: 1;
+
+    width: 100%;
+    flex-shrink: 0;
+
+    border-top: 1px solid #e2e8f0;
+
+    background: #ffffff;
+  }
+}
+
+/* =========================================================
+ * MOVIMIENTO SELECCIONADO
+ * ========================================================= */
+
+.selected-regularization-movement {
+  padding: 0.8rem;
+
+  border: 1px solid #86efac;
+  border-radius: 0.7rem;
+
+  background: #f0fdf4;
+
+  &__title {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #166534;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__remove {
+    flex-shrink: 0;
+
+    padding: 0.32rem 0.55rem;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+
+    background: #fff;
+    color: #b91c1c;
+
+    font-family: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    mat-icon {
+      width: 0.95rem;
+      height: 0.95rem;
+
+      font-size: 0.95rem;
+    }
+
+    &:hover {
+      background: #fef2f2;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.7rem;
+    padding-top: 0.65rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+
+    border-top: 1px dashed #bbf7d0;
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.64rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.7rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__amounts {
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr)
+      auto
+      minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+
+    border-top: 1px dashed #bbf7d0;
+
+    article {
+      min-width: 0;
+
+      padding: 0.6rem 0.65rem;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+
+      border: 1px solid #d1fae5;
+      border-radius: 0.6rem;
+
+      background: #ffffff;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.64rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.8rem;
+    }
+
+    > mat-icon {
+      width: 1rem;
+      height: 1rem;
+
+      color: #64748b;
+      font-size: 1rem;
+    }
+  }
+}
+
+.amount--warning {
+  color: #c2410c !important;
+}
+
+.amount--success {
+  color: #047857 !important;
+}
+
+/* =========================================================
+ * EMPRESA OPCIONAL
+ * ========================================================= */
+
+.regularization-company-helper {
+  padding: 0.65rem 0.7rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: 0.6rem;
+
+  background: #eff6ff;
+  color: #475569;
+
+  mat-icon {
+    width: 1rem;
+    height: 1rem;
+
+    flex-shrink: 0;
+
+    color: #2563eb;
+    font-size: 1rem;
+  }
+
+  span {
+    font-size: 0.66rem;
+    line-height: 1.4;
+  }
+}
+
+/* =========================================================
+ * SIN MOVIMIENTOS
+ * ========================================================= */
+
+.regularization-empty-message {
+  padding: 0.7rem;
+
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  border: 1px dashed #cbd5e1;
+  border-radius: 0.65rem;
+
+  background: #f8fafc;
+  color: #64748b;
+
+  mat-icon {
+    width: 1.1rem;
+    height: 1.1rem;
+
+    flex-shrink: 0;
+
+    font-size: 1.1rem;
+  }
+
+  span {
+    font-size: 0.68rem;
+  }
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 1180px) {
+  .movement-selection-filters {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 780px) {
+  .historical-payment-card {
+    &__grid {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  .movement-selection-filters {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .selected-regularization-movement {
+    &__grid {
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    }
+
+    &__amounts {
+      grid-template-columns:
+        minmax(0, 1fr);
+
+      > mat-icon {
+        display: none;
+      }
+    }
+  }
+
+  .regularization-form {
+    &__fields {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .regularize-historical-payment-modal {
+    max-height: 95vh;
+
+    &__body {
+      padding-inline: 0.75rem;
+    }
+  }
+  .movement-selection-table {
+  &__summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  &__viewport {
+    max-height: 18rem;
+  }
+}
+
+  .historical-payment-card {
+    &__header {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+
+  .movement-selection-filters {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+  .movement-selection-table {
+    &__summary {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  .selected-regularization-movement {
+    &__title {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+}

@@ -2,35 +2,48 @@
     background: none !important;
 }
 
-.input-ER {
-    width: 100% !important;
-
-    .mat-mdc-text-field-wrapper {
-        padding: 0 !important;
-        height: 30px !important;
-        border: none !important;
-    }
-}
-
 .c-input {
     text-align: left;
-    margin-bottom: 8px;
+    margin-bottom: 5px;
+
+    mat-form-field {
+        .mat-mdc-text-field-wrapper {
+            padding: 0 !important;
+            height: 30px !important;
+            border: none !important;
+        }
+    }
 
     p {
         color: #1e86b1;
         font-weight: 500;
-        font-size: 12px;
+        font-size: 14px;
+        margin-bottom: 5px;
     }
 
     input {
         padding-left: 7px !important;
         font-size: 12.5px !important;
         height: 30px !important;
+        letter-spacing: 1px !important;
     }
+}
+
+.mat-mdc-form-field-error {
+    font-size: 11px !important;
+    font-family: "Poppins", sans-serif !important;
+}
+
+.mat-mdc-form-field-flex {
+    height: 30px !important;
 }
 
 .mat-focused {
     height: 30px !important;
+}
+
+.mat-date-range-input-container {
+    height: 34px !important;
 }
 
 .mat-mdc-form-field-infix {
@@ -40,6 +53,11 @@
 .mdc-text-field--outlined .mat-mdc-form-field-infix,
 .mdc-text-field--no-label .mat-mdc-form-field-infix {
     font-size: 12px !important;
+    min-height: unset !important;
+}
+
+.mdc-switch__track::after {
+    background: var(--color-primary-strong)!important;
 }
 
 .mat-mdc-form-field {
@@ -57,3 +75,151 @@
 .mdc-text-field--outlined:hover .mdc-notched-outline__trailing {
     border-color: #9ea7ad !important;
 }
+
+.mat-mdc-paginator-page-size-label {
+    display: none !important;
+}
+
+.mat-mdc-paginator-page-size {
+    width: 70px;
+}
+
+.mat-mdc-paginator-page-size {
+    .mat-mdc-select-arrow-wrapper {}
+}
+
+.mat-mdc-select-arrow-wrapper {
+    padding-top: 0px !important;
+    padding-right: 10px !important;
+}
+
+
+.mat-mdc-paginator .mat-mdc-select-value {
+    font-size: 15px !important;
+    margin-top: 0px !important;
+
+    .mat-mdc-paginator-page-size .mat-mdc-select-arrow-wrapper {
+        padding-bottom: 8px !important;
+    }
+}
+
+.mat-mdc-paginator-range-actions {
+    gap: 5px !important;
+}
+
+.mat-mdc-paginator {
+    margin-top: 10px;
+    color: #231F20;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    border-radius: 15px;
+
+    .mat-mdc-paginator-range-label {
+        font-size: 12px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .mat-mdc-icon-button {
+        color: #27AAE1;
+    }
+}
+
+.mat-mdc-select {
+    padding-left: 7px;
+    padding-top: 3px;
+    font-size: 12.5px;
+    font-weight: 500;
+}
+
+.mat-mdc-paginator .mat-mdc-select {
+    padding-left: 0px !important;
+    width: 45px !important;
+    display: flex;
+}
+
+.mat-mdc-dialog-surface {
+    border-radius: 10px !important;
+    padding: 15px;
+}
+
+.mat-mdc-select-value-text {
+    font-size: 12.5;
+    font-weight: 500;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {}
+
+.mat-date-range-input-wrapper {
+    height: 33px !important;
+}
+
+.mat-date-range-input-inner {
+    position: relative !important;
+}
+
+
+.mat-mdc-select-min-line,
+mat-select-trigger {
+    padding-left: 7px !important;
+    font-size: 12.5px !important;
+    height: 30px !important;
+    letter-spacing: 1px !important;
+    font-weight: 400;
+    padding-left: 0 !important;
+}
+
+.padding-selection {
+    position: relative;
+
+    button {
+        position: absolute;
+        right: -9px;
+        top: -24px;
+        z-index: 1000000;
+
+        mat-icon {
+            margin-bottom: 4px;
+            color: var(--color-third);
+        }
+    }
+
+    .mat-mdc-select-arrow-wrapper {
+        padding-right: 35px !important;
+    }
+}
+
+.padding-selection-select {
+    position: relative;
+
+    button {
+        position: absolute;
+        right: -9px;
+        top: -24px;
+        z-index: 1000000;
+
+        mat-icon {
+            margin-bottom: 4px;
+            color: var(--color-third);
+        }
+    }
+
+    .mat-mdc-select-arrow-wrapper {
+        padding-right: 31px !important;
+    }
+}
+
+
+// MOVIL DESIGN
+@media screen and (max-width: 500px) {
+    .mat-mdc-paginator-container {
+        padding: 10px 0 0 0 !important;
+        justify-content: space-around !important;
+    }
+
+    .mat-mdc-paginator-range-actions {
+        height: 36px !important;
+    }
+}
+

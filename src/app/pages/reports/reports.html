@@ -1,0 +1,33 @@
+<app-page-tabs
+  [title]="'Reportes'"
+  [description]="'Genera reportes en PDF a partir de filtros: proyecto, proveedor, estado financiero y cuentas por cobrar.'"
+  [tabs]="tabs"
+  [activeTab]="activeSection()"
+  (activeTabChange)="onActiveTabChange($event)"
+>
+  @switch (activeSection()) {
+    @case ('project_detail') {
+      <app-project-report></app-project-report>
+    }
+
+    @case ('project_by_supplier') {
+      <app-supplier-report></app-supplier-report>
+    }
+
+    @case ('by_area') {
+      <!-- <app-area-report></app-area-report> -->
+    }
+
+    @case ('project_payables') {
+      <app-project-payables></app-project-payables>
+    }
+
+    @case ('project_status') {
+      <app-project-status></app-project-status>
+    }
+
+    @case ('accounts_receivable_report') {
+      <app-accounts-receivable-report></app-accounts-receivable-report>
+    }
+  }
+</app-page-tabs>

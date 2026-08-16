@@ -1,0 +1,272 @@
+<div class="c-modal accounts-payable-manual-reopen-modal">
+
+  <app-module-header
+    title="Reabrir movimiento bancario"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="accounts-payable-manual-reopen-modal__body">
+
+    <!-- ===============================================
+         MOVIMIENTO
+         =============================================== -->
+
+    <section class="manual-reopen-movement-card">
+
+      <div class="manual-reopen-movement-card__header">
+
+        <div class="manual-reopen-movement-card__identity">
+
+          <div class="manual-reopen-movement-card__icon">
+            <mat-icon>lock_open</mat-icon>
+          </div>
+
+          <div>
+            <span>Referencia bancaria</span>
+
+            <strong>
+              {{ referenceDisplay }}
+            </strong>
+          </div>
+
+        </div>
+
+        <span class="manual-reopen-status">
+          Cerrado manualmente
+        </span>
+
+      </div>
+
+      <div class="manual-reopen-movement-card__grid">
+
+        <div>
+          <span>Empresa</span>
+
+          <strong>
+            {{
+              movement.company?.name ||
+              'Empresa no identificada'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Banco</span>
+
+          <strong>
+            {{
+              movement.bank?.name ||
+              'Sin banco'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Cuenta</span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Fecha</span>
+
+          <strong>
+            {{
+              formatDate(
+                movement.movement_date
+              )
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+      <div class="manual-reopen-movement-card__description">
+
+        <span>Descripción</span>
+
+        <strong>
+          {{
+            movement.description_original ||
+            'Sin descripción'
+          }}
+        </strong>
+
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         DISTRIBUCIÓN
+         =============================================== -->
+
+    <section class="manual-reopen-amounts">
+
+      <article class="manual-reopen-amount-card">
+
+        <div class="manual-reopen-amount-card__icon">
+          <mat-icon>payments</mat-icon>
+        </div>
+
+        <div>
+          <span>Monto original</span>
+
+          <strong>
+            {{
+              originalAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="manual-reopen-amount-card">
+
+        <div class="manual-reopen-amount-card__icon">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+
+        <div>
+          <span>Total aplicado</span>
+
+          <strong class="manual-reopen-amount--success">
+            {{
+              appliedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="manual-reopen-amount-card manual-reopen-amount-card--closed">
+
+        <div class="manual-reopen-amount-card__icon">
+          <mat-icon>lock</mat-icon>
+        </div>
+
+        <div>
+          <span>Cerrado actualmente</span>
+
+          <strong class="manual-reopen-amount--closed">
+            {{
+              manualClosedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="manual-reopen-amount-card manual-reopen-amount-card--available">
+
+        <div class="manual-reopen-amount-card__icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+
+        <div>
+          <span>Disponible después</span>
+
+          <strong class="manual-reopen-amount--available">
+            {{
+              availableAfterReopen
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ===============================================
+         INFORMACIÓN
+         =============================================== -->
+
+    <section class="manual-reopen-information">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <div>
+        <strong>
+          El saldo cerrado volverá a estar disponible
+        </strong>
+
+        <p>
+          Se restaurarán
+          <strong>
+            {{
+              manualClosedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+          para aplicarlos nuevamente a conceptos pendientes.
+          Los pagos ya registrados no se modificarán.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+    <form
+      id="form"
+      class="manual-reopen-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo de la reapertura"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+  </div>
+
+  <!-- ===============================================
+       FOOTER GLOBAL
+       =============================================== -->
+
+  <app-btns-section
+    class="accounts-payable-manual-reopen-modal__footer"
+    type="save"
+    form="form"
+    cancelLabel="Cerrar"
+    saveLabel="Reabrir movimiento"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Reabriendo movimiento...">
+  </app-loading-overlay>
+
+</div>

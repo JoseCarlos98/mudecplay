@@ -1,0 +1,1388 @@
+/* =========================================================
+ * ASISTENCIA DIARIA
+ * Desktop: alto calculado
+ * Mobile/tablet: scroll normal + listas internas con scroll
+ * ========================================================= */
+
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+/* =========================================================
+ * LAYOUT PRINCIPAL
+ * ========================================================= */
+
+.c-daily-page {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 15px;
+}
+
+.c-daily-page > .card-content {
+  margin-bottom: 0;
+}
+
+/* =========================================================
+ * RESUMEN SUPERIOR
+ * ========================================================= */
+
+.daily-top-summary {
+  display: grid;
+  grid-template-columns: 1.15fr repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.daily-two {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 46px;
+  align-items: end;
+  gap: 10px;
+}
+
+.date-picker {
+  width: 100%;
+  min-width: 0;
+}
+
+.btn-section-fix {
+  width: 46px;
+  min-width: 46px;
+  display: flex;
+  align-items: end;
+  margin-bottom: 5px;
+}
+
+.btn-section-fix .btns-action-filters {
+  width: 100%;
+  margin: 0 !important;
+}
+
+.btn-section-fix .btns-action-filters .btn-primary {
+  width: 46px;
+  min-width: 46px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.btn-section-fix .btns-action-filters .btn-outline {
+  display: none;
+}
+
+.daily-top-card {
+  position: relative;
+  min-height: 91px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(39, 170, 225, 0.14);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &--date {
+    background: linear-gradient(
+      180deg,
+      rgba(39, 170, 225, 0.06) 0%,
+      rgba(39, 170, 225, 0.03) 100%
+    );
+  }
+
+  &__label {
+    font-size: 14px;
+    line-height: 1;
+    color: #6b7280;
+    margin-bottom: 5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+  }
+
+  &__value {
+    font-size: 18px;
+    line-height: 1.05;
+    color: var(--color-secundary);
+    font-weight: 700;
+  }
+
+  &:not(.daily-top-card--date) .daily-top-card__value {
+    font-size: 20px;
+  }
+}
+
+/* =========================================================
+ * CARD PRINCIPAL / TABLERO
+ * ========================================================= */
+
+.daily-assistance-board-card {
+  position: relative;
+  min-height: 0 !important;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 16px !important;
+}
+
+.daily-assistance-board-card > .c-pill-tabs {
+  flex: 0 0 auto;
+}
+
+.daily-assistance-loading {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+}
+
+.daily-assistance-board {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1.45fr 1fr 1fr;
+  gap: 18px;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+/* =========================================================
+ * COLUMNAS
+ * ========================================================= */
+
+.daily-board-column {
+  min-height: 0 !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  &__header {
+    flex: 0 0 auto;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed rgba(148, 163, 184, 0.4);
+  }
+
+  &__title {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-secundary);
+    letter-spacing: 0.1px;
+  }
+
+  &__desc {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+    line-height: 1.5;
+  }
+
+  &__search {
+    flex: 0 0 auto;
+  }
+
+  &--projects,
+  &--summary {
+    position: sticky;
+    top: 12px;
+  }
+
+  &--summary {
+    overflow: auto;
+  }
+}
+
+/* =========================================================
+ * LISTAS CON SCROLL INTERNO EN DESKTOP
+ * ========================================================= */
+
+.daily-cards-list,
+.daily-projects-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: none !important;
+  overflow: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.55);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* =========================================================
+ * CARDS GENERALES
+ * ========================================================= */
+
+.daily-employee-card,
+.daily-project-card {
+  width: 100%;
+  background: #fff;
+  border: 1px solid rgba(35, 31, 32, 0.1);
+  border-radius: 14px;
+  padding: 13px 14px;
+  cursor: pointer;
+  transition:
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.daily-employee-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+
+  &:hover {
+    border-color: rgba(39, 170, 225, 0.32);
+  }
+
+  &--selected {
+    background: linear-gradient(
+      180deg,
+      rgba(39, 170, 225, 0.1) 0%,
+      rgba(39, 170, 225, 0.06) 100%
+    );
+    border-color: rgba(39, 170, 225, 0.42);
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+}
+
+.daily-employee-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    180deg,
+    rgba(39, 170, 225, 0.12) 0%,
+    rgba(39, 170, 225, 0.08) 100%
+  );
+  color: var(--color-primary-strong);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(39, 170, 225, 0.1);
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.daily-employee-content {
+  min-width: 0;
+}
+
+.daily-employee-name {
+  display: block;
+  color: var(--color-secundary);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.daily-employee-meta {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.45;
+
+  &--hours {
+    margin-top: 3px;
+    color: var(--color-primary-strong);
+    font-weight: 700;
+  }
+}
+
+.daily-employee-side {
+  gap: 10px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.daily-money-chip {
+  padding: 5px 9px;
+  border-radius: 9999px;
+  background: rgba(76, 175, 80, 0.12);
+  color: #2e7d32;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+}
+
+.daily-employee-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.daily-absence-mini-btn {
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 9999px;
+  border: 1px solid rgba(229, 56, 53, 0.22);
+  background: rgba(229, 56, 53, 0.08);
+  color: var(--color-remove-bold);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(229, 56, 53, 0.12);
+    border-color: rgba(229, 56, 53, 0.34);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+  }
+}
+
+.daily-check-indicator {
+  color: #9ca3af;
+  display: flex;
+  margin-top: 5px;
+  align-items: center;
+  justify-content: center;
+
+  &--active {
+    color: var(--color-primary-strong);
+  }
+
+  mat-icon {
+    font-size: 22px;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* =========================================================
+ * CARDS DE ASIGNACIONES / FALTAS / CANCELADOS
+ * ========================================================= */
+
+.daily-attendance-card {
+  border: 1px solid rgba(35, 31, 32, 0.1);
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+
+  &--cancelled {
+    background: linear-gradient(
+      180deg,
+      rgba(229, 56, 53, 0.04) 0%,
+      rgba(229, 56, 53, 0.02) 100%
+    );
+    border-color: rgba(229, 56, 53, 0.2);
+  }
+
+  &--absent {
+    background: linear-gradient(
+      180deg,
+      rgba(245, 158, 11, 0.05) 0%,
+      rgba(245, 158, 11, 0.02) 100%
+    );
+    border-color: rgba(245, 158, 11, 0.26);
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+
+    .btn-outline,
+    .btn-danger {
+      height: 32px;
+      font-size: 13px;
+      padding-inline: 12px;
+    }
+  }
+}
+
+.daily-attendance-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #374151;
+  font-size: 13px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: var(--color-primary-strong);
+  }
+}
+
+.daily-status-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+
+  &--assigned {
+    background: rgba(76, 175, 80, 0.12);
+    color: #2e7d32;
+  }
+
+  &--cancelled {
+    background: rgba(229, 56, 53, 0.12);
+    color: var(--color-remove-bold);
+  }
+
+  &--absent {
+    background: rgba(245, 158, 11, 0.14);
+    color: #92400e;
+  }
+}
+
+/* =========================================================
+ * PROYECTOS
+ * ========================================================= */
+
+.daily-project-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  color: var(--color-secundary);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.03);
+
+  &:hover {
+    border-color: rgba(39, 170, 225, 0.32);
+  }
+
+  &--selected {
+    background: linear-gradient(
+      180deg,
+      rgba(39, 170, 225, 0.1) 0%,
+      rgba(39, 170, 225, 0.06) 100%
+    );
+    border-color: rgba(39, 170, 225, 0.42);
+  }
+
+  &__name {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.35;
+  }
+
+  mat-icon {
+    color: var(--color-primary-strong);
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * PANEL DE ACCIÓN
+ * ========================================================= */
+
+.daily-action-card {
+  border-radius: 16px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.daily-action-title {
+  color: var(--color-secundary);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+
+.daily-action-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #4b5563;
+  font-size: 13px;
+
+  strong {
+    color: var(--color-secundary);
+    font-weight: 700;
+  }
+}
+
+.daily-action-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  .btn-primary,
+  .btn-outline,
+  .btn-danger {
+    padding-inline: 14px;
+  }
+}
+
+.daily-hours-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #4b5563;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.daily-hours-input {
+  width: 100%;
+  height: 30px;
+  border: 1px solid rgba(35, 31, 32, 0.14);
+  border-radius: 5px;
+  padding: 3px 5px 0;
+  font-family: inherit;
+  font-size: 12px;
+  color: #111827;
+  outline: none;
+  background: rgba(255, 255, 255, 0.92);
+  box-sizing: border-box;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
+    background: #fff;
+  }
+}
+
+.daily-selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.daily-selected-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  background: rgba(39, 170, 225, 0.1);
+  color: var(--color-primary-strong);
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(39, 170, 225, 0.12);
+}
+
+.daily-textarea {
+  width: 100%;
+  min-height: 112px;
+  resize: vertical;
+  border: 1px solid rgba(35, 31, 32, 0.14);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #111827;
+  box-sizing: border-box;
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+  background: rgba(255, 255, 255, 0.92);
+
+  &:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(39, 170, 225, 0.1);
+    background: #fff;
+  }
+}
+
+.daily-muted-text {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* =========================================================
+ * EMPTY STATE
+ * ========================================================= */
+
+.daily-empty-state {
+  min-height: 220px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+  color: #6b7280;
+  gap: 8px;
+
+  mat-icon {
+    color: var(--color-primary-strong);
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+
+  span {
+    max-width: 260px;
+    line-height: 1.5;
+  }
+
+  &--panel {
+    min-height: 220px;
+  }
+}
+
+/* =========================================================
+ * DOMINGO AUTOMÁTICO
+ * ========================================================= */
+
+.daily-sunday-card {
+  flex: 0 0 auto;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(35, 31, 32, 0.1);
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  &--ready {
+    background: linear-gradient(
+      180deg,
+      rgba(39, 170, 225, 0.07) 0%,
+      rgba(39, 170, 225, 0.03) 100%
+    );
+    border-color: rgba(39, 170, 225, 0.24);
+  }
+
+  &--generated {
+    background: linear-gradient(
+      180deg,
+      rgba(76, 175, 80, 0.08) 0%,
+      rgba(76, 175, 80, 0.03) 100%
+    );
+    border-color: rgba(76, 175, 80, 0.22);
+  }
+
+  &--blocked {
+    background: linear-gradient(
+      180deg,
+      rgba(245, 158, 11, 0.07) 0%,
+      rgba(245, 158, 11, 0.03) 100%
+    );
+    border-color: rgba(245, 158, 11, 0.24);
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  &__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    display: grid;
+    place-items: center;
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
+    flex-shrink: 0;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__title,
+  &__message,
+  &__source {
+    display: block;
+  }
+
+  &__title {
+    color: var(--color-secundary);
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+
+  &__message {
+    color: #4b5563;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  &__source {
+    margin-top: 2px;
+    color: var(--color-primary-strong);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .btn-primary {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * TABLET / DESKTOP MEDIO
+ * Se apila y vuelve a scroll normal de página
+ * ========================================================= */
+
+@media screen and (max-width: 1280px) {
+  :host {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .c-daily-page {
+    height: auto;
+    min-height: 100%;
+    display: block;
+  }
+
+  .c-daily-page > .card-content {
+    margin-bottom: 15px;
+  }
+
+  .daily-assistance-board-card {
+    height: auto;
+    min-height: 0 !important;
+    overflow: visible;
+  }
+
+  .daily-assistance-board {
+    grid-template-columns: 1fr;
+    overflow: visible;
+  }
+
+  .daily-board-column {
+    min-height: auto !important;
+    overflow: visible;
+  }
+
+  .daily-board-column--projects,
+  .daily-board-column--summary {
+    position: static;
+  }
+
+  .daily-cards-list,
+  .daily-projects-list,
+  .daily-board-column--summary {
+    max-height: none !important;
+    overflow: visible;
+  }
+}
+
+@media screen and (max-width: 1180px) {
+  .daily-top-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 820px) {
+  .daily-top-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =========================================================
+ * MOBILE
+ * ========================================================= */
+
+@media screen and (max-width: 875px) {
+  .btn-section-fix {
+    margin-bottom: 5px!important;
+  }
+  .c-daily-page {
+    display: block;
+  }
+
+  .c-daily-page > .card-content {
+    border-radius: 12px;
+  }
+
+  .daily-top-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .daily-top-card {
+    min-height: 88px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    justify-content: center;
+  }
+
+  .daily-top-card__label {
+    font-size: 12px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    letter-spacing: 0.6px;
+  }
+
+  .daily-top-card__value {
+    font-size: 22px !important;
+    line-height: 1;
+  }
+
+  .daily-top-card--date {
+    min-height: 96px;
+    grid-column: 1 / -1;
+  }
+
+  .daily-two {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 46px;
+    align-items: end;
+    gap: 10px;
+  }
+
+  .date-picker {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .btn-section-fix {
+    width: 46px;
+    min-width: 46px;
+    height: 32px;
+    display: flex;
+    align-items: end;
+    margin-bottom: 0;
+  }
+
+  .btn-section-fix .btns-action-filters {
+    width: 100%;
+    margin: 0 !important;
+  }
+
+  .btn-section-fix .btns-action-filters .btn-primary {
+    width: 46px;
+    min-width: 46px;
+    height: 32px;
+    border-radius: 8px;
+    padding: 0;
+  }
+
+  .btn-section-fix .btns-action-filters .btn-outline {
+    display: none;
+  }
+
+  .daily-assistance-board-card .c-pill-tabs {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    scrollbar-width: none;
+  }
+
+  .daily-assistance-board-card .c-pill-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .daily-assistance-board-card .c-pill-tab-btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 120px;
+    height: 30px;
+    justify-content: center;
+    font-size: 12px;
+    letter-spacing: 0.7px;
+    padding-inline: 14px !important;
+  }
+
+  .daily-assistance-board {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .daily-board-column {
+    padding: 12px;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .daily-board-column__header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+  }
+
+  .daily-board-column__title {
+    font-size: 18px;
+    line-height: 1.25;
+  }
+
+  .daily-board-column__desc {
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+
+  .daily-cards-list,
+  .daily-projects-list {
+    gap: 10px;
+    padding-right: 4px;
+    max-height: clamp(320px, 46vh, 460px) !important;
+    max-height: clamp(320px, 46dvh, 460px) !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .daily-cards-list::-webkit-scrollbar,
+  .daily-projects-list::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .daily-cards-list::-webkit-scrollbar-thumb,
+  .daily-projects-list::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.55);
+    border-radius: 9999px;
+  }
+
+  .daily-cards-list::-webkit-scrollbar-track,
+  .daily-projects-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .daily-employee-card {
+    padding: 12px;
+    border-radius: 13px;
+    gap: 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 8px;
+  }
+
+  .daily-employee-card__main {
+    gap: 10px;
+    min-width: 0;
+    align-items: flex-start;
+  }
+
+  .daily-employee-content {
+    min-width: 0;
+  }
+
+  .daily-employee-avatar {
+    width: 40px;
+    height: 40px;
+
+    mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .daily-employee-name {
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .daily-employee-meta {
+    font-size: 11.5px;
+    line-height: 1.35;
+  }
+
+  .daily-employee-meta--hours {
+    margin-top: 4px;
+    max-width: 100%;
+    line-height: 1.35;
+  }
+
+  .daily-employee-side {
+    width: auto;
+    min-width: 92px;
+    margin-top: 0;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: auto 26px;
+    grid-template-rows: auto auto;
+    align-items: center;
+    justify-content: end;
+    column-gap: 8px;
+    row-gap: 8px;
+  }
+
+  .daily-money-chip {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    white-space: nowrap;
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+
+  .daily-employee-actions {
+    display: contents;
+  }
+
+  .daily-absence-mini-btn {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+    white-space: nowrap;
+    height: 26px;
+    font-size: 11px;
+  }
+
+  .daily-check-indicator {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    justify-self: center;
+    margin-top: 0;
+
+    mat-icon {
+      font-size: 23px;
+      width: 23px;
+      height: 23px;
+    }
+  }
+
+  .daily-attendance-card {
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  .daily-attendance-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .daily-attendance-card__body {
+    gap: 7px;
+    margin-bottom: 12px;
+  }
+
+  .daily-attendance-detail {
+    font-size: 12px;
+  }
+
+  .daily-attendance-card__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+
+    .btn-outline,
+    .btn-danger {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .daily-project-card {
+    padding: 12px;
+    border-radius: 13px;
+  }
+
+  .daily-project-card__name {
+    font-size: 13px;
+  }
+
+  .daily-board-column--summary {
+    background: linear-gradient(180deg, #ffffff 0%, #fafdff 100%);
+    border: 1px solid rgba(39, 170, 225, 0.12);
+  }
+
+  .daily-action-card {
+    padding: 0;
+    gap: 12px;
+  }
+
+  .daily-action-title {
+    font-size: 15px;
+  }
+
+  .daily-action-detail {
+    font-size: 12.5px;
+  }
+
+  .daily-hours-input {
+    height: 34px;
+    font-size: 13px;
+  }
+
+  .daily-action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+
+    .btn-primary,
+    .btn-outline,
+    .btn-danger {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .daily-selected-list {
+    gap: 6px;
+  }
+
+  .daily-selected-chip {
+    min-height: 28px;
+    font-size: 11px;
+  }
+
+  .daily-empty-state {
+    min-height: 150px;
+    padding: 18px;
+  }
+
+  .daily-sunday-card {
+    margin-top: 10px;
+    margin-bottom: 12px;
+    align-items: stretch;
+    flex-direction: column;
+    padding: 12px;
+
+    .btn-primary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
+
+/* =========================================================
+ * MOBILE CHICO
+ * ========================================================= */
+
+@media screen and (max-width: 560px) {
+  .daily-top-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daily-top-card {
+    min-height: 90px;
+  }
+
+  .daily-top-card--date {
+    grid-column: 1 / -1;
+  }
+
+  .daily-two {
+    grid-template-columns: minmax(0, 1fr) 48px;
+  }
+
+  .btn-section-fix {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .btn-section-fix .btns-action-filters .btn-primary {
+    width: 48px;
+    min-width: 48px;
+  }
+
+  .daily-assistance-board-card .c-pill-tabs {
+    gap: 6px;
+  }
+
+  .daily-assistance-board-card .c-pill-tab-btn {
+    min-width: 100px;
+    height: 29px;
+    font-size: 11.5px;
+    padding-inline: 12px !important;
+  }
+
+  .daily-board-column {
+    padding: 10px;
+  }
+
+  .daily-board-column__title {
+    font-size: 17px;
+  }
+
+  .daily-cards-list,
+  .daily-projects-list {
+    max-height: clamp(280px, 42vh, 400px) !important;
+    max-height: clamp(280px, 42dvh, 400px) !important;
+  }
+
+  .daily-employee-card {
+    padding: 11px;
+    grid-template-columns: minmax(0, 1fr) 86px;
+    column-gap: 8px;
+  }
+
+  .daily-employee-card__main {
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .daily-employee-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .daily-employee-side {
+    min-width: 86px;
+    column-gap: 6px;
+  }
+
+  .daily-money-chip {
+    font-size: 10.5px;
+    padding: 5px 7px;
+  }
+
+  .daily-absence-mini-btn {
+    height: 25px;
+    padding: 0 8px;
+    font-size: 10.5px;
+  }
+
+  .daily-employee-meta--hours {
+    font-size: 11px;
+  }
+
+  .daily-action-buttons,
+  .daily-attendance-card__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================================================
+ * MOBILE MUY CHICO
+ * ========================================================= */
+
+@media screen and (max-width: 390px) {
+  .daily-top-summary {
+    gap: 8px;
+  }
+
+  .daily-top-card {
+    min-height: 84px;
+    padding: 10px 12px;
+  }
+
+  .daily-top-card__label {
+    font-size: 11px;
+  }
+
+  .daily-top-card__value {
+    font-size: 20px !important;
+  }
+
+  .daily-assistance-board-card .c-pill-tab-btn {
+    min-width: 92px;
+    font-size: 11px;
+  }
+
+  .daily-cards-list,
+  .daily-projects-list {
+    max-height: clamp(260px, 40vh, 360px) !important;
+    max-height: clamp(260px, 40dvh, 360px) !important;
+  }
+}
+
+@media screen and (max-width: 370px) {
+  .daily-employee-card {
+    grid-template-columns: 1fr;
+  }
+
+  .daily-employee-side {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: auto auto 1fr;
+    grid-template-rows: auto;
+    justify-content: start;
+    align-items: center;
+    margin-top: 2px;
+  }
+
+  .daily-money-chip {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .daily-absence-mini-btn {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .daily-check-indicator {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+}

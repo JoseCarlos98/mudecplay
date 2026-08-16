@@ -1,0 +1,34 @@
+<div class="c-autocomplete">
+  <div class="c-input">
+      <p class="label">
+      {{ label }}
+      @if (showRequiredMark) { <span class="required">*</span> }
+    </p>
+
+    <mat-form-field appearance="outline" class="w-100" [ngClass]="{ 'field-invalid': hasError }">
+      @if (displayValue?.length && !disabled) {
+        <button type="button" matSuffix mat-icon-button>
+          <mat-icon matSuffix (click)="clearInput()" class="cursor-pointer"
+            [matTooltip]="'Eliminar selección'">close</mat-icon>
+        </button>
+      } @else {
+          <mat-icon [ngClass]="{'icon-opacity': disabled}" matSuffix>search</mat-icon>
+      }
+
+      <input matInput [placeholder]="placeholder" [matAutocomplete]="autoRef" [value]="displayValue"
+        (input)="onInputChange($event.target.value)" (blur)="onBlur()" [disabled]="disabled" />
+
+      <mat-autocomplete #autoRef="matAutocomplete" [displayWith]="displayWith">
+        @for (item of filtered$ | async; track item.id) {
+          <mat-option (onSelectionChange)="$event.isUserInput && onOptionSelected(item)">
+            {{ item.name }}
+          </mat-option>
+        }
+      </mat-autocomplete>
+
+      @if (hasError) {
+        <span class="field-error">{{ firstErrorMessage }}</span>
+      }
+    </mat-form-field>
+  </div>
+</div>

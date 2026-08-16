@@ -1,0 +1,98 @@
+<section class="report-tab">
+  <header class="report-tab__header">
+    <h2 class="report-tab__title">Cuentas por cobrar</h2>
+    <p class="report-tab__desc">
+      Genera el reporte global o por cliente.
+    </p>
+  </header>
+
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-6">
+      <div class="md:col-span-1">
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de fecha"
+          mode="range">
+        </app-input-date>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select
+          [multiple]="true"
+          formControlName="companyCodes"
+          label="Empresas"
+          [options]="companyOptions">
+        </app-input-select>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-select
+          formControlName="status"
+          label="Estado de cobro"
+          [options]="statusOptions">
+        </app-input-select>
+      </div>
+
+      <!-- <div class="md:col-span-1">
+        <app-input-field
+          formControlName="receiverRfc"
+          label="RFC cliente"
+          type="text"
+          [isFilter]="true">
+        </app-input-field>
+      </div> -->
+
+      <div class="md:col-span-1">
+        <app-btns-section
+          type="search"
+          [hasActiveSearch]="hasActiveSearch"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+
+      <div class="md:col-span-1 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="onSaveHistory()"
+          [disabled]="loadingPreview() || loadingHistory()">
+          <mat-icon>history</mat-icon>
+          <span>{{ loadingHistory() ? 'Guardando...' : 'Guardar en historial' }}</span>
+        </button>
+
+        <!--
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="downloadPdf()"
+          [disabled]="loadingPreview() || loadingHistory()">
+          <mat-icon>download</mat-icon>
+          <span>Descargar PDF</span>
+        </button>
+        -->
+      </div>
+    </div>
+  </form>
+
+  @if (pdfUrl() || loadingPreview()) {
+    <div class="c-pdf-wrap">
+      @if (pdfUrl()) {
+        <iframe class="c-pdf-viewer" [src]="pdfUrl()"></iframe>
+      } @else {
+        <div class="c-pdf-placeholder"></div>
+      }
+
+      <app-loading-overlay
+        [visible]="loadingPreview()"
+        text="Generando preview...">
+      </app-loading-overlay>
+    </div>
+  }
+
+  @if (errorPreview()) {
+    <div class="c-preview-error">
+      {{ errorPreview() }}
+    </div>
+  }
+</section>

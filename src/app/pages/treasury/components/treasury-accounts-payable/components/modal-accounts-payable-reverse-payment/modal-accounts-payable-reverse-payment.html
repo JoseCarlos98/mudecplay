@@ -1,0 +1,368 @@
+<div class="c-modal accounts-payable-reverse-payment-modal">
+
+  <app-module-header
+    title="Revertir pago aplicado"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="accounts-payable-reverse-payment-modal__body">
+
+    <!-- ===================================================
+         PAGO
+         =================================================== -->
+
+    <section class="reverse-payment-card">
+
+      <div class="reverse-payment-card__header">
+
+        <div class="reverse-payment-card__identity">
+
+          <div class="reverse-payment-card__icon">
+            <mat-icon>undo</mat-icon>
+          </div>
+
+          <div>
+            <span>Referencia del pago</span>
+
+            <strong>
+              {{ referenceDisplay }}
+            </strong>
+          </div>
+
+        </div>
+
+        <span class="reverse-payment-status">
+          Pago activo
+        </span>
+
+      </div>
+
+      <div class="reverse-payment-card__grid">
+
+        <div>
+          <span>Pago</span>
+
+          <strong>
+            #{{ payment.payment_id }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Empresa</span>
+
+          <strong>
+            {{
+              movement.company?.name ||
+              'Empresa no identificada'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Banco</span>
+
+          <strong>
+            {{
+              movement.bank?.name ||
+              'Sin banco'
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Cuenta</span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Fecha del pago</span>
+
+          <strong>
+            {{
+              formatDate(
+                payment.payment_date
+              )
+            }}
+          </strong>
+        </div>
+
+        <div>
+          <span>Método</span>
+
+          <strong>
+            {{
+              payment.payment_method ===
+                'transfer'
+                ? 'Transferencia'
+                : payment.payment_method
+            }}
+          </strong>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         IMPACTO
+         =================================================== -->
+
+    <section class="reverse-payment-amounts">
+
+      <article class="reverse-payment-amount-card">
+
+        <div class="reverse-payment-amount-card__icon">
+          <mat-icon>payments</mat-icon>
+        </div>
+
+        <div>
+          <span>Pago a revertir</span>
+
+          <strong class="reverse-payment-amount--danger">
+            {{
+              paymentAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="reverse-payment-amount-card">
+
+        <div class="reverse-payment-amount-card__icon">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+
+        <div>
+          <span>Disponible actual</span>
+
+          <strong>
+            {{
+              currentAvailableAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="reverse-payment-amount-card reverse-payment-amount-card--restored">
+
+        <div class="reverse-payment-amount-card__icon">
+          <mat-icon>restore</mat-icon>
+        </div>
+
+        <div>
+          <span>Disponible después</span>
+
+          <strong class="reverse-payment-amount--success">
+            {{
+              availableAfterReverse
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+      <article class="reverse-payment-amount-card">
+
+        <div class="reverse-payment-amount-card__icon">
+          <mat-icon>receipt_long</mat-icon>
+        </div>
+
+        <div>
+          <span>Aplicado después</span>
+
+          <strong>
+            {{
+              appliedAfterReverse
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ===================================================
+         CONCEPTOS AFECTADOS
+         =================================================== -->
+
+    <section class="reverse-payment-applications">
+
+      <div class="reverse-payment-applications__header">
+
+        <div>
+          <mat-icon>list_alt</mat-icon>
+
+          <div>
+            <strong>
+              Conceptos que recuperarán saldo
+            </strong>
+
+            <span>
+              {{ activeApplications.length }}
+              {{
+                activeApplications.length === 1
+                  ? 'aplicación'
+                  : 'aplicaciones'
+              }}
+            </span>
+          </div>
+        </div>
+
+        <strong class="reverse-payment-applications__total">
+          {{
+            restoredApplicationsAmount
+              | currency:
+                'MXN':
+                'symbol':
+                '1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+      <div class="reverse-payment-applications__table">
+
+        <div class="reverse-payment-applications__row reverse-payment-applications__row--header">
+          <span>Gasto</span>
+          <span>Concepto</span>
+          <span>Proveedor</span>
+          <span>Importe</span>
+        </div>
+
+        @for (
+          application of activeApplications;
+          track application.application_id
+        ) {
+          <div class="reverse-payment-applications__row">
+
+            <strong>
+              {{
+                application.expense
+                  ?.internal_folio ||
+                `Gasto ${application.expense_id}`
+              }}
+            </strong>
+
+            <span>
+              {{
+                application.expense_item
+                  ?.concept ||
+                'Sin concepto'
+              }}
+            </span>
+
+            <span>
+              {{
+                application.supplier
+                  ?.display_name ||
+                'Sin proveedor'
+              }}
+            </span>
+
+            <strong class="reverse-payment-applications__amount">
+              {{
+                application.applied_amount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+
+          </div>
+        }
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         ADVERTENCIA
+         =================================================== -->
+
+    <section class="reverse-payment-warning">
+
+      <mat-icon>
+        warning
+      </mat-icon>
+
+      <div>
+        <strong>
+          Esta acción revertirá el pago completo
+        </strong>
+
+        <p>
+          El importe regresará al saldo disponible del
+          movimiento bancario y los conceptos relacionados
+          volverán a quedar pendientes de pago. El registro
+          permanecerá en el historial como revertido.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- ===================================================
+         FORMULARIO
+         =================================================== -->
+
+    <form
+      id="form"
+      class="reverse-payment-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo de la reversión"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+  </div>
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <app-btns-section
+    class="accounts-payable-reverse-payment-modal__footer"
+    type="save"
+    form="form"
+    cancelLabel="Cerrar"
+    saveLabel="Revertir pago"
+    saveVariant="danger"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Revirtiendo pago...">
+  </app-loading-overlay>
+
+</div>

@@ -1,30 +1,91 @@
-<aside class="c-sidebar h-screen flex flex-col w-16 hover:w-60 transition-all duration-300 shadow-lg relative group">
-  <div class="c-sidebar-header border-bottom-gray flex items-center gap-3 p-4">
-    <mat-icon class="color-secundary">business</mat-icon>
-    <span
-      class="color-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap font-semibold">
-      MUDECPLAY
-    </span>
-  </div>
+<aside class="c-sidebar" [class.is-expanded]="isOpen()" [class.is-mobile]="isMobile"
+  [class.is-mobile-open]="isMobile && mobileOpen" (mouseenter)="expand()" (mouseleave)="collapse()" (focusin)="expand()"
+  (focusout)="onFocusOut($event)">
+  <div class="c-sidebar__inner">
+    <div class="c-sidebar-header border-bottom-gray">
+      <div class="brand-copy">
+        <span class="brand-title color-primary">MUDECPLAY</span>
+        <span class="brand-subtitle color-secundary">Panel</span>
+      </div>
 
-  <nav class="flex-1 mt-4">
-    @for (item of menuItems; track item.name) {
-    <a [routerLink]="item.route" routerLinkActive="active-link"
-      class="transition-colors duration-100 c-card-menu flex items-center gap-4 px-4 py-3 hover:bg-gray-800 rounded-md cursor-pointer">
-      <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
-      <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        {{ item.name }}
-      </span>
-    </a>
-    }
-  </nav>
+      @if (isMobile) {
+      <button type="button" mat-icon-button class="sidebar-close-btn" aria-label="Cerrar menú"
+        (click)="requestMobileClose()">
+        <mat-icon>close</mat-icon>
+      </button>
+      } @else {
+      <div class="brand-icon">
+        <mat-icon class="color-secundary">business</mat-icon>
+      </div>
+      }
+    </div>
 
-<div class="transition-colors duration-100 c-card-menu border-top-gray p-10">
-    <mat-icon class="cursor-pointer color-primary">logout</mat-icon>
-     <span class="color-secundary opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-        Salir
-      </span> 
+    <nav class="sidebar-nav" aria-label="Menú principal">
+      @for (item of menuItems(); track item.name) {
+      @if (!hasChildren(item)) {
+      <a class="sidebar-link c-card-menu" [routerLink]="item.route" routerLinkActive="menu-selected"
+        [matTooltip]="item.name" [matTooltipDisabled]="isOpen()" matTooltipPosition="right" (click)="onMenuItemClick()">
+        <span class="sidebar-link__icon">
+          <mat-icon class="color-primary">{{ item.icon }}</mat-icon>
+        </span>
+
+        <span class="sidebar-link__label">
+          {{ item.name }}
+        </span>
+      </a>
+      } @else {
+      <div class="sidebar-group" [class.is-open]="isSectionOpen(item.name)">
+        <button type="button" class="sidebar-link sidebar-link--button sidebar-link--section"
+          (click)="toggleSection(item, $event)" [matTooltip]="item.name" [matTooltipDisabled]="isOpen()"
+          matTooltipPosition="right" [attr.aria-expanded]="isSectionOpen(item.name)">
+          <span class="sidebar-link__icon">
+            <mat-icon class="color-primary">{{ item.icon || 'folder_open' }}</mat-icon>
+          </span>
+
+          <span class="sidebar-link__label">
+            {{ item.name }}
+          </span>
+
+          <span class="sidebar-link__chevron">
+            <mat-icon>
+              {{ isSectionOpen(item.name) ? 'expand_less' : 'expand_more' }}
+            </mat-icon>
+          </span>
+        </button>
+
+        @if (isOpen() && isSectionOpen(item.name)) {
+        <div class="sidebar-submenu">
+          @for (child of item.children; track child.name) {
+          <a class="sidebar-sublink c-card-menu" [routerLink]="child.route" routerLinkActive="menu-selected"
+            [routerLinkActiveOptions]="child.route === '/ordenes-compra' ? { exact: true } : { exact: false }"
+            (click)="onMenuItemClick()">
+            <span class="sidebar-link__icon">
+              <mat-icon class="color-primary">{{ child.icon }}</mat-icon>
+            </span>
+
+            <span class="sidebar-link__label">
+              {{ child.name }}
+            </span>
+          </a>
+          }
+        </div>
+        }
+      </div>
+      }
+      }
+    </nav>
+
+    <div class="sidebar-footer border-top-gray">
+      <button type="button" class="sidebar-link sidebar-link--button c-card-menu sidebar-logout" (click)="logout()"
+        [matTooltip]="'Salir'" [matTooltipDisabled]="isOpen()" matTooltipPosition="right">
+        <span class="sidebar-link__icon">
+          <mat-icon class="color-primary">logout</mat-icon>
+        </span>
+
+        <span class="sidebar-link__label color-secundary">
+          Salir
+        </span>
+      </button>
+    </div>
   </div>
 </aside>
-
- 

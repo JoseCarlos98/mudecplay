@@ -1,0 +1,112 @@
+<div class="c-table-page">
+  <div class="card-content shadow-md">
+    <input
+      #xmlInput
+      type="file"
+      accept=".xml"
+      multiple
+      hidden
+      (change)="onXmlSelected($event)"
+    />
+
+    <app-module-header
+      title="Gastos"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
+    </app-module-header>
+
+<form [formGroup]="formFilters">
+  <div class="c-filters grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-8">
+    <app-input-date
+      formControlName="dateRange"
+      label="Rango de fecha"
+      mode="range">
+    </app-input-date>
+
+    <app-input-field
+      formControlName="totalAmount"
+      label="Importe total"
+      type="money">
+    </app-input-field>
+
+    <app-autocomplete-multiple
+      formControlName="suppliersIds"
+      label="Proveedores"
+      [remote]="true"
+      catalogType="supplier"
+      valueMode="objects">
+    </app-autocomplete-multiple>
+
+    <app-autocomplete-multiple
+      formControlName="projectIds"
+      label="Proyectos"
+      [remote]="true"
+      catalogType="project"
+      valueMode="objects">
+    </app-autocomplete-multiple>
+
+    <app-input-select
+      formControlName="status_id"
+      label="Estado de asignación"
+      [options]="catalogStatusExpense">
+    </app-input-select>
+
+    <app-input-select
+      formControlName="paymentStatus"
+      label="Estado de pago"
+      [options]="paymentStatusOptions">
+    </app-input-select>
+
+    <app-input-select
+      formControlName="warehouseAssignmentStatus"
+      label="Asignación almacén"
+      [options]="warehouseAssignmentStatusOptions">
+    </app-input-select>
+
+    <app-btns-section
+      type="search"
+      [hasActiveFilters]="hasActiveFilters"
+      (action)="onBtnsSectionAction($event)">
+    </app-btns-section>
+  </div>
+</form>
+  </div>
+
+  @if (expensesTableData?.data) {
+    <div class="c-module-table">
+      <app-data-table
+        [data]="expensesTableData.data"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns"
+        [extraActions]="extraActions"
+        [canDelete]="canDeleteRow"
+        [deleteTooltip]="deleteTooltip"
+        [actionPermissions]="{
+          editRoles: ['GASTOS_EDITOR']
+        }"
+        (action)="onTableAction($event)">
+      </app-data-table>
+
+      <mat-paginator
+        [length]="expensesTableData.meta.total"
+        [pageSize]="filters.limit"
+        [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+  }
+</div>
+
+<app-loading-overlay
+  [visible]="loadingTable()"
+  [fullscreen]="true"
+  text="Cargando gastos...">
+</app-loading-overlay>
+
+<app-loading-overlay
+  [visible]="downloadingReceipt()"
+  [fullscreen]="true"
+  text="Descargando PDF...">
+</app-loading-overlay>

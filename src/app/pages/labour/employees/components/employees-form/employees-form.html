@@ -1,0 +1,195 @@
+<div class="card-content-form">
+  <app-module-header
+    [title]="pageTitle"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <form [formGroup]="form" (ngSubmit)="saveData()" id="form" class="c-form">
+    <div class="c-form-layout c-form-layout--with-aside">
+      <div class="c-form-main">
+        <section class="c-form-section">
+          <div class="c-form-section__header">
+            <div>
+              <h3 class="c-form-section__title">Datos personales</h3>
+              <p class="c-form-section__desc">
+                Captura la información general del colaborador.
+              </p>
+            </div>
+          </div>
+
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
+              <app-input-field
+                formControlName="full_name"
+                label="Nombre completo"
+                type="text">
+              </app-input-field>
+            </div>
+
+            <div class="c-form-grid__field">
+              <app-input-date
+                formControlName="birth_date"
+                label="Fecha de nacimiento"
+                mode="single"
+                [showClear]="true">
+              </app-input-date>
+            </div>
+
+            <div class="c-form-grid__field employee-age-field">
+              <app-input-field
+                formControlName="age"
+                label="Edad"
+                type="text">
+              </app-input-field>
+            </div>
+          </div>
+
+          <div class="c-form-grid c-form-grid--two-wide">
+            <div class="c-form-grid__field">
+              <app-input-field
+                formControlName="curp"
+                label="CURP"
+                type="text">
+              </app-input-field>
+            </div>
+
+            <div class="c-form-grid__field employee-address-field">
+              <app-input-field
+                formControlName="address"
+                label="Domicilio"
+                type="text">
+              </app-input-field>
+            </div>
+          </div>
+        </section>
+
+        <section class="c-form-section">
+          <div class="c-form-section__header">
+            <div>
+              <h3 class="c-form-section__title">Datos laborales</h3>
+              <p class="c-form-section__desc">
+                Información necesaria para operación y cálculo de mano de obra.
+              </p>
+            </div>
+          </div>
+
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
+              <app-input-select
+                formControlName="employee_area_id"
+                label="Área"
+                [options]="areaOptions">
+              </app-input-select>
+            </div>
+
+            <div class="c-form-grid__field">
+              <app-input-field
+                formControlName="position"
+                label="Puesto"
+                type="text">
+              </app-input-field>
+            </div>
+
+            <div class="c-form-grid__field">
+              <app-input-field
+                formControlName="weekly_salary"
+                label="Salario semanal"
+                type="number">
+              </app-input-field>
+            </div>
+          </div>
+
+          <div class="c-form-grid c-form-grid--three">
+            <div class="c-form-grid__field">
+              <app-input-date
+                formControlName="entry_date"
+                label="Fecha de ingreso"
+                mode="single"
+                [showClear]="true">
+              </app-input-date>
+            </div>
+
+            <div class="c-form-grid__field">
+              <app-input-date
+                formControlName="discharge_date"
+                label="Fecha de baja"
+                mode="single"
+                [showClear]="true">
+              </app-input-date>
+            </div>
+
+            <div class="c-form-grid__field">
+              <app-input-date
+                formControlName="reentry_date"
+                label="Fecha de reingreso"
+                mode="single"
+                [showClear]="true">
+              </app-input-date>
+            </div>
+          </div>
+
+          <div class="c-form-alert c-form-alert--info employee-salary-hint">
+            <mat-icon class="c-form-alert__icon">info</mat-icon>
+
+            <div class="c-form-alert__content">
+              Sueldo diario estimado:
+              <strong>{{ dailySalaryPreview | currency:'$ ':'symbol':'1.2-2' }}</strong>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <aside class="c-form-aside c-form-aside--sticky employee-photo-card">
+        <div class="c-form-section__header employee-photo-card__header">
+          <div>
+            <h3 class="c-form-section__title">Foto de perfil</h3>
+            <p class="c-form-section__desc">
+              Sube una imagen para identificar al colaborador dentro del sistema.
+            </p>
+          </div>
+        </div>
+
+        <div class="employee-photo-preview" [class.employee-photo-preview--has-image]="photoPreview">
+          @if (photoPreview) {
+            <img [src]="photoPreview" alt="Vista previa de la foto del empleado" />
+          } @else {
+            <div class="employee-photo-placeholder">
+              <mat-icon>person</mat-icon>
+              <span>Sin fotografía</span>
+            </div>
+          }
+        </div>
+
+        <input
+          #photoInput
+          type="file"
+          accept="image/*"
+          hidden
+          (change)="onPhotoSelected($event)" />
+
+        <div class="employee-photo-actions">
+          <button type="button" class="btn-primary" (click)="triggerPhotoInput()">
+            Subir foto
+          </button>
+
+          @if (photoPreview) {
+            <button type="button" class="btn-outline" (click)="removePhoto()">
+              Quitar
+            </button>
+          }
+        </div>
+
+        <p class="employee-photo-help">
+          Formatos sugeridos: JPG, PNG o WEBP.
+        </p>
+      </aside>
+    </div>
+  </form>
+
+  <app-btns-section
+    form="form"
+    [saveDisabled]="form.invalid || isSaving"
+    (action)="onFooterAction($event)">
+  </app-btns-section>
+</div>

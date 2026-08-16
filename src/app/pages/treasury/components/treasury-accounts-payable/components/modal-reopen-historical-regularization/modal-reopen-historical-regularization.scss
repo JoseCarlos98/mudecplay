@@ -1,0 +1,549 @@
+.reopen-historical-regularization-modal {
+  position: relative;
+
+  max-height: 90vh;
+
+  display: grid;
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  overflow: hidden;
+
+  &__body {
+    min-height: 0;
+
+    padding:
+      0.85rem
+      1rem
+      0
+      1rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+
+    overflow-y: auto;
+  }
+
+  &__footer {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================================
+ * PAGO HISTÓRICO
+ * ========================================================= */
+
+.reopen-historical-payment-card {
+  padding: 0.9rem;
+
+  border:
+    1px
+    solid
+    #d9e2ec;
+
+  border-radius: 0.75rem;
+
+  background: #f8fafc;
+
+  &__header {
+    display: flex;
+    justify-content:
+      space-between;
+    align-items:
+      flex-start;
+    gap: 1rem;
+  }
+
+  &__identity {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    > div:last-child {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.72rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.9rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__icon {
+    width: 2.35rem;
+    height: 2.35rem;
+
+    flex-shrink: 0;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 0.65rem;
+
+    background: #ede9fe;
+    color: #7c3aed;
+
+    mat-icon {
+      width: 1.25rem;
+      height: 1.25rem;
+
+      font-size: 1.25rem;
+    }
+  }
+
+  &__grid {
+    margin-top: 0.85rem;
+
+    display: grid;
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+    gap: 0.75rem;
+
+    div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__concept {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    border-top:
+      1px
+      dashed
+      #cbd5e1;
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+    strong {
+      color: #334155;
+      font-size: 0.74rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.reopen-historical-status {
+  flex-shrink: 0;
+
+  padding:
+    0.3rem
+    0.65rem;
+
+  border-radius: 999px;
+
+  background: #dcfce7;
+  color: #047857;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+ * REGULARIZACIÓN ACTUAL
+ * ========================================================= */
+
+.reopen-regularization-summary {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+  gap: 0.65rem;
+
+  &__item {
+    min-width: 0;
+
+    padding:
+      0.72rem
+      0.75rem;
+
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    border:
+      1px
+      solid
+      #dbe4ee;
+
+    border-radius: 0.7rem;
+
+    background: #ffffff;
+
+    > mat-icon {
+      width: 1.9rem;
+      height: 1.9rem;
+
+      flex-shrink: 0;
+
+      display: grid;
+      place-items: center;
+
+      border-radius: 0.5rem;
+
+      background: #eff6ff;
+      color: #2563eb;
+
+      font-size: 1.05rem;
+      line-height: 1.9rem;
+      text-align: center;
+    }
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.65rem;
+    }
+
+    strong {
+      color: #172033;
+      font-size: 0.73rem;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+/* =========================================================
+ * MOVIMIENTO BANCARIO
+ * ========================================================= */
+
+.reopen-bank-movement-section {
+  padding: 0.85rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  border:
+    1px
+    solid
+    #bae6fd;
+
+  border-radius: 0.75rem;
+
+  background: #f8fcff;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+
+    > mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      flex-shrink: 0;
+
+      color: #0284c7;
+      font-size: 1.2rem;
+    }
+
+    > div {
+      min-width: 0;
+
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    strong {
+      color: #0c4a6e;
+      font-size: 0.76rem;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.68rem;
+      line-height: 1.4;
+    }
+  }
+}
+
+.reopen-bank-movement-card {
+  padding: 0.7rem;
+
+  display: grid;
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+  gap: 0.65rem;
+
+  border:
+    1px
+    solid
+    #dbeafe;
+
+  border-radius: 0.65rem;
+
+  background: #ffffff;
+
+  div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.64rem;
+  }
+
+  strong {
+    color: #172033;
+    font-size: 0.72rem;
+    overflow-wrap: anywhere;
+  }
+}
+
+.reopen-bank-movement-amounts {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr)
+    auto
+    minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+
+  article {
+    min-width: 0;
+
+    padding:
+      0.65rem
+      0.7rem;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    border:
+      1px
+      solid
+      #dbeafe;
+
+    border-radius: 0.6rem;
+
+    background: #ffffff;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.64rem;
+  }
+
+  strong {
+    color: #172033;
+    font-size: 0.8rem;
+  }
+
+  > mat-icon {
+    width: 1rem;
+    height: 1rem;
+
+    color: #64748b;
+    font-size: 1rem;
+  }
+}
+
+/* =========================================================
+ * IMPORTES
+ * ========================================================= */
+
+.reopen-historical-amount--primary {
+  color: #047857 !important;
+}
+
+.reopen-historical-amount--warning {
+  color: #c2410c !important;
+}
+
+.reopen-historical-amount--success {
+  color: #047857 !important;
+}
+
+/* =========================================================
+ * ADVERTENCIA
+ * ========================================================= */
+
+.reopen-historical-warning {
+  padding:
+    0.8rem
+    0.85rem;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+
+  border:
+    1px
+    solid
+    #fde68a;
+
+  border-radius: 0.7rem;
+
+  background: #fffbeb;
+  color: #92400e;
+
+  > mat-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+
+    flex-shrink: 0;
+
+    font-size: 1.25rem;
+  }
+
+  > div {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  strong {
+    font-size: 0.76rem;
+  }
+
+  p {
+    margin: 0;
+
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+/* =========================================================
+ * FORMULARIO
+ * ========================================================= */
+
+.reopen-historical-form {
+  width: 100%;
+
+  padding-bottom: 0.85rem;
+
+  app-input-field {
+    width: 100%;
+  }
+}
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 900px) {
+  .reopen-regularization-summary {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+@media screen and (max-width: 780px) {
+  .reopen-historical-payment-card {
+    &__grid {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+  }
+
+  .reopen-bank-movement-card {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+  .reopen-bank-movement-amounts {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    > mat-icon {
+      display: none;
+    }
+  }
+}
+
+@media screen and (max-width: 520px) {
+  .reopen-historical-regularization-modal {
+    max-height: 94vh;
+
+    &__body {
+      padding-inline: 0.75rem;
+    }
+  }
+
+  .reopen-historical-payment-card {
+    &__header {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+
+  .reopen-regularization-summary {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}

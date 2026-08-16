@@ -1,0 +1,11 @@
+@if (visible()) {
+  <div
+    class="c-loading-overlay"
+    [class.c-loading-overlay--fullscreen]="fullscreen()"
+  >
+    <div class="c-loading-box">
+      <div class="c-loading-spinner"></div>
+      <div class="c-loading-text">{{ text() }}</div>
+    </div>
+  </div>
+}

@@ -1,0 +1,63 @@
+<header class="c-module-header">
+  <div>
+    @if (config.formFull) {
+      <button class="go-back" mat-icon-button (click)="emit('back')">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+    }
+
+    <h2 class="color-secundary" [ngClass]="{ 'modal-text-format': config.modal || config.formFull}">
+      {{ title }}
+    </h2>
+  </div>
+
+  <div class="section-btns-module-header flex gap-4">
+
+    @if (config.showUploadXml && canShow(config.uploadXmlRoles)) {
+      <button
+        class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+        (click)="emit('upload')">
+        <mat-icon>file_upload</mat-icon>
+        Cargar XML
+      </button>
+    }
+
+    @if (config.showNew && canShow(config.newRoles)) {
+      <button
+        class="radius bg-[#1e86b1] text-white hover:bg-[#167195] transition-all"
+        (click)="emit('new')">
+        <mat-icon>add</mat-icon>
+        Nuevo
+      </button>
+    }
+
+    @if (config.showDownload && canShow(config.downloadRoles)) {
+      <button
+        mat-stroked-button
+        class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+        (click)="emit('download')">
+        <mat-icon>download</mat-icon>
+        Descargar
+      </button>
+    }
+
+    @for (btn of extraButtons; track btn.action) {
+      @if (canShow(btn.roles)) {
+        <button
+          mat-stroked-button
+          class="radius border-gray-400 text-gray-600 hover:bg-gray-100 transition-all"
+          (click)="emit(btn.action)">
+          <mat-icon>{{ btn.icon }}</mat-icon>
+          {{ btn.label }}
+        </button>
+      }
+    }
+
+    @if (config.modal) {
+      <button matSuffix mat-icon-button class="btn-close-modal" (click)="emit('close')">
+        <mat-icon class="cursor-pointer">close</mat-icon>
+      </button>
+    }
+
+  </div>
+</header>

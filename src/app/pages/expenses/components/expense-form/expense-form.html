@@ -1,0 +1,411 @@
+<div class="card-content-form">
+  <app-module-header
+    [title]="expenseId ? 'Editar gasto' : (isXmlImport ? 'Registrar gasto desde XML' : 'Registrar gasto')"
+    [config]="headerConfig" (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  @if (isXmlImport) {
+  <div class="c-form-status c-form-status--info">
+    <div class="c-form-status__top-row">
+      <span class="c-form-status__tag">
+        <mat-icon class="c-form-status__tag-icon">feed</mat-icon>
+        Desde XML
+      </span>
+
+      <div class="c-form-status__meta">
+        <span class="c-form-status__meta-main">
+          CFDI
+          {{
+          xmlQueueTotal > 0
+          ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+          : 'actual'
+          }}
+        </span>
+
+        @if (xmlQueuePending > 0) {
+        <span class="c-form-status__meta-muted">
+          · Quedan {{ xmlQueuePending }} por registrar
+        </span>
+        }
+      </div>
+    </div>
+
+    <p class="c-form-status__description">
+      El pago de este gasto se gestionará desde <strong>Tesorería</strong>.
+      Aquí solo se registra la información del gasto y se decide si un concepto será
+      <strong>gasto directo</strong> o <strong>almacén</strong>.
+    </p>
+  </div>
+  }
+
+  @if (isLaborAuto) {
+  <div class="c-form-status c-form-status--info">
+    <div class="c-form-status__top-row">
+      <span class="c-form-status__tag">
+        <mat-icon class="c-form-status__tag-icon">engineering</mat-icon>
+        Mano de obra
+      </span>
+    </div>
+
+    <p class="c-form-status__description">
+      Este gasto fue generado automáticamente desde asistencia. El
+      <strong>proveedor</strong> corresponde al empleado y el
+      <strong>producto</strong> corresponde al área del empleado, por lo que
+      no pueden modificarse aquí.
+    </p>
+  </div>
+  }
+
+@if (!isLaborAuto && hasWarehouseItemsInForm) {
+<div class="c-form-alert c-form-alert--info">
+  <mat-icon class="c-form-alert__icon">info</mat-icon>
+
+  <div class="c-form-alert__content">
+    <strong>Control de almacén:</strong>
+    los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
+    Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+  </div>
+</div>
+}
+
+  @if (
+  isWarehouseSafeExpense &&
+  !isTreasuryLockedExpense
+  ) {
+  <div class="c-form-alert c-form-alert--warning">
+    <mat-icon class="c-form-alert__icon">lock</mat-icon>
+
+    <div class="c-form-alert__content">
+      Este gasto ya generó existencias de almacén. Solo puedes modificar
+      <strong>fecha</strong> y <strong>proveedor</strong>.
+      Los pagos se gestionarán desde <strong>Tesorería</strong>.
+    </div>
+  </div>
+  }
+
+  @if (
+  isPurchaseOrderProjectLocked &&
+  !isTreasuryLockedExpense
+  ) {
+  <div class="c-form-alert c-form-alert--info">
+    <mat-icon class="c-form-alert__icon">lock</mat-icon>
+
+    <div class="c-form-alert__content">
+      <strong>Proyecto bloqueado por O.C.:</strong>
+      este gasto está relacionado con una orden de compra. El proyecto se toma desde la O.C.
+      y no puede cambiarse desde edición de gasto para mantener la trazabilidad.
+    </div>
+  </div>
+  }
+
+  @if (isTreasuryLockedExpense) {
+  <div class="c-form-alert c-form-alert--warning">
+    <mat-icon class="c-form-alert__icon">
+      account_balance_wallet
+    </mat-icon>
+
+    <div class="c-form-alert__content">
+      <strong>Gasto bloqueado por pagos activos:</strong>
+
+      este gasto tiene pagos registrados en
+      <strong>Tesorería</strong> y no puede modificarse.
+
+      Para corregirlo, primero debes revertir sus pagos desde
+      <strong>Cuentas por pagar</strong>.
+
+      @if (formData) {
+      <div>
+        Pagado:
+        <strong>
+          {{ formatMoney(formData.paid_amount ?? 0) }}
+        </strong>
+
+        · Pendiente:
+        <strong>
+          {{ formatMoney(formData.remaining_amount ?? 0) }}
+        </strong>
+
+        @if (formData.last_payment_date) {
+        · Último pago:
+        <strong>
+          {{ formData.last_payment_date }}
+        </strong>
+        }
+      </div>
+      }
+    </div>
+  </div>
+  }
+
+
+  <form [formGroup]="form" id="form" class="c-form">
+    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+      <!-- Fecha -->
+      <div class="md:col-span-1">
+        <app-input-date formControlName="date" label="Fecha" mode="single" [showClear]="true">
+        </app-input-date>
+      </div>
+
+      <!-- Proveedor -->
+      <div class="md:col-span-1">
+        @if (isLaborAuto) {
+        <app-input-field formControlName="supplier_display" label="Proveedor" type="text">
+        </app-input-field>
+        } @else {
+        <app-autocomplete formControlName="supplier_id" label="Proveedor" [remote]="true"
+          [initialDisplay]="formData?.supplier?.company_name ?? ''" catalogType="supplier">
+        </app-autocomplete>
+        }
+      </div>
+
+      <!-- Bloque dinámico de items -->
+      <div class="form-dinamic md:col-span-3" formArrayName="items">
+        <!-- Header -->
+        <div class="form-dinamic-header">
+          <div class="flex items-center gap-2">
+            <span class="form-dinamic-title">Productos del gasto</span>
+
+            <span class="form-dinamic-chip">
+              {{ itemsFA.length }} producto{{ itemsFA.length > 1 ? 's' : '' }}
+            </span>
+          </div>
+
+          @if (
+          !cfdiUuidFromXml &&
+          !isLaborAuto &&
+          !isWarehouseSafeExpense &&
+          !isTreasuryLockedExpense
+          ) {
+          <button type="button" class="btn-add-row" (click)="addItem()">
+            <mat-icon>add</mat-icon>
+            <span>Agregar</span>
+          </button>
+          }
+        </div>
+
+        <!-- Barra masiva -->
+        <div class="form-dinamic-bulk" *ngIf="
+    itemsFA.length > 0 &&
+    !isTreasuryLockedExpense
+  ">
+          <div class="bulk-check">
+            <mat-checkbox color="primary" class="bulk-checkbox" [checked]="allSelected"
+              (change)="onToggleSelectAll($event.checked)">
+              Todos
+            </mat-checkbox>
+          </div>
+
+          <div class="bulk-group bulk-group--project">
+            <div class="bulk-field">
+              <app-autocomplete [formControl]="bulkProjectCtrl" label="Proyecto global" [remote]="true"
+                catalogType="project" (optionSelected)="onBulkProjectSelected($event)">
+              </app-autocomplete>
+            </div>
+
+            <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="
+                  !hasAnySelectedDirect ||
+                  !bulkProjectSelected ||
+                  isWarehouseSafeExpense ||
+                  isPurchaseOrderProjectLocked
+                " (click)="applyBulkProject()">
+              <mat-icon>done_all</mat-icon>
+              <span>Aplicar</span>
+            </button>
+          </div>
+
+          @if (!isXmlImport && !isLaborAuto && !isWarehouseSafeExpense) {
+          <div class="bulk-group bulk-group--amount">
+            <div class="bulk-field">
+              <app-input-field [formControl]="bulkAmountCtrl" label="Importe global" type="money">
+              </app-input-field>
+            </div>
+
+            <button type="button" class="btn-primary bulk-btn mt-5" [disabled]="!canApplyAmountToSelection"
+              (click)="applyAmountToSelected()">
+              <mat-icon>price_check</mat-icon>
+              <span>Aplicar Importe</span>
+            </button>
+          </div>
+          }
+
+        </div>
+
+        <!-- Lista -->
+        <div class="c-content-form">
+          @for (itemCtrl of itemsFA.controls; track itemCtrl; let i = $index) {
+          <div class="forms-controls expense-item-card" [class.expense-item-card--warehouse]="isWarehouseItem(itemCtrl)"
+            [formGroupName]="i">
+
+            <!-- Header del item -->
+            <div class="expense-item-card__top">
+              <div class="expense-item-card__left">
+                @if (!isTreasuryLockedExpense) {
+                <mat-checkbox color="primary" formControlName="selected">
+                </mat-checkbox>
+                }
+
+                @if (!isLaborAuto) {
+                <div class="item-type">
+                  <span class="item-type__label">Tipo</span>
+
+                  <div class="item-type__toggle">
+                    <button type="button" [disabled]="!canChangeItemType(itemCtrl)"
+                      [class.active]="!isWarehouseItem(itemCtrl)" (click)="setItemType(i, 'direct')">
+                      Directo
+                    </button>
+
+                    <button type="button" [disabled]="!canChangeItemType(itemCtrl)"
+                      [class.active]="isWarehouseItem(itemCtrl)" (click)="setItemType(i, 'warehouse')">
+                      Almacén
+                    </button>
+                  </div>
+                </div>
+
+                <span class="item-type-chip" [class.item-type-chip--warehouse]="isWarehouseItem(itemCtrl)"
+                  [class.item-type-chip--direct]="!isWarehouseItem(itemCtrl)">
+                  <mat-icon>{{ isWarehouseItem(itemCtrl) ? 'inventory_2' : 'receipt_long' }}</mat-icon>
+                  {{ isWarehouseItem(itemCtrl) ? 'Entra a almacén' : 'Gasto directo' }}
+                </span>
+                }
+              </div>
+
+              @if (
+              itemsFA.length > 1 &&
+              !cfdiUuidFromXml &&
+              !isLaborAuto &&
+              !isWarehouseSafeExpense &&
+              !isTreasuryLockedExpense
+              ) {
+              <button type="button" mat-icon-button class="delete-btn" (click)="removeItem(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
+              }
+            </div>
+
+            @if (isWarehouseItem(itemCtrl)) {
+            <!-- Almacén: fila principal -->
+            <div class="warehouse-grid">
+              <div>
+                @if (isLaborAuto) {
+                <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
+                </app-input-field>
+                } @else {
+                <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
+                  catalogType="product">
+                </app-autocomplete>
+                }
+              </div>
+
+              <div>
+                <app-input-field formControlName="quantity" label="Cantidad" type="number">
+                </app-input-field>
+              </div>
+
+              <div>
+                <app-input-select formControlName="unit_id" label="Unidad" [options]="measurementUnitsCatalog">
+                </app-input-select>
+              </div>
+
+              <div>
+                <app-input-field formControlName="unit_price" label="Importe" type="money">
+                </app-input-field>
+              </div>
+
+              <div class="discount_amount">
+                @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
+                <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
+                  Descuento CFDI:
+                  -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                </span>
+                }
+
+                @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
+                <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
+                  Retenciones CFDI:
+                  -{{ itemCtrl.get('withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                </span>
+                }
+
+                <app-input-field formControlName="amount" label="Importe" type="money">
+                </app-input-field>
+              </div>
+            </div>
+
+            <!-- Almacén: fila secundaria compacta -->
+            <div class="warehouse-secondary-grid">
+              <div class="warehouse-status-strip">
+                <div class="warehouse-status-strip__icon">
+                  <mat-icon>inventory_2</mat-icon>
+                </div>
+
+                <div class="warehouse-status-strip__content">
+                  <span class="warehouse-status-strip__strong">Entra a almacén</span>
+                  <span class="warehouse-status-strip__dot">•</span>
+
+                  <span>
+                    Existencia inicial:
+                    <strong>{{ getWarehouseInitialText(itemCtrl) }}</strong>
+                  </span>
+
+                  <span class="warehouse-status-strip__dot">•</span>
+                  <span>Se asignará después desde Almacén</span>
+                </div>
+              </div>
+
+            </div>
+            } @else {
+            <!-- Gasto directo -->
+            <div class="direct-layout">
+              <div class="direct-grid">
+                <div>
+                  @if (isLaborAuto) {
+                  <app-input-field class="w-100" formControlName="product_display" label="Producto" type="text">
+                  </app-input-field>
+                  } @else {
+                  <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
+                    catalogType="product">
+                  </app-autocomplete>
+                  }
+                </div>
+
+                <div class="discount_amount">
+                  @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {
+                  <span class="discount_badge" [matTooltip]="buildDiscountTooltip(itemCtrl)">
+                    Descuento CFDI:
+                    -{{ itemCtrl.get('discount_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                  </span>
+                  }
+
+                  @if ((itemCtrl.get('withheld_amount')?.value ?? 0) > 0) {
+                  <span class="discount_badge" [matTooltip]="buildWithheldTooltip(itemCtrl)">
+                    Retenciones CFDI:
+                    -{{ itemCtrl.get('withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                  </span>
+                  }
+
+                  <app-input-field formControlName="amount" label="Importe" type="money">
+                  </app-input-field>
+                </div>
+
+                <div class="project-cell">
+                  <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
+                  </app-autocomplete>
+                </div>
+              </div>
+
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <app-btns-section [saveDisabled]="
+    isTreasuryLockedExpense
+      ? !canSaveTreasurySupplierCorrection
+      : !form.valid
+  " (action)="onFooterAction($event)">
+  </app-btns-section>
+</div>

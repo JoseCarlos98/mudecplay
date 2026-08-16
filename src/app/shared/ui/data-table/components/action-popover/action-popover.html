@@ -1,0 +1,63 @@
+<span
+  class="c-popover-origin"
+  cdkOverlayOrigin
+  #origin="cdkOverlayOrigin"
+  (mouseenter)="open()"
+  (mouseleave)="scheduleClose()"
+  (focusin)="open()"
+  (focusout)="scheduleClose()"
+  (click)="toggle()">
+
+  <ng-content select="[popover-trigger]"></ng-content>
+
+</span>
+
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="origin"
+  [cdkConnectedOverlayOpen]="opened()"
+  [cdkConnectedOverlayPositions]="positions"
+  [cdkConnectedOverlayPush]="true"
+  [cdkConnectedOverlayFlexibleDimensions]="true"
+  [cdkConnectedOverlayGrowAfterOpen]="true"
+  [cdkConnectedOverlayHasBackdrop]="false">
+
+  <div
+    class="c-action-popover"
+    [ngClass]="'is-' + kind"
+    role="tooltip"
+    (mouseenter)="open()"
+    (mouseleave)="scheduleClose()">
+
+    <div class="c-action-popover__arrow"></div>
+
+    <div class="c-action-popover__header">
+      <div class="c-action-popover__icon-wrap">
+        <mat-icon>{{ iconName }}</mat-icon>
+      </div>
+
+      <div class="c-action-popover__heading">
+        <h4 class="c-action-popover__title">
+          {{ title }}
+        </h4>
+
+        @if (message) {
+          <p class="c-action-popover__message">
+            {{ message }}
+          </p>
+        }
+      </div>
+    </div>
+
+    @if (items?.length) {
+      <div class="c-action-popover__divider"></div>
+
+      <ul class="c-action-popover__list">
+        @for (item of items; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    }
+  </div>
+
+</ng-template>

@@ -1,0 +1,179 @@
+<div class="c-modal">
+  <app-module-header
+    [title]="modalTitle()"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="overtime-form-body">
+    <div class="overtime-summary">
+      <div class="overtime-summary-grid">
+        <div class="overtime-summary-item">
+          <span class="overtime-summary-item__label">Empleado</span>
+          <span class="overtime-summary-item__value">
+            {{ form.controls.employee_name.value || 'Sin seleccionar' }}
+          </span>
+        </div>
+
+        <div class="overtime-summary-item">
+          <span class="overtime-summary-item__label">Área</span>
+          <span class="overtime-summary-item__value">
+            {{ form.controls.area_label.value || 'Sin seleccionar' }}
+          </span>
+        </div>
+
+        <div class="overtime-summary-item">
+          <span class="overtime-summary-item__label">Fecha</span>
+          <span class="overtime-summary-item__value">
+            {{ form.controls.work_date.value | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
+
+        <div class="overtime-summary-item">
+          <span class="overtime-summary-item__label">Proyecto</span>
+          <span class="overtime-summary-item__value">
+            {{ form.controls.project_name.value || 'Sin seleccionar' }}
+          </span>
+        </div>
+
+        @if (data.daily_salary != null) {
+          <div class="overtime-summary-item">
+            <span class="overtime-summary-item__label">Sueldo diario</span>
+            <span class="overtime-summary-item__value">
+              {{ data.daily_salary | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        }
+
+        @if (isOvertime()) {
+          <div class="overtime-summary-item">
+            <span class="overtime-summary-item__label">Tarifa por hora</span>
+            <span class="overtime-summary-item__value">
+              {{ effectiveHourlyRate() | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        } @else {
+          <div class="overtime-summary-item">
+            <span class="overtime-summary-item__label">Regla domingo</span>
+            <span class="overtime-summary-item__value">
+              1 día hasta 1:59 pm · 2 días desde 2:00 pm
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <form [formGroup]="form" class="overtime-form c-form">
+      @if (isEditMode()) {
+        <div class="overtime-note">
+          Registro actual:
+          <strong>{{ currentRecordLabel() }}</strong>
+        </div>
+      }
+
+      <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+        <div class="md:col-span-1">
+          <app-input-select
+            formControlName="employee_name"
+            label="Empleado"
+            [options]="data.employeeOptions">
+          </app-input-select>
+        </div>
+
+        <div class="md:col-span-1">
+          <app-input-select
+            formControlName="area_label"
+            label="Área"
+            [options]="data.areaOptions">
+          </app-input-select>
+        </div>
+
+        <div class="md:col-span-1">
+          <app-input-date
+            formControlName="work_date"
+            label="Fecha"
+            mode="single"
+            [showClear]="false">
+          </app-input-date>
+        </div>
+
+        <div class="md:col-span-1">
+          <app-input-select
+            formControlName="project_name"
+            label="Proyecto"
+            [options]="data.projectOptions">
+          </app-input-select>
+        </div>
+
+        @if (isOvertime()) {
+          <div class="md:col-span-1">
+            <app-input-field
+              formControlName="overtime_hours"
+              label="Horas"
+              type="number">
+            </app-input-field>
+          </div>
+
+          <div class="md:col-span-1">
+            <app-input-select
+              formControlName="overtime_minutes"
+              label="Minutos"
+              [options]="minutesOptions">
+            </app-input-select>
+          </div>
+        } @else {
+          <div class="md:col-span-1">
+            <app-input-field
+              formControlName="worked_until"
+              label="Trabajó hasta"
+              type="text">
+            </app-input-field>
+          </div>
+        }
+      </div>
+
+      <div class="overtime-preview overtime-preview--info">
+        @if (isOvertime()) {
+          <div>
+            <strong>Horas registradas:</strong> {{ formattedDuration() }}
+          </div>
+
+          <div>
+            <strong>Importe estimado:</strong>
+            {{ computedAmount() | currency:'$ ':'symbol':'1.2-2' }}
+          </div>
+
+          <div>
+            <strong>Regla:</strong>
+            El cálculo se basa en la tarifa por hora configurada para esta captura.
+          </div>
+        } @else {
+          <div>
+            <strong>Trabajó hasta:</strong> {{ form.controls.worked_until.value || 'Sin dato' }}
+          </div>
+
+          <div>
+            <strong>Días extra:</strong> {{ sundayExtraDays() }}
+          </div>
+
+          <div>
+            <strong>Importe estimado:</strong>
+            {{ computedAmount() | currency:'$ ':'symbol':'1.2-2' }}
+          </div>
+
+          <div>
+            <strong>Regla:</strong>
+            Hasta la 1:59 pm paga 1 día extra. Desde las 2:00 pm paga 2 días extra.
+          </div>
+        }
+      </div>
+    </form>
+  </div>
+
+  <app-btns-section
+    class="modal-actions-spacer"
+    type="save"
+    [saveDisabled]="saveDisabled()"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

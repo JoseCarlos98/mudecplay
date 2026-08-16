@@ -1,0 +1,128 @@
+<div class="c-modal">
+  <app-module-header
+    title="Solicitantes autorizados"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="requester-summary">
+    <div class="requester-summary__icon">
+      <mat-icon>manage_accounts</mat-icon>
+    </div>
+
+    <div class="requester-summary__content">
+      <h3>Configura quién puede solicitar órdenes de compra</h3>
+
+      <p>
+        Solo los empleados agregados en esta lista aparecerán como
+        <strong>solicitantes</strong>
+        al crear una Orden de Compra.
+      </p>
+
+      <p>
+        El usuario que capture la O.C. se guardará automáticamente como
+        <strong>capturado por</strong>.
+      </p>
+    </div>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
+      <div>
+        <app-autocomplete
+          formControlName="employee_id"
+          label="Empleado solicitante"
+          placeholder="Buscar empleado"
+          [remote]="true"
+          catalogType="purchaseOrderRequesterCandidate">
+        </app-autocomplete>
+
+        <small class="field-helper">
+          Busca empleados registrados en Mano de Obra que aún no estén agregados
+          como solicitantes autorizados.
+        </small>
+      </div>
+    </div>
+  </form>
+
+  <section class="requesters-list">
+    <div class="requesters-list__header">
+      <div>
+        <h4>Solicitantes actuales</h4>
+        <p>
+          {{ requesters.length }}
+          {{ requesters.length === 1 ? 'empleado autorizado' : 'empleados autorizados' }}
+        </p>
+      </div>
+
+      @if (isLoading) {
+        <span class="requesters-list__loading">Cargando...</span>
+      }
+    </div>
+
+    @if (!isLoading && !hasRequesters) {
+      <div class="requesters-empty">
+        <mat-icon>person_search</mat-icon>
+        <strong>Sin solicitantes configurados</strong>
+        <span>
+          Agrega a José Manuel, Gustavo o Hesiquio para que puedan seleccionarse
+          al crear una O.C.
+        </span>
+      </div>
+    }
+
+    @if (hasRequesters) {
+      <div class="requester-items">
+        @for (item of requesters; track item.id) {
+          <article class="requester-item">
+            <div class="requester-item__avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+
+            <div class="requester-item__content">
+              <h5>
+                {{ item.employee?.name || item.employee_name || 'Empleado sin nombre' }}
+              </h5>
+
+              <p>
+                @if (item.employee?.employee_area?.name) {
+                  <span>{{ item.employee?.employee_area?.name }}</span>
+                }
+
+                @if (item.employee?.position) {
+                  <span>{{ item.employee?.position }}</span>
+                }
+
+                @if (!item.employee?.employee_area?.name && !item.employee?.position) {
+                  <span>Sin área o puesto registrado</span>
+                }
+              </p>
+            </div>
+
+            <button
+              type="button"
+              mat-icon-button
+              class="requester-item__remove"
+              [disabled]="isSaving"
+              (click)="deactivateRequester(item)"
+              aria-label="Quitar solicitante">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <app-btns-section
+    type="save"
+    form="form"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="form.invalid || isSaving">
+  </app-btns-section>
+</div>

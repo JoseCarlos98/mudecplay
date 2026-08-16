@@ -1,0 +1,128 @@
+<div class="c-modal">
+  <app-module-header
+    title="Autorizadores"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="authorizer-summary">
+    <div class="authorizer-summary__icon">
+      <mat-icon>verified_user</mat-icon>
+    </div>
+
+    <div class="authorizer-summary__content">
+      <h3>Configura quién puede autorizar órdenes de compra</h3>
+
+      <p>
+        Solo los empleados agregados en esta lista aparecerán como
+        <strong>autorizadores</strong>
+        al autorizar una Orden de Compra.
+      </p>
+
+      <p>
+        El usuario que registre la autorización se guardará automáticamente como
+        <strong>registrado por</strong>.
+      </p>
+    </div>
+  </div>
+
+  <form
+    [formGroup]="form"
+    (ngSubmit)="saveData()"
+    id="form"
+    class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-1 sm:grid-cols-1">
+      <div>
+        <app-autocomplete
+          formControlName="employee_id"
+          label="Empleado autorizador"
+          placeholder="Buscar empleado"
+          [remote]="true"
+          catalogType="purchaseOrderAuthorizerCandidate">
+        </app-autocomplete>
+
+        <small class="field-helper">
+          Busca empleados registrados en Mano de Obra que aún no estén agregados
+          como autorizadores.
+        </small>
+      </div>
+    </div>
+  </form>
+
+  <section class="authorizers-list">
+    <div class="authorizers-list__header">
+      <div>
+        <h4>Autorizadores actuales</h4>
+        <p>
+          {{ authorizers.length }}
+          {{ authorizers.length === 1 ? 'empleado autorizado' : 'empleados autorizados' }}
+        </p>
+      </div>
+
+      @if (loading) {
+        <span class="authorizers-list__loading">Cargando...</span>
+      }
+    </div>
+
+    @if (!loading && authorizers.length === 0) {
+      <div class="authorizers-empty">
+        <mat-icon>person_search</mat-icon>
+        <strong>Sin autorizadores configurados</strong>
+        <span>
+          Agrega empleados autorizados para que puedan seleccionarse al autorizar
+          una O.C.
+        </span>
+      </div>
+    }
+
+    @if (authorizers.length > 0) {
+      <div class="authorizer-items">
+        @for (row of authorizers; track row.id) {
+          <article class="authorizer-item">
+            <div class="authorizer-item__avatar">
+              <mat-icon>person</mat-icon>
+            </div>
+
+            <div class="authorizer-item__content">
+              <h5>
+                {{ row.employee_name || row.employee?.name || 'Empleado sin nombre' }}
+              </h5>
+
+              <p>
+                @if (row.employee?.employee_area?.name) {
+                  <span>{{ row.employee?.employee_area?.name }}</span>
+                }
+
+                @if (row.employee?.position) {
+                  <span>{{ row.employee?.position }}</span>
+                }
+
+                @if (!row.employee?.employee_area?.name && !row.employee?.position) {
+                  <span>Sin área o puesto registrado</span>
+                }
+              </p>
+            </div>
+
+            <button
+              type="button"
+              mat-icon-button
+              class="authorizer-item__remove"
+              [disabled]="saving"
+              (click)="deactivateAuthorizer(row)"
+              aria-label="Quitar autorizador">
+              <mat-icon>person_remove</mat-icon>
+            </button>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <app-btns-section
+    type="save"
+    form="form"
+    (action)="onBtnsSectionAction($event)"
+    [saveDisabled]="form.invalid || saving">
+  </app-btns-section>
+</div>

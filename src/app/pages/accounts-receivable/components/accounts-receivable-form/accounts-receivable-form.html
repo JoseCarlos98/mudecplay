@@ -1,0 +1,140 @@
+<div class="card-content-form">
+  <app-module-header
+    [title]="accountReceivableId ? 'Editar cuenta por cobrar' : 'Registrar cuenta por cobrar desde XML'"
+    [config]="headerConfig" (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  @if (isXmlImport) {
+  <div class="xml-status">
+    <div class="xml-status__top-row">
+      <span class="xml-status__tag">
+        <mat-icon class="xml-status__tag-icon">feed</mat-icon>
+        Desde XML
+      </span>
+
+      <div class="xml-status__counter">
+        <span class="xml-status__counter-main">
+          CFDI
+          {{
+          xmlQueueTotal > 0
+          ? (xmlQueueTotal - xmlQueuePending) + ' de ' + xmlQueueTotal
+          : 'actual'
+          }}
+        </span>
+
+        @if (xmlQueuePending > 0) {
+        <span class="xml-status__counter-pending">
+          · Quedan {{ xmlQueuePending }} por registrar
+        </span>
+        }
+      </div>
+    </div>
+
+    <p class="text-info">
+      Los datos de la <strong>empresa</strong>, <strong>cliente</strong>,
+      <strong>factura</strong>, <strong>fecha</strong> y <strong>total</strong>
+      provienen del CFDI y no pueden modificarse. Solo puedes definir el
+      <strong>proyecto</strong>, el <strong>estado de cobro</strong> y la
+      <strong>fecha de cobro</strong>.
+    </p>
+  </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="accountReceivableId ? updateData() : saveData()" id="form" class="c-form">
+
+    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
+      <div class="md:col-span-1">
+        <app-input-select formControlName="company_code" label="Empresa" [options]="companyOptions">
+        </app-input-select>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="emitter_name" label="Emisor" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="emitter_rfc" label="RFC emisor" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="receiver_name" label="Cliente" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="receiver_rfc" label="RFC cliente" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-date formControlName="issue_date" label="Fecha de emisión" mode="single" [showClear]="true">
+        </app-input-date>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="folio" label="Folio" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="series" label="Serie" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="cfdi_uuid" label="UUID" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="subtotal" label="Subtotal" type="money">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="total" label="Total" type="money">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="currency" label="Moneda" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="source_file_name" label="Archivo XML" type="text">
+        </app-input-field>
+      </div>
+
+      <div class="md:col-span-1">
+        <app-input-field formControlName="advance_amount" label="Total anticipos" type="money">
+        </app-input-field>
+      </div>
+
+
+      <div class="md:col-span-1">
+        <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
+        </app-autocomplete>
+      </div>
+
+      @if (canShowStatusControl) {
+      <div class="md:col-span-1">
+        <app-input-select formControlName="status" label="Estado de cobro" [options]="statusOptions">
+        </app-input-select>
+      </div>
+      }
+
+      @if (form.get('status')?.value === 'collected') {
+      <div class="md:col-span-1">
+        <app-input-date formControlName="collected_at" label="Fecha de cobro" mode="single" [showClear]="true">
+        </app-input-date>
+      </div>
+      }
+    </div>
+  </form>
+
+  <app-btns-section form="form" [saveDisabled]="!form.valid" (action)="onFooterAction($event)">
+  </app-btns-section>
+</div>

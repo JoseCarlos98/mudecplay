@@ -1,0 +1,17 @@
+.c-autocomplete {
+    position: relative;
+    // margin-bottom: 23px;
+    .field-error {
+        bottom: 5px;
+    }
+
+    .c-input {
+        margin-bottom: 0!important;
+        p {
+        }
+
+        mat-icon {
+            color: rgba(0, 0, 0, 0.54)!important;
+        }
+    }
+}

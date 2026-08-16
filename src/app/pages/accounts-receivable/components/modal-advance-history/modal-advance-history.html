@@ -1,0 +1,120 @@
+<div class="c-modal c-modal--table-layout c-modal--advance-history">
+  <app-module-header
+    [title]="'Historial de anticipos'"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="c-modal-table__content">
+    @if (loading) {
+      <div class="c-modal-table__summary">
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Factura</span>
+          <span class="c-modal-table__summary-value">{{ invoiceDisplay }}</span>
+        </div>
+
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Cliente</span>
+          <span class="c-modal-table__summary-value">
+            {{ detail?.receiver_name || data.receiver_name }}
+          </span>
+        </div>
+
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Total factura</span>
+          <span class="c-modal-table__summary-value">
+            {{ (detail?.total ?? data.total) | currency:'$ ':'symbol':'1.2-2' }}
+          </span>
+        </div>
+
+        <div class="c-modal-table__summary-item c-modal-table__summary-item--soft">
+          <span class="c-modal-table__summary-label">Anticipo acumulado</span>
+          <span class="c-modal-table__summary-value">
+            {{ (detail?.advance_amount ?? data.advance_amount) | currency:'$ ':'symbol':'1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="c-modal-table__empty">
+        Cargando historial...
+      </div>
+    } @else if (advances.length) {
+      <div class="c-module-table c-modal-table c-modal-table--compact">
+        <app-data-table
+          [data]="paginatedItems"
+          [columnsConfig]="columnsConfig"
+          [displayedColumns]="displayedColumns">
+        </app-data-table>
+
+        <div class="c-modal-table__summary">
+          <div class="c-modal-table__summary-item">
+            <span class="c-modal-table__summary-label">Factura</span>
+            <span class="c-modal-table__summary-value">{{ invoiceDisplay }}</span>
+          </div>
+
+          <div class="c-modal-table__summary-item">
+            <span class="c-modal-table__summary-label">Cliente</span>
+            <span class="c-modal-table__summary-value">
+              {{ detail?.receiver_name || data.receiver_name }}
+            </span>
+          </div>
+
+          <div class="c-modal-table__summary-item">
+            <span class="c-modal-table__summary-label">Total factura</span>
+            <span class="c-modal-table__summary-value">
+              {{ (detail?.total ?? data.total) | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+
+          <div class="c-modal-table__summary-item c-modal-table__summary-item--soft">
+            <span class="c-modal-table__summary-label">Anticipo acumulado</span>
+            <span class="c-modal-table__summary-value">
+              {{ (detail?.advance_amount ?? data.advance_amount) | currency:'$ ':'symbol':'1.2-2' }}
+            </span>
+          </div>
+        </div>
+
+        <mat-paginator
+          [length]="advances.length"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    } @else {
+      <div class="c-modal-table__summary">
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Factura</span>
+          <span class="c-modal-table__summary-value">{{ invoiceDisplay }}</span>
+        </div>
+
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Cliente</span>
+          <span class="c-modal-table__summary-value">
+            {{ detail?.receiver_name || data.receiver_name }}
+          </span>
+        </div>
+
+        <div class="c-modal-table__summary-item">
+          <span class="c-modal-table__summary-label">Total factura</span>
+          <span class="c-modal-table__summary-value">
+            {{ (detail?.total ?? data.total) | currency:'$ ':'symbol':'1.2-2' }}
+          </span>
+        </div>
+
+        <div class="c-modal-table__summary-item c-modal-table__summary-item--soft">
+          <span class="c-modal-table__summary-label">Anticipo acumulado</span>
+          <span class="c-modal-table__summary-value">
+            {{ (detail?.advance_amount ?? data.advance_amount) | currency:'$ ':'symbol':'1.2-2' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="c-modal-table__empty">
+        Esta factura aún no tiene anticipos registrados.
+      </div>
+    }
+  </div>
+</div>

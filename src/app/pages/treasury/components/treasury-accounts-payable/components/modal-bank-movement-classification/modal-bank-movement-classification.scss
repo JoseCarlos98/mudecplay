@@ -1,0 +1,357 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.bank-classification-modal {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: 100%;
+
+  max-height: min(
+    48rem,
+    calc(100dvh - 1rem)
+  );
+
+  overflow: hidden;
+  box-sizing: border-box;
+
+  > app-module-header,
+  > app-btns-section {
+    flex: 0 0 auto;
+  }
+}
+
+.bank-classification-modal__body {
+  flex: 1 1 auto;
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+
+  min-width: 0;
+  min-height: 0;
+
+  padding-right: 0.4rem;
+  padding-bottom: 0.75rem;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  scrollbar-gutter: stable;
+  overscroll-behavior-y: contain;
+}
+
+// =========================================================
+// MOVIMIENTO
+// =========================================================
+
+.classification-movement-card {
+  min-width: 0;
+  padding: 1rem;
+
+  border: 1px solid #dbe4ef;
+  border-radius: 0.85rem;
+
+  background: #f8fafc;
+}
+
+.classification-movement-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+
+  min-width: 0;
+}
+
+.classification-movement-card__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-width: 0;
+
+  > div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    min-width: 0;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.75rem;
+  }
+
+  strong {
+    color: #0f172a;
+    font-size: 1rem;
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+.classification-movement-card__icon {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.5rem;
+  height: 2.5rem;
+
+  border-radius: 0.7rem;
+
+  background: #e0f2fe;
+  color: #0284c7;
+
+  mat-icon {
+    font-size: 1.3rem;
+  }
+}
+
+.classification-current-status {
+  flex: 0 0 auto;
+
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0.35rem 0.7rem;
+
+  border-radius: 999px;
+
+  background: #e2e8f0;
+  color: #475569;
+
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.classification-movement-card__grid {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+  gap: 0.9rem;
+
+  margin-top: 1rem;
+  padding-top: 1rem;
+
+  border-top: 1px dashed #cbd5e1;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+
+    min-width: 0;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.72rem;
+  }
+
+  strong {
+    color: #1e293b;
+    font-size: 0.8rem;
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+.classification-movement-card__description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+
+  border-top: 1px dashed #cbd5e1;
+
+  span {
+    color: #64748b;
+    font-size: 0.72rem;
+  }
+
+  strong {
+    color: #334155;
+    font-size: 0.8rem;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+// =========================================================
+// IMPORTES
+// =========================================================
+
+.classification-amounts {
+  display: grid;
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+  gap: 0.75rem;
+}
+
+.classification-amount-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  min-width: 0;
+  padding: 0.8rem;
+
+  border: 1px solid #dbe4ef;
+  border-radius: 0.75rem;
+
+  background: #ffffff;
+
+  > div:last-child {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    min-width: 0;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.72rem;
+  }
+
+  strong {
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+}
+
+.classification-amount-card__icon {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 2.3rem;
+  height: 2.3rem;
+
+  border-radius: 0.65rem;
+
+  background: #eff6ff;
+  color: #2563eb;
+
+  mat-icon {
+    font-size: 1.2rem;
+  }
+}
+
+.classification-amount--original {
+  color: #1d4ed8;
+}
+
+.classification-amount--available {
+  color: #047857;
+}
+
+// =========================================================
+// FORMULARIO
+// =========================================================
+
+.classification-form {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr);
+  gap: 0.8rem;
+
+  min-width: 0;
+
+  app-input-select,
+  app-input-field {
+    display: block;
+
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+// =========================================================
+// INFORMACIÓN
+// =========================================================
+
+.classification-information {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  min-width: 0;
+  padding: 0.85rem;
+
+  border: 1px solid #bae6fd;
+  border-radius: 0.7rem;
+
+  background: #f0f9ff;
+  color: #075985;
+
+  > mat-icon {
+    flex: 0 0 auto;
+
+    margin-top: 0.05rem;
+  }
+
+  > div {
+    min-width: 0;
+  }
+
+  strong {
+    font-weight: 800;
+  }
+
+  p {
+    margin: 0.25rem 0 0;
+
+    font-size: 0.78rem;
+    line-height: 1.4;
+  }
+}
+
+.classification-information__warning {
+  color: #9a3412;
+}
+
+.classification-information__success {
+  color: #047857;
+}
+
+// =========================================================
+// RESPONSIVE
+// =========================================================
+
+@media (max-width: 720px) {
+  .classification-movement-card__grid,
+  .classification-amounts,
+  .classification-form {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+  .classification-movement-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
