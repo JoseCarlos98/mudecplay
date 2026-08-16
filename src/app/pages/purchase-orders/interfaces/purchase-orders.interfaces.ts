@@ -172,6 +172,8 @@ export interface PurchaseOrderResponseDto {
   id: number;
 
   folio: string;
+  printing?: PurchaseOrderPrintingDto;
+
 
   project: PurchaseOrderProjectDto | null;
 
@@ -228,6 +230,8 @@ export interface PurchaseOrderResponseDto {
   status_name?: string;
   created_at_date?: string;
   authorized_at_date?: string | null;
+
+  printing_status_label?: string;
 }
 
 export interface PurchaseOrderFlowDetailResponse extends PurchaseOrderResponseDto {
@@ -270,27 +274,27 @@ export interface PurchaseOrderFilters {
   requested_amount?: number | null;
   related_expense_amount?: number | null;
 
-   search?: string | null;
+  search?: string | null;
 
   status?: PurchaseOrderStatus | null;
 
   destination_type?:
-    | PurchaseOrderDestinationType
-    | null;
+  | PurchaseOrderDestinationType
+  | null;
 
   will_have_invoice?: boolean | null;
 
   project_id?: number | null;
 
   ticket_filter?:
-    | 'all'
-    | 'with_photo'
-    | 'without_photo';
+  | 'all'
+  | 'with_photo'
+  | 'without_photo';
 
   tracking_status?:
-    | PurchaseOrderTrackingStatus
-    | string
-    | null;
+  | PurchaseOrderTrackingStatus
+  | string
+  | null;
 }
 
 
@@ -299,31 +303,31 @@ export interface PurchaseOrderUiFilters {
   limit: number;
 
   dateRange:
-    DateRangeValue | null;
+  DateRangeValue | null;
 
   requested_amount:
-    number | null;
+  number | null;
 
   related_expense_amount:
-    number | null;
+  number | null;
 
   search?: string | null;
 
   tracking_status:
-    | PurchaseOrderTrackingStatus
-    | string
-    | '';
+  | PurchaseOrderTrackingStatus
+  | string
+  | '';
 
   destination_type?:
-    | PurchaseOrderDestinationType
-    | ''
-    | null;
+  | PurchaseOrderDestinationType
+  | ''
+  | null;
 
   will_have_invoice?:
-    | 'true'
-    | 'false'
-    | ''
-    | null;
+  | 'true'
+  | 'false'
+  | ''
+  | null;
 
   projects?: Catalog[];
 }
@@ -931,12 +935,12 @@ export interface PurchaseOrderOperationalCrosscheckCounters {
  */
 export interface PurchaseOrderRecentPendingReportRow {
   category:
-    | 'pending_authorization'
-    | 'pending_photo'
-    | 'pending_reconciliation'
-    | 'invoice_pending_xml'
-    | 'no_invoice_pending_expense'
-    | 'pending_payment';
+  | 'pending_authorization'
+  | 'pending_photo'
+  | 'pending_reconciliation'
+  | 'invoice_pending_xml'
+  | 'no_invoice_pending_expense'
+  | 'pending_payment';
 
   purchase_order_id: number;
 
@@ -959,13 +963,13 @@ export interface PurchaseOrderRecentPendingReportRow {
  */
 export interface PurchaseOrderOperationalSummaryResponse {
   purchase_orders:
-    PurchaseOrderOperationalSummaryCounters;
+  PurchaseOrderOperationalSummaryCounters;
 
   operational_crosscheck:
-    PurchaseOrderOperationalCrosscheckCounters;
+  PurchaseOrderOperationalCrosscheckCounters;
 
   recent_pending:
-    PurchaseOrderRecentPendingReportRow[];
+  PurchaseOrderRecentPendingReportRow[];
 
   generated_at: string;
 }
@@ -1002,7 +1006,7 @@ export interface PendingAuthorizationReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   concept: string;
 
@@ -1023,7 +1027,7 @@ export interface PendingPhotoReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   concept: string;
 
@@ -1044,7 +1048,7 @@ export interface PendingReconciliationReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   concept: string;
 
@@ -1067,12 +1071,12 @@ export interface PendingExpenseRegistrationReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   concept: string;
 
   destination_type:
-    PurchaseOrderDestinationType;
+  PurchaseOrderDestinationType;
 
   requested_amount: number;
 }
@@ -1089,14 +1093,14 @@ export interface PendingPaymentReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   /**
    * Una O.C. puede tener uno o varios
    * gastos relacionados.
    */
   expenses:
-    PurchaseOrderReportExpenseRef[];
+  PurchaseOrderReportExpenseRef[];
 
   related_amount: number;
   paid_amount: number;
@@ -1114,12 +1118,12 @@ export interface LoosePendingPhotoReportRow {
   date: string;
 
   project:
-    PurchaseOrderReportProjectRef | null;
+  PurchaseOrderReportProjectRef | null;
 
   file_name: string;
 
   uploaded_by:
-    PurchaseOrderReportUserRef | null;
+  PurchaseOrderReportUserRef | null;
 }
 
 
@@ -1163,7 +1167,7 @@ export interface AvailableXmlItemReportRow {
   product_name: string | null;
 
   item_type:
-    PurchaseOrderDestinationType;
+  PurchaseOrderDestinationType;
 
   amount: number;
 }
@@ -1202,17 +1206,17 @@ export interface PurchaseOrderPendingDetailPagination {
  */
 export interface PurchaseOrderPendingDetailPaginatedResponse<
   T extends PurchaseOrderPendingReportRow =
-    PurchaseOrderPendingReportRow,
+  PurchaseOrderPendingReportRow,
 > {
   category:
-    PurchaseOrderReportDetailCategory;
+  PurchaseOrderReportDetailCategory;
 
   label: string;
 
   data: T[];
 
   pagination:
-    PurchaseOrderPendingDetailPagination;
+  PurchaseOrderPendingDetailPagination;
 
   generated_at: string;
 }
@@ -1224,7 +1228,7 @@ export interface PurchaseOrderPendingDetailPaginatedResponse<
 
 export interface PurchaseOrderPendingReportSection {
   category:
-    PurchaseOrderReportDetailCategory;
+  PurchaseOrderReportDetailCategory;
 
   label: string;
 
@@ -1235,14 +1239,14 @@ export interface PurchaseOrderPendingReportSection {
    * 5 registros por sección.
    */
   data:
-    PurchaseOrderPendingReportRow[];
+  PurchaseOrderPendingReportRow[];
 }
 
 export interface PurchaseOrderPendingDetailAllResponse {
   category: 'all';
 
   sections:
-    PurchaseOrderPendingReportSection[];
+  PurchaseOrderPendingReportSection[];
 
   generated_at: string;
 }
@@ -1254,7 +1258,7 @@ export interface PurchaseOrderPendingDetailAllResponse {
 
 export interface PurchaseOrderPendingDetailFilters {
   category?:
-    PurchaseOrderReportPendingCategory;
+  PurchaseOrderReportPendingCategory;
 
   search?: string | null;
 
@@ -1293,7 +1297,7 @@ export interface PurchaseOrderReportTableRow {
   id: number;
 
   category?:
-    PurchaseOrderReportDetailCategory;
+  PurchaseOrderReportDetailCategory;
 
   purchase_order_id?: number;
 
@@ -1308,32 +1312,32 @@ export interface PurchaseOrderReportTableRow {
   folio?: string;
 
   project_name?:
-    string | null;
+  string | null;
 
   concept?:
-    string | null;
+  string | null;
 
   requested_by_name?:
-    string | null;
+  string | null;
 
   requested_amount?: number;
 
   authorized_at?:
-    string | null;
+  string | null;
 
   destination_type?:
-    PurchaseOrderDestinationType;
+  PurchaseOrderDestinationType;
 
   destination_type_label?:
-    string | null;
+  string | null;
 
   photo_count?: number;
 
   latest_photo_at?:
-    string | null;
+  string | null;
 
   expenses_display?:
-    string | null;
+  string | null;
 
   related_amount?: number;
 
@@ -1342,35 +1346,81 @@ export interface PurchaseOrderReportTableRow {
   balance?: number;
 
   file_name?:
-    string | null;
+  string | null;
 
   uploaded_by_name?:
-    string | null;
+  string | null;
 
   internal_folio?:
-    string | null;
+  string | null;
 
   cfdi_uuid?:
-    string | null;
+  string | null;
 
   supplier_name?:
-    string | null;
+  string | null;
 
   available_items_count?: number;
 
   available_amount?: number;
 
   product_name?:
-    string | null;
+  string | null;
 
   item_type?:
-    PurchaseOrderDestinationType;
+  PurchaseOrderDestinationType;
 
   item_type_label?:
-    string | null;
+  string | null;
 
   amount?: number;
 
   status_label?:
-    string | null;
+  string | null;
+}
+
+
+export type PurchaseOrderPrintStatus =
+  | 'pending'
+  | 'dispatched'
+  | 'printed'
+  | 'failed'
+  | 'cancelled'
+  | 'not_generated';
+
+export interface PurchaseOrderPrintingDto {
+  job_id: number | null;
+  job_key: string | null;
+
+  status: PurchaseOrderPrintStatus;
+  status_label: string;
+
+  attempts: number;
+
+  can_reprint: boolean;
+
+  reprint_of_job_id: number | null;
+
+  dispatched_at: string | null;
+  printed_at: string | null;
+
+  last_error: string | null;
+
+  created_at: string | null;
+}
+
+export interface ReprintPurchaseOrderResponse {
+  success: boolean;
+  message: string;
+
+  data: {
+    purchase_order_id: number;
+    folio: string;
+
+    print_job_id: number;
+
+    status: PurchaseOrderPrintStatus;
+
+    reprint_of_job_id: number | null;
+  };
 }

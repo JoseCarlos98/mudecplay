@@ -145,7 +145,22 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     type: 'chip',
     variantResolver: (
       row: entity.PurchaseOrderResponseDto,
-    ) => resolvePurchaseOrderTrackingVariant(row),
+    ) =>
+      resolvePurchaseOrderTrackingVariant(
+        row,
+      ),
+  },
+
+  {
+    key: 'printing_status_label',
+    label: 'Impresión',
+    type: 'chip',
+    variantResolver: (
+      row: entity.PurchaseOrderResponseDto,
+    ) =>
+      resolvePurchaseOrderPrintingVariant(
+        row,
+      ),
   },
   {
     key: 'folio',
@@ -220,6 +235,33 @@ function resolvePurchaseOrderTrackingVariant(
     case 'info':
     case 'primary':
     case 'neutral':
+    default:
+      return 'chip-neutral';
+  }
+}
+
+function resolvePurchaseOrderPrintingVariant(
+  row: entity.PurchaseOrderResponseDto,
+): ColumnVariant {
+  switch (
+  row.printing?.status
+  ) {
+    case 'printed':
+      return 'chip-success';
+
+    case 'failed':
+      return 'chip-danger';
+
+    case 'pending':
+      return 'chip-warning';
+
+    case 'dispatched':
+      return 'chip-neutral';
+
+    case 'cancelled':
+      return 'chip-neutral';
+
+    case 'not_generated':
     default:
       return 'chip-neutral';
   }
@@ -364,28 +406,28 @@ export class PurchaseOrders
   filters:
     entity.PurchaseOrderFilters = {
 
-    page: 1,
+      page: 1,
 
-    limit: 5,
+      limit: 5,
 
-    startDate: null,
+      startDate: null,
 
-    endDate: null,
+      endDate: null,
 
-    requested_amount: null,
+      requested_amount: null,
 
-    related_expense_amount: null,
+      related_expense_amount: null,
 
-    status: null,
+      status: null,
 
-    tracking_status: null,
+      tracking_status: null,
 
-    destination_type: null,
+      destination_type: null,
 
-    will_have_invoice: null,
+      will_have_invoice: null,
 
-    project_id: null,
-  };
+      project_id: null,
+    };
 
 
   purchaseOrdersTableData!:
@@ -464,6 +506,30 @@ export class PurchaseOrders
 
         disabled:
           () => false,
+      },
+
+      {
+        type:
+          'reprintPurchaseOrder',
+
+        icon:
+          'print',
+
+        tooltip:
+          (row) =>
+            row.printing?.last_error
+              ? `Reimprimir ticket. Error: ${row.printing.last_error}`
+              : 'Reimprimir ticket',
+
+        visible:
+          (row) =>
+            row.printing?.can_reprint ===
+            true,
+
+        disabled:
+          (row) =>
+            row.printing?.can_reprint !==
+            true,
       },
 
       {
@@ -715,55 +781,50 @@ export class PurchaseOrders
   // MAPEO TABLA
   // =========================================================
 
-  private mapPurchaseOrderRow(
-    row:
-      entity.PurchaseOrderResponseDto,
-  ):
-    entity.PurchaseOrderResponseDto {
+private mapPurchaseOrderRow(
+  row:
+    entity.PurchaseOrderResponseDto,
+):
+  entity.PurchaseOrderResponseDto {
 
-    return {
+  return {
+    ...row,
 
-      ...row,
+    project_name:
+      row.project?.name ??
+      'Sin proyecto',
 
+    requested_by_display:
+      row.requested_by_employee?.name ??
+      row.requested_by_name ??
+      'Sin solicitante',
 
-      project_name:
-        row.project?.name ??
-        'Sin proyecto',
+    destination_name:
+      row.destination_type_label,
 
+    invoice_name:
+      row.will_have_invoice_label,
 
-      requested_by_display:
-        row.requested_by_employee?.name ??
-        row.requested_by_name ??
-        'Sin solicitante',
+    tracking_status_label:
+      row.tracking_status_label ??
+      row.status_label ??
+      'Sin seguimiento',
 
+    printing_status_label:
+      row.printing?.status_label ??
+      'Sin ticket',
 
-      destination_name:
-        row.destination_type_label,
+    created_at_date:
+      row.created_at,
 
+    authorized_at_date:
+      row.authorized_at ??
+      null,
 
-      invoice_name:
-        row.will_have_invoice_label,
-
-
-      tracking_status_label:
-        row.tracking_status_label ??
-        row.status_label ??
-        'Sin seguimiento',
-
-
-      created_at_date:
-        row.created_at,
-
-
-      authorized_at_date:
-        row.authorized_at ??
-        null,
-
-
-      authorized_by_name:
-        row.authorized_by_name,
-    };
-  }
+    authorized_by_name:
+      row.authorized_by_name,
+  };
+}
 
 
   // =========================================================
@@ -791,9 +852,9 @@ export class PurchaseOrders
 
     if (
       row.status ===
-        'in_review' ||
+      'in_review' ||
       row.status ===
-        'not_authorized'
+      'not_authorized'
     ) {
       return true;
     }
@@ -855,9 +916,9 @@ export class PurchaseOrders
 
     return (
       row.status ===
-        'in_review' ||
+      'in_review' ||
       row.status ===
-        'not_authorized'
+      'not_authorized'
     );
   }
 
@@ -883,9 +944,9 @@ export class PurchaseOrders
 
     return (
       row.status ===
-        'in_review' ||
+      'in_review' ||
       row.status ===
-        'not_authorized'
+      'not_authorized'
     );
   }
 
@@ -1543,6 +1604,14 @@ export class PurchaseOrders
 
         break;
 
+      case 'reprintPurchaseOrder':
+
+        this.reprintPurchaseOrder(
+          event.row,
+        );
+
+        break;
+
 
       case 'editPurchaseOrder':
 
@@ -1585,6 +1654,51 @@ export class PurchaseOrders
     }
   }
 
+
+
+  private reprintPurchaseOrder(
+    row:
+      entity.PurchaseOrderResponseDto,
+  ): void {
+    if (
+      !row?.id ||
+      row.printing?.can_reprint !==
+      true
+    ) {
+      return;
+    }
+
+    this.loadingTable.set(
+      true,
+    );
+
+    this.purchaseOrdersService
+      .reprintPurchaseOrder(
+        row.id,
+      )
+      .subscribe({
+        next: () => {
+          this.loadingTable.set(
+            false,
+          );
+
+          this.loadPurchaseOrders();
+        },
+
+        error: (error) => {
+          this.loadingTable.set(
+            false,
+          );
+
+          console.error(
+            'Error al reimprimir ticket de O.C.:',
+            error,
+          );
+
+          this.loadPurchaseOrders();
+        },
+      });
+  }
 
   // =========================================================
   // VER DETALLE
@@ -1993,9 +2107,9 @@ export class PurchaseOrders
 
     if (
       typeof value ===
-        'number' ||
+      'number' ||
       typeof value ===
-        'string'
+      'string'
     ) {
       return value;
     }
@@ -2128,7 +2242,7 @@ export class PurchaseOrders
     if (
       !forceReload &&
       this.expandedOrderDetails()[
-        orderId
+      orderId
       ]
     ) {
       return;
@@ -2172,7 +2286,7 @@ export class PurchaseOrders
               response?.data ??
               response
             ) as
-              entity.PurchaseOrderFlowDetailResponse;
+            entity.PurchaseOrderFlowDetailResponse;
 
 
           if (!detail?.id) {
@@ -2225,7 +2339,7 @@ export class PurchaseOrders
 
     return (
       this.expandedOrderDetails()[
-        orderId
+      orderId
       ] ??
       null
     );
@@ -2252,7 +2366,7 @@ export class PurchaseOrders
 
     return (
       this.expandedOrderErrors()[
-        orderId
+      orderId
       ] ??
       null
     );
@@ -2350,11 +2464,10 @@ export class PurchaseOrders
     return (
       link.expense?.internal_folio ??
       link.expense?.folio ??
-      `Gasto #${
-        this.getExpandedExpenseId(
-          link,
-        ) ??
-        '—'
+      `Gasto #${this.getExpandedExpenseId(
+        link,
+      ) ??
+      '—'
       }`
     );
   }
@@ -2653,16 +2766,14 @@ export class PurchaseOrders
     }
 
 
-    return `${
-      uuid.slice(
-        0,
-        8,
-      )
-    }…${
-      uuid.slice(
+    return `${uuid.slice(
+      0,
+      8,
+    )
+      }…${uuid.slice(
         -4,
       )
-    }`;
+      }`;
   }
 
 
@@ -2705,9 +2816,8 @@ export class PurchaseOrders
         ?.trim() ||
       item.concept
         ?.trim() ||
-      `Partida #${
-        item.expense_item_id ||
-        item.id
+      `Partida #${item.expense_item_id ||
+      item.id
       }`
     );
   }
@@ -2827,7 +2937,7 @@ export class PurchaseOrders
 
     return (
       link.registration_type ===
-        'xml' ||
+      'xml' ||
       !!this.getExpandedExpenseUuid(
         link,
       )

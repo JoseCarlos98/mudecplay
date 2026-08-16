@@ -13,6 +13,7 @@ import { setScalar } from '../../../shared/helpers/general-helpers';
 })
 export class PurchaseOrdersService {
   private readonly apiUrl = `${environment.apiUrl}/purchase-orders`;
+
   private readonly http = inject(HttpClient);
 
   getPurchaseOrders(
@@ -611,6 +612,19 @@ export class PurchaseOrdersService {
       {
         params,
       },
+    );
+  }
+
+  reprintPurchaseOrder(
+    id: number | string,
+  ): Observable<
+    entity.ReprintPurchaseOrderResponse
+  > {
+    return this.http.post<
+      entity.ReprintPurchaseOrderResponse
+    >(
+      `${this.apiUrl}/${id}/reprint`,
+      {},
     );
   }
 
