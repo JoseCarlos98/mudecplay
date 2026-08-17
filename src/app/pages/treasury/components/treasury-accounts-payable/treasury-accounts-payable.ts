@@ -652,23 +652,23 @@ export class TreasuryAccountsPayable
       date_to: null,
     };
 
-pendingItemFilters:
-  entity.TreasuryPendingExpenseItemFilters = {
-    page: 1,
-    limit: 10,
+  pendingItemFilters:
+    entity.TreasuryPendingExpenseItemFilters = {
+      page: 1,
+      limit: 10,
 
-    search: '',
-    amount: null,
+      search: '',
+      amount: null,
 
-    supplier_ids: [],
-    supplier_id: null,
+      supplier_ids: [],
+      supplier_id: null,
 
-    project_id: null,
-    item_type: null,
+      project_id: null,
+      item_type: null,
 
-    date_from: null,
-    date_to: null,
-  };
+      date_from: null,
+      date_to: null,
+    };
 
   historicalFilters:
     entity.TreasuryHistoricalPaymentFilters = {
@@ -2712,61 +2712,32 @@ pendingItemFilters:
     const movement =
       this.selectedMovement();
 
-    /*
-     * Validación defensiva.
-     * Normalmente no podrá ejecutarse porque el botón
-     * estará deshabilitado.
-     */
     if (!movement) {
       return;
     }
 
     if (
-      this.selectedApplications().has(
+      this.selectedExpenseItems().has(
         row.expense_item_id,
       )
     ) {
       return;
     }
 
-    const movementRemaining =
-      roundMoney(
-        this.selectedMovementRemaining(),
-      );
-
-    const itemPending =
-      roundMoney(
-        Number(
-          row.pending_amount || 0,
-        ),
-      );
-
-    const amountToApply =
-      roundMoney(
-        Math.min(
-          movementRemaining,
-          itemPending,
-        ),
-      );
-
-    if (amountToApply <= 0) {
+    /*
+     * Si ya no queda saldo disponible,
+     * no tiene sentido agregar otro concepto.
+     */
+    if (
+      this.selectedMovementRemaining() <= 0
+    ) {
       return;
     }
 
-    this.selectedApplications.update(
-      (current) => {
-        const next =
-          new Map(current);
-
-        next.set(
-          row.expense_item_id,
-          amountToApply,
-        );
-
-        return next;
-      },
-    );
-
+    /*
+     * Primero agregamos el concepto a la
+     * selección lógica.
+     */
     this.selectedExpenseItems.update(
       (current) => {
         const next =
@@ -2780,13 +2751,25 @@ pendingItemFilters:
         return next;
       },
     );
+
+    /*
+     * Después recalculamos desde cero
+     * cuánto corresponde aplicar a cada
+     * concepto seleccionado.
+     */
+    this.recalculateSelectedApplications();
   }
+
 
   private removeExpenseItem(
     row:
       entity.TreasuryPendingExpenseItemTableRow,
   ): void {
-    this.selectedApplications.update(
+    /*
+     * Primero quitamos el concepto
+     * de la selección.
+     */
+    this.selectedExpenseItems.update(
       (current) => {
         const next =
           new Map(current);
@@ -2799,17 +2782,90 @@ pendingItemFilters:
       },
     );
 
-    this.selectedExpenseItems.update(
-      (current) => {
-        const next =
-          new Map(current);
+    /*
+     * Redistribuimos nuevamente el saldo
+     * bancario entre los conceptos que
+     * permanecen seleccionados.
+     */
+    this.recalculateSelectedApplications();
+  }
 
-        next.delete(
-          row.expense_item_id,
+  private recalculateSelectedApplications(): void {
+    const movement =
+      this.selectedMovement();
+
+    if (!movement) {
+      this.selectedApplications.set(
+        new Map<number, number>(),
+      );
+
+      return;
+    }
+
+    let remaining =
+      roundMoney(
+        Number(
+          movement.available_amount ||
+          0,
+        ),
+      );
+
+    const applications =
+      new Map<number, number>();
+
+    /*
+     * Map conserva el orden de inserción,
+     * por lo que respetamos el orden en
+     * que el usuario seleccionó conceptos.
+     */
+    for (
+      const [
+        expenseItemId,
+        item,
+      ] of this.selectedExpenseItems()
+    ) {
+      if (remaining <= 0) {
+        break;
+      }
+
+      const pending =
+        roundMoney(
+          Number(
+            item.pending_amount ||
+            0,
+          ),
         );
 
-        return next;
-      },
+      if (pending <= 0) {
+        continue;
+      }
+
+      const amountToApply =
+        roundMoney(
+          Math.min(
+            remaining,
+            pending,
+          ),
+        );
+
+      if (amountToApply <= 0) {
+        continue;
+      }
+
+      applications.set(
+        expenseItemId,
+        amountToApply,
+      );
+
+      remaining =
+        roundMoney(
+          remaining -
+          amountToApply,
+        );
+    }
+
+    this.selectedApplications.set(
+      applications,
     );
   }
 
@@ -3277,26 +3333,26 @@ pendingItemFilters:
         saved.dateRange,
       );
 
-this.pendingItemFilterForm.patchValue(
-  {
-    dateRange,
+    this.pendingItemFilterForm.patchValue(
+      {
+        dateRange,
 
-    search:
-      saved.search ?? '',
+        search:
+          saved.search ?? '',
 
-    amount:
-      saved.amount ?? null,
+        amount:
+          saved.amount ?? null,
 
-    suppliersIds:
-      saved.suppliersIds ?? [],
+        suppliersIds:
+          saved.suppliersIds ?? [],
 
-    project_id:
-      saved.project_id ?? null,
-  },
-  {
-    emitEvent: false,
-  },
-);
+        project_id:
+          saved.project_id ?? null,
+      },
+      {
+        emitEvent: false,
+      },
+    );
 
     this.pendingItemFilters =
       this.buildPendingItemsBackendFiltersFromUi({
@@ -3449,46 +3505,46 @@ this.pendingItemFilterForm.patchValue(
     );
   }
 
-private savePendingItemFiltersToStorage(
-  state?:
-    entity.TreasuryPendingExpenseItemUiFilters,
-): void {
-  if (!state) {
-    const value =
-      this.pendingItemFilterForm
-        .getRawValue();
+  private savePendingItemFiltersToStorage(
+    state?:
+      entity.TreasuryPendingExpenseItemUiFilters,
+  ): void {
+    if (!state) {
+      const value =
+        this.pendingItemFilterForm
+          .getRawValue();
 
-    state = {
-      dateRange:
-        value.dateRange ?? null,
+      state = {
+        dateRange:
+          value.dateRange ?? null,
 
-      search:
-        value.search?.trim() || '',
+        search:
+          value.search?.trim() || '',
 
-      amount:
-        this.normalizeAmountFilter(
-          value.amount,
-        ),
+        amount:
+          this.normalizeAmountFilter(
+            value.amount,
+          ),
 
-      suppliersIds:
-        value.suppliersIds ?? [],
+        suppliersIds:
+          value.suppliersIds ?? [],
 
-      project_id:
-        value.project_id ?? null,
+        project_id:
+          value.project_id ?? null,
 
-      page:
-        this.pendingItemFilters.page,
+        page:
+          this.pendingItemFilters.page,
 
-      limit:
-        this.pendingItemFilters.limit,
-    };
+        limit:
+          this.pendingItemFilters.limit,
+      };
+    }
+
+    this.storage.setItem(
+      PENDING_EXPENSE_ITEMS_FILTERS_KEY,
+      state,
+    );
   }
-
-  this.storage.setItem(
-    PENDING_EXPENSE_ITEMS_FILTERS_KEY,
-    state,
-  );
-}
 
   private saveHistoricalFiltersToStorage(
     state?:
