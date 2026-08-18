@@ -72,7 +72,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'product_name_snapshot', label: 'Producto' },
   { key: 'expense_folio_snapshot', label: 'Folio gasto' },
   { key: 'supplier_name_snapshot', label: 'Proveedor' },
-  { key: 'purchase_date_display', label: 'Compra', type: 'date' },
+  { key: 'purchase_date_display', label: 'Compra' },
   { key: 'original_quantity_text', label: 'Cantidad original', align: 'right' },
   { key: 'available_quantity_text', label: 'Disponible', align: 'right' },
   { key: 'used_quantity_text', label: 'Usado', align: 'right' },
