@@ -59,9 +59,7 @@ export class ClientModal implements OnInit {
     phone: this.fb.control<string | null>(null, {
       validators: [Validators.required]
     }),
-    email: this.fb.control<string | null>(null, {
-      validators: [Validators.required, Validators.email]
-    }),
+    email: this.fb.control<string | null>(null),
     will_invoice: this.fb.control<boolean>(false, {
       validators: [Validators.required]
     }),
