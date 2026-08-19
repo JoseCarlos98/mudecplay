@@ -1,4 +1,7 @@
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import {
   FormArray,
@@ -71,7 +74,7 @@ type RecordExpenseForm = {
 })
 export class RecordOcExpense implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
 
@@ -257,15 +260,7 @@ export class RecordOcExpense implements OnInit {
       .createDirectExpenseFromTicketPhoto(this.photoId, payload)
       .pipe(finalize(() => this.saving.set(false)))
       .subscribe({
-        next: (response) => {
-          const purchaseOrderId =
-            response?.data?.purchase_order_id ?? this.order?.id;
-
-          if (purchaseOrderId) {
-            this.router.navigateByUrl(`/ordenes-compra/detalle/${purchaseOrderId}`);
-            return;
-          }
-
+        next: () => {
           this.goBack();
         },
         error: (err) => {
@@ -286,12 +281,7 @@ export class RecordOcExpense implements OnInit {
   }
 
   goBack(): void {
-    if (this.order?.id) {
-      this.router.navigateByUrl(`/ordenes-compra/detalle/${this.order.id}`);
-      return;
-    }
-
-    this.router.navigateByUrl('/ordenes-compra');
+    this.location.back();
   }
 
   private loadInitialData(): void {

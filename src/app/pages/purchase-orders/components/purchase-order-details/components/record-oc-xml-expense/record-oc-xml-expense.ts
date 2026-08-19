@@ -1,7 +1,10 @@
-import { CommonModule } from "@angular/common";
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
 import { Component, OnInit, inject, signal } from "@angular/core";
 import { FormBuilder, FormGroup, ReactiveFormsModule } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute } from "@angular/router";
 import { MatIconModule } from "@angular/material/icon";
 import { finalize } from "rxjs";
 
@@ -59,7 +62,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class RecordOcXmlExpense implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
 
@@ -346,7 +349,11 @@ export class RecordOcXmlExpense implements OnInit {
   saveExpense(): void {
     if (this.saving()) return;
 
-    if (!this.canSave || !this.photoId || !this.selectedXmlExpense) {
+    if (
+      !this.canSave ||
+      !this.photoId ||
+      !this.selectedXmlExpense
+    ) {
       this.form.markAllAsTouched();
       return;
     }
@@ -363,28 +370,26 @@ export class RecordOcXmlExpense implements OnInit {
     this.saving.set(true);
 
     this.purchaseOrdersService
-      .linkExistingXmlExpenseToTicketPhoto(this.photoId, payload)
-      .pipe(finalize(() => this.saving.set(false)))
+      .linkExistingXmlExpenseToTicketPhoto(
+        this.photoId,
+        payload,
+      )
+      .pipe(
+        finalize(() => this.saving.set(false)),
+      )
       .subscribe({
-        next: (response) => {
-          const purchaseOrderId =
-            response?.data?.purchase_order_id ?? this.order?.id;
-
-          if (purchaseOrderId) {
-            this.router.navigateByUrl(
-              `/ordenes-compra/detalle/${purchaseOrderId}`,
-            );
-            return;
-          }
-
+        next: () => {
           this.goBack();
         },
         error: (err) => {
-          console.error("Error relacionando gasto XML con O.C.:", err);
+          console.error(
+            'Error relacionando gasto XML con O.C.:',
+            err,
+          );
 
           this.errorMessage =
             err?.error?.message ||
-            "No se pudo relacionar el gasto XML con la orden de compra.";
+            'No se pudo relacionar el gasto XML con la orden de compra.';
         },
       });
   }
@@ -401,12 +406,7 @@ export class RecordOcXmlExpense implements OnInit {
   }
 
   goBack(): void {
-    if (this.order?.id) {
-      this.router.navigateByUrl(`/ordenes-compra/detalle/${this.order.id}`);
-      return;
-    }
-
-    this.router.navigateByUrl("/ordenes-compra");
+    this.location.back();
   }
 
   trackByExpenseId(_: number, expense: AvailableXmlExpenseDto): number {

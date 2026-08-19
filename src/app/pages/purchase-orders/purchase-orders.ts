@@ -88,10 +88,6 @@ const TRACKING_STATUS_OPTIONS: Catalog[] = [
     name: 'Pendiente de foto',
   },
   {
-    id: 'ticket_uploaded',
-    name: 'Foto subida',
-  },
-  {
     id: 'ticket_reconciled',
     name: 'Foto conciliada',
   },
@@ -510,6 +506,33 @@ export class PurchaseOrders
 
       {
         type:
+          'viewPurchaseOrderPhoto',
+
+        icon:
+          'image',
+
+        tooltip:
+          () => 'Ver foto',
+
+        visible:
+          (row) =>
+            [
+              'ticket_uploaded',
+              'ticket_reconciled',
+              'expense_registered',
+              'payment_completed',
+            ].includes(
+              String(
+                row.tracking_status ?? '',
+              ),
+            ),
+
+        disabled:
+          () => false,
+      },
+
+      {
+        type:
           'reprintPurchaseOrder',
 
         icon:
@@ -781,50 +804,50 @@ export class PurchaseOrders
   // MAPEO TABLA
   // =========================================================
 
-private mapPurchaseOrderRow(
-  row:
-    entity.PurchaseOrderResponseDto,
-):
-  entity.PurchaseOrderResponseDto {
+  private mapPurchaseOrderRow(
+    row:
+      entity.PurchaseOrderResponseDto,
+  ):
+    entity.PurchaseOrderResponseDto {
 
-  return {
-    ...row,
+    return {
+      ...row,
 
-    project_name:
-      row.project?.name ??
-      'Sin proyecto',
+      project_name:
+        row.project?.name ??
+        'Sin proyecto',
 
-    requested_by_display:
-      row.requested_by_employee?.name ??
-      row.requested_by_name ??
-      'Sin solicitante',
+      requested_by_display:
+        row.requested_by_employee?.name ??
+        row.requested_by_name ??
+        'Sin solicitante',
 
-    destination_name:
-      row.destination_type_label,
+      destination_name:
+        row.destination_type_label,
 
-    invoice_name:
-      row.will_have_invoice_label,
+      invoice_name:
+        row.will_have_invoice_label,
 
-    tracking_status_label:
-      row.tracking_status_label ??
-      row.status_label ??
-      'Sin seguimiento',
+      tracking_status_label:
+        row.tracking_status_label ??
+        row.status_label ??
+        'Sin seguimiento',
 
-    printing_status_label:
-      row.printing?.status_label ??
-      'Sin ticket',
+      printing_status_label:
+        row.printing?.status_label ??
+        'Sin ticket',
 
-    created_at_date:
-      row.created_at,
+      created_at_date:
+        row.created_at,
 
-    authorized_at_date:
-      row.authorized_at ??
-      null,
+      authorized_at_date:
+        row.authorized_at ??
+        null,
 
-    authorized_by_name:
-      row.authorized_by_name,
-  };
-}
+      authorized_by_name:
+        row.authorized_by_name,
+    };
+  }
 
 
   // =========================================================
@@ -1604,6 +1627,14 @@ private mapPurchaseOrderRow(
 
         break;
 
+      case 'viewPurchaseOrderPhoto':
+
+        this.viewPurchaseOrderPhoto(
+          event.row,
+        );
+
+        break;
+
       case 'reprintPurchaseOrder':
 
         this.reprintPurchaseOrder(
@@ -1654,6 +1685,112 @@ private mapPurchaseOrderRow(
     }
   }
 
+
+  private viewPurchaseOrderPhoto(
+    row:
+      entity.PurchaseOrderResponseDto,
+  ): void {
+
+    if (!row?.id) {
+      return;
+    }
+
+
+    /*
+     * Si ya expandimos la fila,
+     * reutilizamos el detail cargado.
+     */
+    const cachedDetail =
+      this.getExpandedOrderDetail(
+        row.id,
+      );
+
+
+    if (cachedDetail) {
+
+      const photo =
+        (
+          cachedDetail.ticket_photos ??
+          []
+        ).find(
+          (item) =>
+            !!item?.id &&
+            item.status !== 'discarded',
+        );
+
+
+      if (photo) {
+        this.openExpandedPhoto(
+          photo,
+          row,
+        );
+      }
+
+      return;
+    }
+
+
+    /*
+     * Si todavía no tenemos el detail,
+     * cargamos solamente la información
+     * necesaria de la O.C.
+     */
+    this.purchaseOrdersService
+      .getFlowDetail(
+        row.id,
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          const detail =
+            (
+              response?.data ??
+              response
+            ) as
+            entity.PurchaseOrderFlowDetailResponse;
+
+
+          const photo =
+            (
+              detail.ticket_photos ??
+              []
+            ).find(
+              (item) =>
+                !!item?.id &&
+                item.status !== 'discarded',
+            );
+
+
+          if (!photo) {
+            return;
+          }
+
+
+          /*
+           * Reutilizamos el método que
+           * YA EXISTE en este componente.
+           */
+          this.openExpandedPhoto(
+            photo,
+            row,
+          );
+        },
+
+
+        error: (
+          error,
+        ) => {
+
+          console.error(
+            'Error cargando foto de la O.C.:',
+            error,
+          );
+        },
+      });
+  }
 
 
   private reprintPurchaseOrder(

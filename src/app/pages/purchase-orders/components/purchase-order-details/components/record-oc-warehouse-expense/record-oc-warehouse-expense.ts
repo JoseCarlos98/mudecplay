@@ -1,7 +1,9 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
+import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs';
 
@@ -65,11 +67,10 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class RecordOcWarehouseExpense implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly catalogsService = inject(CatalogsService);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
-
   readonly pageTitle = 'Registrar entrada de almacén';
   readonly headerConfig = HEADER_CONFIG;
 
@@ -202,7 +203,7 @@ export class RecordOcWarehouseExpense implements OnInit {
       this.form.valid &&
       this.itemsFA.length > 0 &&
       this.totalAmount > 0 &&
-      this.hasValidPayload() 
+      this.hasValidPayload()
     );
   }
 
@@ -282,7 +283,9 @@ export class RecordOcWarehouseExpense implements OnInit {
   saveWarehouseExpense(): void {
     if (!this.canSave || !this.photoId) {
       this.form.markAllAsTouched();
-      this.itemsFA.controls.forEach((control) => control.markAllAsTouched());
+      this.itemsFA.controls.forEach(
+        (control) => control.markAllAsTouched(),
+      );
       return;
     }
 
@@ -291,21 +294,19 @@ export class RecordOcWarehouseExpense implements OnInit {
     this.errorMessage = null;
 
     this.purchaseOrdersService
-      .createWarehouseExpenseFromTicketPhoto(this.photoId, payload)
+      .createWarehouseExpenseFromTicketPhoto(
+        this.photoId,
+        payload,
+      )
       .subscribe({
-        next: (response) => {
-          const purchaseOrderId =
-            response?.data?.purchase_order_id ?? this.order?.id;
-
-          if (purchaseOrderId) {
-            this.router.navigateByUrl(`/ordenes-compra/detalle/${purchaseOrderId}`);
-            return;
-          }
-
+        next: () => {
           this.goBack();
         },
         error: (err) => {
-          console.error('Error registrando entrada de almacén desde O.C.:', err);
+          console.error(
+            'Error registrando entrada de almacén desde O.C.:',
+            err,
+          );
 
           this.errorMessage =
             err?.error?.message ||
@@ -326,14 +327,8 @@ export class RecordOcWarehouseExpense implements OnInit {
   }
 
   goBack(): void {
-    if (this.order?.id) {
-      this.router.navigateByUrl(`/ordenes-compra/detalle/${this.order.id}`);
-      return;
-    }
-
-    this.router.navigateByUrl('/ordenes-compra');
+    this.location.back();
   }
-
 
   getItemAmount(control: AbstractControl): number {
     return this.round2(this.toNumberOrZero(control.get('amount')?.value));
@@ -610,19 +605,19 @@ export class RecordOcWarehouseExpense implements OnInit {
   }
 
   onFooterAction(action: ModuleFooterAction): void {
-  switch (action) {
-    case 'save':
-      this.saveWarehouseExpense();
-      break;
+    switch (action) {
+      case 'save':
+        this.saveWarehouseExpense();
+        break;
 
-    case 'cancel':
-      this.goBack();
-      break;
+      case 'cancel':
+        this.goBack();
+        break;
 
-    default:
-      break;
+      default:
+        break;
+    }
   }
-}
 
   private getPhotoStatusLabel(status: string): string {
     switch (status) {

@@ -1,7 +1,10 @@
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+  Location,
+} from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { finalize } from 'rxjs';
 
@@ -56,7 +59,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class RecordOcWarehouseXmlExpense implements OnInit {
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly location = inject(Location);
   private readonly fb = inject(FormBuilder);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
 
@@ -463,20 +466,11 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
         this.photoId,
         payload,
       )
-      .pipe(finalize(() => this.saving.set(false)))
+      .pipe(
+        finalize(() => this.saving.set(false)),
+      )
       .subscribe({
-        next: (response) => {
-          const purchaseOrderId =
-            response?.data?.purchase_order_id ??
-            this.order?.id;
-
-          if (purchaseOrderId) {
-            this.router.navigateByUrl(
-              `/ordenes-compra/detalle/${purchaseOrderId}`,
-            );
-            return;
-          }
-
+        next: () => {
           this.goBack();
         },
         error: (err) => {
@@ -509,14 +503,7 @@ export class RecordOcWarehouseXmlExpense implements OnInit {
   }
 
   goBack(): void {
-    if (this.order?.id) {
-      this.router.navigateByUrl(
-        `/ordenes-compra/detalle/${this.order.id}`,
-      );
-      return;
-    }
-
-    this.router.navigateByUrl('/ordenes-compra');
+    this.location.back();
   }
 
   getAvailableItemName(
