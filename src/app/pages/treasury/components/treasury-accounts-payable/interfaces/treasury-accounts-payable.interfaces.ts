@@ -260,6 +260,9 @@ export interface TreasuryPendingExpenseItemTableRow
 
   item_type_label: string;
   payment_status_label: string;
+
+  // Selección independiente para efectivo masivo.
+  cash_selected?: boolean;
 }
 
 export interface TreasuryPendingExpenseItemsSummary {
@@ -495,6 +498,9 @@ export interface TreasuryHistoricalPaymentTableRow
 
   regularization_status_label: string;
   regularization_type_label: string;
+
+  // Solo se utiliza mientras está pendiente.
+  cash_selected?: boolean;
 }
 
 export interface TreasuryHistoricalPaymentsSummary {
@@ -1404,8 +1410,28 @@ export interface TreasuryExpenseItemPaymentHistoryResponse {
 // =========================================================
 
 export interface TreasuryApplyCashPaymentModalData {
-  item: TreasuryPendingExpenseItemTableRow;
+  mode?: 'single';
+
+  item:
+  TreasuryPendingExpenseItemTableRow;
 }
+
+export interface TreasuryBulkCashPaymentModalData {
+  mode: 'bulk';
+
+  expense_items:
+  TreasuryPendingExpenseItemTableRow[];
+
+  historical_payments:
+  TreasuryHistoricalPaymentTableRow[];
+}
+
+export type TreasuryCashPaymentModalData =
+  | TreasuryApplyCashPaymentModalData
+  | TreasuryBulkCashPaymentModalData;
+
+
+
 
 export interface TreasuryApplyCashPaymentPayload {
   expense_item_id: number;
@@ -1463,6 +1489,98 @@ export interface TreasuryApplyCashPaymentResponse {
     | 'partial'
     | 'paid';
   };
+}
+
+// =========================================================
+// EFECTIVO MASIVO
+// =========================================================
+
+export interface TreasuryBulkApplyCashPaymentsPayload {
+  historical_payment_ids?: string[];
+
+  expense_item_ids?: number[];
+
+  company_id?: number | null;
+
+  /*
+   * Solo se utiliza para conceptos actuales.
+   * Los históricos conservan su propia fecha.
+   */
+  payment_date?: string | null;
+
+  reference?: string | null;
+
+  reason: string;
+}
+
+
+export interface TreasuryBulkApplyCashPaymentsResponse {
+  success: boolean;
+  message: string;
+
+  bulk_operation_id: string;
+
+  payment_method: 'cash';
+
+  company: {
+    id: number | null;
+    code: string | null;
+    name: string;
+  };
+
+  reason: string;
+
+  summary: {
+    selected_count: number;
+
+    historical_count: number;
+    current_count: number;
+
+    historical_amount: number;
+    current_amount: number;
+
+    total_amount: number;
+  };
+
+  historical_payments: Array<{
+    id: string;
+
+    amount: number;
+    payment_date: string | null;
+
+    payment_method: 'cash';
+
+    regularization_status: 'regularized';
+
+    regularization_type: 'cash';
+
+    regularized_by_user_id: number;
+    regularized_at: string;
+
+    reference: string | null;
+  }>;
+
+  current_payments: Array<{
+    payment_id: string;
+
+    expense_item_id: number;
+    expense_id: number;
+
+    application_id: string | null;
+
+    amount: number;
+
+    previous_paid_amount: number;
+    previous_pending_amount: number;
+    new_pending_amount: number;
+
+    payment_date: string;
+
+    payment_method: 'cash';
+
+    reference: string | null;
+    notes: string | null;
+  }>;
 }
 
 

@@ -29,8 +29,7 @@
   margin-top: 1rem;
 
   display: grid;
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 
   gap: 0.75rem;
 
@@ -238,11 +237,7 @@
   box-sizing: border-box;
 
   display: grid;
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(10.5rem, 1fr)
-    );
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
 
   > * {
     width: 100%;
@@ -364,8 +359,7 @@
   &__details {
     display: grid;
 
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
 
     gap: 0.55rem;
 
@@ -546,8 +540,7 @@
 
 @media (max-width: 1280px) {
   .accounts-payable-summary {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .accounts-payable-workspace {
@@ -581,8 +574,7 @@
   .payment-preparation__summary {
     display: grid;
 
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -595,8 +587,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
-
-
 
 // =========================================================
 // ÁREA DE TABLAS
@@ -644,15 +634,12 @@
   }
 }
 
-
 // =========================================================
 // SELECCIÓN MÚLTIPLE DE CLASIFICACIÓN
 // =========================================================
 
 .classification-bulk-selection {
-  padding:
-    0.65rem
-    0.75rem;
+  padding: 0.65rem 0.75rem;
 
   display: flex;
   align-items: center;
@@ -660,15 +647,11 @@
 
   gap: 0.75rem;
 
-  border:
-    1px solid
-    #bfdbfe;
+  border: 1px solid #bfdbfe;
 
-  border-radius:
-    0.65rem;
+  border-radius: 0.65rem;
 
-  background:
-    #eff6ff;
+  background: #eff6ff;
 
   &__summary {
     min-width: 0;
@@ -683,8 +666,7 @@
 
       flex: 0 0 auto;
 
-      color:
-        var(--primary-color);
+      color: var(--primary-color);
 
       font-size: 1.2rem;
     }
@@ -717,13 +699,247 @@
 }
 
 @media (max-width: 640px) {
-
   .classification-bulk-selection {
     align-items: stretch;
     flex-direction: column;
 
     &__actions {
       width: 100%;
+
+      > button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+// =========================================================
+// SUBTABS DEL PANEL DERECHO
+// Conceptos pendientes / Históricos por regularizar
+// =========================================================
+
+.accounts-payable-content-tabs {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  padding-bottom: 0.65rem;
+
+  border-bottom: 1px solid #e4e7ec;
+}
+
+.accounts-payable-content-tab {
+  min-height: 2.15rem;
+
+  padding: 0.4rem 0.65rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+
+  background: transparent;
+  color: #667085;
+
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+
+  mat-icon {
+    width: 1rem;
+    height: 1rem;
+
+    font-size: 1rem;
+  }
+
+  > span {
+    min-width: 1.35rem;
+
+    padding: 0.08rem 0.35rem;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 999px;
+
+    background: #f2f4f7;
+    color: #667085;
+
+    font-size: 0.66rem;
+    line-height: 1.2;
+  }
+
+  &:hover {
+    background: #f8fbff;
+    color: var(--primary-color);
+  }
+
+  &--active {
+    border-color: #bfdbfe;
+
+    background: #eff6ff;
+    color: var(--primary-color);
+
+    > span {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+  }
+}
+
+// =========================================================
+// SELECCIÓN MASIVA PARA EFECTIVO
+// =========================================================
+
+.cash-bulk-selection {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  padding: 0.65rem 0.75rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+
+  border: 1px solid #bbf7d0;
+  border-radius: 0.65rem;
+
+  background: #f0fdf4;
+
+  &__summary {
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    > mat-icon {
+      width: 1.2rem;
+      height: 1.2rem;
+
+      flex: 0 0 auto;
+
+      color: #15803d;
+
+      font-size: 1.2rem;
+    }
+
+    > div {
+      min-width: 0;
+
+      display: grid;
+      gap: 0.08rem;
+    }
+
+    strong {
+      color: #14532d;
+
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    span {
+      color: #4b6354;
+
+      font-size: 0.68rem;
+      line-height: 1.35;
+    }
+  }
+
+  &__actions {
+    flex: 0 0 auto;
+
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+}
+
+// =========================================================
+// SELECCIONAR TODA LA PÁGINA PARA EFECTIVO
+// =========================================================
+
+.cash-page-action {
+  width: 100%;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  margin-top: -0.25rem;
+}
+
+// =========================================================
+// AJUSTE DEL PANEL DERECHO
+// =========================================================
+
+.accounts-payable-workspace {
+  > .accounts-payable-panel {
+    min-width: 0;
+  }
+}
+
+// =========================================================
+// RESPONSIVE NUEVO FLUJO
+// =========================================================
+
+@media (max-width: 768px) {
+  .accounts-payable-content-tabs {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .accounts-payable-content-tab {
+    width: 100%;
+
+    justify-content: flex-start;
+
+    > span {
+      margin-left: auto;
+    }
+  }
+
+  .cash-bulk-selection {
+    align-items: stretch;
+    flex-direction: column;
+
+    &__actions {
+      width: 100%;
+
+      > button {
+        flex: 1 1 0;
+      }
+    }
+  }
+
+  .cash-page-action {
+    > button {
+      width: 100%;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .cash-bulk-selection {
+    &__actions {
+      align-items: stretch;
+      flex-direction: column;
 
       > button {
         width: 100%;

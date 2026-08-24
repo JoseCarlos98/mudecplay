@@ -275,6 +275,29 @@ const AVAILABLE_OUTFLOW_DISPLAYED_COLUMNS = [
 
 const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
   {
+    key: 'cash_selected',
+    label: 'Efectivo',
+    type: 'select',
+    align: 'center',
+
+    selectActionType:
+      'toggleCashExpenseItemSelection',
+
+    selectedResolver: (
+      row:
+        entity.TreasuryPendingExpenseItemTableRow,
+    ) =>
+      row.cash_selected === true,
+
+    selectTooltip: (
+      row:
+        entity.TreasuryPendingExpenseItemTableRow,
+    ) =>
+      row.cash_selected
+        ? 'Quitar de efectivo'
+        : 'Seleccionar para pagar en efectivo',
+  },
+  {
     key: 'expense_date',
     label: 'Fecha',
     type: 'date',
@@ -345,7 +368,7 @@ const PENDING_EXPENSE_ITEM_DISPLAYED_COLUMNS = [
 // COLUMNAS: HISTÓRICOS
 // =========================================================
 
-const HISTORICAL_PAYMENT_COLUMNS: ColumnsConfig[] = [
+const HISTORICAL_PAYMENT_BASE_COLUMNS: ColumnsConfig[] = [
   {
     key: 'payment_date_display',
     label: 'Fecha pago',
@@ -376,9 +399,14 @@ const HISTORICAL_PAYMENT_COLUMNS: ColumnsConfig[] = [
     key: 'payment_method_label',
     label: 'Método',
     type: 'chip',
+
     variantResolver: (
-      row: entity.TreasuryHistoricalPaymentTableRow,
-    ) => resolveHistoricalPaymentMethodVariant(row),
+      row:
+        entity.TreasuryHistoricalPaymentTableRow,
+    ) =>
+      resolveHistoricalPaymentMethodVariant(
+        row,
+      ),
   },
   {
     key: 'company_name',
@@ -388,14 +416,66 @@ const HISTORICAL_PAYMENT_COLUMNS: ColumnsConfig[] = [
     key: 'regularization_status_label',
     label: 'Regularización',
     type: 'chip',
+
     variantResolver: (
-      row: entity.TreasuryHistoricalPaymentTableRow,
-    ) => resolveRegularizationStatusVariant(row),
+      row:
+        entity.TreasuryHistoricalPaymentTableRow,
+    ) =>
+      resolveRegularizationStatusVariant(
+        row,
+      ),
   },
 ];
 
-const HISTORICAL_PAYMENT_DISPLAYED_COLUMNS = [
-  ...HISTORICAL_PAYMENT_COLUMNS.map(
+const HISTORICAL_PENDING_PAYMENT_COLUMNS:
+  ColumnsConfig[] = [
+    {
+      key: 'cash_selected',
+      label: 'Efectivo',
+      type: 'select',
+      align: 'center',
+
+      selectActionType:
+        'toggleCashHistoricalSelection',
+
+      selectedResolver: (
+        row:
+          entity.TreasuryHistoricalPaymentTableRow,
+      ) =>
+        row.cash_selected === true,
+
+      selectDisabledResolver: (
+        row:
+          entity.TreasuryHistoricalPaymentTableRow,
+      ) =>
+        !row.can_regularize,
+
+      selectTooltip: (
+        row:
+          entity.TreasuryHistoricalPaymentTableRow,
+      ) =>
+        row.cash_selected
+          ? 'Quitar de efectivo'
+          : 'Regularizar como efectivo',
+    },
+
+    ...HISTORICAL_PAYMENT_BASE_COLUMNS,
+  ];
+
+const HISTORICAL_REGULARIZED_PAYMENT_COLUMNS:
+  ColumnsConfig[] = [
+    ...HISTORICAL_PAYMENT_BASE_COLUMNS,
+  ];
+
+const HISTORICAL_PENDING_DISPLAYED_COLUMNS = [
+  ...HISTORICAL_PENDING_PAYMENT_COLUMNS.map(
+    (column) => column.key,
+  ),
+  'actions',
+];
+
+const HISTORICAL_REGULARIZED_DISPLAYED_COLUMNS = [
+  ...HISTORICAL_REGULARIZED_PAYMENT_COLUMNS.map(
     (column) => column.key,
   ),
   'actions',
@@ -503,6 +583,10 @@ type AccountsPayableTab =
   | 'historical_pending'
   | 'historical_regularized';
 
+type PendingWorkspaceView =
+  | 'current'
+  | 'historical';
+
 @Component({
   selector: 'app-treasury-accounts-payable',
   standalone: true,
@@ -570,11 +654,22 @@ export class TreasuryAccountsPayable
   readonly pendingExpenseItemDisplayedColumns =
     PENDING_EXPENSE_ITEM_DISPLAYED_COLUMNS;
 
-  readonly historicalPaymentColumns =
-    HISTORICAL_PAYMENT_COLUMNS;
+  readonly pendingWorkspaceView =
+    signal<PendingWorkspaceView>(
+      'current',
+    );
 
-  readonly historicalPaymentDisplayedColumns =
-    HISTORICAL_PAYMENT_DISPLAYED_COLUMNS;
+  readonly historicalPendingPaymentColumns =
+    HISTORICAL_PENDING_PAYMENT_COLUMNS;
+
+  readonly historicalPendingDisplayedColumns =
+    HISTORICAL_PENDING_DISPLAYED_COLUMNS;
+
+  readonly historicalRegularizedPaymentColumns =
+    HISTORICAL_REGULARIZED_PAYMENT_COLUMNS;
+
+  readonly historicalRegularizedDisplayedColumns =
+    HISTORICAL_REGULARIZED_DISPLAYED_COLUMNS;
 
   readonly regularizationTypeOptions =
     REGULARIZATION_TYPE_OPTIONS;
@@ -843,6 +938,131 @@ export class TreasuryAccountsPayable
   // =========================================================
   // SELECCIÓN PARA REVISIÓN / CLASIFICACIÓN
   // =========================================================
+
+  // =========================================================
+  // SELECCIÓN PARA EFECTIVO MASIVO
+  // =========================================================
+
+  readonly selectedCashExpenseItems =
+    signal<
+      Map<
+        number,
+        entity.TreasuryPendingExpenseItemTableRow
+      >
+    >(
+      new Map<
+        number,
+        entity.TreasuryPendingExpenseItemTableRow
+      >(),
+    );
+
+  readonly selectedCashHistoricalPayments =
+    signal<
+      Map<
+        string,
+        entity.TreasuryHistoricalPaymentTableRow
+      >
+    >(
+      new Map<
+        string,
+        entity.TreasuryHistoricalPaymentTableRow
+      >(),
+    );
+
+  readonly selectedCashCurrentCount =
+    computed(
+      () =>
+        this
+          .selectedCashExpenseItems()
+          .size,
+    );
+
+  readonly selectedCashHistoricalCount =
+    computed(
+      () =>
+        this
+          .selectedCashHistoricalPayments()
+          .size,
+    );
+
+  readonly selectedCashCount =
+    computed(
+      () =>
+        this.selectedCashCurrentCount() +
+        this.selectedCashHistoricalCount(),
+    );
+
+  readonly selectedCashCurrentAmount =
+    computed(() => {
+      const total =
+        Array.from(
+          this
+            .selectedCashExpenseItems()
+            .values(),
+        )
+          .reduce(
+            (
+              sum,
+              row,
+            ) =>
+              sum +
+              Number(
+                row.pending_amount ??
+                0,
+              ),
+            0,
+          );
+
+      return roundMoney(
+        total,
+      );
+    });
+
+  readonly selectedCashHistoricalAmount =
+    computed(() => {
+      const total =
+        Array.from(
+          this
+            .selectedCashHistoricalPayments()
+            .values(),
+        )
+          .reduce(
+            (
+              sum,
+              row,
+            ) =>
+              sum +
+              Number(
+                row.amount ??
+                0,
+              ),
+            0,
+          );
+
+      return roundMoney(
+        total,
+      );
+    });
+
+  readonly selectedCashTotal =
+    computed(
+      () =>
+        roundMoney(
+          this.selectedCashCurrentAmount() +
+          this.selectedCashHistoricalAmount(),
+        ),
+    );
+
+  readonly canBulkCash =
+    computed(
+      () =>
+        this.selectedCashCount() >
+        0 &&
+        this.selectedCashCount() <=
+        200,
+    );
+
+
 
   readonly selectedClassificationMovements =
     signal<
@@ -1186,15 +1406,15 @@ export class TreasuryAccountsPayable
         icon: 'payments',
         tooltip:
           'Registrar pago en efectivo',
+
         iconClass:
           'table-action-icon--success',
 
-        /*
-         * Evita registrar efectivo mientras el mismo
-         * concepto está preparado para transferencia.
-         */
         disabled: (row) =>
           this.selectedApplications().has(
+            row.expense_item_id,
+          ) ||
+          this.selectedCashExpenseItems().has(
             row.expense_item_id,
           ),
       },
@@ -1594,6 +1814,13 @@ export class TreasuryAccountsPayable
       id:
         row.expense_item_id,
 
+      cash_selected:
+        this
+          .selectedCashExpenseItems()
+          .has(
+            row.expense_item_id,
+          ),
+
       supplier_display_name:
         row.supplier?.display_name ||
         'Sin proveedor',
@@ -1630,6 +1857,15 @@ export class TreasuryAccountsPayable
       internal_folio:
         row.expense?.internal_folio ||
         'Sin folio',
+
+      cash_selected:
+        this
+          .selectedCashHistoricalPayments()
+          .has(
+            String(
+              row.payment_id,
+            ),
+          ),
 
       supplier_display_name:
         row.supplier?.display_name ||
@@ -2679,6 +2915,12 @@ export class TreasuryAccountsPayable
         );
         break;
 
+      case 'toggleCashExpenseItemSelection':
+        this.toggleCashExpenseItemSelection(
+          event.row,
+        );
+        break;
+
       case 'cashPayment':
         this.openCashPayment(
           event.row,
@@ -2717,46 +2959,45 @@ export class TreasuryAccountsPayable
     }
 
     if (
-      this.selectedExpenseItems().has(
-        row.expense_item_id,
-      )
-    ) {
-      return;
-    }
-
-    /*
-     * Si ya no queda saldo disponible,
-     * no tiene sentido agregar otro concepto.
-     */
-    if (
-      this.selectedMovementRemaining() <= 0
-    ) {
-      return;
-    }
-
-    /*
-     * Primero agregamos el concepto a la
-     * selección lógica.
-     */
-    this.selectedExpenseItems.update(
-      (current) => {
-        const next =
-          new Map(current);
-
-        next.set(
+      this.selectedExpenseItems()
+        .has(
           row.expense_item_id,
-          row,
-        );
+        )
+    ) {
+      return;
+    }
 
-        return next;
-      },
+    if (
+      this.selectedMovementRemaining() <=
+      0
+    ) {
+      return;
+    }
+
+    /*
+     * Si estaba preparado para efectivo,
+     * lo quitamos porque ahora se utilizará
+     * en el flujo bancario.
+     */
+    this.removeCashExpenseItemSelection(
+      row.expense_item_id,
     );
 
-    /*
-     * Después recalculamos desde cero
-     * cuánto corresponde aplicar a cada
-     * concepto seleccionado.
-     */
+    this.selectedExpenseItems
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          next.set(
+            row.expense_item_id,
+            row,
+          );
+
+          return next;
+        },
+      );
+
     this.recalculateSelectedApplications();
   }
 
@@ -2906,23 +3147,30 @@ export class TreasuryAccountsPayable
           }
 
           /*
+           * Si el concepto estaba marcado también
+           * para efectivo masivo, eliminamos esa
+           * selección porque ya fue pagado.
+           */
+          this.removeCashExpenseItemSelection(
+            row.expense_item_id,
+          );
+
+          /*
            * Por seguridad elimina cualquier selección
-           * anterior del concepto.
+           * anterior del concepto para pago bancario.
            */
           this.removeExpenseItem(
             row,
           );
 
           /*
-           * Solo recargamos conceptos:
-           * el efectivo no modifica movimientos bancarios.
+           * El efectivo no afecta movimientos bancarios.
+           * Solo refrescamos los conceptos pendientes.
+           *
+           * Como ya quedó pagado, desaparecerá
+           * automáticamente del listado si se liquidó.
            */
           this.loadPendingExpenseItems();
-
-          /*
-           * No se muestra diálogo de éxito.
-           * El interceptor presenta el mensaje del backend.
-           */
         },
       );
   }
@@ -3113,6 +3361,12 @@ export class TreasuryAccountsPayable
         );
         break;
 
+      case 'toggleCashHistoricalSelection':
+        this.toggleCashHistoricalSelection(
+          event.row,
+        );
+        break;
+
       case 'reopenRegularization':
         this.openReopenRegularization(
           event.row,
@@ -3153,24 +3407,43 @@ export class TreasuryAccountsPayable
             | entity.TreasuryRegularizeHistoricalPaymentResponse
             | null,
         ) => {
-          if (!result?.success) {
+          if (
+            !result?.success
+          ) {
             return;
           }
 
           /*
-           * Una transferencia conciliada consume saldo
-           * de un movimiento bancario disponible.
-           *
-           * Limpiamos cualquier selección para evitar
-           * conservar importes anteriores.
+           * Si estaba seleccionado para el flujo
+           * masivo de efectivo, se elimina porque
+           * ya fue regularizado individualmente.
+           */
+          this.removeCashHistoricalSelection(
+            String(
+              row.payment_id,
+            ),
+          );
+
+          /*
+           * Una transferencia conciliada puede
+           * modificar el movimiento seleccionado.
            */
           this.clearPaymentSelection();
 
           /*
-           * Actualiza la tabla de históricos y la tabla
-           * de movimientos sin alterar sus filtros.
+           * El histórico pasa de pending a regularized.
+           *
+           * La vista principal y la pestaña histórica
+           * consultan la misma fuente, así que al
+           * refrescar desaparece automáticamente
+           * de cualquier listado "por regularizar".
            */
           this.loadHistoricalPayments();
+
+          /*
+           * Si se regularizó contra banco,
+           * debemos refrescar su disponible.
+           */
           this.loadAvailableOutflows();
         },
       );
@@ -4327,6 +4600,527 @@ export class TreasuryAccountsPayable
           this.clearClassificationSelection();
 
           this.loadAvailableOutflows();
+        },
+      );
+  }
+
+  setPendingWorkspaceView(
+    view: PendingWorkspaceView,
+  ): void {
+    if (
+      this.pendingWorkspaceView() ===
+      view
+    ) {
+      return;
+    }
+
+    this.pendingWorkspaceView.set(
+      view,
+    );
+
+    /*
+     * En la pantalla principal siempre queremos
+     * históricos pendientes.
+     */
+    if (
+      view === 'historical' &&
+      this.historicalFilters
+        .regularization_status !==
+      'pending'
+    ) {
+      this.restoreHistoricalFilters(
+        'pending',
+      );
+    }
+
+    if (
+      view === 'historical'
+    ) {
+      this.loadHistoricalPayments();
+    }
+  }
+
+  private toggleCashExpenseItemSelection(
+    row:
+      entity.TreasuryPendingExpenseItemTableRow,
+  ): void {
+    const expenseItemId =
+      Number(
+        row.expense_item_id,
+      );
+
+    if (
+      !expenseItemId ||
+      Number(
+        row.pending_amount,
+      ) <= 0
+    ) {
+      return;
+    }
+
+    /*
+     * El mismo concepto no puede estar preparado
+     * simultáneamente para banco y efectivo.
+     *
+     * Si estaba en el pago bancario, la selección
+     * más reciente (efectivo) gana.
+     */
+    if (
+      this.selectedExpenseItems()
+        .has(
+          expenseItemId,
+        )
+    ) {
+      this.removeExpenseItem(
+        row,
+      );
+    }
+
+    const isSelected =
+      this
+        .selectedCashExpenseItems()
+        .has(
+          expenseItemId,
+        );
+
+    if (
+      !isSelected &&
+      this.selectedCashCount() >=
+      200
+    ) {
+      return;
+    }
+
+    this.selectedCashExpenseItems
+      .update(
+        (
+          current,
+        ) => {
+          const next =
+            new Map(
+              current,
+            );
+
+          if (
+            isSelected
+          ) {
+            next.delete(
+              expenseItemId,
+            );
+          } else {
+            next.set(
+              expenseItemId,
+              row,
+            );
+          }
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+
+  selectCurrentCashPage(): void {
+    if (
+      this.pendingExpenseItemRows.length ===
+      0
+    ) {
+      return;
+    }
+
+    const historicalCount =
+      this
+        .selectedCashHistoricalPayments()
+        .size;
+
+    this.selectedCashExpenseItems
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          for (
+            const row of
+            this.pendingExpenseItemRows
+          ) {
+            const expenseItemId =
+              Number(
+                row.expense_item_id,
+              );
+
+            if (
+              !expenseItemId ||
+              Number(
+                row.pending_amount,
+              ) <= 0
+            ) {
+              continue;
+            }
+
+            /*
+             * No mezclamos la intención de pago:
+             * si el concepto está preparado para banco,
+             * no lo seleccionamos automáticamente para efectivo.
+             */
+            if (
+              this.selectedExpenseItems()
+                .has(
+                  expenseItemId,
+                )
+            ) {
+              continue;
+            }
+
+            /*
+             * Si ya estaba seleccionado,
+             * simplemente continuamos.
+             */
+            if (
+              next.has(
+                expenseItemId,
+              )
+            ) {
+              continue;
+            }
+
+            /*
+             * Límite total:
+             * históricos + actuales <= 200.
+             */
+            if (
+              next.size +
+              historicalCount >=
+              200
+            ) {
+              break;
+            }
+
+            next.set(
+              expenseItemId,
+              row,
+            );
+          }
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+  private toggleCashHistoricalSelection(
+    row:
+      entity.TreasuryHistoricalPaymentTableRow,
+  ): void {
+    const paymentId =
+      String(
+        row.payment_id ??
+        '',
+      );
+
+    if (
+      !paymentId ||
+      !row.can_regularize
+    ) {
+      return;
+    }
+
+    const isSelected =
+      this
+        .selectedCashHistoricalPayments()
+        .has(
+          paymentId,
+        );
+
+    if (
+      !isSelected &&
+      this.selectedCashCount() >=
+      200
+    ) {
+      return;
+    }
+
+    this.selectedCashHistoricalPayments
+      .update(
+        (
+          current,
+        ) => {
+          const next =
+            new Map(
+              current,
+            );
+
+          if (
+            isSelected
+          ) {
+            next.delete(
+              paymentId,
+            );
+          } else {
+            next.set(
+              paymentId,
+              row,
+            );
+          }
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+
+  selectHistoricalCashPage(): void {
+    if (
+      this.historicalPaymentRows.length ===
+      0
+    ) {
+      return;
+    }
+
+    const currentCount =
+      this
+        .selectedCashExpenseItems()
+        .size;
+
+    this
+      .selectedCashHistoricalPayments
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          for (
+            const row of
+            this.historicalPaymentRows
+          ) {
+            const paymentId =
+              String(
+                row.payment_id ??
+                '',
+              );
+
+            if (
+              !paymentId ||
+              !row.can_regularize
+            ) {
+              continue;
+            }
+
+            if (
+              next.has(
+                paymentId,
+              )
+            ) {
+              continue;
+            }
+
+            /*
+             * Límite total:
+             * actuales + históricos <= 200.
+             */
+            if (
+              next.size +
+              currentCount >=
+              200
+            ) {
+              break;
+            }
+
+            next.set(
+              paymentId,
+              row,
+            );
+          }
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+  clearBulkCashSelection(): void {
+    this.selectedCashExpenseItems.set(
+      new Map(),
+    );
+
+    this.selectedCashHistoricalPayments.set(
+      new Map(),
+    );
+
+    this.refreshCashSelectionRows();
+  }
+
+
+
+  private removeCashExpenseItemSelection(
+    expenseItemId: number,
+  ): void {
+    if (
+      !this
+        .selectedCashExpenseItems()
+        .has(
+          expenseItemId,
+        )
+    ) {
+      return;
+    }
+
+    this.selectedCashExpenseItems
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          next.delete(
+            expenseItemId,
+          );
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+  private removeCashHistoricalSelection(
+    paymentId: string,
+  ): void {
+    if (
+      !this
+        .selectedCashHistoricalPayments()
+        .has(
+          paymentId,
+        )
+    ) {
+      return;
+    }
+
+    this
+      .selectedCashHistoricalPayments
+      .update(
+        (current) => {
+          const next =
+            new Map(current);
+
+          next.delete(
+            paymentId,
+          );
+
+          return next;
+        },
+      );
+
+    this.refreshCashSelectionRows();
+  }
+
+  private refreshCashSelectionRows(): void {
+    const currentIds =
+      this.selectedCashExpenseItems();
+
+    const historicalIds =
+      this.selectedCashHistoricalPayments();
+
+    this.pendingExpenseItemRows =
+      this.pendingExpenseItemRows.map(
+        (
+          row,
+        ) => ({
+          ...row,
+
+          cash_selected:
+            currentIds.has(
+              row.expense_item_id,
+            ),
+        }),
+      );
+
+    this.historicalPaymentRows =
+      this.historicalPaymentRows.map(
+        (
+          row,
+        ) => ({
+          ...row,
+
+          cash_selected:
+            historicalIds.has(
+              String(
+                row.payment_id,
+              ),
+            ),
+        }),
+      );
+  }
+
+  openBulkCashPayment(): void {
+    if (
+      !this.canBulkCash()
+    ) {
+      return;
+    }
+
+    const expenseItems =
+      Array.from(
+        this
+          .selectedCashExpenseItems()
+          .values(),
+      );
+
+    const historicalPayments =
+      Array.from(
+        this
+          .selectedCashHistoricalPayments()
+          .values(),
+      );
+
+    const modalData:
+      entity.TreasuryBulkCashPaymentModalData = {
+      mode:
+        'bulk',
+
+      expense_items:
+        expenseItems,
+
+      historical_payments:
+        historicalPayments,
+    };
+
+    this.dialogService
+      .open(
+        ModalCashPayment,
+        modalData,
+        'small',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryBulkApplyCashPaymentsResponse
+            | null,
+        ) => {
+          if (
+            !result?.success
+          ) {
+            return;
+          }
+
+          /*
+           * Los actuales pagados desaparecen
+           * de pending-expense-items.
+           *
+           * Los históricos regularizados desaparecen
+           * de historical-payments?status=pending.
+           *
+           * Por eso las dos vistas quedan sincronizadas.
+           */
+          this.clearBulkCashSelection();
+
+          this.loadPendingExpenseItems();
+          this.loadHistoricalPayments();
         },
       );
   }

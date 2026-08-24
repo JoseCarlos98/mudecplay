@@ -1,63 +1,111 @@
-<!-- <div class="c-table-page treasury-accounts-payable"> -->
 <div class="treasury-accounts-payable">
+
+  <!-- =====================================================
+       HEADER + RESUMEN + TABS PRINCIPALES
+       ===================================================== -->
+
   <div class="card-content shadow-md">
+
     <app-module-header title="Cuentas por pagar" [config]="headerConfig">
     </app-module-header>
 
+
+    <!-- ===================================================
+         RESUMEN
+         =================================================== -->
+
     <div class="accounts-payable-summary">
+
       <article class="accounts-payable-summary__card">
-        <mat-icon>account_balance</mat-icon>
+
+        <mat-icon>
+          account_balance
+        </mat-icon>
 
         <div>
-          <span>Movimientos disponibles</span>
+
+          <span>
+            Movimientos disponibles
+          </span>
 
           <strong>
             {{
-            outflowsTableData.summary
+            outflowsTableData
+            .summary
             .movements_count
             }}
           </strong>
+
         </div>
+
       </article>
 
+
       <article class="accounts-payable-summary__card">
-        <mat-icon>payments</mat-icon>
+
+        <mat-icon>
+          payments
+        </mat-icon>
 
         <div>
-          <span>Saldo bancario disponible</span>
+
+          <span>
+            Saldo bancario disponible
+          </span>
 
           <strong>
             {{
-            outflowsTableData.summary
+            outflowsTableData
+            .summary
             .available_amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
+
         </div>
+
       </article>
 
+
       <article class="accounts-payable-summary__card">
-        <mat-icon>receipt_long</mat-icon>
+
+        <mat-icon>
+          receipt_long
+        </mat-icon>
 
         <div>
-          <span>Conceptos pendientes</span>
+
+          <span>
+            Conceptos pendientes
+          </span>
 
           <strong>
             {{
-            pendingItemsTableData.summary
+            pendingItemsTableData
+            .summary
             .items_count
             }}
           </strong>
 
           <small>
             {{
-            pendingItemsTableData.summary
+            pendingItemsTableData
+            .summary
             .pending_amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </small>
+
         </div>
+
       </article>
+
 
       <article class="accounts-payable-summary__card">
 
@@ -133,13 +181,23 @@
         }
 
       </article>
+
     </div>
+
+
+    <!-- ===================================================
+         TABS PRINCIPALES
+         =================================================== -->
 
     <nav class="accounts-payable-tabs">
 
       <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
-      activeTab() === 'pending'
-    " (click)="setActiveTab('pending')">
+          activeTab() === 'pending'
+        " (click)="
+          setActiveTab(
+            'pending'
+          )
+        ">
 
         <mat-icon>
           pending_actions
@@ -149,14 +207,15 @@
 
       </button>
 
+
       <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
-      activeTab() ===
-      'historical_pending'
-    " (click)="
-      setActiveTab(
-        'historical_pending'
-      )
-    ">
+          activeTab() ===
+          'historical_pending'
+        " (click)="
+          setActiveTab(
+            'historical_pending'
+          )
+        ">
 
         <mat-icon>
           history
@@ -166,14 +225,15 @@
 
       </button>
 
+
       <button type="button" class="accounts-payable-tab" [class.accounts-payable-tab--active]="
-      activeTab() ===
-      'historical_regularized'
-    " (click)="
-      setActiveTab(
-        'historical_regularized'
-      )
-    ">
+          activeTab() ===
+          'historical_regularized'
+        " (click)="
+          setActiveTab(
+            'historical_regularized'
+          )
+        ">
 
         <mat-icon>
           task_alt
@@ -184,69 +244,128 @@
       </button>
 
     </nav>
+
   </div>
 
-  @if (activeTab() === 'pending') {
-  <div class="accounts-payable-workspace">
-    <!-- ===============================================
-           MOVIMIENTOS DISPONIBLES
-           =============================================== -->
 
-    <section class="card-content shadow-md accounts-payable-panel">
+  <!-- =====================================================
+       PESTAÑA PRINCIPAL
+       ===================================================== -->
+
+  @if (
+  activeTab() ===
+  'pending'
+  ) {
+
+  <div class="accounts-payable-workspace">
+
+
+    <!-- ===================================================
+           PANEL IZQUIERDO:
+           MOVIMIENTOS BANCARIOS
+           =================================================== -->
+
+    <section class="
+          card-content
+          shadow-md
+          accounts-payable-panel
+        ">
+
       <div class="accounts-payable-panel__header">
+
         <div>
-          <h2>Salidas bancarias disponibles</h2>
+
+          <h2>
+            Salidas bancarias disponibles
+          </h2>
 
           <p>
             Revisa la clasificación de cada salida
             y selecciona las conciliables para pagar conceptos.
           </p>
+
         </div>
 
+
         <div class="accounts-payable-panel__amount">
+
           Disponible
 
           <strong>
             {{
-            outflowsTableData.summary
+            outflowsTableData
+            .summary
             .available_amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
+
         </div>
+
       </div>
 
+
+      <!-- ===============================================
+             FILTROS MOVIMIENTOS
+             =============================================== -->
+
       <form [formGroup]="outflowFilterForm">
-        <div class="c-filters accounts-payable-filters">
+
+        <div class="
+              c-filters
+              accounts-payable-filters
+            ">
+
           <app-input-date formControlName="dateRange" label="Fecha" mode="range">
           </app-input-date>
+
 
           <app-input-field formControlName="search" label="Buscar movimiento"
             placeholder="Referencia, descripción, contraparte o cuenta" type="text" [isFilter]="true">
           </app-input-field>
 
+
           <app-input-field formControlName="amount" label="Importe" placeholder="Monto original o disponible"
             type="money" [isFilter]="true">
           </app-input-field>
 
+
           <app-input-select formControlName="company_id" label="Empresa" [options]="companyOptions">
           </app-input-select>
+
 
           <app-input-select formControlName="bank_id" label="Banco" [options]="bankOptions">
           </app-input-select>
 
+
           <app-input-select formControlName="bank_account_id" label="Cuenta" [options]="bankAccountOptions">
           </app-input-select>
 
-          <app-btns-section type="search" [hasActiveFilters]="hasActiveOutflowFilters"
-            (action)="onOutflowBtnsSectionAction($event)">
+
+          <app-btns-section type="search" [hasActiveFilters]="
+                hasActiveOutflowFilters
+              " (action)="
+                onOutflowBtnsSectionAction(
+                  $event
+                )
+              ">
           </app-btns-section>
+
         </div>
+
       </form>
 
 
+      <!-- ===============================================
+             CLASIFICACIÓN MASIVA
+             =============================================== -->
+
       @if (
-      selectedClassificationCount() > 0
+      selectedClassificationCount() >
+      0
       ) {
 
       <div class="classification-bulk-selection">
@@ -258,15 +377,18 @@
           </mat-icon>
 
           <div>
+
             <strong>
               {{
               selectedClassificationCount()
               }}
+
               movimiento{{
               selectedClassificationCount() === 1
               ? ''
               : 's'
               }}
+
               seleccionado{{
               selectedClassificationCount() === 1
               ? ''
@@ -284,21 +406,23 @@
               '1.2-2'
               }}
             </span>
+
           </div>
 
         </div>
 
+
         <div class="classification-bulk-selection__actions">
 
           <button type="button" class="
-      accounts-payable-button
-      accounts-payable-button--primary
-    " [disabled]="
-      !canConfirmSelectedClassifications() ||
-      loadingClassification()
-    " (click)="
-      confirmSelectedClassifications()
-    ">
+                  accounts-payable-button
+                  accounts-payable-button--primary
+                " [disabled]="
+                  !canConfirmSelectedClassifications() ||
+                  loadingClassification()
+                " (click)="
+                  confirmSelectedClassifications()
+                ">
 
             <mat-icon>
               task_alt
@@ -310,14 +434,14 @@
 
 
           <button type="button" class="
-      accounts-payable-button
-      accounts-payable-button--info
-    " [disabled]="
-      selectedClassificationCount() === 0 ||
-      loadingClassification()
-    " (click)="
-      openBulkClassificationModal()
-    ">
+                  accounts-payable-button
+                  accounts-payable-button--info
+                " [disabled]="
+                  selectedClassificationCount() === 0 ||
+                  loadingClassification()
+                " (click)="
+                  openBulkClassificationModal()
+                ">
 
             <mat-icon>
               edit
@@ -329,13 +453,13 @@
 
 
           <button type="button" class="
-      accounts-payable-button
-      accounts-payable-button--neutral
-    " [disabled]="
-      loadingClassification()
-    " (click)="
-      clearClassificationSelection()
-    ">
+                  accounts-payable-button
+                  accounts-payable-button--neutral
+                " [disabled]="
+                  loadingClassification()
+                " (click)="
+                  clearClassificationSelection()
+                ">
 
             <mat-icon>
               close
@@ -351,143 +475,464 @@
 
       }
 
-      <div class="c-module-table accounts-payable-table-shell">
+
+      <!-- ===============================================
+             TABLA MOVIMIENTOS
+             =============================================== -->
+
+      <div class="
+            c-module-table
+            accounts-payable-table-shell
+          ">
+
         <app-data-table [data]="availableOutflowRows" [columnsConfig]="availableOutflowColumns"
           [displayedColumns]="availableOutflowDisplayedColumns" [extraActions]="outflowExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="onOutflowTableAction($event)">
+          [actionPermissions]="tableActionPermissions" (action)="
+              onOutflowTableAction(
+                $event
+              )
+            ">
         </app-data-table>
 
-        <mat-paginator [length]="outflowsTableData.meta.total" [pageSize]="outflowFilters.limit"
-          [pageIndex]="outflowFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onAvailableOutflowPageChange($event)" showFirstLastButtons>
+
+        <mat-paginator [length]="
+              outflowsTableData.meta.total
+            " [pageSize]="
+              outflowFilters.limit
+            " [pageIndex]="
+              outflowFilters.page - 1
+            " [pageSizeOptions]="
+              [5, 10, 25, 50]
+            " (page)="
+              onAvailableOutflowPageChange(
+                $event
+              )
+            " showFirstLastButtons>
         </mat-paginator>
+
       </div>
 
-      @if (selectedMovement(); as movement) {
+
+      <!-- ===============================================
+             MOVIMIENTO SELECCIONADO
+             =============================================== -->
+
+      @if (
+      selectedMovement();
+      as movement
+      ) {
+
       <article class="selected-bank-movement">
+
         <div class="selected-bank-movement__title">
+
           <div>
-            <span>Movimiento seleccionado</span>
+
+            <span>
+              Movimiento seleccionado
+            </span>
 
             <strong>
-              {{ movement.reference_display }}
+              {{
+              movement.reference_display
+              }}
             </strong>
+
           </div>
 
           <span class="selected-bank-movement__chip">
-            {{ movement.status_label }}
+            {{
+            movement.status_label
+            }}
           </span>
+
         </div>
 
+
         <div class="selected-bank-movement__details">
+
           <div>
-            <span>Empresa</span>
+
+            <span>
+              Empresa
+            </span>
 
             <strong>
-              {{ movement.company_name }}
+              {{
+              movement.company_name
+              }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Banco / cuenta</span>
+
+            <span>
+              Banco / cuenta
+            </span>
 
             <strong>
-              {{ movement.bank_name }}
+              {{
+              movement.bank_name
+              }}
               ·
-              {{ movement.bank_account_display }}
+              {{
+              movement.bank_account_display
+              }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Monto original</span>
+
+            <span>
+              Monto original
+            </span>
 
             <strong>
               {{
               movement.amount
-              | currency:'MXN':'symbol':'1.2-2'
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Disponible actual</span>
+
+            <span>
+              Disponible actual
+            </span>
+
             <strong>
               {{
               movement.available_amount
-              | currency:'MXN':'symbol':'1.2-2'
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
+
           </div>
+
         </div>
 
-        <div class="selected-bank-movement__actions">
-          <button type="button" class="accounts-payable-button accounts-payable-button--info"
-            (click)="openMovementHistory(movement)">
 
-            <mat-icon>history</mat-icon>
+        <div class="selected-bank-movement__actions">
+
+          <button type="button" class="
+                  accounts-payable-button
+                  accounts-payable-button--info
+                " (click)="
+                  openMovementHistory(
+                    movement
+                  )
+                ">
+
+            <mat-icon>
+              history
+            </mat-icon>
 
             Ver historial
+
           </button>
 
-          @if (isAdmin) {
 
-          <button type="button" class="accounts-payable-button accounts-payable-button--warning"
-            (click)="openManualClose(movement)">
+          @if (
+          isAdmin
+          ) {
 
-            <mat-icon>lock</mat-icon>
+          <button type="button" class="
+                    accounts-payable-button
+                    accounts-payable-button--warning
+                  " (click)="
+                    openManualClose(
+                      movement
+                    )
+                  ">
+
+            <mat-icon>
+              lock
+            </mat-icon>
 
             Cerrar movimiento
+
           </button>
 
           }
 
-          <button type="button" class="accounts-payable-button accounts-payable-button--neutral"
-            (click)="clearPaymentSelection()">
 
-            <mat-icon>close</mat-icon>
+          <button type="button" class="
+                  accounts-payable-button
+                  accounts-payable-button--neutral
+                " (click)="
+                  clearPaymentSelection()
+                ">
+
+            <mat-icon>
+              close
+            </mat-icon>
 
             Quitar selección
+
           </button>
+
         </div>
+
       </article>
+
       }
+
     </section>
 
-    <!-- ===============================================
-           CONCEPTOS PENDIENTES
-           =============================================== -->
 
-    <section class="card-content shadow-md accounts-payable-panel">
-      <div class="accounts-payable-panel__header">
-        <div>
-          <h2>Conceptos pendientes</h2>
+    <!-- ===================================================
+           PANEL DERECHO
+           CONCEPTOS / HISTÓRICOS
+           =================================================== -->
 
-          <p>
-            Selecciona los conceptos que se
-            pagarán con el movimiento bancario.
-          </p>
+    <section class="
+          card-content
+          shadow-md
+          accounts-payable-panel
+        ">
+
+
+      <!-- ===============================================
+             SUBTABS
+             =============================================== -->
+
+      <nav class="accounts-payable-content-tabs">
+
+        <button type="button" class="accounts-payable-content-tab" [class.accounts-payable-content-tab--active]="
+              pendingWorkspaceView() ===
+              'current'
+            " (click)="
+              setPendingWorkspaceView(
+                'current'
+              )
+            ">
+
+          <mat-icon>
+            receipt_long
+          </mat-icon>
+
+          Conceptos pendientes
+
+          <span>
+            {{
+            pendingItemsTableData
+            .summary
+            .items_count
+            }}
+          </span>
+
+        </button>
+
+
+        <button type="button" class="accounts-payable-content-tab" [class.accounts-payable-content-tab--active]="
+              pendingWorkspaceView() ===
+              'historical'
+            " (click)="
+              setPendingWorkspaceView(
+                'historical'
+              )
+            ">
+
+          <mat-icon>
+            history
+          </mat-icon>
+
+          Históricos por regularizar
+
+          <span>
+            {{
+            historicalTableData
+            .summary
+            .payments_count
+            }}
+          </span>
+
+        </button>
+
+      </nav>
+
+
+      <!-- ===============================================
+             EFECTIVO MASIVO
+             Persiste al cambiar entre las dos subvistas.
+             =============================================== -->
+
+      @if (
+      selectedCashCount() >
+      0
+      ) {
+
+      <div class="cash-bulk-selection">
+
+        <div class="cash-bulk-selection__summary">
+
+          <mat-icon>
+            payments
+          </mat-icon>
+
+          <div>
+
+            <strong>
+              {{
+              selectedCashCount()
+              }}
+              seleccionado{{
+              selectedCashCount() === 1
+              ? ''
+              : 's'
+              }}
+              para efectivo
+            </strong>
+
+            <span>
+
+              {{
+              selectedCashCurrentCount()
+              }}
+              actuales
+
+              ·
+
+              {{
+              selectedCashHistoricalCount()
+              }}
+              históricos
+
+              · Total:
+
+              {{
+              selectedCashTotal()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
+              }}
+
+            </span>
+
+          </div>
+
         </div>
 
+
+        <div class="cash-bulk-selection__actions">
+
+          <button type="button" class="
+                  accounts-payable-button
+                  accounts-payable-button--success
+                " [disabled]="
+                  !canBulkCash()
+                " (click)="
+                  openBulkCashPayment()
+                ">
+
+            <mat-icon>
+              payments
+            </mat-icon>
+
+            Registrar en efectivo
+
+          </button>
+
+
+          <button type="button" class="
+                  accounts-payable-button
+                  accounts-payable-button--neutral
+                " (click)="
+                  clearBulkCashSelection()
+                ">
+
+            <mat-icon>
+              close
+            </mat-icon>
+
+            Limpiar
+
+          </button>
+
+        </div>
+
+      </div>
+
+      }
+
+
+      <!-- =================================================
+             SUBVISTA:
+             CONCEPTOS ACTUALES
+             ================================================= -->
+
+      @if (
+      pendingWorkspaceView() ===
+      'current'
+      ) {
+
+      <div class="accounts-payable-panel__header">
+
+        <div>
+
+          <h2>
+            Conceptos pendientes
+          </h2>
+
+          <p>
+            Selecciona conceptos para conciliarlos
+            con el movimiento bancario o márcalos
+            para registrarlos en efectivo.
+          </p>
+
+        </div>
+
+
         <div class="accounts-payable-panel__amount">
+
           Pendiente
 
           <strong>
             {{
-            pendingItemsTableData.summary
+            pendingItemsTableData
+            .summary
             .pending_amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
+
         </div>
+
       </div>
 
-      @if (!selectedMovement()) {
 
-      } @else {
-      <div class="accounts-payable-message accounts-payable-message--success">
-        <mat-icon>account_balance</mat-icon>
+      @if (
+      selectedMovement()
+      ) {
+
+      <div class="
+                accounts-payable-message
+                accounts-payable-message--success
+              ">
+
+        <mat-icon>
+          account_balance
+        </mat-icon>
 
         <span>
+
           Movimiento:
 
           <strong>
@@ -503,7 +948,10 @@
             {{
             selectedMovement()
             ?.amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
 
@@ -513,133 +961,401 @@
             {{
             selectedMovement()
             ?.available_amount
-            | currency:'MXN':'symbol':'1.2-2'
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
+
         </span>
+
       </div>
+
       }
 
+
+      <!-- =============================================
+               FILTROS CONCEPTOS
+               ============================================= -->
+
       <form [formGroup]="pendingItemFilterForm">
-        <div class="c-filters accounts-payable-filters">
+
+        <div class="
+                c-filters
+                accounts-payable-filters
+              ">
+
           <app-input-date formControlName="dateRange" label="Fecha" mode="range">
           </app-input-date>
+
 
           <app-input-field formControlName="search" label="Buscar"
             placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto" type="text" [isFilter]="true">
           </app-input-field>
 
+
           <app-input-field formControlName="amount" label="Importe" placeholder="Monto del concepto" type="money"
             [isFilter]="true">
           </app-input-field>
+
 
           <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
             catalogType="supplier" valueMode="objects">
           </app-autocomplete-multiple>
 
-          <!--
-            Se habilitan cuando conectemos sus catálogos.
 
-            <app-input-select
-              formControlName="supplier_id"
-              label="Proveedor"
-              [options]="supplierOptions">
-            </app-input-select>
-
-            <app-input-select
-              formControlName="project_id"
-              label="Proyecto"
-              [options]="projectOptions">
-            </app-input-select>
-            -->
-
-          <app-btns-section type="search" [hasActiveFilters]="hasActivePendingItemFilters"
-            (action)="onPendingBtnsSectionAction($event)">
+          <app-btns-section type="search" [hasActiveFilters]="
+                  hasActivePendingItemFilters
+                " (action)="
+                  onPendingBtnsSectionAction(
+                    $event
+                  )
+                ">
           </app-btns-section>
+
         </div>
+
       </form>
 
-      <div class="c-module-table accounts-payable-table-shell">
-        <app-data-table [data]="pendingExpenseItemRows" [columnsConfig]="pendingExpenseItemColumns"
-          [displayedColumns]="pendingExpenseItemDisplayedColumns" [extraActions]="pendingItemExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="onPendingItemTableAction($event)">
-        </app-data-table>
 
-        <mat-paginator [length]="pendingItemsTableData.meta.total" [pageSize]="pendingItemFilters.limit"
-          [pageIndex]="pendingItemFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onPendingExpenseItemPageChange($event)" showFirstLastButtons>
-        </mat-paginator>
+      <!-- =============================================
+               SELECCIONAR PÁGINA PARA EFECTIVO
+               ============================================= -->
+
+      <div class="cash-page-action">
+
+        <button type="button" class="
+                accounts-payable-button
+                accounts-payable-button--info
+              " (click)="
+                selectCurrentCashPage()
+              ">
+
+          <mat-icon>
+            select_all
+          </mat-icon>
+
+          Seleccionar página para efectivo
+
+        </button>
+
       </div>
 
+
+      <!-- =============================================
+               TABLA CONCEPTOS
+               ============================================= -->
+
+      <div class="
+              c-module-table
+              accounts-payable-table-shell
+            ">
+
+        <app-data-table [data]="pendingExpenseItemRows" [columnsConfig]="pendingExpenseItemColumns"
+          [displayedColumns]="pendingExpenseItemDisplayedColumns" [extraActions]="pendingItemExtraActions"
+          [actionPermissions]="tableActionPermissions" (action)="
+                onPendingItemTableAction(
+                  $event
+                )
+              ">
+        </app-data-table>
+
+
+        <mat-paginator [length]="
+                pendingItemsTableData.meta.total
+              " [pageSize]="
+                pendingItemFilters.limit
+              " [pageIndex]="
+                pendingItemFilters.page - 1
+              " [pageSizeOptions]="
+                [5, 10, 25, 50]
+              " (page)="
+                onPendingExpenseItemPageChange(
+                  $event
+                )
+              " showFirstLastButtons>
+        </mat-paginator>
+
+      </div>
+
+
+      <!-- =============================================
+               PAGO BANCARIO ACTUAL
+               NO SE CAMBIA SU FUNCIONAMIENTO
+               ============================================= -->
+
       <footer class="payment-preparation">
+
         <div class="payment-preparation__summary">
+
           <div>
-            <span>Seleccionados</span>
+
+            <span>
+              Seleccionados
+            </span>
 
             <strong>
-              {{ selectedApplicationsCount() }}
+              {{
+              selectedApplicationsCount()
+              }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Total a aplicar</span>
+
+            <span>
+              Total a aplicar
+            </span>
 
             <strong>
               {{
               selectedApplicationsTotal()
-              | currency:'MXN':'symbol':'1.2-2'
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Movimiento restante</span>
+
+            <span>
+              Movimiento restante
+            </span>
 
             <strong>
               {{
               selectedMovementRemaining()
-              | currency:'MXN':'symbol':'1.2-2'
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
+
           </div>
 
+
           <div>
-            <span>Pendiente después</span>
+
+            <span>
+              Pendiente después
+            </span>
 
             <strong>
               {{
               selectedConceptsRemaining()
-              | currency:'MXN':'symbol':'1.2-2'
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
+
           </div>
+
         </div>
 
-        <button type="button" class="btn-primary" [disabled]="!canPreparePayment()" (click)="preparePayment()">
 
-          <mat-icon>payments</mat-icon>
+        <button type="button" class="btn-primary" [disabled]="
+                !canPreparePayment()
+              " (click)="
+                preparePayment()
+              ">
+
+          <mat-icon>
+            payments
+          </mat-icon>
 
           Aplicar pago
+
         </button>
+
       </footer>
+
+      }
+
+
+      <!-- =================================================
+             SUBVISTA:
+             HISTÓRICOS POR REGULARIZAR
+             ================================================= -->
+
+      @else {
+
+      <div class="accounts-payable-panel__header">
+
+        <div>
+
+          <h2>
+            Pagos históricos por regularizar
+          </h2>
+
+          <p>
+            Regulariza individualmente contra banco
+            o selecciona varios para registrarlos
+            rápidamente como efectivo.
+          </p>
+
+        </div>
+
+
+        <div class="accounts-payable-panel__amount">
+
+          Por regularizar
+
+          <strong>
+            {{
+            historicalTableData
+            .summary
+            .total_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- =============================================
+               FILTROS HISTÓRICOS
+               ============================================= -->
+
+      <form [formGroup]="historicalFilterForm">
+
+        <div class="
+                c-filters
+                accounts-payable-filters
+              ">
+
+          <app-input-date formControlName="dateRange" label="Fecha de pago" mode="range">
+          </app-input-date>
+
+
+          <app-input-field formControlName="search" label="Buscar pago" type="text" [isFilter]="true">
+          </app-input-field>
+
+
+          <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
+            [options]="missingPaymentDateOptions">
+          </app-input-select>
+
+
+          <app-btns-section type="search" [hasActiveFilters]="
+                  hasActiveHistoricalFilters
+                " (action)="
+                  onHistoricalBtnsSectionAction(
+                    $event
+                  )
+                ">
+          </app-btns-section>
+
+        </div>
+
+      </form>
+
+
+      <!-- =============================================
+               SELECCIONAR PÁGINA HISTÓRICA
+               ============================================= -->
+
+      <div class="cash-page-action">
+
+        <button type="button" class="
+                accounts-payable-button
+                accounts-payable-button--info
+              " (click)="
+                selectHistoricalCashPage()
+              ">
+
+          <mat-icon>
+            select_all
+          </mat-icon>
+
+          Seleccionar página para efectivo
+
+        </button>
+
+      </div>
+
+
+      <!-- =============================================
+               TABLA HISTÓRICOS PENDIENTES
+               ============================================= -->
+
+      <div class="
+              c-module-table
+              accounts-payable-table-shell
+            ">
+
+        <app-data-table [data]="historicalPaymentRows" [columnsConfig]="historicalPendingPaymentColumns"
+          [displayedColumns]="historicalPendingDisplayedColumns" [extraActions]="historicalExtraActions"
+          [actionPermissions]="tableActionPermissions" (action)="
+                onHistoricalTableAction(
+                  $event
+                )
+              ">
+        </app-data-table>
+
+
+        <mat-paginator [length]="
+                historicalTableData.meta.total
+              " [pageSize]="
+                historicalFilters.limit
+              " [pageIndex]="
+                historicalFilters.page - 1
+              " [pageSizeOptions]="
+                [5, 10, 25, 50]
+              " (page)="
+                onHistoricalPaymentPageChange(
+                  $event
+                )
+              " showFirstLastButtons>
+        </mat-paginator>
+
+      </div>
+
+      }
+
     </section>
+
   </div>
+
   }
 
+
   <!-- =====================================================
-     PAGOS HISTÓRICOS
-     ===================================================== -->
+       TABS HISTÓRICAS EXISTENTES
+       Se conservan.
+       ===================================================== -->
 
   @if (
-  activeTab() === 'historical_pending' ||
-  activeTab() === 'historical_regularized'
+  activeTab() ===
+  'historical_pending' ||
+  activeTab() ===
+  'historical_regularized'
   ) {
 
-  <section class="card-content shadow-md accounts-payable-panel">
+  <section class="
+        card-content
+        shadow-md
+        accounts-payable-panel
+      ">
+
 
     <!-- ===============================================
-         ENCABEZADO
-         =============================================== -->
+           ENCABEZADO
+           =============================================== -->
 
     <div class="accounts-payable-panel__header">
 
@@ -654,6 +1370,7 @@
           }}
         </h2>
 
+
         <p>
           {{
           activeTab() ===
@@ -665,6 +1382,7 @@
         </p>
 
       </div>
+
 
       <div class="accounts-payable-panel__amount">
 
@@ -691,62 +1409,156 @@
 
     </div>
 
+
     <!-- ===============================================
-         FILTROS
-         =============================================== -->
+           EFECTIVO MASIVO
+           Solo para históricos pendientes
+           =============================================== -->
+
+    @if (
+    activeTab() ===
+    'historical_pending' &&
+    selectedCashCount() >
+    0
+    ) {
+
+    <div class="cash-bulk-selection">
+
+      <div class="cash-bulk-selection__summary">
+
+        <mat-icon>
+          payments
+        </mat-icon>
+
+        <div>
+
+          <strong>
+            {{
+            selectedCashCount()
+            }}
+            seleccionado{{
+            selectedCashCount() === 1
+            ? ''
+            : 's'
+            }}
+            para efectivo
+          </strong>
+
+          <span>
+
+            {{
+            selectedCashCurrentCount()
+            }}
+            actuales
+
+            ·
+
+            {{
+            selectedCashHistoricalCount()
+            }}
+            históricos
+
+            · Total:
+
+            {{
+            selectedCashTotal()
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
+            }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="cash-bulk-selection__actions">
+
+        <button type="button" class="
+                accounts-payable-button
+                accounts-payable-button--success
+              " [disabled]="
+                !canBulkCash()
+              " (click)="
+                openBulkCashPayment()
+              ">
+
+          <mat-icon>
+            payments
+          </mat-icon>
+
+          Registrar en efectivo
+
+        </button>
+
+
+        <button type="button" class="
+                accounts-payable-button
+                accounts-payable-button--neutral
+              " (click)="
+                clearBulkCashSelection()
+              ">
+
+          <mat-icon>
+            close
+          </mat-icon>
+
+          Limpiar
+
+        </button>
+
+      </div>
+
+    </div>
+
+    }
+
+
+    <!-- ===============================================
+           FILTROS HISTÓRICOS
+           =============================================== -->
 
     <form [formGroup]="historicalFilterForm">
 
-      <div class="c-filters accounts-payable-filters">
+      <div class="
+            c-filters
+            accounts-payable-filters
+          ">
 
         <app-input-date formControlName="dateRange" label="Fecha de pago" mode="range">
         </app-input-date>
 
+
         <app-input-field formControlName="search" label="Buscar pago" type="text" [isFilter]="true">
         </app-input-field>
 
-        <!--
-          El estado ya no se selecciona aquí.
 
-          La pestaña determina automáticamente:
-
-          historical_pending
-          → regularization_status = pending
-
-          historical_regularized
-          → regularization_status = regularized
-        -->
+        @if (
+        activeTab() ===
+        'historical_regularized'
+        ) {
 
         <app-input-select formControlName="regularization_type" label="Tipo" [options]="regularizationTypeOptions">
         </app-input-select>
+
+        }
+
 
         <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
           [options]="missingPaymentDateOptions">
         </app-input-select>
 
-        <!--
-          Se habilitan al conectar sus catálogos.
-
-          <app-input-select
-            formControlName="supplier_id"
-            label="Proveedor"
-            [options]="supplierOptions">
-          </app-input-select>
-
-          <app-input-select
-            formControlName="project_id"
-            label="Proyecto"
-            [options]="projectOptions">
-          </app-input-select>
-        -->
 
         <app-btns-section type="search" [hasActiveFilters]="
-            hasActiveHistoricalFilters
-          " (action)="
-            onHistoricalBtnsSectionAction(
-              $event
-            )
-          ">
+              hasActiveHistoricalFilters
+            " (action)="
+              onHistoricalBtnsSectionAction(
+                $event
+              )
+            ">
         </app-btns-section>
 
       </div>
@@ -754,51 +1566,88 @@
     </form>
 
 
+    <!-- ===============================================
+           SELECCIONAR PÁGINA
+           Solo en pendientes
+           =============================================== -->
+
+    @if (
+    activeTab() ===
+    'historical_pending'
+    ) {
+
+    <div class="cash-page-action">
+
+      <button type="button" class="
+              accounts-payable-button
+              accounts-payable-button--info
+            " (click)="
+              selectHistoricalCashPage()
+            ">
+
+        <mat-icon>
+          select_all
+        </mat-icon>
+
+        Seleccionar página para efectivo
+
+      </button>
+
+    </div>
+
+    }
+
 
     <!-- ===============================================
-         TABLA
-         =============================================== -->
+           TABLA
+           =============================================== -->
 
     <div class="
-        c-module-table
-        accounts-payable-table-shell
-      ">
+          c-module-table
+          accounts-payable-table-shell
+        ">
 
       <app-data-table [data]="historicalPaymentRows" [columnsConfig]="
-          historicalPaymentColumns
-        " [displayedColumns]="
-          historicalPaymentDisplayedColumns
-        " [extraActions]="
-          historicalExtraActions
-        " [actionPermissions]="
-          tableActionPermissions
-        " (action)="
-          onHistoricalTableAction(
-            $event
-          )
-        ">
+            activeTab() ===
+              'historical_regularized'
+              ? historicalRegularizedPaymentColumns
+              : historicalPendingPaymentColumns
+          " [displayedColumns]="
+            activeTab() ===
+              'historical_regularized'
+              ? historicalRegularizedDisplayedColumns
+              : historicalPendingDisplayedColumns
+          " [extraActions]="historicalExtraActions" [actionPermissions]="tableActionPermissions" (action)="
+            onHistoricalTableAction(
+              $event
+            )
+          ">
       </app-data-table>
 
+
       <mat-paginator [length]="
-          historicalTableData.meta.total
-        " [pageSize]="
-          historicalFilters.limit
-        " [pageIndex]="
-          historicalFilters.page - 1
-        " [pageSizeOptions]="
-          [5, 10, 25, 50]
-        " (page)="
-          onHistoricalPaymentPageChange(
-            $event
-          )
-        " showFirstLastButtons>
+            historicalTableData.meta.total
+          " [pageSize]="
+            historicalFilters.limit
+          " [pageIndex]="
+            historicalFilters.page - 1
+          " [pageSizeOptions]="
+            [5, 10, 25, 50]
+          " (page)="
+            onHistoricalPaymentPageChange(
+              $event
+            )
+          " showFirstLastButtons>
       </mat-paginator>
 
     </div>
 
   </section>
+
   }
+
 </div>
+
 
 <app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por pagar...">
 </app-loading-overlay>
