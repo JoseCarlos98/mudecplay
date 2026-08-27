@@ -6,9 +6,7 @@
 
   <div class="card-content shadow-md">
 
-    <app-module-header
-      title="Cuentas por cobrar"
-      [config]="headerConfig">
+    <app-module-header title="Cuentas por cobrar" [config]="headerConfig">
     </app-module-header>
 
 
@@ -34,9 +32,9 @@
 
           <strong>
             {{
-              inflowsTableData
-                .summary
-                .movements_count
+            inflowsTableData
+            .summary
+            .movements_count
             }}
           </strong>
 
@@ -61,13 +59,13 @@
 
           <strong>
             {{
-              inflowsTableData
-                .summary
-                .available_amount
-                | currency:
-                  'MXN':
-                  'symbol':
-                  '1.2-2'
+            inflowsTableData
+            .summary
+            .available_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
 
@@ -92,9 +90,9 @@
 
           <strong>
             {{
-              receivablesTableData
-                .summary
-                .receivables_count
+            receivablesTableData
+            .summary
+            .receivables_count
             }}
           </strong>
 
@@ -119,26 +117,26 @@
 
           <strong>
             {{
-              receivablesTableData
-                .summary
-                .pending_amount
-                | currency:
-                  'MXN':
-                  'symbol':
-                  '1.2-2'
+            receivablesTableData
+            .summary
+            .pending_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
 
           <small>
             Cobrado:
             {{
-              receivablesTableData
-                .summary
-                .collected_amount
-                | currency:
-                  'MXN':
-                  'symbol':
-                  '1.2-2'
+            receivablesTableData
+            .summary
+            .collected_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </small>
 
@@ -163,8 +161,7 @@
          ENTRADAS BANCARIAS
          =================================================== -->
 
-    <section
-      class="
+    <section class="
         card-content
         shadow-md
         accounts-receivable-panel
@@ -193,13 +190,13 @@
 
           <strong>
             {{
-              inflowsTableData
-                .summary
-                .available_amount
-                | currency:
-                  'MXN':
-                  'symbol':
-                  '1.2-2'
+            inflowsTableData
+            .summary
+            .available_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
 
@@ -212,58 +209,37 @@
            FILTROS DE MOVIMIENTOS
            =============================================== -->
 
-      <form
-        [formGroup]="inflowFilterForm">
+      <form [formGroup]="inflowFilterForm">
 
-        <div
-          class="
+        <div class="
             c-filters
             accounts-receivable-filters
           ">
 
-          <app-input-date
-            formControlName="dateRange"
-            label="Fecha"
-            mode="range">
+          <app-input-date formControlName="dateRange" label="Fecha" mode="range">
           </app-input-date>
 
 
-          <app-input-field
-            formControlName="search"
-            label="Buscar movimiento"
-            placeholder="Referencia, descripción, contraparte o cuenta"
-            type="text"
-            [isFilter]="true">
+          <app-input-field formControlName="search" label="Buscar movimiento"
+            placeholder="Referencia, descripción, contraparte o cuenta" type="text" [isFilter]="true">
           </app-input-field>
 
 
-          <app-input-select
-            formControlName="company_id"
-            label="Empresa"
-            [options]="companyOptions">
+          <app-input-select formControlName="company_id" label="Empresa" [options]="companyOptions">
           </app-input-select>
 
 
-          <app-input-select
-            formControlName="bank_id"
-            label="Banco"
-            [options]="bankOptions">
+          <app-input-select formControlName="bank_id" label="Banco" [options]="bankOptions">
           </app-input-select>
 
 
-          <app-input-select
-            formControlName="bank_account_id"
-            label="Cuenta"
-            [options]="bankAccountOptions">
+          <app-input-select formControlName="bank_account_id" label="Cuenta" [options]="bankAccountOptions">
           </app-input-select>
 
 
-          <app-btns-section
-            type="search"
-            [hasActiveFilters]="
+          <app-btns-section type="search" [hasActiveFilters]="
               hasActiveInflowFilters
-            "
-            (action)="
+            " (action)="
               onInflowBtnsSectionAction(
                 $event
               )
@@ -279,19 +255,14 @@
            TABLA DE MOVIMIENTOS
            =============================================== -->
 
-      <div
-        class="
+      <div class="
           c-module-table
           accounts-receivable-table-shell
         ">
 
-        <app-data-table
-          [data]="availableInflowRows"
-          [columnsConfig]="availableInflowColumns"
-          [displayedColumns]="availableInflowDisplayedColumns"
-          [extraActions]="inflowExtraActions"
-          [actionPermissions]="tableActionPermissions"
-          (action)="
+        <app-data-table [data]="availableInflowRows" [columnsConfig]="availableInflowColumns"
+          [displayedColumns]="availableInflowDisplayedColumns" [extraActions]="inflowExtraActions"
+          [actionPermissions]="tableActionPermissions" (action)="
             onInflowTableAction(
               $event
             )
@@ -299,25 +270,19 @@
         </app-data-table>
 
 
-        <mat-paginator
-          [length]="
+        <mat-paginator [length]="
             inflowsTableData.meta.total
-          "
-          [pageSize]="
+          " [pageSize]="
             inflowFilters.limit
-          "
-          [pageIndex]="
+          " [pageIndex]="
             inflowFilters.page - 1
-          "
-          [pageSizeOptions]="
+          " [pageSizeOptions]="
             [5, 10, 25, 50]
-          "
-          (page)="
+          " (page)="
             onAvailableInflowPageChange(
               $event
             )
-          "
-          showFirstLastButtons>
+          " showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -328,171 +293,168 @@
            =============================================== -->
 
       @if (
-        selectedMovement();
-        as movement
+      selectedMovement();
+      as movement
       ) {
 
-        <article class="selected-bank-movement">
+      <article class="selected-bank-movement">
 
-          <div class="selected-bank-movement__title">
+        <div class="selected-bank-movement__title">
 
-            <div>
+          <div>
 
-              <span>
-                Movimiento seleccionado
-              </span>
-
-              <strong>
-                {{
-                  movement.reference_display
-                }}
-              </strong>
-
-            </div>
-
-
-            <span class="selected-bank-movement__chip">
-              {{
-                movement.status_label
-              }}
+            <span>
+              Movimiento seleccionado
             </span>
 
-          </div>
-
-
-          <div class="selected-bank-movement__details">
-
-            <div>
-
-              <span>
-                Fecha
-              </span>
-
-              <strong>
-                {{
-                  movement.movement_date
-                    | date:
-                      'dd/MM/yyyy'
-                }}
-              </strong>
-
-            </div>
-
-
-            <div>
-
-              <span>
-                Contraparte
-              </span>
-
-              <strong>
-                {{
-                  movement.counterparty_display
-                }}
-              </strong>
-
-            </div>
-
-
-            <div>
-
-              <span>
-                Empresa
-              </span>
-
-              <strong>
-                {{
-                  movement.company_name
-                }}
-              </strong>
-
-            </div>
-
-
-            <div>
-
-              <span>
-                Banco / cuenta
-              </span>
-
-              <strong>
-                {{
-                  movement.bank_name
-                }}
-
-                ·
-
-                {{
-                  movement.bank_account_display
-                }}
-              </strong>
-
-            </div>
-
-
-            <div>
-
-              <span>
-                Monto original
-              </span>
-
-              <strong>
-                {{
-                  movement.amount
-                    | currency:
-                      'MXN':
-                      'symbol':
-                      '1.2-2'
-                }}
-              </strong>
-
-            </div>
-
-
-            <div>
-
-              <span>
-                Disponible actual
-              </span>
-
-              <strong>
-                {{
-                  movement.available_amount
-                    | currency:
-                      'MXN':
-                      'symbol':
-                      '1.2-2'
-                }}
-              </strong>
-
-            </div>
+            <strong>
+              {{
+              movement.reference_display
+              }}
+            </strong>
 
           </div>
 
 
-          <div class="selected-bank-movement__actions">
+          <span class="selected-bank-movement__chip">
+            {{
+            movement.status_label
+            }}
+          </span>
 
-            <button
-              type="button"
-              class="
+        </div>
+
+
+        <div class="selected-bank-movement__details">
+
+          <div>
+
+            <span>
+              Fecha
+            </span>
+
+            <strong>
+              {{
+              movement.movement_date
+              | date:
+              'dd/MM/yyyy'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Contraparte
+            </span>
+
+            <strong>
+              {{
+              movement.counterparty_display
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Empresa
+            </span>
+
+            <strong>
+              {{
+              movement.company_name
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Banco / cuenta
+            </span>
+
+            <strong>
+              {{
+              movement.bank_name
+              }}
+
+              ·
+
+              {{
+              movement.bank_account_display
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Monto original
+            </span>
+
+            <strong>
+              {{
+              movement.amount
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Disponible actual
+            </span>
+
+            <strong>
+              {{
+              movement.available_amount
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="selected-bank-movement__actions">
+
+          <button type="button" class="
                 accounts-receivable-button
                 accounts-receivable-button--neutral
-              "
-              (click)="
+              " (click)="
                 clearCollectionSelection()
               ">
 
-              <mat-icon>
-                close
-              </mat-icon>
+            <mat-icon>
+              close
+            </mat-icon>
 
-              Quitar selección
+            Quitar selección
 
-            </button>
+          </button>
 
-          </div>
+        </div>
 
-        </article>
+      </article>
 
       }
 
@@ -504,8 +466,7 @@
          CUENTAS POR COBRAR
          =================================================== -->
 
-    <section
-      class="
+    <section class="
         card-content
         shadow-md
         accounts-receivable-panel
@@ -533,13 +494,13 @@
 
           <strong>
             {{
-              receivablesTableData
-                .summary
-                .pending_amount
-                | currency:
-                  'MXN':
-                  'symbol':
-                  '1.2-2'
+            receivablesTableData
+            .summary
+            .pending_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
             }}
           </strong>
 
@@ -553,61 +514,60 @@
            =============================================== -->
 
       @if (
-        selectedMovement();
-        as movement
+      selectedMovement();
+      as movement
       ) {
 
-        <div
-          class="
+      <div class="
             accounts-receivable-message
             accounts-receivable-message--success
           ">
 
-          <mat-icon>
-            account_balance
-          </mat-icon>
+        <mat-icon>
+          account_balance
+        </mat-icon>
 
-          <span>
+        <span>
 
-            Movimiento:
+          Movimiento:
 
-            <strong>
-              {{
-                movement.reference_display
-              }}
-            </strong>
+          <strong>
+            {{
+            movement.reference_display
+            }}
+          </strong>
 
-            · Disponible:
+          · Disponible:
 
-            <strong>
-              {{
-                movement.available_amount
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
-              }}
-            </strong>
+          <strong>
+            {{
+            movement.available_amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
+            }}
+          </strong>
 
-          </span>
+        </span>
 
-        </div>
+      </div>
 
       } @else {
 
-        <div class="accounts-receivable-message">
+      <div class="accounts-receivable-message">
 
-          <mat-icon>
-            info
-          </mat-icon>
+        <mat-icon>
+          info
+        </mat-icon>
 
-          <span>
-            Selecciona primero una
-            <strong>entrada bancaria</strong>
-            para comenzar la conciliación.
-          </span>
+        <span>
+          Selecciona primero una
+          <strong>entrada bancaria</strong>
+          para comenzar la conciliación.
+        </span>
 
-        </div>
+      </div>
 
       }
 
@@ -616,52 +576,33 @@
            FILTROS CxC
            =============================================== -->
 
-      <form
-        [formGroup]="receivableFilterForm">
+      <form [formGroup]="receivableFilterForm">
 
-        <div
-          class="
+        <div class="
             c-filters
             accounts-receivable-filters
           ">
 
-          <app-input-date
-            formControlName="dateRange"
-            label="Fecha de emisión"
-            mode="range">
+          <app-input-date formControlName="dateRange" label="Fecha de emisión" mode="range">
           </app-input-date>
 
 
-          <app-input-field
-            formControlName="search"
-            label="Buscar CxC"
-            placeholder="Folio, cliente, RFC o UUID"
-            type="text"
-            [isFilter]="true">
+          <app-input-field formControlName="search" label="Buscar CxC" placeholder="Folio, cliente, RFC o UUID"
+            type="text" [isFilter]="true">
           </app-input-field>
 
 
-          <app-input-select
-            formControlName="company_code"
-            label="Empresa"
-            [options]="companyCodeOptions">
+          <app-input-select formControlName="company_code" label="Empresa" [options]="companyCodeOptions">
           </app-input-select>
 
 
-          <app-autocomplete
-            formControlName="project_id"
-            label="Proyecto"
-            [remote]="true"
-            catalogType="project">
+          <app-autocomplete formControlName="project_id" label="Proyecto" [remote]="true" catalogType="project">
           </app-autocomplete>
 
 
-          <app-btns-section
-            type="search"
-            [hasActiveFilters]="
+          <app-btns-section type="search" [hasActiveFilters]="
               hasActiveReceivableFilters
-            "
-            (action)="
+            " (action)="
               onReceivableBtnsSectionAction(
                 $event
               )
@@ -677,19 +618,14 @@
            TABLA CxC
            =============================================== -->
 
-      <div
-        class="
+      <div class="
           c-module-table
           accounts-receivable-table-shell
         ">
 
-        <app-data-table
-          [data]="pendingReceivableRows"
-          [columnsConfig]="pendingReceivableColumns"
-          [displayedColumns]="pendingReceivableDisplayedColumns"
-          [extraActions]="receivableExtraActions"
-          [actionPermissions]="tableActionPermissions"
-          (action)="
+        <app-data-table [data]="pendingReceivableRows" [columnsConfig]="pendingReceivableColumns"
+          [displayedColumns]="pendingReceivableDisplayedColumns" [extraActions]="receivableExtraActions"
+          [actionPermissions]="tableActionPermissions" (action)="
             onReceivableTableAction(
               $event
             )
@@ -697,25 +633,19 @@
         </app-data-table>
 
 
-        <mat-paginator
-          [length]="
+        <mat-paginator [length]="
             receivablesTableData.meta.total
-          "
-          [pageSize]="
+          " [pageSize]="
             receivableFilters.limit
-          "
-          [pageIndex]="
+          " [pageIndex]="
             receivableFilters.page - 1
-          "
-          [pageSizeOptions]="
+          " [pageSizeOptions]="
             [5, 10, 25, 50]
-          "
-          (page)="
+          " (page)="
             onPendingReceivablePageChange(
               $event
             )
-          "
-          showFirstLastButtons>
+          " showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -737,7 +667,7 @@
 
             <strong>
               {{
-                selectedApplicationsCount()
+              selectedApplicationsCount()
               }}
             </strong>
 
@@ -752,11 +682,11 @@
 
             <strong>
               {{
-                selectedApplicationsTotal()
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
+              selectedApplicationsTotal()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
 
@@ -771,11 +701,11 @@
 
             <strong>
               {{
-                selectedMovementRemaining()
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
+              selectedMovementRemaining()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
 
@@ -790,11 +720,11 @@
 
             <strong>
               {{
-                selectedReceivablesRemaining()
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
+              selectedReceivablesRemaining()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
               }}
             </strong>
 
@@ -804,40 +734,42 @@
 
 
         @if (
-          selectedApplicationsCount() > 0
+        selectedApplicationsCount() > 0
         ) {
 
-          <button
-            type="button"
-            class="
+        <!-- <button type="button" class="
               accounts-receivable-button
               accounts-receivable-button--neutral
-            "
-            (click)="
+            " (click)="
               clearCollectionSelection()
             ">
 
-            <mat-icon>
-              close
-            </mat-icon>
+          <mat-icon>
+            close
+          </mat-icon>
 
-            Limpiar selección
+          Limpiar selección
 
-          </button>
+        </button> -->
 
         }
 
+  <button type="button" class="btn-primary" [disabled]="!canPrepareCollection()" (click)="prepareCollection()">
+    <mat-icon>
+      payments
+    </mat-icon>
+
+    Aplicar cobro
+  </button>
       </footer>
 
     </section>
 
   </div>
 
+
 </div>
 
 
-<app-loading-overlay
-  [visible]="loadingPage()"
-  [fullscreen]="true"
-  text="Cargando cuentas por cobrar...">
+<app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por cobrar...">
 </app-loading-overlay>

@@ -1118,3 +1118,24 @@ export interface TreasuryBankMovementClassificationModalData {
   movement:
     TreasuryAvailableInflow;
 }
+
+// =========================================================
+// MODAL: CONFIRMAR APLICACIÓN DE COBRO
+// =========================================================
+
+export interface TreasuryApplyCollectionModalApplication {
+  receivable:
+    TreasuryPendingReceivable;
+
+  amount:
+    number;
+}
+
+
+export interface TreasuryApplyCollectionModalData {
+  movement:
+    TreasuryAvailableInflow;
+
+  applications:
+    TreasuryApplyCollectionModalApplication[];
+}

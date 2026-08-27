@@ -119,6 +119,7 @@ import {
 import * as entity
   from './interfaces/treasury-accounts-receivable.interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
+import { ModalTreasuryAccountsReceivable } from './components/modal-treasury-accounts-receivable/modal-treasury-accounts-receivable';
 
 
 // =========================================================
@@ -591,10 +592,10 @@ export class TreasuryAccountsReceivable
       CatalogsService,
     );
 
-      private readonly dialogService =
-        inject(
-          DialogService,
-        );
+  private readonly dialogService =
+    inject(
+      DialogService,
+    );
 
   private readonly storage =
     inject(
@@ -2546,6 +2547,143 @@ export class TreasuryAccountsReceivable
     );
   }
 
+
+  // =======================================================
+  // PREPARAR COBRO
+  // =======================================================
+
+  prepareCollection():
+    void {
+
+    const movement =
+      this.selectedMovement();
+
+
+    if (
+      !movement ||
+      !this.canPrepareCollection()
+    ) {
+
+      return;
+    }
+
+
+    const selectedRows =
+      this.selectedReceivables();
+
+
+    const applications:
+      entity.TreasuryApplyCollectionModalApplication[] =
+      [];
+
+
+    for (
+      const [
+        receivableId,
+        amount,
+      ]
+      of this
+        .selectedApplications()
+        .entries()
+    ) {
+
+      const receivable =
+        selectedRows.get(
+          receivableId,
+        );
+
+
+      if (!receivable) {
+        continue;
+      }
+
+
+      applications.push({
+        receivable,
+
+        amount:
+          roundMoney(
+            amount,
+          ),
+      });
+    }
+
+    // =====================================================
+    // VALIDAR CONSISTENCIA DE LA SELECCIÓN
+    // =====================================================
+
+    if (
+      applications.length !==
+      this.selectedApplicationsCount()
+    ) {
+
+      this.dialogService
+        .confirm({
+          title:
+            'Selección incompleta',
+
+          message:
+            'No fue posible recuperar todas las cuentas por cobrar seleccionadas. Quita la selección y vuelve a intentarlo.',
+
+          confirmText:
+            'Aceptar',
+
+          cancelText:
+            '',
+        })
+        .subscribe();
+
+
+      return;
+    }
+
+
+    // =====================================================
+    // DATA DEL MODAL
+    // =====================================================
+
+    const modalData:
+      entity.TreasuryApplyCollectionModalData = {
+
+      movement,
+
+      applications,
+    };
+
+
+    // =====================================================
+    // ABRIR MODAL
+    // =====================================================
+
+    this.dialogService
+      .open(
+        ModalTreasuryAccountsReceivable,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          saved:
+            boolean |
+            null |
+            undefined,
+        ) => {
+
+          if (!saved) {
+            return;
+          }
+
+
+          // El cobro ya fue guardado.
+          this.clearCollectionSelection();
+
+
+          // Refrescamos movimiento y CxC.
+          this.reloadCollectionTables();
+        },
+      );
+  }
 
   // =======================================================
   // LIMPIAR SELECCIÓN
