@@ -64,6 +64,8 @@ import * as entity
 import {
   TreasuryAccountsReceivableService,
 } from '../../services/treasury-accounts-receivable.service';
+import { PermissionsService } from '../../../../../../auth/services/permissions.service';
+import { ModalReverseCollection, ReverseCollectionDialogData } from '../modal-reverse-collection/modal-reverse-collection';
 
 
 // =========================================================
@@ -112,11 +114,17 @@ export class ModalReceivableHistory
       MAT_DIALOG_DATA,
     );
 
+  private readonly permissionsService =
+    inject(
+      PermissionsService,
+    );
+
 
   private readonly dialogRef =
     inject(
       MatDialogRef<
-        ModalReceivableHistory
+        ModalReceivableHistory,
+        boolean
       >,
     );
 
@@ -142,6 +150,11 @@ export class ModalReceivableHistory
   // =======================================================
   // UI
   // =======================================================
+
+  readonly historyChanged =
+    signal(
+      false,
+    );
 
   readonly headerConfig =
     HEADER_CONFIG;
@@ -336,7 +349,7 @@ export class ModalReceivableHistory
     string {
 
     switch (
-      this.financialStatus
+    this.financialStatus
     ) {
 
       case 'collected':
@@ -493,9 +506,10 @@ export class ModalReceivableHistory
 
   closeModal(): void {
 
-    this.dialogRef.close();
+    this.dialogRef.close(
+      this.historyChanged(),
+    );
   }
-
 
   // =======================================================
   // CARGA
@@ -607,11 +621,11 @@ export class ModalReceivableHistory
       error as {
         error?: {
           message?:
-            | string
-            | string[];
+          | string
+          | string[];
         };
         message?:
-          string;
+        string;
       };
 
 
@@ -664,5 +678,95 @@ export class ModalReceivableHistory
     return (
       'Ocurrió un error al consultar el historial.'
     );
+  }
+
+  // =======================================================
+  // REVERSA
+  // =======================================================
+
+  canReverseCollection(
+    item:
+      entity.TreasuryReceivableHistoryApplication,
+  ): boolean {
+
+    return (
+      this.permissionsService.isAdmin() &&
+
+      item.application_status ===
+      'active' &&
+
+      item.collection.status ===
+      'active' &&
+
+      Boolean(
+        item.collection.id,
+      ) &&
+
+      Number(
+        item.applied_amount ??
+        0,
+      ) > 0
+    );
+  }
+
+
+  openReverseCollection(
+    item:
+      entity.TreasuryReceivableHistoryApplication,
+  ): void {
+
+    const receivable =
+      this.receivable;
+
+
+    if (
+      !receivable ||
+      !this.canReverseCollection(
+        item,
+      )
+    ) {
+
+      return;
+    }
+
+
+    const modalData: ReverseCollectionDialogData = {
+
+      receivable,
+
+      item,
+    };
+
+
+    this.dialogService
+      .open(
+        ModalReverseCollection,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          response:
+            | entity.TreasuryReverseCollectionResponse
+            | null,
+        ) => {
+
+          if (
+            !response?.success
+          ) {
+
+            return;
+          }
+
+
+          this.historyChanged.set(
+            true,
+          );
+
+
+          this.loadHistory();
+        },
+      );
   }
 }

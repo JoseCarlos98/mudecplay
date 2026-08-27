@@ -1,0 +1,213 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+
+.reverse-collection-modal {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-height: calc(100dvh - 1rem);
+
+  overflow: hidden;
+
+
+  &__body {
+    display: grid;
+    gap: 1rem;
+
+    padding:
+      0.25rem
+      0.4rem
+      0.8rem
+      0;
+
+    overflow-y: auto;
+  }
+}
+
+
+.reverse-collection-card {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+
+  padding: 0.9rem;
+
+  border: 1px solid #fecaca;
+  border-radius: 0.8rem;
+
+  background: #fffafa;
+
+
+  &__icon {
+    flex: 0 0 auto;
+
+    width: 2.4rem;
+    height: 2.4rem;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+
+  &__content {
+    flex: 1;
+
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+
+
+    span,
+    small {
+      color: #64748b;
+      font-size: 0.68rem;
+    }
+
+
+    strong {
+      color: #0f172a;
+      font-size: 0.9rem;
+    }
+  }
+
+
+  &__amount {
+    flex: 0 0 auto;
+
+    color: #b91c1c;
+
+    font-size: 1rem;
+    font-weight: 800;
+  }
+}
+
+
+.reverse-collection-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.75rem;
+
+
+  > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    padding: 0.7rem;
+
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+
+    background: #f8fafc;
+  }
+
+
+  span {
+    color: #64748b;
+
+    font-size: 0.66rem;
+  }
+
+
+  strong {
+    overflow: hidden;
+
+    color: #334155;
+
+    font-size: 0.76rem;
+
+    text-overflow: ellipsis;
+  }
+}
+
+
+.reverse-collection-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+
+  padding: 0.85rem;
+
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+
+  background: #fef2f2;
+
+
+  mat-icon {
+    flex: 0 0 auto;
+
+    color: #dc2626;
+  }
+
+
+  > div {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+
+  strong {
+    color: #991b1b;
+
+    font-size: 0.8rem;
+  }
+
+
+  p {
+    margin: 0;
+
+    color: #b91c1c;
+
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+}
+
+
+.reverse-collection-form {
+  display: grid;
+}
+
+
+@media (
+  max-width: 640px
+) {
+
+  .reverse-collection-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+
+
+    &__amount {
+      width: 100%;
+
+      padding-left: 3.2rem;
+    }
+  }
+
+
+  .reverse-collection-grid {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}

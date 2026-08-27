@@ -2370,33 +2370,55 @@ export class TreasuryAccountsReceivable
   }
 
   private openReceivableHistory(
-  row:
-    TreasuryPendingReceivableTableRow,
-): void {
+    row:
+      TreasuryPendingReceivableTableRow,
+  ): void {
 
-  if (
-    !row?.id ||
-    !row.has_treasury_history
-  ) {
+    if (
+      !row?.id ||
+      !row.has_treasury_history
+    ) {
 
-    return;
+      return;
+    }
+
+
+    const modalData:
+      entity.TreasuryReceivableHistoryModalData = {
+
+      receivable:
+        row,
+    };
+
+
+    this.dialogService
+      .open(
+        ModalReceivableHistory,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          changed:
+            boolean |
+            undefined,
+        ) => {
+
+          if (
+            !changed
+          ) {
+
+            return;
+          }
+
+
+          this.clearCollectionSelection();
+
+          this.reloadCollectionTables();
+        },
+      );
   }
-
-
-  const modalData:
-    entity.TreasuryReceivableHistoryModalData = {
-
-    receivable:
-      row,
-  };
-
-
-  this.dialogService.open(
-    ModalReceivableHistory,
-    modalData,
-    'medium',
-  );
-}
 
   private addReceivable(
     row:
