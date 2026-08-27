@@ -1,0 +1,416 @@
+<div class="receivable-history-modal">
+
+  <app-module-header
+    title="Historial de cobros"
+    [config]="headerConfig">
+  </app-module-header>
+
+
+  <div class="receivable-history-modal__body">
+
+    @if (historyResponse) {
+
+      <!-- =================================================
+           RESUMEN DE LA CxC
+           ================================================= -->
+
+      <section class="receivable-summary">
+
+        <header class="receivable-summary__header">
+
+          <div class="receivable-summary__identity">
+
+            <mat-icon>
+              receipt_long
+            </mat-icon>
+
+            <div>
+              <span>Factura</span>
+
+              <strong>
+                {{ invoiceDisplay }}
+              </strong>
+            </div>
+
+          </div>
+
+
+          <span
+            class="receivable-status"
+            [class.receivable-status--success]="
+              financialStatus === 'collected'
+            "
+            [class.receivable-status--warning]="
+              financialStatus === 'partial'
+            "
+            [class.receivable-status--pending]="
+              financialStatus === 'pending'
+            ">
+
+            {{ financialStatusLabel }}
+
+          </span>
+
+        </header>
+
+
+        <div class="receivable-summary__grid">
+
+          <div>
+            <span>Cliente</span>
+            <strong>{{ clientName }}</strong>
+          </div>
+
+          <div>
+            <span>RFC</span>
+            <strong>{{ clientRfc }}</strong>
+          </div>
+
+          <div>
+            <span>Proyecto</span>
+            <strong>{{ projectName }}</strong>
+          </div>
+
+          <div>
+            <span>Fuente financiera</span>
+            <strong>{{ financialSourceLabel }}</strong>
+          </div>
+
+        </div>
+
+
+        <div class="receivable-summary__amounts">
+
+          <div>
+            <span>Total factura</span>
+
+            <strong>
+              {{
+                totalAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+
+          <div class="receivable-summary__amount--success">
+            <span>Cobrado</span>
+
+            <strong>
+              {{
+                collectedAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+
+          <div class="receivable-summary__amount--pending">
+            <span>Pendiente</span>
+
+            <strong>
+              {{
+                pendingAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           HISTORIAL
+           ================================================= -->
+
+      <section class="receivable-history">
+
+        <header class="receivable-history__header">
+
+          <div>
+            <mat-icon>
+              history
+            </mat-icon>
+
+            <div>
+              <strong>
+                Cobros registrados
+              </strong>
+
+              <span>
+                {{ history.length }}
+                movimiento(s)
+              </span>
+            </div>
+          </div>
+
+        </header>
+
+
+        @if (history.length) {
+
+          <div class="receivable-history__list">
+
+            @for (
+              item of history;
+              track item.application_id
+            ) {
+
+              <article
+                class="collection-history-card"
+                [class.collection-history-card--reversed]="
+                  item.application_status === 'reversed'
+                ">
+
+                <header class="collection-history-card__header">
+
+                  <div>
+
+                    <span>
+                      Fecha de cobro
+                    </span>
+
+                    <strong>
+                      {{
+                        item.collection.collection_date
+                          | date:
+                            'dd/MM/yyyy':
+                            'UTC'
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div class="collection-history-card__amount">
+
+                    <strong>
+                      {{
+                        item.applied_amount
+                          | currency:
+                            'MXN':
+                            'symbol':
+                            '1.2-2'
+                      }}
+                    </strong>
+
+                    <span
+                      class="collection-history-card__status"
+                      [class.collection-history-card__status--reversed]="
+                        item.application_status === 'reversed'
+                      ">
+
+                      {{
+                        getApplicationStatusLabel(
+                          item
+                        )
+                      }}
+
+                    </span>
+
+                  </div>
+
+                </header>
+
+
+                <div class="collection-history-card__details">
+
+                  <div>
+                    <span>Referencia</span>
+
+                    <strong>
+                      {{ getReference(item) }}
+                    </strong>
+                  </div>
+
+
+                  <div>
+                    <span>Banco</span>
+
+                    <strong>
+                      {{ getBankName(item) }}
+                    </strong>
+                  </div>
+
+
+                  <div>
+                    <span>Cuenta</span>
+
+                    <strong>
+                      {{
+                        getBankAccountDisplay(
+                          item
+                        )
+                      }}
+                    </strong>
+                  </div>
+
+
+                  <div>
+                    <span>Movimiento</span>
+
+                    <strong>
+                      #{{ item.bank_movement.id }}
+                    </strong>
+                  </div>
+
+
+                  <div>
+                    <span>Collection</span>
+
+                    <strong>
+                      #{{ item.collection.id }}
+                    </strong>
+                  </div>
+
+
+                  <div>
+                    <span>Application</span>
+
+                    <strong>
+                      #{{ item.application_id }}
+                    </strong>
+                  </div>
+
+                </div>
+
+
+                @if (getNotes(item)) {
+
+                  <div class="collection-history-card__note">
+
+                    <mat-icon>
+                      notes
+                    </mat-icon>
+
+                    <span>
+                      {{ getNotes(item) }}
+                    </span>
+
+                  </div>
+
+                }
+
+
+                @if (
+                  item.application_status ===
+                  'reversed'
+                ) {
+
+                  <div class="collection-history-card__reversal">
+
+                    <mat-icon>
+                      undo
+                    </mat-icon>
+
+                    <div>
+
+                      <strong>
+                        Cobro revertido
+                      </strong>
+
+                      @if (
+                        item.application_reversed_at ||
+                        item.collection.reversed_at
+                      ) {
+
+                        <span>
+                          {{
+                            (
+                              item.application_reversed_at ||
+                              item.collection.reversed_at
+                            )
+                              | date:
+                                'dd/MM/yyyy HH:mm'
+                          }}
+                        </span>
+
+                      }
+
+
+                      @if (getReversalReason(item)) {
+
+                        <span>
+                          Motivo:
+                          {{ getReversalReason(item) }}
+                        </span>
+
+                      }
+
+                    </div>
+
+                  </div>
+
+                }
+
+              </article>
+
+            }
+
+          </div>
+
+        } @else if (!loading()) {
+
+          <div class="receivable-history-empty">
+
+            <mat-icon>
+              history
+            </mat-icon>
+
+            <strong>
+              Sin cobros registrados
+            </strong>
+
+            <span>
+              Esta cuenta por cobrar todavía no tiene historial en Tesorería.
+            </span>
+
+          </div>
+
+        }
+
+      </section>
+
+    } @else if (!loading()) {
+
+      <div class="receivable-history-empty">
+
+        <mat-icon>
+          error_outline
+        </mat-icon>
+
+        <strong>
+          No fue posible mostrar el historial
+        </strong>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <app-btns-section
+    type="close"
+    (action)="onFooterAction($event)">
+  </app-btns-section>
+
+
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando historial de cobros.">
+  </app-loading-overlay>
+
+</div>

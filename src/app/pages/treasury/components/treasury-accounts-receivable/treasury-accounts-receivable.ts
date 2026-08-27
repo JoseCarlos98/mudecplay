@@ -120,6 +120,7 @@ import * as entity
   from './interfaces/treasury-accounts-receivable.interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsReceivable } from './components/modal-treasury-accounts-receivable/modal-treasury-accounts-receivable';
+import { ModalReceivableHistory } from './components/modal-receivable-history/modal-receivable-history';
 
 
 // =========================================================
@@ -1231,6 +1232,21 @@ export class TreasuryAccountsReceivable
     DataTableExtraAction<
       TreasuryPendingReceivableTableRow
     >[] = [
+      {
+        type:
+          'receivableHistory',
+
+        icon:
+          'history',
+
+        tooltip:
+          'Ver historial de cobros',
+
+        visible: (
+          row,
+        ) =>
+          row.has_treasury_history,
+      },
 
       {
         type:
@@ -2326,6 +2342,14 @@ export class TreasuryAccountsReceivable
 
     switch (event.type) {
 
+      case 'receivableHistory':
+
+        this.openReceivableHistory(
+          event.row,
+        );
+
+        break;
+
       case 'addReceivable':
 
         this.addReceivable(
@@ -2345,6 +2369,34 @@ export class TreasuryAccountsReceivable
     }
   }
 
+  private openReceivableHistory(
+  row:
+    TreasuryPendingReceivableTableRow,
+): void {
+
+  if (
+    !row?.id ||
+    !row.has_treasury_history
+  ) {
+
+    return;
+  }
+
+
+  const modalData:
+    entity.TreasuryReceivableHistoryModalData = {
+
+    receivable:
+      row,
+  };
+
+
+  this.dialogService.open(
+    ModalReceivableHistory,
+    modalData,
+    'medium',
+  );
+}
 
   private addReceivable(
     row:
