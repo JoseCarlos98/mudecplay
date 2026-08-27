@@ -4,6 +4,7 @@ import {
   TreasuryBankMovementStatus,
   TreasuryPaginationMeta,
 } from '../../../interfaces/treasury.interfaces';
+import { TreasuryAvailableInflowTableRow } from '../../treasury-accounts-receivable/treasury-accounts-receivable';
 
 // =========================================================
 // REFERENCIAS BÁSICAS

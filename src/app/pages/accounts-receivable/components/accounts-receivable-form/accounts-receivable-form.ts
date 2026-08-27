@@ -1,169 +1,409 @@
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import {
+  CommonModule,
+} from '@angular/common';
 
-import { MatIconModule } from '@angular/material/icon';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
+import {
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
 
-import { ModuleHeader } from '../../../../shared/ui/module-header/module-header';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+
+import {
+  ActivatedRoute,
+  Router,
+} from '@angular/router';
+
+import {
+  MatIconModule,
+} from '@angular/material/icon';
+
+
+// =========================================================
+// UI COMPARTIDA
+// =========================================================
+
+import {
+  ModuleHeader,
+} from '../../../../shared/ui/module-header/module-header';
+
 import {
   ModuleHeaderAction,
   ModuleHeaderConfig,
 } from '../../../../shared/ui/module-header/interfaces/module-header-interface';
-import { InputField } from '../../../../shared/ui/input-field/input-field';
-import { InputDate } from '../../../../shared/ui/input-date/input-date';
-import { InputSelect } from '../../../../shared/ui/input-select/input-select';
+
+import {
+  InputField,
+} from '../../../../shared/ui/input-field/input-field';
+
+import {
+  InputDate,
+} from '../../../../shared/ui/input-date/input-date';
+
+import {
+  InputSelect,
+} from '../../../../shared/ui/input-select/input-select';
+
 import {
   BtnsSection,
   ModuleFooterAction,
 } from '../../../../shared/ui/btns-section/btns-section';
 
-import { DialogService } from '../../../../shared/services/dialog.service';
-import { AccountsReceivableService } from '../../services/accounts-receivable.service';
-import * as entity from '../../interfaces/accounts-receivable-interfaces';
-import { Autocomplete } from '../../../../shared/ui/autocomplete/autocomplete';
-import { Catalog } from '../../../../shared/interfaces/general-interfaces';
-import { toIdForm } from '../../../../shared/helpers/general-helpers';
+import {
+  Autocomplete,
+} from '../../../../shared/ui/autocomplete/autocomplete';
 
-const HEADER_CONFIG: ModuleHeaderConfig = {
-  formFull: true,
-};
+
+// =========================================================
+// SERVICIOS
+// =========================================================
+
+import {
+  DialogService,
+} from '../../../../shared/services/dialog.service';
+
+import {
+  AccountsReceivableService,
+} from '../../services/accounts-receivable.service';
+
+
+// =========================================================
+// HELPERS / INTERFACES
+// =========================================================
+
+import {
+  Catalog,
+} from '../../../../shared/interfaces/general-interfaces';
+
+import {
+  toIdForm,
+} from '../../../../shared/helpers/general-helpers';
+
+import * as entity
+  from '../../interfaces/accounts-receivable-interfaces';
+
+
+// =========================================================
+// CONFIGURACIÓN
+// =========================================================
+
+const HEADER_CONFIG:
+  ModuleHeaderConfig = {
+    formFull: true,
+  };
+
 
 @Component({
-  selector: 'app-accounts-receivable-form',
+  selector:
+    'app-accounts-receivable-form',
+
   standalone: true,
+
   imports: [
     CommonModule,
     ReactiveFormsModule,
+
     ModuleHeader,
     InputField,
     InputDate,
     InputSelect,
     BtnsSection,
-    MatIconModule,
-    MatDatepickerModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
     Autocomplete,
+
+    MatIconModule,
   ],
-  templateUrl: './accounts-receivable-form.html',
-  styleUrl: './accounts-receivable-form.scss',
+
+  templateUrl:
+    './accounts-receivable-form.html',
+
+  styleUrl:
+    './accounts-receivable-form.scss',
 })
-export class AccountsReceivableForm implements OnInit {
-  private readonly activatedRoute = inject(ActivatedRoute);
-  private readonly accountsReceivableService = inject(AccountsReceivableService);
-  private readonly fb = inject(FormBuilder);
-  private readonly dialogService = inject(DialogService);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly router = inject(Router);
+export class AccountsReceivableForm
+  implements OnInit {
 
-  readonly headerConfig = HEADER_CONFIG;
-  readonly statusOptions = entity.ACCOUNTS_RECEIVABLE_STATUS_OPTIONS;
-  readonly companyOptions = entity.ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS;
+  // =======================================================
+  // INYECCIONES
+  // =======================================================
 
-  isXmlImport = false;
-  cfdiUuidFromXml: string | null = null;
+  private readonly activatedRoute =
+    inject(
+      ActivatedRoute,
+    );
 
-  xmlQueueTotal = 0;
-  xmlQueuePending = 0;
+  private readonly accountsReceivableService =
+    inject(
+      AccountsReceivableService,
+    );
 
-  accountReceivableId = 0;
-  formData!: entity.AccountReceivableDetail;
+  private readonly fb =
+    inject(
+      FormBuilder,
+    );
 
-  form: FormGroup = this.fb.group({
-    company_code: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    emitter_name: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    emitter_rfc: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    receiver_name: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    receiver_rfc: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    issue_date: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    series: this.fb.control<string | null>(null),
-    folio: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    cfdi_uuid: this.fb.control<string | null>(null, {
-      validators: Validators.required,
-    }),
-    subtotal: this.fb.control<number | null>(null, {
-      validators: Validators.required,
-    }),
-    total: this.fb.control<number | null>(null, {
-      validators: Validators.required,
-    }),
-    currency: this.fb.control<string | null>('MXN', {
-      validators: Validators.required,
-    }),
-    source_file_name: this.fb.control<string | null>(null),
-    advance_amount: this.fb.control<number | null>(0),
-    project_id: this.fb.control<Catalog | null>(null),
+  private readonly dialogService =
+    inject(
+      DialogService,
+    );
 
-    status: this.fb.control<'pending' | 'collected' | null>('pending', {
-      validators: Validators.required,
-    }),
-    collected_at: this.fb.control<string | null>(null),
-  });
+  readonly router =
+    inject(
+      Router,
+    );
 
-  get currentXmlIndex(): number {
-    if (!this.xmlQueueTotal) return 1;
-    return this.xmlQueueTotal - this.xmlQueuePending;
-  }
 
-  get invoiceDisplay(): string {
-    const raw = this.form.getRawValue();
-    return raw.series ? `${raw.series}-${raw.folio}` : `${raw.folio ?? ''}`;
-  }
+  // =======================================================
+  // UI
+  // =======================================================
+
+  readonly headerConfig =
+    HEADER_CONFIG;
+
+  readonly companyOptions =
+    entity
+      .ACCOUNTS_RECEIVABLE_COMPANY_OPTIONS;
+
+
+  // =======================================================
+  // XML
+  // =======================================================
+
+  isXmlImport =
+    false;
+
+  cfdiUuidFromXml:
+    string | null =
+    null;
+
+  xmlQueueTotal =
+    0;
+
+  xmlQueuePending =
+    0;
+
+
+  // =======================================================
+  // CxC
+  // =======================================================
+
+  accountReceivableId =
+    0;
+
+
+  // =======================================================
+  // FORMULARIO
+  // =======================================================
+
+  form:
+    FormGroup =
+    this.fb.group({
+
+      company_code:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      emitter_name:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      emitter_rfc:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      receiver_name:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      receiver_rfc:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      issue_date:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      series:
+        this.fb.control<
+          string | null
+        >(
+          null,
+        ),
+
+      folio:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      cfdi_uuid:
+        this.fb.control<
+          string | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      subtotal:
+        this.fb.control<
+          number | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      total:
+        this.fb.control<
+          number | null
+        >(
+          null,
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      currency:
+        this.fb.control<
+          string | null
+        >(
+          'MXN',
+          {
+            validators:
+              Validators.required,
+          },
+        ),
+
+      source_file_name:
+        this.fb.control<
+          string | null
+        >(
+          null,
+        ),
+
+      project_id:
+        this.fb.control<
+          Catalog | null
+        >(
+          null,
+        ),
+
+      estimated_collection_date:
+        this.fb.control<
+          string | null
+        >(
+          null,
+        ),
+    });
+
+
+  // =======================================================
+  // CICLO DE VIDA
+  // =======================================================
 
   ngOnInit(): void {
-    const idParam = this.activatedRoute.snapshot.paramMap.get('id');
+
+    const idParam =
+      this.activatedRoute
+        .snapshot
+        .paramMap
+        .get(
+          'id',
+        );
 
     if (idParam) {
-      this.accountReceivableId = +idParam;
-      this.loadAccountReceivable(this.accountReceivableId);
-    } else {
-      if (this.accountsReceivableService.hasMoreXmlDrafts()) {
-        this.loadNextXmlFromQueueOrExit();
-      } else {
-        this.navigateToList();
-      }
+
+      this.accountReceivableId =
+        Number(
+          idParam,
+        );
+
+      this.loadAccountReceivable(
+        this.accountReceivableId,
+      );
+
+      return;
     }
 
-    this.form
-      .get('status')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-        if (value === 'pending') {
-          this.form.get('collected_at')?.setValue(null, { emitEvent: false });
-        } else if (value === 'collected' && !this.form.get('collected_at')?.value) {
-          this.form.get('collected_at')?.setValue(this.getTodayIsoDate(), {
-            emitEvent: false,
-          });
-        }
-      });
+    if (
+      this.accountsReceivableService
+        .hasMoreXmlDrafts()
+    ) {
+
+      this.loadNextXmlFromQueueOrExit();
+
+      return;
+    }
+
+    this.navigateToList();
   }
 
-  private getTodayIsoDate(): string {
-    return new Date().toISOString().slice(0, 10);
-  }
 
-  private applyReadonlyLocking(): void {
+  // =======================================================
+  // BLOQUEO DE DATOS CFDI
+  // =======================================================
+
+  private applyReadonlyLocking():
+    void {
+
     [
       'company_code',
       'emitter_name',
@@ -178,259 +418,631 @@ export class AccountsReceivableForm implements OnInit {
       'total',
       'currency',
       'source_file_name',
-      'advance_amount',
-    ].forEach((field) => {
-      this.form.get(field)?.disable();
-    });
-  }
+    ].forEach(
+      (
+        field,
+      ) => {
 
-  loadAccountReceivable(id: number): void {
-    this.accountsReceivableService.getById(id).subscribe({
-      next: (response) => {
-        this.formData = response;
-        this.isXmlImport = !!response.cfdi_uuid;
-        this.cfdiUuidFromXml = response.cfdi_uuid ?? null;
-
-        this.form.patchValue({
-          company_code: response.company_code,
-          emitter_name: response.emitter_name,
-          emitter_rfc: response.emitter_rfc,
-          receiver_name: response.receiver_name,
-          receiver_rfc: response.receiver_rfc,
-          issue_date: response.issue_date,
-          series: response.series,
-          folio: response.folio,
-          cfdi_uuid: response.cfdi_uuid,
-          subtotal: response.subtotal,
-          total: response.total,
-          currency: response.currency,
-          source_file_name: response.source_file_name,
-          advance_amount: response.advance_amount,
-          status: response.status,
-          collected_at: response.collected_at,
-          project_id: response.project,
-        });
-
-        this.applyReadonlyLocking();
+        this.form
+          .get(
+            field,
+          )
+          ?.disable();
       },
-      error: (err) => console.error('Error al cargar cuenta por cobrar:', err),
-    });
+    );
   }
 
-  patchFormFromXmlDraft(draft: entity.XmlAccountReceivableDraftDto): void {
-    this.isXmlImport = true;
-    this.cfdiUuidFromXml = draft.uuid;
 
-    this.form.patchValue({
-      company_code: draft.companyCode,
-      emitter_name: draft.emitterName,
-      emitter_rfc: draft.emitterRfc,
-      receiver_name: draft.receiverName,
-      receiver_rfc: draft.receiverRfc,
-      issue_date: draft.issueDate,
-      series: draft.series,
-      folio: draft.folio,
-      cfdi_uuid: draft.uuid,
-      subtotal: draft.subtotal,
-      total: draft.total,
-      currency: draft.currency,
-      source_file_name: draft.sourceFileName,
-      advance_amount: 0,
-      project_id: null,
-      status: 'pending',
-      collected_at: null,
-    });
+  // =======================================================
+  // CARGAR DETALLE
+  // =======================================================
+
+  loadAccountReceivable(
+    id:
+      number,
+  ): void {
+
+    this.accountsReceivableService
+      .getById(
+        id,
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          this.isXmlImport =
+            Boolean(
+              response.cfdi_uuid,
+            );
+
+          this.cfdiUuidFromXml =
+            response.cfdi_uuid ??
+            null;
+
+          this.form.patchValue(
+            {
+              company_code:
+                response.company_code,
+
+              emitter_name:
+                response.emitter_name,
+
+              emitter_rfc:
+                response.emitter_rfc,
+
+              receiver_name:
+                response.receiver_name,
+
+              receiver_rfc:
+                response.receiver_rfc,
+
+              issue_date:
+                response.issue_date,
+
+              series:
+                response.series,
+
+              folio:
+                response.folio,
+
+              cfdi_uuid:
+                response.cfdi_uuid,
+
+              subtotal:
+                response.subtotal,
+
+              total:
+                response.total,
+
+              currency:
+                response.currency,
+
+              source_file_name:
+                response.source_file_name,
+
+              project_id:
+                response.project,
+
+              estimated_collection_date:
+                response
+                  .estimated_collection_date,
+            },
+          );
+
+          this.applyReadonlyLocking();
+        },
+
+        error: (
+          error,
+        ) => {
+
+          console.error(
+            'Error al cargar cuenta por cobrar:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  // =======================================================
+  // XML -> FORM
+  // =======================================================
+
+  patchFormFromXmlDraft(
+    draft:
+      entity.XmlAccountReceivableDraftDto,
+  ): void {
+
+    this.isXmlImport =
+      true;
+
+    this.cfdiUuidFromXml =
+      draft.uuid;
+
+    this.form.patchValue(
+      {
+        company_code:
+          draft.companyCode,
+
+        emitter_name:
+          draft.emitterName,
+
+        emitter_rfc:
+          draft.emitterRfc,
+
+        receiver_name:
+          draft.receiverName,
+
+        receiver_rfc:
+          draft.receiverRfc,
+
+        issue_date:
+          draft.issueDate,
+
+        series:
+          draft.series,
+
+        folio:
+          draft.folio,
+
+        cfdi_uuid:
+          draft.uuid,
+
+        subtotal:
+          draft.subtotal,
+
+        total:
+          draft.total,
+
+        currency:
+          draft.currency,
+
+        source_file_name:
+          draft.sourceFileName,
+
+        project_id:
+          null,
+
+        estimated_collection_date:
+          null,
+      },
+    );
 
     this.applyReadonlyLocking();
   }
 
+
+  // =======================================================
+  // CREATE
+  // =======================================================
+
   saveData(): void {
-    if (this.form.invalid) {
+
+    if (
+      this.form.invalid
+    ) {
+
       this.form.markAllAsTouched();
+
       return;
     }
 
-    const payload = this.buildCreatePayloadFromForm();
+    const payload =
+      this.buildCreatePayloadFromForm();
 
-    this.accountsReceivableService.create(payload).subscribe({
-      next: (response) => {
-        if (!response.success) return;
+    this.accountsReceivableService
+      .create(
+        payload,
+      )
+      .subscribe({
 
-        if (this.isXmlImport && this.accountsReceivableService.hasMoreXmlDrafts()) {
-          this.loadNextXmlFromQueueOrExit();
-          return;
-        }
+        next: (
+          response,
+        ) => {
 
-        this.accountsReceivableService.clearXmlQueue();
-        this.navigateToList();
-      },
-      error: (err) => console.error('Error al crear cuenta por cobrar:', err),
-    });
+          if (
+            !response.success
+          ) {
+            return;
+          }
+
+          if (
+            this.isXmlImport &&
+            this.accountsReceivableService
+              .hasMoreXmlDrafts()
+          ) {
+
+            this.loadNextXmlFromQueueOrExit();
+
+            return;
+          }
+
+          this.accountsReceivableService
+            .clearXmlQueue();
+
+          this.navigateToList();
+        },
+
+        error: (
+          error,
+        ) => {
+
+          console.error(
+            'Error al crear cuenta por cobrar:',
+            error,
+          );
+        },
+      });
   }
+
+
+  // =======================================================
+  // UPDATE
+  // =======================================================
 
   updateData(): void {
-    if (this.form.invalid) {
+
+    if (
+      this.form.invalid
+    ) {
+
       this.form.markAllAsTouched();
+
       return;
     }
 
-    const payload = this.buildUpdatePayloadFromForm();
+    const payload =
+      this.buildUpdatePayloadFromForm();
 
-    this.accountsReceivableService.update(this.accountReceivableId, payload).subscribe({
-      next: (response) => {
-        if (response.success) {
-          this.router.navigateByUrl('/cuentas-por-cobrar');
-        }
-      },
-      error: (err) => console.error('Error al actualizar cuenta por cobrar:', err),
-    });
+    this.accountsReceivableService
+      .update(
+        this.accountReceivableId,
+        payload,
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          if (
+            response.success
+          ) {
+
+            this.navigateToList();
+          }
+        },
+
+        error: (
+          error,
+        ) => {
+
+          console.error(
+            'Error al actualizar cuenta por cobrar:',
+            error,
+          );
+        },
+      });
   }
 
-  buildCreatePayloadFromForm(): entity.CreateAccountReceivable {
-    const raw = this.form.getRawValue();
+
+  // =======================================================
+  // PAYLOAD CREATE
+  // =======================================================
+
+  private buildCreatePayloadFromForm():
+    entity.CreateAccountReceivable {
+
+    const raw =
+      this.form
+        .getRawValue();
 
     return {
-      cfdi_uuid: raw.cfdi_uuid!,
-      series: raw.series ?? null,
-      folio: raw.folio!,
-      company_code: raw.company_code!,
-      emitter_rfc: raw.emitter_rfc!,
-      emitter_name: raw.emitter_name!,
-      receiver_rfc: raw.receiver_rfc!,
-      receiver_name: raw.receiver_name!,
-      issue_date: raw.issue_date!,
-      subtotal: Number(raw.subtotal ?? 0),
-      total: Number(raw.total ?? 0),
-      currency: raw.currency ?? 'MXN',
-      status: raw.status ?? 'pending',
-      collected_at:
-        raw.status === 'collected'
-          ? raw.collected_at ?? this.getTodayIsoDate()
-          : null,
-      source_file_name: raw.source_file_name ?? null,
-      project_id: toIdForm(raw.project_id),
+      cfdi_uuid:
+        raw.cfdi_uuid!,
+
+      series:
+        raw.series ??
+        null,
+
+      folio:
+        raw.folio!,
+
+      company_code:
+        raw.company_code!,
+
+      emitter_rfc:
+        raw.emitter_rfc!,
+
+      emitter_name:
+        raw.emitter_name!,
+
+      receiver_rfc:
+        raw.receiver_rfc!,
+
+      receiver_name:
+        raw.receiver_name!,
+
+      issue_date:
+        raw.issue_date!,
+
+      estimated_collection_date:
+        raw
+          .estimated_collection_date ??
+        null,
+
+      subtotal:
+        Number(
+          raw.subtotal ??
+          0,
+        ),
+
+      total:
+        Number(
+          raw.total ??
+          0,
+        ),
+
+      currency:
+        raw.currency ??
+        'MXN',
+
+      source_file_name:
+        raw.source_file_name ??
+        null,
+
+      project_id:
+        toIdForm(
+          raw.project_id,
+        ),
     };
   }
 
-  buildUpdatePayloadFromForm(): entity.UpdateAccountReceivable {
-    const raw = this.form.getRawValue();
+
+  // =======================================================
+  // PAYLOAD UPDATE
+  // =======================================================
+
+  private buildUpdatePayloadFromForm():
+    entity.UpdateAccountReceivable {
+
+    const raw =
+      this.form
+        .getRawValue();
 
     return {
-      status: raw.status ?? 'pending',
-      collected_at:
-        raw.status === 'collected'
-          ? raw.collected_at ?? this.getTodayIsoDate()
-          : null,
-      project_id: toIdForm(raw.project_id),
+      estimated_collection_date:
+        raw
+          .estimated_collection_date ??
+        null,
+
+      project_id:
+        toIdForm(
+          raw.project_id,
+        ),
     };
   }
 
-  loadNextXmlFromQueueOrExit(): void {
-    const nextDraft = this.accountsReceivableService.consumeNextXmlDraft();
+
+  // =======================================================
+  // SIGUIENTE XML
+  // =======================================================
+
+  loadNextXmlFromQueueOrExit():
+    void {
+
+    const nextDraft =
+      this.accountsReceivableService
+        .consumeNextXmlDraft();
 
     if (!nextDraft) {
-      this.accountsReceivableService.clearXmlQueue();
-      this.isXmlImport = false;
-      this.cfdiUuidFromXml = null;
+
+      this.accountsReceivableService
+        .clearXmlQueue();
+
+      this.isXmlImport =
+        false;
+
+      this.cfdiUuidFromXml =
+        null;
+
       this.navigateToList();
+
       return;
     }
 
-    this.form.reset({
-      company_code: null,
-      emitter_name: null,
-      emitter_rfc: null,
-      receiver_name: null,
-      receiver_rfc: null,
-      issue_date: null,
-      series: null,
-      folio: null,
-      cfdi_uuid: null,
-      subtotal: null,
-      total: null,
-      currency: 'MXN',
-      source_file_name: null,
-      advance_amount: 0,
-      project_id: null,
-      status: 'pending',
-      collected_at: null,
-    });
+    this.form.reset(
+      {
+        company_code:
+          null,
 
-    Object.keys(this.form.controls).forEach((key) => {
-      this.form.get(key)?.enable({ emitEvent: false });
-    });
+        emitter_name:
+          null,
 
-    this.patchFormFromXmlDraft(nextDraft);
+        emitter_rfc:
+          null,
 
-    const status = this.accountsReceivableService.getXmlQueueStatus();
-    this.xmlQueueTotal = status.total;
-    this.xmlQueuePending = status.pending;
+        receiver_name:
+          null,
+
+        receiver_rfc:
+          null,
+
+        issue_date:
+          null,
+
+        series:
+          null,
+
+        folio:
+          null,
+
+        cfdi_uuid:
+          null,
+
+        subtotal:
+          null,
+
+        total:
+          null,
+
+        currency:
+          'MXN',
+
+        source_file_name:
+          null,
+
+        project_id:
+          null,
+
+        estimated_collection_date:
+          null,
+      },
+    );
+
+    Object.keys(
+      this.form.controls,
+    ).forEach(
+      (
+        key,
+      ) => {
+
+        this.form
+          .get(
+            key,
+          )
+          ?.enable({
+            emitEvent:
+              false,
+          });
+      },
+    );
+
+    this.patchFormFromXmlDraft(
+      nextDraft,
+    );
+
+    const status =
+      this.accountsReceivableService
+        .getXmlQueueStatus();
+
+    this.xmlQueueTotal =
+      status.total;
+
+    this.xmlQueuePending =
+      status.pending;
   }
 
-  confirmExitFromXmlFlow(): void {
+
+  // =======================================================
+  // SALIR DEL FLUJO XML
+  // =======================================================
+
+  confirmExitFromXmlFlow():
+    void {
+
     const pendingText =
-      this.xmlQueuePending > 0
+      this.xmlQueuePending >
+      0
         ? `Tienes ${this.xmlQueuePending} factura(s) pendiente(s) por registrar.\n\n`
         : '';
 
     this.dialogService
       .confirm({
-        size: 'small',
-        title: 'Salir del registro desde XML',
+        size:
+          'small',
+
+        title:
+          'Salir del registro desde XML',
+
         message:
           `${pendingText}` +
           'Si sales ahora, esta factura y las pendientes no se registrarán en cuentas por cobrar. ' +
           'Podrás volver a subir los XML cuando quieras.\n\n' +
           '¿Quieres salir de todos modos?',
-        confirmText: 'Salir sin guardar',
-        cancelText: 'Seguir capturando',
+
+        confirmText:
+          'Salir sin guardar',
+
+        cancelText:
+          'Seguir capturando',
       })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
+      .subscribe(
+        (
+          confirmed,
+        ) => {
 
-        this.accountsReceivableService.clearXmlQueue();
-        this.navigateToList();
-      });
+          if (!confirmed) {
+            return;
+          }
+
+          this.accountsReceivableService
+            .clearXmlQueue();
+
+          this.navigateToList();
+        },
+      );
   }
 
-  onHeaderAction(action: ModuleHeaderAction | string): void {
+
+  // =======================================================
+  // HEADER
+  // =======================================================
+
+  onHeaderAction(
+    action:
+      ModuleHeaderAction |
+      string,
+  ): void {
+
     switch (action) {
+
       case 'back':
-        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
+
+        if (
+          this.cfdiUuidFromXml &&
+          this.router.url.includes(
+            'nuevo',
+          )
+        ) {
+
           this.confirmExitFromXmlFlow();
+
         } else {
+
           this.navigateToList();
         }
+
         break;
     }
   }
 
-  onFooterAction(action: ModuleFooterAction | string): void {
+
+  // =======================================================
+  // FOOTER
+  // =======================================================
+
+  onFooterAction(
+    action:
+      ModuleFooterAction |
+      string,
+  ): void {
+
     switch (action) {
+
       case 'cancel':
-        if (this.cfdiUuidFromXml && this.router.url.includes('nuevo')) {
+
+        if (
+          this.cfdiUuidFromXml &&
+          this.router.url.includes(
+            'nuevo',
+          )
+        ) {
+
           this.confirmExitFromXmlFlow();
+
         } else {
+
           this.navigateToList();
         }
+
         break;
     }
   }
 
-  navigateToList(): void {
-    this.router.navigateByUrl('/cuentas-por-cobrar');
+
+  // =======================================================
+  // NAVEGACIÓN
+  // =======================================================
+
+  private navigateToList():
+    void {
+
+    this.router.navigateByUrl(
+      '/cuentas-por-cobrar',
+    );
   }
-
-  get canShowStatusControl(): boolean {
-  const raw = this.form.getRawValue();
-
-  const advanceAmount = Number(raw.advance_amount ?? 0);
-  const total = Number(raw.total ?? 0);
-
-  if (this.isXmlImport && !this.accountReceivableId) {
-    return true;
-  }
-
-  return advanceAmount >= total;
-}
 }

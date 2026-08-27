@@ -1,11 +1,3000 @@
-import { Component } from '@angular/core';
+import {
+  CommonModule,
+} from '@angular/common';
+
+import {
+  ModalAccountsReceivableClassification,
+} from './components/modal-accounts-receivable-classification/modal-accounts-receivable-classification';
+
+import {
+  Component,
+  OnInit,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
+
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+} from '@angular/forms';
+
+import {
+  finalize,
+  forkJoin,
+} from 'rxjs';
+
+import {
+  MatPaginatorModule,
+  PageEvent,
+} from '@angular/material/paginator';
+
+import {
+  MatIconModule,
+} from '@angular/material/icon';
+
+import {
+  MatButtonModule,
+} from '@angular/material/button';
+
+
+// =========================================================
+// UI COMPARTIDA
+// =========================================================
+
+import {
+  ModuleHeader,
+} from '../../../../shared/ui/module-header/module-header';
+
+import {
+  ModuleHeaderConfig,
+} from '../../../../shared/ui/module-header/interfaces/module-header-interface';
+
+import {
+  DataTable,
+} from '../../../../shared/ui/data-table/data-table';
+
+import {
+  ColumnsConfig,
+  ColumnVariant,
+  DataTableActionEvent,
+  DataTableExtraAction,
+} from '../../../../shared/ui/data-table/interfaces/table-interfaces';
+
+import {
+  InputField,
+} from '../../../../shared/ui/input-field/input-field';
+
+import {
+  InputSelect,
+} from '../../../../shared/ui/input-select/input-select';
+
+import {
+  DateRangeValue,
+  InputDate,
+} from '../../../../shared/ui/input-date/input-date';
+
+import {
+  BtnsSection,
+} from '../../../../shared/ui/btns-section/btns-section';
+
+import {
+  LoadingOverlay,
+} from '../../../../shared/ui/loading-overlay/loading-overlay';
+
+import {
+  Autocomplete,
+} from '../../../../shared/ui/autocomplete/autocomplete';
+
+
+// =========================================================
+// SERVICIOS
+// =========================================================
+
+import {
+  TreasuryAccountsReceivableService,
+} from './services/treasury-accounts-receivable.service';
+
+import {
+  CatalogsService,
+} from '../../../../shared/services/catalogs.service';
+
+import {
+  LocalStorageService,
+} from '../../../../shared/services/local-storage.service';
+
+
+// =========================================================
+// HELPERS / INTERFACES
+// =========================================================
+
+import {
+  Catalog,
+} from '../../../../shared/interfaces/general-interfaces';
+
+import {
+  roundMoney,
+} from '../../../../shared/helpers/general-helpers';
+
+import * as entity
+  from './interfaces/treasury-accounts-receivable.interfaces';
+import { DialogService } from '../../../../shared/services/dialog.service';
+
+
+// =========================================================
+// TIPOS DE UI
+// =========================================================
+
+export type TreasuryAvailableInflowTableRow =
+  entity.TreasuryAvailableInflow & {
+
+    company_name: string;
+
+    bank_name: string;
+
+    bank_account_display: string;
+
+    reference_display: string;
+
+    counterparty_display: string;
+
+    description_display: string;
+
+    classification_label: string;
+
+    classification_review_label: string;
+
+    status_label: string;
+  };
+
+
+type TreasuryPendingReceivableTableRow =
+  entity.TreasuryPendingReceivable & {
+
+    invoice_display: string;
+
+    project_name: string;
+
+    status_label: string;
+
+    migration_label: string;
+  };
+
+
+interface TreasuryAvailableInflowUiFilters {
+
+  dateRange:
+  DateRangeValue | null;
+
+  search:
+  string;
+
+  company_id:
+  Catalog | number | string | null;
+
+  bank_id:
+  Catalog | number | string | null;
+
+  bank_account_id:
+  Catalog | number | string | null;
+
+  page:
+  number;
+
+  limit:
+  number;
+}
+
+
+interface TreasuryPendingReceivableUiFilters {
+
+  dateRange:
+  DateRangeValue | null;
+
+  search:
+  string;
+
+  project_id:
+  Catalog | number | string | null;
+
+  company_code:
+  string | null;
+
+  page:
+  number;
+
+  limit:
+  number;
+}
+
+
+// =========================================================
+// STORAGE
+// =========================================================
+
+const AVAILABLE_INFLOWS_FILTERS_KEY =
+  'mp_treasury_accounts_receivable_inflows_v1';
+
+const PENDING_RECEIVABLES_FILTERS_KEY =
+  'mp_treasury_accounts_receivable_pending_v1';
+
+
+// =========================================================
+// HEADER
+// =========================================================
+
+const HEADER_CONFIG:
+  ModuleHeaderConfig = {};
+
+
+// =========================================================
+// OPCIONES
+// =========================================================
+
+const COMPANY_CODE_OPTIONS:
+  Catalog[] = [
+
+    {
+      id: 'MUDECPLAY',
+      name: 'MUDECPLAY',
+    },
+
+    {
+      id: 'CONSTRUCTORA_PELEN',
+      name: 'CONSTRUCTORA PELEN',
+    },
+  ];
+
+
+// =========================================================
+// CHIPS: MOVIMIENTOS
+// =========================================================
+
+function resolveInflowStatusVariant(
+  row:
+    TreasuryAvailableInflowTableRow,
+): ColumnVariant {
+
+  switch (row.status) {
+
+    case 'matched':
+    case 'manually_closed':
+      return 'chip-success';
+
+    case 'unmatched':
+    case 'partially_matched':
+      return 'chip-warning';
+
+    case 'cancelled':
+      return 'chip-danger';
+
+    default:
+      return 'chip-neutral';
+  }
+}
+
+
+function resolveInflowClassificationVariant(
+  row:
+    TreasuryAvailableInflowTableRow,
+): ColumnVariant {
+
+  return row.is_collectable
+    ? 'chip-success'
+    : 'chip-warning';
+}
+
+
+function resolveInflowReviewVariant(
+  row:
+    TreasuryAvailableInflowTableRow,
+): ColumnVariant {
+
+  return row.classification_reviewed
+    ? 'chip-success'
+    : 'chip-warning';
+}
+
+
+// =========================================================
+// CHIPS: CxC
+// =========================================================
+
+function resolveReceivableStatusVariant(
+  row:
+    TreasuryPendingReceivableTableRow,
+): ColumnVariant {
+
+  switch (row.status) {
+
+    case 'partial':
+      return 'chip-warning';
+
+    case 'collected':
+      return 'chip-success';
+
+    case 'pending':
+    default:
+      return 'chip-danger';
+  }
+}
+
+
+function resolveMigrationVariant(
+  row:
+    TreasuryPendingReceivableTableRow,
+): ColumnVariant {
+
+  return row.requires_legacy_migration
+    ? 'chip-danger'
+    : 'chip-success';
+}
+
+
+// =========================================================
+// COLUMNAS: ENTRADAS BANCARIAS
+// =========================================================
+
+const AVAILABLE_INFLOW_COLUMNS:
+  ColumnsConfig[] = [
+
+    {
+      key: 'movement_date',
+      label: 'Fecha',
+      type: 'date',
+    },
+
+    {
+      key: 'available_amount',
+      label: 'Disponible',
+      type: 'money',
+      align: 'right',
+    },
+
+    {
+      key: 'amount',
+      label: 'Monto original',
+      type: 'money',
+      align: 'right',
+    },
+
+    {
+      key: 'counterparty_display',
+      label: 'Contraparte',
+    },
+
+    {
+      key: 'description_display',
+      label: 'Descripción',
+    },
+
+    {
+      key: 'classification_label',
+      label: 'Clasificación',
+      type: 'chip',
+
+      variantResolver: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) =>
+        resolveInflowClassificationVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'classification_review_label',
+      label: 'Revisión',
+      type: 'chip',
+
+      variantResolver: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) =>
+        resolveInflowReviewVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'company_name',
+      label: 'Empresa',
+    },
+
+    {
+      key: 'bank_name',
+      label: 'Banco',
+    },
+
+    {
+      key: 'bank_account_display',
+      label: 'Cuenta',
+    },
+
+    {
+      key: 'status_label',
+      label: 'Estatus',
+      type: 'chip',
+
+      variantResolver: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) =>
+        resolveInflowStatusVariant(
+          row,
+        ),
+    },
+  ];
+
+
+const AVAILABLE_INFLOW_DISPLAYED_COLUMNS =
+  [
+    ...AVAILABLE_INFLOW_COLUMNS.map(
+      (
+        column,
+      ) =>
+        column.key,
+    ),
+
+    'actions',
+  ];
+
+
+// =========================================================
+// COLUMNAS: CxC PENDIENTES
+// =========================================================
+
+const PENDING_RECEIVABLE_COLUMNS:
+  ColumnsConfig[] = [
+
+    {
+      key: 'issue_date',
+      label: 'Fecha',
+      type: 'date',
+    },
+
+    {
+      key: 'pending_amount',
+      label: 'Pendiente',
+      type: 'money',
+      align: 'right',
+    },
+
+    {
+      key: 'total',
+      label: 'Total',
+      type: 'money',
+      align: 'right',
+    },
+
+    {
+      key: 'collected_amount',
+      label: 'Cobrado',
+      type: 'money',
+      align: 'right',
+    },
+
+    {
+      key: 'invoice_display',
+      label: 'Factura',
+    },
+
+    {
+      key: 'receiver_name',
+      label: 'Cliente',
+    },
+
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+    },
+
+    {
+      key: 'estimated_collection_date',
+      label: 'Cobro estimado',
+      type: 'date',
+    },
+
+    {
+      key: 'status_label',
+      label: 'Estatus',
+      type: 'chip',
+
+      variantResolver: (
+        row:
+          TreasuryPendingReceivableTableRow,
+      ) =>
+        resolveReceivableStatusVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'migration_label',
+      label: 'Migración',
+      type: 'chip',
+
+      variantResolver: (
+        row:
+          TreasuryPendingReceivableTableRow,
+      ) =>
+        resolveMigrationVariant(
+          row,
+        ),
+    },
+  ];
+
+
+const PENDING_RECEIVABLE_DISPLAYED_COLUMNS =
+  [
+    ...PENDING_RECEIVABLE_COLUMNS.map(
+      (
+        column,
+      ) =>
+        column.key,
+    ),
+
+    'actions',
+  ];
+
+
+// =========================================================
+// COMPONENT
+// =========================================================
 
 @Component({
-  selector: 'app-treasury-accounts-receivable',
-  imports: [],
-  templateUrl: './treasury-accounts-receivable.html',
-  styleUrl: './treasury-accounts-receivable.scss',
-})
-export class TreasuryAccountsReceivable {
+  selector:
+    'app-treasury-accounts-receivable',
 
+  standalone: true,
+
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+
+    ModuleHeader,
+    DataTable,
+
+    InputDate,
+    InputField,
+    InputSelect,
+    Autocomplete,
+
+    BtnsSection,
+    LoadingOverlay,
+
+    MatPaginatorModule,
+    MatIconModule,
+    MatButtonModule,
+  ],
+
+  templateUrl:
+    './treasury-accounts-receivable.html',
+
+  styleUrl:
+    './treasury-accounts-receivable.scss',
+})
+export class TreasuryAccountsReceivable
+  implements OnInit {
+
+  // =======================================================
+  // INYECCIONES
+  // =======================================================
+
+  private readonly accountsReceivableService =
+    inject(
+      TreasuryAccountsReceivableService,
+    );
+
+  private readonly catalogsService =
+    inject(
+      CatalogsService,
+    );
+
+      private readonly dialogService =
+        inject(
+          DialogService,
+        );
+
+  private readonly storage =
+    inject(
+      LocalStorageService,
+    );
+
+  private readonly fb =
+    inject(
+      FormBuilder,
+    );
+
+
+  // =======================================================
+  // UI
+  // =======================================================
+
+  readonly headerConfig =
+    HEADER_CONFIG;
+
+  readonly companyCodeOptions =
+    COMPANY_CODE_OPTIONS;
+
+  readonly availableInflowColumns =
+    AVAILABLE_INFLOW_COLUMNS;
+
+  readonly availableInflowDisplayedColumns =
+    AVAILABLE_INFLOW_DISPLAYED_COLUMNS;
+
+  readonly pendingReceivableColumns =
+    PENDING_RECEIVABLE_COLUMNS;
+
+  readonly pendingReceivableDisplayedColumns =
+    PENDING_RECEIVABLE_DISPLAYED_COLUMNS;
+
+  readonly tableActionPermissions = {
+    showEdit: false,
+    showDelete: false,
+  };
+
+
+  // =======================================================
+  // LOADING
+  // =======================================================
+
+  readonly loadingClassification =
+    signal(false);
+
+  readonly loadingCatalogs =
+    signal(false);
+
+  readonly loadingInflows =
+    signal(false);
+
+  readonly loadingReceivables =
+    signal(false);
+
+  readonly loadingPage =
+    computed(
+      () =>
+        this.loadingCatalogs() ||
+        this.loadingInflows() ||
+        this.loadingReceivables(),
+    );
+
+
+  // =======================================================
+  // CATÁLOGOS
+  // =======================================================
+
+  companyOptions:
+    Catalog[] = [];
+
+  bankOptions:
+    Catalog[] = [];
+
+  bankAccountOptions:
+    Catalog[] = [];
+
+
+  // =======================================================
+  // FILTROS BACKEND
+  // =======================================================
+
+  inflowFilters:
+    entity.TreasuryAvailableInflowFilters = {
+
+      page:
+        1,
+
+      limit:
+        10,
+
+      search:
+        '',
+
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      bank_account_id:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+    };
+
+
+  receivableFilters:
+    entity.TreasuryPendingReceivableFilters = {
+
+      page:
+        1,
+
+      limit:
+        10,
+
+      search:
+        '',
+
+      project_id:
+        null,
+
+      company_code:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+    };
+
+
+  // =======================================================
+  // FORMULARIOS DE FILTROS
+  // =======================================================
+
+  readonly inflowFilterForm =
+    this.fb.group({
+
+      dateRange:
+        this.fb.control<
+          DateRangeValue | null
+        >(
+          null,
+        ),
+
+      search:
+        this.fb.control<string>(
+          '',
+        ),
+
+      company_id:
+        this.fb.control<
+          Catalog |
+          number |
+          string |
+          null
+        >(
+          null,
+        ),
+
+      bank_id:
+        this.fb.control<
+          Catalog |
+          number |
+          string |
+          null
+        >(
+          null,
+        ),
+
+      bank_account_id:
+        this.fb.control<
+          Catalog |
+          number |
+          string |
+          null
+        >(
+          null,
+        ),
+    });
+
+
+  readonly receivableFilterForm =
+    this.fb.group({
+
+      dateRange:
+        this.fb.control<
+          DateRangeValue | null
+        >(
+          null,
+        ),
+
+      search:
+        this.fb.control<string>(
+          '',
+        ),
+
+      project_id:
+        this.fb.control<
+          Catalog |
+          number |
+          string |
+          null
+        >(
+          null,
+        ),
+
+      company_code:
+        this.fb.control<
+          string | null
+        >(
+          null,
+        ),
+    });
+
+
+  // =======================================================
+  // RESPUESTAS
+  // =======================================================
+
+  inflowsTableData:
+    entity.TreasuryAvailableInflowsResponse = {
+
+      data:
+        [],
+
+      summary: {
+        movements_count:
+          0,
+
+        available_amount:
+          0,
+      },
+
+      meta: {
+        page:
+          1,
+
+        limit:
+          10,
+
+        total:
+          0,
+
+        total_pages:
+          0,
+      },
+    };
+
+
+  receivablesTableData:
+    entity.TreasuryPendingReceivablesResponse = {
+
+      data:
+        [],
+
+      summary: {
+        receivables_count:
+          0,
+
+        total_amount:
+          0,
+
+        collected_amount:
+          0,
+
+        pending_amount:
+          0,
+      },
+
+      meta: {
+        page:
+          1,
+
+        limit:
+          10,
+
+        total:
+          0,
+
+        total_pages:
+          0,
+      },
+    };
+
+
+  availableInflowRows:
+    TreasuryAvailableInflowTableRow[] =
+    [];
+
+
+  pendingReceivableRows:
+    TreasuryPendingReceivableTableRow[] =
+    [];
+
+
+  // =======================================================
+  // SELECCIÓN PARA COBRO
+  // =======================================================
+
+  readonly selectedMovement =
+    signal<
+      TreasuryAvailableInflowTableRow |
+      null
+    >(
+      null,
+    );
+
+
+  readonly selectedApplications =
+    signal<
+      Map<
+        number,
+        number
+      >
+    >(
+      new Map<
+        number,
+        number
+      >(),
+    );
+
+
+  readonly selectedReceivables =
+    signal<
+      Map<
+        number,
+        TreasuryPendingReceivableTableRow
+      >
+    >(
+      new Map<
+        number,
+        TreasuryPendingReceivableTableRow
+      >(),
+    );
+
+
+  readonly selectedApplicationsCount =
+    computed(
+      () =>
+        this
+          .selectedApplications()
+          .size,
+    );
+
+
+  readonly selectedApplicationsTotal =
+    computed(
+      () => {
+
+        const total =
+          Array
+            .from(
+              this
+                .selectedApplications()
+                .values(),
+            )
+            .reduce(
+              (
+                sum,
+                amount,
+              ) =>
+                sum +
+                Number(
+                  amount ||
+                  0,
+                ),
+              0,
+            );
+
+        return roundMoney(
+          total,
+        );
+      },
+    );
+
+
+  readonly selectedMovementRemaining =
+    computed(
+      () => {
+
+        const movement =
+          this.selectedMovement();
+
+        if (!movement) {
+          return 0;
+        }
+
+        const available =
+          roundMoney(
+            Number(
+              movement
+                .available_amount ??
+              0,
+            ),
+          );
+
+        return roundMoney(
+          Math.max(
+            available -
+            this.selectedApplicationsTotal(),
+            0,
+          ),
+        );
+      },
+    );
+
+
+  readonly selectedReceivablesRemaining =
+    computed(
+      () => {
+
+        const applications =
+          this.selectedApplications();
+
+        const total =
+          Array
+            .from(
+              this
+                .selectedReceivables()
+                .entries(),
+            )
+            .reduce(
+              (
+                sum,
+                [
+                  receivableId,
+                  receivable,
+                ],
+              ) => {
+
+                const currentPending =
+                  roundMoney(
+                    Number(
+                      receivable
+                        .pending_amount ??
+                      0,
+                    ),
+                  );
+
+                const amountToApply =
+                  roundMoney(
+                    Number(
+                      applications.get(
+                        receivableId,
+                      ) ??
+                      0,
+                    ),
+                  );
+
+                return (
+                  sum +
+                  Math.max(
+                    currentPending -
+                    amountToApply,
+                    0,
+                  )
+                );
+              },
+              0,
+            );
+
+        return roundMoney(
+          total,
+        );
+      },
+    );
+
+
+  readonly canPrepareCollection =
+    computed(
+      () => {
+
+        const movement =
+          this.selectedMovement();
+
+        if (!movement) {
+          return false;
+        }
+
+        const amount =
+          this.selectedApplicationsTotal();
+
+        return (
+          amount > 0 &&
+          this.selectedApplicationsCount() >
+          0 &&
+          this.selectedApplicationsCount() <=
+          200 &&
+          amount <=
+          Number(
+            movement
+              .available_amount ??
+            0,
+          )
+        );
+      },
+    );
+
+
+  // =======================================================
+  // ACCIONES TABLA: MOVIMIENTOS
+  // =======================================================
+
+  readonly inflowExtraActions:
+    DataTableExtraAction<
+      TreasuryAvailableInflowTableRow
+    >[] = [
+      {
+        type: 'confirmClassification',
+        icon: 'task_alt',
+
+        tooltip: (row) =>
+          row.classification
+            ? `Confirmar: ${row.classification_label}`
+            : 'El movimiento no tiene clasificación',
+
+        iconClass:
+          'table-action-icon--success',
+
+        visible: (row) =>
+          row.status === 'unmatched' &&
+          row.requires_classification_review &&
+          !!row.classification,
+
+        disabled: () =>
+          this.loadingClassification(),
+      },
+      {
+        type: 'changeClassification',
+        icon: 'edit',
+
+        tooltip:
+          'Cambiar clasificación',
+
+        visible: (row) =>
+          row.status === 'unmatched',
+
+        disabled: () =>
+          this.loadingClassification(),
+      },
+      {
+        type:
+          'selectMovement',
+
+        icon:
+          'check_circle',
+
+        iconClass:
+          'table-action-icon--success',
+
+        tooltip: (
+          row,
+        ) => {
+
+          if (
+            row
+              .requires_classification_review
+          ) {
+
+            return (
+              'Primero confirma o cambia la clasificación'
+            );
+          }
+
+          if (
+            !row.is_collectable
+          ) {
+
+            return (
+              'Esta clasificación no puede utilizarse para Cuentas por Cobrar'
+            );
+          }
+
+          return (
+            'Seleccionar movimiento para cobro'
+          );
+        },
+
+        disabled: (
+          row,
+        ) =>
+          row
+            .requires_classification_review ||
+          !row
+            .is_collectable,
+
+        visible: (
+          row,
+        ) =>
+          this
+            .selectedMovement()
+            ?.id !==
+          row.id,
+      },
+
+      {
+        type:
+          'clearMovementSelection',
+
+        icon:
+          'cancel',
+
+        iconClass:
+          'table-action-icon--danger',
+
+        tooltip:
+          'Deseleccionar movimiento',
+
+        visible: (
+          row,
+        ) =>
+          this
+            .selectedMovement()
+            ?.id ===
+          row.id,
+      },
+    ];
+
+
+  // =======================================================
+  // ACCIONES TABLA: CxC
+  // =======================================================
+
+  readonly receivableExtraActions:
+    DataTableExtraAction<
+      TreasuryPendingReceivableTableRow
+    >[] = [
+
+      {
+        type:
+          'addReceivable',
+
+        icon:
+          'add_circle',
+
+        iconClass:
+          'table-action-icon--success',
+
+        tooltip: (
+          row,
+        ) => {
+
+          if (
+            row
+              .requires_legacy_migration
+          ) {
+
+            return (
+              'Esta CxC requiere migración de información financiera legacy'
+            );
+          }
+
+          if (
+            !this
+              .selectedMovement()
+          ) {
+
+            return (
+              'Primero selecciona una entrada bancaria'
+            );
+          }
+
+          return (
+            'Agregar cuenta por cobrar'
+          );
+        },
+
+        visible: (
+          row,
+        ) =>
+          !this
+            .selectedApplications()
+            .has(
+              row.id,
+            ),
+
+        disabled: (
+          row,
+        ) =>
+          !this
+            .selectedMovement() ||
+          row
+            .requires_legacy_migration,
+      },
+
+      {
+        type:
+          'removeReceivable',
+
+        icon:
+          'remove_circle',
+
+        iconClass:
+          'table-action-icon--danger',
+
+        tooltip:
+          'Quitar cuenta por cobrar',
+
+        visible: (
+          row,
+        ) =>
+          this
+            .selectedApplications()
+            .has(
+              row.id,
+            ),
+      },
+    ];
+
+
+  // =======================================================
+  // CICLO DE VIDA
+  // =======================================================
+
+  ngOnInit():
+    void {
+
+    this.restoreFiltersFromStorage();
+
+    this.loadCatalogs();
+
+    this.loadAvailableInflows();
+
+    this.loadPendingReceivables();
+  }
+
+
+  // =======================================================
+  // CATÁLOGOS
+  // =======================================================
+
+  private loadCatalogs():
+    void {
+
+    this.loadingCatalogs.set(
+      true,
+    );
+
+    forkJoin({
+
+      companies:
+        this.catalogsService
+          .treasuryCompaniesCatalog(),
+
+      banks:
+        this.catalogsService
+          .treasuryBanksCatalog(),
+
+      bankAccounts:
+        this.catalogsService
+          .treasuryBankAccountsCatalog(
+            false,
+          ),
+    })
+      .pipe(
+        finalize(
+          () =>
+            this.loadingCatalogs.set(
+              false,
+            ),
+        ),
+      )
+      .subscribe({
+
+        next: ({
+          companies,
+          banks,
+          bankAccounts,
+        }) => {
+
+          this.companyOptions =
+            companies ??
+            [];
+
+          this.bankOptions =
+            banks ??
+            [];
+
+          this.bankAccountOptions =
+            bankAccounts ??
+            [];
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error cargando catálogos de Tesorería CxC:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  // =======================================================
+  // CARGAR ENTRADAS BANCARIAS
+  // =======================================================
+
+  loadAvailableInflows():
+    void {
+
+    if (
+      this.loadingInflows()
+    ) {
+      return;
+    }
+
+    this.loadingInflows.set(
+      true,
+    );
+
+    this.accountsReceivableService
+      .getAvailableInflows(
+        this.inflowFilters,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.loadingInflows.set(
+              false,
+            ),
+        ),
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          this.inflowsTableData =
+            response;
+
+          this.availableInflowRows =
+            (
+              response.data ??
+              []
+            ).map(
+              (
+                row,
+              ) =>
+                this.mapAvailableInflowRow(
+                  row,
+                ),
+            );
+
+          const selected =
+            this.selectedMovement();
+
+          if (
+            selected &&
+            !this
+              .availableInflowRows
+              .some(
+                (
+                  row,
+                ) =>
+                  row.id ===
+                  selected.id,
+              )
+          ) {
+
+            this.clearCollectionSelection();
+          }
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error cargando entradas bancarias disponibles:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  // =======================================================
+  // CARGAR CxC PENDIENTES
+  // =======================================================
+
+  loadPendingReceivables():
+    void {
+
+    if (
+      this.loadingReceivables()
+    ) {
+      return;
+    }
+
+    this.loadingReceivables.set(
+      true,
+    );
+
+    this.accountsReceivableService
+      .getPendingReceivables(
+        this.receivableFilters,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.loadingReceivables.set(
+              false,
+            ),
+        ),
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          this.receivablesTableData =
+            response;
+
+          this.pendingReceivableRows =
+            (
+              response.data ??
+              []
+            ).map(
+              (
+                row,
+              ) =>
+                this.mapPendingReceivableRow(
+                  row,
+                ),
+            );
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error cargando cuentas por cobrar pendientes:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  // =======================================================
+  // MAPEO: MOVIMIENTO
+  // =======================================================
+
+  private mapAvailableInflowRow(
+    row:
+      entity.TreasuryAvailableInflow,
+  ): TreasuryAvailableInflowTableRow {
+
+    return {
+      ...row,
+
+      company_name:
+        row.company
+          ?.name ??
+        'Empresa no identificada',
+
+      bank_name:
+        row.bank
+          ?.name ??
+        'Sin banco',
+
+      bank_account_display:
+        this.getBankAccountDisplay(
+          row,
+        ),
+
+      reference_display:
+        row.bank_reference
+          ?.trim() ||
+        row.receipt_number
+          ?.trim() ||
+        row.tracking_key
+          ?.trim() ||
+        `Movimiento ${row.id}`,
+
+      counterparty_display:
+        row.counterparty_name
+          ?.trim() ||
+        row.counterparty_account
+          ?.trim() ||
+        'Sin contraparte',
+
+      description_display:
+        row.description_original
+          ?.trim() ||
+        'Sin descripción',
+
+      classification_label:
+        this.getClassificationLabel(
+          row.classification,
+        ),
+
+      classification_review_label:
+        row.classification_reviewed
+          ? 'Revisada'
+          : 'Pendiente',
+
+      status_label:
+        this.getMovementStatusLabel(
+          row.status,
+        ),
+    };
+  }
+
+
+  // =======================================================
+  // MAPEO: CxC
+  // =======================================================
+
+  private mapPendingReceivableRow(
+    row:
+      entity.TreasuryPendingReceivable,
+  ): TreasuryPendingReceivableTableRow {
+
+    return {
+      ...row,
+
+      invoice_display:
+        row.series
+          ? `${row.series}-${row.folio}`
+          : row.folio,
+
+      project_name:
+        row.project
+          ?.name
+          ?.trim() ||
+        'Sin proyecto',
+
+      status_label:
+        this.getReceivableStatusLabel(
+          row.status,
+        ),
+
+      migration_label:
+        row.requires_legacy_migration
+          ? 'Requiere migración'
+          : 'Lista',
+    };
+  }
+
+
+  // =======================================================
+  // FILTROS: ENTRADAS
+  // =======================================================
+
+  searchAvailableInflows():
+    void {
+
+    const value =
+      this.inflowFilterForm
+        .getRawValue();
+
+    const uiState:
+      TreasuryAvailableInflowUiFilters = {
+
+      dateRange:
+        value.dateRange ??
+        null,
+
+      search:
+        value.search
+          ?.trim() ||
+        '',
+
+      company_id:
+        value.company_id ??
+        null,
+
+      bank_id:
+        value.bank_id ??
+        null,
+
+      bank_account_id:
+        value.bank_account_id ??
+        null,
+
+      page:
+        1,
+
+      limit:
+        this
+          .inflowFilters
+          .limit,
+    };
+
+    this.inflowFilters =
+      this.buildInflowBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveInflowFiltersToStorage(
+      uiState,
+    );
+
+    this.loadAvailableInflows();
+  }
+
+
+  clearAvailableInflowFilters():
+    void {
+
+    this.inflowFilterForm.reset(
+      {
+        dateRange:
+          null,
+
+        search:
+          '',
+
+        company_id:
+          null,
+
+        bank_id:
+          null,
+
+        bank_account_id:
+          null,
+      },
+      {
+        emitEvent:
+          false,
+      },
+    );
+
+    this.inflowFilters = {
+
+      page:
+        1,
+
+      limit:
+        this
+          .inflowFilters
+          .limit,
+
+      search:
+        '',
+
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      bank_account_id:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+    };
+
+    this.storage.removeItem(
+      AVAILABLE_INFLOWS_FILTERS_KEY,
+    );
+
+    this.loadAvailableInflows();
+  }
+
+
+  private buildInflowBackendFiltersFromUi(
+    ui:
+      TreasuryAvailableInflowUiFilters,
+  ): entity.TreasuryAvailableInflowFilters {
+
+    return {
+
+      page:
+        ui.page,
+
+      limit:
+        ui.limit,
+
+      search:
+        ui.search
+          ?.trim() ||
+        '',
+
+      company_id:
+        this.getNumberId(
+          ui.company_id,
+        ),
+
+      bank_id:
+        this.getNumberId(
+          ui.bank_id,
+        ),
+
+      bank_account_id:
+        this.getNumberId(
+          ui.bank_account_id,
+        ),
+
+      date_from:
+        ui.dateRange
+          ?.startDate ??
+        null,
+
+      date_to:
+        ui.dateRange
+          ?.endDate ??
+        null,
+    };
+  }
+
+
+  onAvailableInflowPageChange(
+    event:
+      PageEvent,
+  ): void {
+
+    this.inflowFilters.page =
+      event.pageIndex + 1;
+
+    this.inflowFilters.limit =
+      event.pageSize;
+
+    this.saveInflowFiltersToStorage();
+
+    this.loadAvailableInflows();
+  }
+
+
+  get hasActiveInflowFilters():
+    boolean {
+
+    const value =
+      this.inflowFilterForm
+        .getRawValue();
+
+    return Boolean(
+
+      value.dateRange
+        ?.startDate ||
+
+      value.dateRange
+        ?.endDate ||
+
+      value.search
+        ?.trim() ||
+
+      this.getCatalogValue(
+        value.company_id,
+      ) ||
+
+      this.getCatalogValue(
+        value.bank_id,
+      ) ||
+
+      this.getCatalogValue(
+        value.bank_account_id,
+      )
+    );
+  }
+
+
+  // =======================================================
+  // FILTROS: CxC
+  // =======================================================
+
+  searchPendingReceivables():
+    void {
+
+    const value =
+      this.receivableFilterForm
+        .getRawValue();
+
+    const uiState:
+      TreasuryPendingReceivableUiFilters = {
+
+      dateRange:
+        value.dateRange ??
+        null,
+
+      search:
+        value.search
+          ?.trim() ||
+        '',
+
+      project_id:
+        value.project_id ??
+        null,
+
+      company_code:
+        value.company_code ??
+        null,
+
+      page:
+        1,
+
+      limit:
+        this
+          .receivableFilters
+          .limit,
+    };
+
+    this.receivableFilters =
+      this.buildReceivableBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveReceivableFiltersToStorage(
+      uiState,
+    );
+
+    this.loadPendingReceivables();
+  }
+
+
+  clearPendingReceivableFilters():
+    void {
+
+    this.receivableFilterForm.reset(
+      {
+        dateRange:
+          null,
+
+        search:
+          '',
+
+        project_id:
+          null,
+
+        company_code:
+          null,
+      },
+      {
+        emitEvent:
+          false,
+      },
+    );
+
+    this.receivableFilters = {
+
+      page:
+        1,
+
+      limit:
+        this
+          .receivableFilters
+          .limit,
+
+      search:
+        '',
+
+      project_id:
+        null,
+
+      company_code:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+    };
+
+    this.storage.removeItem(
+      PENDING_RECEIVABLES_FILTERS_KEY,
+    );
+
+    this.loadPendingReceivables();
+  }
+
+
+  private buildReceivableBackendFiltersFromUi(
+    ui:
+      TreasuryPendingReceivableUiFilters,
+  ): entity.TreasuryPendingReceivableFilters {
+
+    return {
+
+      page:
+        ui.page,
+
+      limit:
+        ui.limit,
+
+      search:
+        ui.search
+          ?.trim() ||
+        '',
+
+      project_id:
+        this.getNumberId(
+          ui.project_id,
+        ),
+
+      company_code:
+        ui.company_code ??
+        null,
+
+      date_from:
+        ui.dateRange
+          ?.startDate ??
+        null,
+
+      date_to:
+        ui.dateRange
+          ?.endDate ??
+        null,
+    };
+  }
+
+
+  onPendingReceivablePageChange(
+    event:
+      PageEvent,
+  ): void {
+
+    this.receivableFilters.page =
+      event.pageIndex + 1;
+
+    this.receivableFilters.limit =
+      event.pageSize;
+
+    this.saveReceivableFiltersToStorage();
+
+    this.loadPendingReceivables();
+  }
+
+
+  get hasActiveReceivableFilters():
+    boolean {
+
+    const value =
+      this.receivableFilterForm
+        .getRawValue();
+
+    return Boolean(
+
+      value.dateRange
+        ?.startDate ||
+
+      value.dateRange
+        ?.endDate ||
+
+      value.search
+        ?.trim() ||
+
+      this.getCatalogValue(
+        value.project_id,
+      ) ||
+
+      value.company_code
+    );
+  }
+
+
+  // =======================================================
+  // BTN SECTIONS
+  // =======================================================
+
+  onInflowBtnsSectionAction(
+    action:
+      string,
+  ): void {
+
+    switch (action) {
+
+      case 'search':
+
+        this.searchAvailableInflows();
+
+        break;
+
+
+      case 'clean':
+
+        this.clearAvailableInflowFilters();
+
+        break;
+    }
+  }
+
+
+  onReceivableBtnsSectionAction(
+    action:
+      string,
+  ): void {
+
+    switch (action) {
+
+      case 'search':
+
+        this.searchPendingReceivables();
+
+        break;
+
+
+      case 'clean':
+
+        this.clearPendingReceivableFilters();
+
+        break;
+    }
+  }
+
+
+  // =======================================================
+  // ACCIONES: MOVIMIENTO
+  // =======================================================
+
+  onInflowTableAction(
+    event:
+      DataTableActionEvent<
+        TreasuryAvailableInflowTableRow
+      >,
+  ): void {
+
+    switch (event.type) {
+
+      case 'selectMovement':
+
+        this.selectMovement(
+          event.row,
+        );
+
+        break;
+
+
+      case 'confirmClassification':
+        this.confirmMovementClassification(
+          event.row,
+        );
+        break;
+
+
+      case 'changeClassification':
+        this.openClassificationModal(
+          event.row,
+        );
+        break;
+
+
+      case 'clearMovementSelection':
+
+        this.clearCollectionSelection();
+
+        break;
+    }
+  }
+
+  private openClassificationModal(
+    movement:
+      entity.TreasuryAvailableInflow,
+  ): void {
+
+    if (
+      !movement?.id ||
+      movement.status !== 'unmatched'
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryBankMovementClassificationModalData = {
+      movement,
+    };
+
+    this.dialogService
+      .open(
+        ModalAccountsReceivableClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryUpdateBankMovementClassificationResponse
+            | null,
+        ) => {
+
+          if (!result?.success) {
+            return;
+          }
+
+          if (
+            this.selectedMovement()?.id ===
+            movement.id
+          ) {
+            this.clearCollectionSelection();
+          }
+
+          this.loadAvailableInflows();
+        },
+      );
+  }
+
+
+  private confirmMovementClassification(
+    row:
+      TreasuryAvailableInflowTableRow,
+  ): void {
+
+    if (
+      this.loadingClassification() ||
+      !row?.id ||
+      row.status !== 'unmatched' ||
+      !row.classification ||
+      !row.requires_classification_review
+    ) {
+      return;
+    }
+
+
+    this.loadingClassification.set(
+      true,
+    );
+
+
+    this.accountsReceivableService
+      .updateBankMovementClassification(
+        row.id,
+        {
+          classification:
+            row.classification as
+            entity.TreasuryBankMovementInflowReviewClassification,
+
+          reason:
+            'Clasificación revisada y confirmada desde Cuentas por cobrar.',
+        },
+      )
+      .pipe(
+        finalize(() =>
+          this.loadingClassification.set(
+            false,
+          ),
+        ),
+      )
+      .subscribe({
+        next: (response) => {
+
+          if (!response?.success) {
+            return;
+          }
+
+          this.loadAvailableInflows();
+        },
+
+        error: (
+          error: unknown,
+        ) => {
+
+          console.error(
+            'Error confirmando clasificación de entrada:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  private selectMovement(
+    row:
+      TreasuryAvailableInflowTableRow,
+  ): void {
+
+    if (
+      !row.is_collectable ||
+      row
+        .requires_classification_review
+    ) {
+
+      return;
+    }
+
+    const current =
+      this.selectedMovement();
+
+    if (
+      current &&
+      current.id !==
+      row.id
+    ) {
+
+      this.selectedApplications.set(
+        new Map<
+          number,
+          number
+        >(),
+      );
+
+      this.selectedReceivables.set(
+        new Map<
+          number,
+          TreasuryPendingReceivableTableRow
+        >(),
+      );
+    }
+
+    this.selectedMovement.set(
+      row,
+    );
+  }
+
+
+  // =======================================================
+  // ACCIONES: CxC
+  // =======================================================
+
+  onReceivableTableAction(
+    event:
+      DataTableActionEvent<
+        TreasuryPendingReceivableTableRow
+      >,
+  ): void {
+
+    switch (event.type) {
+
+      case 'addReceivable':
+
+        this.addReceivable(
+          event.row,
+        );
+
+        break;
+
+
+      case 'removeReceivable':
+
+        this.removeReceivable(
+          event.row,
+        );
+
+        break;
+    }
+  }
+
+
+  private addReceivable(
+    row:
+      TreasuryPendingReceivableTableRow,
+  ): void {
+
+    const movement =
+      this.selectedMovement();
+
+    if (!movement) {
+      return;
+    }
+
+    if (
+      row
+        .requires_legacy_migration
+    ) {
+
+      return;
+    }
+
+    if (
+      this
+        .selectedReceivables()
+        .has(
+          row.id,
+        )
+    ) {
+
+      return;
+    }
+
+    if (
+      this
+        .selectedMovementRemaining() <=
+      0
+    ) {
+
+      return;
+    }
+
+    this.selectedReceivables
+      .update(
+        (
+          current,
+        ) => {
+
+          const next =
+            new Map(
+              current,
+            );
+
+          next.set(
+            row.id,
+            row,
+          );
+
+          return next;
+        },
+      );
+
+    this.recalculateSelectedApplications();
+  }
+
+
+  private removeReceivable(
+    row:
+      TreasuryPendingReceivableTableRow,
+  ): void {
+
+    this.selectedReceivables
+      .update(
+        (
+          current,
+        ) => {
+
+          const next =
+            new Map(
+              current,
+            );
+
+          next.delete(
+            row.id,
+          );
+
+          return next;
+        },
+      );
+
+    this.recalculateSelectedApplications();
+  }
+
+
+  // =======================================================
+  // DISTRIBUCIÓN AUTOMÁTICA
+  // =======================================================
+
+  private recalculateSelectedApplications():
+    void {
+
+    const movement =
+      this.selectedMovement();
+
+    if (!movement) {
+
+      this.selectedApplications.set(
+        new Map<
+          number,
+          number
+        >(),
+      );
+
+      return;
+    }
+
+    let remaining =
+      roundMoney(
+        Number(
+          movement
+            .available_amount ??
+          0,
+        ),
+      );
+
+    const applications =
+      new Map<
+        number,
+        number
+      >();
+
+
+    /*
+     * Map conserva el orden de inserción.
+     *
+     * Por lo tanto, el disponible del movimiento
+     * se distribuye en el mismo orden en que el
+     * usuario agregó las CxC.
+     */
+    for (
+      const [
+        receivableId,
+        receivable,
+      ]
+      of this
+        .selectedReceivables()
+    ) {
+
+      if (
+        remaining <=
+        0
+      ) {
+        break;
+      }
+
+      const pending =
+        roundMoney(
+          Number(
+            receivable
+              .pending_amount ??
+            0,
+          ),
+        );
+
+      if (
+        pending <=
+        0
+      ) {
+        continue;
+      }
+
+      const amountToApply =
+        roundMoney(
+          Math.min(
+            remaining,
+            pending,
+          ),
+        );
+
+      if (
+        amountToApply <=
+        0
+      ) {
+        continue;
+      }
+
+      applications.set(
+        receivableId,
+        amountToApply,
+      );
+
+      remaining =
+        roundMoney(
+          remaining -
+          amountToApply,
+        );
+    }
+
+    this.selectedApplications.set(
+      applications,
+    );
+  }
+
+
+  // =======================================================
+  // LIMPIAR SELECCIÓN
+  // =======================================================
+
+  clearCollectionSelection():
+    void {
+
+    this.selectedMovement.set(
+      null,
+    );
+
+    this.selectedApplications.set(
+      new Map<
+        number,
+        number
+      >(),
+    );
+
+    this.selectedReceivables.set(
+      new Map<
+        number,
+        TreasuryPendingReceivableTableRow
+      >(),
+    );
+  }
+
+
+  // =======================================================
+  // REFRESCAR AMBOS PANELES
+  // Será utilizado después por apply/reverse/close.
+  // =======================================================
+
+  reloadCollectionTables():
+    void {
+
+    this.loadAvailableInflows();
+
+    this.loadPendingReceivables();
+  }
+
+
+  // =======================================================
+  // STORAGE
+  // =======================================================
+
+  private restoreFiltersFromStorage():
+    void {
+
+    const savedInflows =
+      this.storage.getItem<
+        TreasuryAvailableInflowUiFilters
+      >(
+        AVAILABLE_INFLOWS_FILTERS_KEY,
+      );
+
+    if (savedInflows) {
+
+      this.inflowFilterForm
+        .patchValue(
+          {
+            dateRange:
+              savedInflows
+                .dateRange,
+
+            search:
+              savedInflows
+                .search,
+
+            company_id:
+              savedInflows
+                .company_id,
+
+            bank_id:
+              savedInflows
+                .bank_id,
+
+            bank_account_id:
+              savedInflows
+                .bank_account_id,
+          },
+          {
+            emitEvent:
+              false,
+          },
+        );
+
+      this.inflowFilters =
+        this.buildInflowBackendFiltersFromUi(
+          savedInflows,
+        );
+    }
+
+
+    const savedReceivables =
+      this.storage.getItem<
+        TreasuryPendingReceivableUiFilters
+      >(
+        PENDING_RECEIVABLES_FILTERS_KEY,
+      );
+
+    if (savedReceivables) {
+
+      this.receivableFilterForm
+        .patchValue(
+          {
+            dateRange:
+              savedReceivables
+                .dateRange,
+
+            search:
+              savedReceivables
+                .search,
+
+            project_id:
+              savedReceivables
+                .project_id,
+
+            company_code:
+              savedReceivables
+                .company_code,
+          },
+          {
+            emitEvent:
+              false,
+          },
+        );
+
+      this.receivableFilters =
+        this.buildReceivableBackendFiltersFromUi(
+          savedReceivables,
+        );
+    }
+  }
+
+
+  private saveInflowFiltersToStorage(
+    state?:
+      TreasuryAvailableInflowUiFilters,
+  ): void {
+
+    if (!state) {
+
+      const value =
+        this.inflowFilterForm
+          .getRawValue();
+
+      state = {
+
+        dateRange:
+          value.dateRange ??
+          null,
+
+        search:
+          value.search ??
+          '',
+
+        company_id:
+          value.company_id ??
+          null,
+
+        bank_id:
+          value.bank_id ??
+          null,
+
+        bank_account_id:
+          value.bank_account_id ??
+          null,
+
+        page:
+          this
+            .inflowFilters
+            .page,
+
+        limit:
+          this
+            .inflowFilters
+            .limit,
+      };
+    }
+
+    this.storage.setItem(
+      AVAILABLE_INFLOWS_FILTERS_KEY,
+      state,
+    );
+  }
+
+
+  private saveReceivableFiltersToStorage(
+    state?:
+      TreasuryPendingReceivableUiFilters,
+  ): void {
+
+    if (!state) {
+
+      const value =
+        this.receivableFilterForm
+          .getRawValue();
+
+      state = {
+
+        dateRange:
+          value.dateRange ??
+          null,
+
+        search:
+          value.search ??
+          '',
+
+        project_id:
+          value.project_id ??
+          null,
+
+        company_code:
+          value.company_code ??
+          null,
+
+        page:
+          this
+            .receivableFilters
+            .page,
+
+        limit:
+          this
+            .receivableFilters
+            .limit,
+      };
+    }
+
+    this.storage.setItem(
+      PENDING_RECEIVABLES_FILTERS_KEY,
+      state,
+    );
+  }
+
+
+  // =======================================================
+  // HELPERS
+  // =======================================================
+
+  private getCatalogValue(
+    value:
+      | Catalog
+      | number
+      | string
+      | null
+      | undefined,
+  ):
+    number |
+    string |
+    null {
+
+    if (
+      value ===
+      null ||
+      value ===
+      undefined ||
+      value ===
+      ''
+    ) {
+
+      return null;
+    }
+
+    if (
+      typeof value ===
+      'number' ||
+      typeof value ===
+      'string'
+    ) {
+
+      return value;
+    }
+
+    return value.id;
+  }
+
+
+  private getNumberId(
+    value:
+      unknown,
+  ): number | null {
+
+    const raw =
+      this.getCatalogValue(
+        value as
+        | Catalog
+        | number
+        | string
+        | null,
+      );
+
+    if (
+      raw ===
+      null
+    ) {
+
+      return null;
+    }
+
+    const parsed =
+      Number(
+        raw,
+      );
+
+    if (
+      !Number.isInteger(
+        parsed,
+      ) ||
+      parsed <=
+      0
+    ) {
+
+      return null;
+    }
+
+    return parsed;
+  }
+
+
+  private getBankAccountDisplay(
+    row:
+      entity.TreasuryAvailableInflow,
+  ): string {
+
+    const alias =
+      row.bank_account
+        ?.alias
+        ?.trim();
+
+    const identifier =
+      row.bank_account
+        ?.account_identifier
+        ?.trim();
+
+    if (
+      alias &&
+      identifier
+    ) {
+
+      return (
+        `${alias} · ${identifier}`
+      );
+    }
+
+    if (alias) {
+      return alias;
+    }
+
+    if (identifier) {
+      return identifier;
+    }
+
+    return 'Sin cuenta';
+  }
+
+
+  private getMovementStatusLabel(
+    status:
+      string |
+      null |
+      undefined,
+  ): string {
+
+    switch (status) {
+
+      case 'unmatched':
+        return 'Sin conciliar';
+
+      case 'partially_matched':
+        return 'Parcial';
+
+      case 'matched':
+        return 'Conciliado';
+
+      case 'manually_closed':
+        return 'Cerrado manualmente';
+
+      case 'cancelled':
+        return 'Cancelado';
+
+      default:
+        return (
+          status ||
+          'Sin estatus'
+        );
+    }
+  }
+
+
+  private getReceivableStatusLabel(
+    status:
+      entity.TreasuryAccountsReceivableFinancialStatus,
+  ): string {
+
+    switch (status) {
+
+      case 'partial':
+        return 'Parcial';
+
+      case 'collected':
+        return 'Cobrada';
+
+      case 'pending':
+      default:
+        return 'Pendiente';
+    }
+  }
+
+
+  /**
+   * No mantenemos un catálogo paralelo
+   * hardcodeado de clasificaciones.
+   *
+   * Solo convertimos el código recibido
+   * por backend a una etiqueta legible.
+   */
+  private getClassificationLabel(
+    classification:
+      string |
+      null |
+      undefined,
+  ): string {
+
+    if (
+      !classification
+        ?.trim()
+    ) {
+
+      return 'Sin clasificación';
+    }
+
+    const normalized =
+      classification
+        .trim()
+        .replace(
+          /_/g,
+          ' ',
+        );
+
+    return (
+      normalized
+        .charAt(
+          0,
+        )
+        .toUpperCase() +
+      normalized.slice(
+        1,
+      )
+    );
+  }
 }

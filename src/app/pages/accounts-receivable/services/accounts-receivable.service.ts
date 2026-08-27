@@ -1,152 +1,362 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import {
+  HttpClient,
+  HttpParams,
+} from '@angular/common/http';
+
+import {
+  Injectable,
+} from '@angular/core';
+
+import {
+  Observable,
+} from 'rxjs';
+
+import {
+  environment,
+} from '../../../../environments/environment';
+
 import {
   ApiSuccess,
   PaginatedResponse,
 } from '../../../shared/interfaces/general-interfaces';
-import * as entity from '../interfaces/accounts-receivable-interfaces';
+
+import * as entity
+  from '../interfaces/accounts-receivable-interfaces';
+
 
 @Injectable({
   providedIn: 'root',
 })
 export class AccountsReceivableService {
-  private apiUrl = `${environment.apiUrl}/accounts-receivable`;
 
-  // ==========================
-  //  COLA DE XML
-  // ==========================
-  private xmlDraftQueue: entity.XmlAccountReceivableDraftDto[] = [];
+  private readonly apiUrl =
+    `${environment.apiUrl}/accounts-receivable`;
+
+  private xmlDraftQueue:
+    entity.XmlAccountReceivableDraftDto[] = [];
+
   private xmlDraftQueueIndex = 0;
 
-  constructor(private readonly http: HttpClient) {}
 
-  // ==========================
-  //  LISTADO / DETALLE
-  // ==========================
+  // =========================================================
+  // LISTADO
+  // =========================================================
+
   getAccountsReceivable(
-    filters?: entity.FiltersAccountsReceivable,
-  ): Observable<PaginatedResponse<entity.AccountReceivableResponseDto>> {
-    let params = new HttpParams();
+    filters?:
+      entity.FiltersAccountsReceivable,
+  ): Observable<
+    PaginatedResponse<
+      entity.AccountReceivableResponseDto
+    >
+  > {
+
+    let params =
+      new HttpParams();
 
     if (filters) {
-      if (filters.page != null) {
-        params = params.set('page', String(filters.page));
+
+      if (
+        filters.page !==
+        undefined
+      ) {
+        params =
+          params.set(
+            'page',
+            String(filters.page),
+          );
       }
 
-      if (filters.limit != null) {
-        params = params.set('limit', String(filters.limit));
+      if (
+        filters.limit !==
+        undefined
+      ) {
+        params =
+          params.set(
+            'limit',
+            String(filters.limit),
+          );
       }
 
       if (filters.startDate) {
-        params = params.set('startDate', filters.startDate);
+        params =
+          params.set(
+            'startDate',
+            filters.startDate,
+          );
       }
 
       if (filters.endDate) {
-        params = params.set('endDate', filters.endDate);
+        params =
+          params.set(
+            'endDate',
+            filters.endDate,
+          );
       }
 
-      if (filters.folio?.trim()) {
-        params = params.set('folio', filters.folio.trim());
+      if (
+        filters.folio?.trim()
+      ) {
+        params =
+          params.set(
+            'folio',
+            filters.folio.trim(),
+          );
       }
 
-      if (filters.companyCode?.trim()) {
-        params = params.set('companyCode', filters.companyCode.trim());
+      if (
+        filters.companyCode?.trim()
+      ) {
+        params =
+          params.set(
+            'companyCode',
+            filters.companyCode.trim(),
+          );
       }
 
-      if (filters.clientQuery?.trim()) {
-        params = params.set('clientQuery', filters.clientQuery.trim());
+      if (
+        filters.clientQuery?.trim()
+      ) {
+        params =
+          params.set(
+            'clientQuery',
+            filters.clientQuery.trim(),
+          );
       }
 
       if (filters.status) {
-        params = params.set('status', filters.status);
+        params =
+          params.set(
+            'status',
+            filters.status,
+          );
       }
     }
 
-    return this.http.get<PaginatedResponse<entity.AccountReceivableResponseDto>>(
+    return this.http.get<
+      PaginatedResponse<
+        entity.AccountReceivableResponseDto
+      >
+    >(
       this.apiUrl,
-      { params },
+      {
+        params,
+      },
     );
   }
 
-  getById(id: number): Observable<entity.AccountReceivableDetail> {
-    return this.http.get<entity.AccountReceivableDetail>(`${this.apiUrl}/${id}`);
+
+  // =========================================================
+  // DETALLE
+  // =========================================================
+
+  getById(
+    id: number,
+  ): Observable<
+    entity.AccountReceivableDetail
+  > {
+
+    return this.http.get<
+      entity.AccountReceivableDetail
+    >(
+      `${this.apiUrl}/${id}`,
+    );
   }
 
-  // ==========================
-  //  CREATE / UPDATE / DELETE
-  // ==========================
-  create(payload: entity.CreateAccountReceivable): Observable<ApiSuccess> {
-    return this.http.post<ApiSuccess>(this.apiUrl, payload);
+
+  // =========================================================
+  // CREATE
+  // =========================================================
+
+  create(
+    payload:
+      entity.CreateAccountReceivable,
+  ): Observable<ApiSuccess> {
+
+    return this.http.post<
+      ApiSuccess
+    >(
+      this.apiUrl,
+      payload,
+    );
   }
+
+
+  // =========================================================
+  // UPDATE
+  // =========================================================
 
   update(
     id: number,
-    payload: entity.UpdateAccountReceivable,
+    payload:
+      entity.UpdateAccountReceivable,
   ): Observable<ApiSuccess> {
-    return this.http.patch<ApiSuccess>(`${this.apiUrl}/${id}`, payload);
+
+    return this.http.patch<
+      ApiSuccess
+    >(
+      `${this.apiUrl}/${id}`,
+      payload,
+    );
   }
 
-  remove(id: number): Observable<ApiSuccess> {
-    return this.http.delete<ApiSuccess>(`${this.apiUrl}/${id}`);
+
+  // =========================================================
+  // DELETE
+  // =========================================================
+
+  remove(
+    id: number,
+  ): Observable<ApiSuccess> {
+
+    return this.http.delete<
+      ApiSuccess
+    >(
+      `${this.apiUrl}/${id}`,
+    );
   }
 
-  // ==========================
-  //  ANTICIPOS
-  // ==========================
+
+  // =========================================================
+  // ANTICIPOS LEGACY
+  // =========================================================
+
+  /**
+   * Se conserva temporalmente hasta el cutover.
+   *
+   * No utilizar para el nuevo flujo financiero
+   * de Tesorería CxC.
+   */
   addAdvance(
     id: number,
-    payload: entity.CreateAccountReceivableAdvance,
+    payload:
+      entity.CreateAccountReceivableAdvance,
   ): Observable<ApiSuccess> {
-    return this.http.post<ApiSuccess>(`${this.apiUrl}/${id}/advances`, payload);
+
+    return this.http.post<
+      ApiSuccess
+    >(
+      `${this.apiUrl}/${id}/advances`,
+      payload,
+    );
   }
 
-  // ==========================
-  //  XML PREVIEW
-  // ==========================
+
+  // =========================================================
+  // XML PREVIEW
+  // =========================================================
+
   uploadXml(
     files: File[],
-  ): Observable<entity.XmlImportAccountReceivableResponseDto> {
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
+  ): Observable<
+    entity.XmlImportAccountReceivableResponseDto
+  > {
 
-    return this.http.post<entity.XmlImportAccountReceivableResponseDto>(
+    const formData =
+      new FormData();
+
+    files.forEach(
+      (file) =>
+        formData.append(
+          'files',
+          file,
+        ),
+    );
+
+    return this.http.post<
+      entity.XmlImportAccountReceivableResponseDto
+    >(
       `${this.apiUrl}/xml/preview`,
       formData,
     );
   }
 
-  // ==========================
-  //  COLA DE XML
-  // ==========================
-  setXmlQueueToImport(drafts: entity.XmlAccountReceivableDraftDto[]): void {
-    this.xmlDraftQueue = drafts ?? [];
-    this.xmlDraftQueueIndex = 0;
+
+  // =========================================================
+  // COLA XML
+  // =========================================================
+
+  setXmlQueueToImport(
+    drafts:
+      entity.XmlAccountReceivableDraftDto[],
+  ): void {
+
+    this.xmlDraftQueue =
+      drafts ?? [];
+
+    this.xmlDraftQueueIndex =
+      0;
   }
 
-  consumeNextXmlDraft(): entity.XmlAccountReceivableDraftDto | null {
-    if (!this.xmlDraftQueue.length) return null;
-    if (this.xmlDraftQueueIndex >= this.xmlDraftQueue.length) return null;
 
-    const draft = this.xmlDraftQueue[this.xmlDraftQueueIndex];
+  consumeNextXmlDraft():
+    entity.XmlAccountReceivableDraftDto |
+    null {
+
+    if (
+      !this.xmlDraftQueue.length
+    ) {
+      return null;
+    }
+
+    if (
+      this.xmlDraftQueueIndex >=
+      this.xmlDraftQueue.length
+    ) {
+      return null;
+    }
+
+    const draft =
+      this.xmlDraftQueue[
+        this.xmlDraftQueueIndex
+      ];
+
     this.xmlDraftQueueIndex++;
+
     return draft;
   }
 
+
   hasMoreXmlDrafts(): boolean {
-    return this.xmlDraftQueueIndex < this.xmlDraftQueue.length;
+
+    return (
+      this.xmlDraftQueueIndex <
+      this.xmlDraftQueue.length
+    );
   }
 
-  getXmlQueueStatus(): entity.XmlQueueState {
-    const total = this.xmlDraftQueue.length;
-    const pending = Math.max(total - this.xmlDraftQueueIndex, 0);
 
-    return { total, pending };
+  getXmlQueueStatus():
+    entity.XmlQueueState {
+
+    const total =
+      this.xmlDraftQueue.length;
+
+    const pending =
+      Math.max(
+        total -
+        this.xmlDraftQueueIndex,
+        0,
+      );
+
+    return {
+      total,
+      pending,
+    };
   }
+
 
   clearXmlQueue(): void {
+
     this.xmlDraftQueue = [];
-    this.xmlDraftQueueIndex = 0;
+
+    this.xmlDraftQueueIndex =
+      0;
   }
+
+
+  constructor(
+    private readonly http:
+      HttpClient,
+  ) {}
 }
