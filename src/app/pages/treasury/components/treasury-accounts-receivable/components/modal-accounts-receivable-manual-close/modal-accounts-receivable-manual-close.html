@@ -1,0 +1,345 @@
+<div class="c-modal accounts-receivable-manual-close-modal">
+
+  <app-module-header
+    title="Cerrar saldo bancario"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+
+  <div class="accounts-receivable-manual-close-modal__body">
+
+    <!-- ===============================================
+         MOVIMIENTO
+         =============================================== -->
+
+    <section class="manual-close-movement-card">
+
+      <div class="manual-close-movement-card__header">
+
+        <div class="manual-close-movement-card__identity">
+
+          <div class="manual-close-movement-card__icon">
+            <mat-icon>
+              account_balance
+            </mat-icon>
+          </div>
+
+          <div>
+
+            <span>
+              Referencia bancaria
+            </span>
+
+            <strong>
+              {{ referenceDisplay }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <span class="manual-close-status">
+          Saldo disponible
+        </span>
+
+      </div>
+
+
+      <div class="manual-close-movement-card__grid">
+
+        <div>
+
+          <span>
+            Empresa
+          </span>
+
+          <strong>
+            {{
+              movement.company?.name ||
+              'Empresa no identificada'
+            }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Banco
+          </span>
+
+          <strong>
+            {{
+              movement.bank?.name ||
+              'Sin banco'
+            }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Cuenta
+          </span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Fecha
+          </span>
+
+          <strong>
+            {{
+              formatDate(
+                movement.movement_date
+              )
+            }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="manual-close-movement-card__description">
+
+        <span>
+          Descripción
+        </span>
+
+        <strong>
+          {{
+            movement.description_original ||
+            'Sin descripción'
+          }}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===============================================
+         DISTRIBUCIÓN
+         =============================================== -->
+
+    <section class="manual-close-amounts">
+
+      <article class="manual-close-amount-card">
+
+        <div class="manual-close-amount-card__icon">
+          <mat-icon>
+            payments
+          </mat-icon>
+        </div>
+
+        <div>
+
+          <span>
+            Monto original
+          </span>
+
+          <strong>
+            {{
+              originalAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <article class="manual-close-amount-card">
+
+        <div class="manual-close-amount-card__icon">
+          <mat-icon>
+            task_alt
+          </mat-icon>
+        </div>
+
+        <div>
+
+          <span>
+            Total aplicado
+          </span>
+
+          <strong class="manual-close-amount--success">
+            {{
+              appliedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <article
+        class="
+          manual-close-amount-card
+          manual-close-amount-card--warning
+        ">
+
+        <div class="manual-close-amount-card__icon">
+          <mat-icon>
+            lock
+          </mat-icon>
+        </div>
+
+        <div>
+
+          <span>
+            Saldo que se cerrará
+          </span>
+
+          <strong class="manual-close-amount--warning">
+            {{
+              availableAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <article class="manual-close-amount-card">
+
+        <div class="manual-close-amount-card__icon">
+          <mat-icon>
+            account_balance_wallet
+          </mat-icon>
+        </div>
+
+        <div>
+
+          <span>
+            Disponible después
+          </span>
+
+          <strong>
+            {{
+              0
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ===============================================
+         ADVERTENCIA
+         =============================================== -->
+
+    <section class="manual-close-warning">
+
+      <mat-icon>
+        warning
+      </mat-icon>
+
+      <div>
+
+        <strong>
+          Este saldo dejará de estar disponible para cobros
+        </strong>
+
+        <p>
+          El saldo de
+          <strong>
+            {{
+              availableAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+          se registrará como cerrado manualmente.
+
+          No se creará ningún cobro y
+          no se modificará el saldo de ninguna
+          cuenta por cobrar.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===============================================
+         FORMULARIO
+         =============================================== -->
+
+    <form
+      id="form"
+      class="manual-close-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-field
+        formControlName="reason"
+        label="Motivo del cierre"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+  </div>
+
+
+  <!-- ===============================================
+       FOOTER
+       =============================================== -->
+
+  <app-btns-section
+    class="accounts-receivable-manual-close-modal__footer"
+    type="save"
+    form="form"
+    cancelLabel="Cerrar"
+    saveLabel="Cerrar saldo"
+    saveVariant="danger"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Cerrando saldo...">
+  </app-loading-overlay>
+
+</div>

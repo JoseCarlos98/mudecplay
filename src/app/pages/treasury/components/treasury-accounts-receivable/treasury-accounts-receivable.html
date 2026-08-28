@@ -437,12 +437,37 @@
 
         <div class="selected-bank-movement__actions">
 
+          @if (
+          isAdmin &&
+          movement.available_amount > 0
+          ) {
+
           <button type="button" class="
-                accounts-receivable-button
-                accounts-receivable-button--neutral
-              " (click)="
-                clearCollectionSelection()
-              ">
+        accounts-receivable-button
+        accounts-receivable-button--warning
+      " (click)="
+        openManualClose(
+          movement
+        )
+      ">
+
+            <mat-icon>
+              lock
+            </mat-icon>
+
+            Cerrar saldo
+
+          </button>
+
+          }
+
+
+          <button type="button" class="
+      accounts-receivable-button
+      accounts-receivable-button--neutral
+    " (click)="
+      clearCollectionSelection()
+    ">
 
             <mat-icon>
               close
@@ -754,13 +779,13 @@
 
         }
 
-  <button type="button" class="btn-primary" [disabled]="!canPrepareCollection()" (click)="prepareCollection()">
-    <mat-icon>
-      payments
-    </mat-icon>
+        <button type="button" class="btn-primary" [disabled]="!canPrepareCollection()" (click)="prepareCollection()">
+          <mat-icon>
+            payments
+          </mat-icon>
 
-    Aplicar cobro
-  </button>
+          Aplicar cobro
+        </button>
       </footer>
 
     </section>

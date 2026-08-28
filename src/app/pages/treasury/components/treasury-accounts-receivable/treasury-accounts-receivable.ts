@@ -121,6 +121,8 @@ import * as entity
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsReceivable } from './components/modal-treasury-accounts-receivable/modal-treasury-accounts-receivable';
 import { ModalReceivableHistory } from './components/modal-receivable-history/modal-receivable-history';
+import { PermissionsService } from '../../../../auth/services/permissions.service';
+import { ModalAccountsReceivableManualClose } from './components/modal-accounts-receivable-manual-close/modal-accounts-receivable-manual-close';
 
 
 // =========================================================
@@ -598,6 +600,11 @@ export class TreasuryAccountsReceivable
       DialogService,
     );
 
+  private readonly permissionsService =
+    inject(
+      PermissionsService,
+    );
+
   private readonly storage =
     inject(
       LocalStorageService,
@@ -675,6 +682,13 @@ export class TreasuryAccountsReceivable
   bankAccountOptions:
     Catalog[] = [];
 
+  get isAdmin():
+    boolean {
+
+    return this
+      .permissionsService
+      .isAdmin();
+  }
 
   // =======================================================
   // FILTROS BACKEND
@@ -2282,6 +2296,74 @@ export class TreasuryAccountsReceivable
           );
         },
       });
+  }
+
+  openManualClose(
+    movement:
+      TreasuryAvailableInflowTableRow,
+  ): void {
+
+    if (
+      !this.permissionsService.isAdmin() ||
+      !movement?.id ||
+      Number(
+        movement.available_amount ??
+        0,
+      ) <= 0
+    ) {
+
+      return;
+    }
+
+
+    const modalData:
+      entity.TreasuryReceivableManualCloseModalData = {
+
+      movement,
+
+    };
+
+
+    this.dialogService
+      .open(
+        ModalAccountsReceivableManualClose,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryReceivableMovementMutationResponse
+            | null,
+        ) => {
+
+          if (
+            !result?.success
+          ) {
+
+            return;
+          }
+
+
+          /*
+           * El residual quedó cerrado y el movimiento
+           * dejará de formar parte de available-inflows.
+           *
+           * También limpiamos las CxC seleccionadas
+           * porque ya no pueden utilizar ese movimiento.
+           */
+          this.clearCollectionSelection();
+
+
+          /*
+           * Refrescamos ambos paneles.
+           */
+          this.loadAvailableInflows();
+
+          this.loadPendingReceivables();
+        },
+      );
   }
 
 
