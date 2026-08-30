@@ -997,11 +997,15 @@ export interface TreasuryReceivableHistoryModalData {
 // DATOS PARA MODAL DE HISTORIAL DE MOVIMIENTO
 // =========================================================
 
-export interface TreasuryReceivableBankMovementHistoryModalData {
-  movement:
-    TreasuryAvailableInflow;
-}
+// export interface TreasuryReceivableBankMovementHistoryModalData {
+//   movement:
+//     TreasuryAvailableInflow;
+// }
 
+export interface TreasuryReceivableBankMovementHistoryModalData {
+  movement_id:
+    string;
+}
 
 // =========================================================
 // DATOS PARA MODAL DE REVERSA

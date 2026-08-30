@@ -48,6 +48,7 @@ import { ModalAccountsPayableHistory } from '../treasury-accounts-payable/compon
 import { TreasuryAccountsReceivableService } from '../treasury-accounts-receivable/services/treasury-accounts-receivable.service';
 import { TreasuryReceivableBankMovementHistoryResponse, TreasuryReceivableManualReopenModalData, TreasuryReceivableMovementMutationResponse } from '../treasury-accounts-receivable/interfaces/treasury-accounts-receivable.interfaces';
 import { ModalAccountsReceivableManualReopen } from '../treasury-accounts-receivable/components/modal-accounts-receivable-manual-reopen/modal-accounts-receivable-manual-reopen';
+import { ModalReceivableMovementHistory } from '../treasury-accounts-receivable/components/modal-receivable-movement-history/modal-receivable-movement-history';
 
 // =========================================================
 // TESORERÍA: MOVIMIENTOS BANCARIOS - CONSTANTES
@@ -806,36 +807,82 @@ export class TreasuryBankMovements implements OnInit {
     row:
       entity.TreasuryBankMovementTableRow,
   ): void {
-    if (!row?.id) {
+
+    if (
+      !row?.id
+    ) {
+
       return;
     }
 
-    this.dialogService
-      .open(
-        ModalAccountsPayableHistory,
-        {
-          movement: row,
-        },
-        'large',
-      )
-      .afterClosed()
-      .subscribe(
-        (
-          historyChanged:
-            boolean | null,
-        ) => {
-          if (!historyChanged) {
-            return;
-          }
 
-          /*
-           * Si desde el historial se revierte un pago
-           * o se modifica el movimiento, refresca la
-           * tabla conservando filtros y paginación.
-           */
-          this.loadBankMovements();
-        },
-      );
+    // =======================================================
+    // ENTRADA → HISTORIAL CxC
+    // =======================================================
+
+    if (
+      row.movement_type ===
+      'inflow'
+    ) {
+
+      this.dialogService
+        .open(
+          ModalReceivableMovementHistory,
+          {
+            movement_id:
+              String(
+                row.id,
+              ),
+          },
+          'large',
+        );
+
+      return;
+    }
+
+
+    // =======================================================
+    // SALIDA → HISTORIAL CxP ACTUAL
+    // =======================================================
+
+    if (
+      row.movement_type ===
+      'outflow'
+    ) {
+
+      this.dialogService
+        .open(
+          ModalAccountsPayableHistory,
+          {
+            movement:
+              row,
+          },
+          'large',
+        )
+        .afterClosed()
+        .subscribe(
+          (
+            historyChanged:
+              boolean |
+              null,
+          ) => {
+
+            if (
+              !historyChanged
+            ) {
+
+              return;
+            }
+
+
+            /*
+             * Conservamos exactamente el comportamiento
+             * existente de CxP.
+             */
+            this.loadBankMovements();
+          },
+        );
+    }
   }
 
   openManualReopenReceivable(

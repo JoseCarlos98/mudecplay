@@ -1,0 +1,738 @@
+.movement-history-modal {
+  position: relative;
+
+  max-height: 90vh;
+
+  display: grid;
+
+  grid-template-rows:
+    auto
+    minmax(0, 1fr)
+    auto;
+
+  overflow: hidden;
+
+
+  &__body {
+    min-height: 0;
+
+    padding:
+      0.8rem
+      1rem;
+
+    display: grid;
+
+    align-content: start;
+
+    gap: 1rem;
+
+    overflow-y: auto;
+  }
+}
+
+
+/* =========================================================
+ * RESUMEN
+ * ========================================================= */
+
+.movement-summary {
+  padding: 0.9rem;
+
+  border:
+    1px solid #dbe4ee;
+
+  border-radius:
+    0.8rem;
+
+  background:
+    #f8fafc;
+
+
+  &__header {
+    display: flex;
+
+    justify-content:
+      space-between;
+
+    align-items:
+      center;
+
+    gap: 1rem;
+  }
+
+
+  &__identity {
+    display: flex;
+
+    align-items:
+      center;
+
+    gap: 0.65rem;
+
+
+    mat-icon {
+      color: #0284c7;
+    }
+
+
+    > div {
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.1rem;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.68rem;
+    }
+
+
+    strong {
+      color: #172033;
+
+      font-size: 0.88rem;
+    }
+  }
+
+
+  &__status {
+    padding:
+      0.25rem
+      0.55rem;
+
+    border-radius:
+      999px;
+
+    background:
+      #e2e8f0;
+
+    color:
+      #475569;
+
+    font-size:
+      0.65rem;
+
+    font-weight:
+      700;
+  }
+
+
+  &__data {
+    margin-top:
+      0.8rem;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+
+    gap: 0.7rem;
+
+
+    > div {
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.1rem;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.65rem;
+    }
+
+
+    strong {
+      color: #334155;
+
+      font-size: 0.72rem;
+    }
+  }
+
+
+  &__description {
+    margin-top: 0.8rem;
+
+    padding-top: 0.7rem;
+
+    display: flex;
+
+    flex-direction:
+      column;
+
+    gap: 0.15rem;
+
+    border-top:
+      1px dashed #cbd5e1;
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.65rem;
+    }
+
+
+    strong {
+      color: #334155;
+
+      font-size: 0.7rem;
+
+      line-height: 1.45;
+    }
+  }
+
+
+  &__amounts {
+    margin-top: 0.8rem;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+
+    gap: 0.65rem;
+
+
+    article {
+      padding: 0.65rem;
+
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.1rem;
+
+      border:
+        1px solid #e2e8f0;
+
+      border-radius:
+        0.6rem;
+
+      background:
+        #ffffff;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.63rem;
+    }
+
+
+    strong {
+      color: #172033;
+
+      font-size: 0.78rem;
+    }
+  }
+}
+
+
+.amount--success {
+  color:
+    #15803d !important;
+}
+
+
+.amount--warning {
+  color:
+    #c2410c !important;
+}
+
+
+.amount--available {
+  color:
+    #0369a1 !important;
+}
+
+
+/* =========================================================
+ * SECCIONES
+ * ========================================================= */
+
+.history-section {
+  display: grid;
+
+  gap: 0.7rem;
+
+
+  &__header {
+    display: flex;
+
+    align-items:
+      center;
+
+    gap: 0.5rem;
+
+
+    mat-icon {
+      color: #475569;
+    }
+
+
+    > div {
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.05rem;
+    }
+
+
+    strong {
+      color: #172033;
+
+      font-size: 0.82rem;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.65rem;
+    }
+  }
+}
+
+
+/* =========================================================
+ * COLLECTIONS
+ * ========================================================= */
+
+.collection-list,
+.action-list {
+  display: grid;
+
+  gap: 0.65rem;
+}
+
+
+.collection-card {
+  padding: 0.8rem;
+
+  display: grid;
+
+  gap: 0.65rem;
+
+  border:
+    1px solid #dbe4ee;
+
+  border-radius:
+    0.7rem;
+
+  background:
+    #ffffff;
+
+
+  &--reversed {
+    border-color:
+      #fecaca;
+
+    background:
+      #fffafa;
+  }
+
+
+  &__header {
+    display: flex;
+
+    justify-content:
+      space-between;
+
+    align-items:
+      center;
+
+    gap: 1rem;
+
+
+    > div {
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.1rem;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.65rem;
+    }
+
+
+    strong {
+      color: #172033;
+
+      font-size: 0.82rem;
+    }
+  }
+
+
+  &__status {
+    padding:
+      0.2rem
+      0.5rem;
+
+    border-radius:
+      999px;
+
+    background:
+      #dcfce7;
+
+    color:
+      #15803d;
+
+    font-size:
+      0.62rem;
+
+    font-weight:
+      700;
+
+
+    &--reversed {
+      background:
+        #fee2e2;
+
+      color:
+        #b91c1c;
+    }
+  }
+
+
+  &__meta {
+    display: flex;
+
+    flex-wrap:
+      wrap;
+
+    gap: 1rem;
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.64rem;
+    }
+  }
+
+
+  &__notes {
+    padding: 0.55rem;
+
+    display: flex;
+
+    align-items:
+      center;
+
+    gap: 0.4rem;
+
+    border-radius:
+      0.5rem;
+
+    background:
+      #f1f5f9;
+
+    color:
+      #475569;
+
+    font-size:
+      0.65rem;
+
+
+    mat-icon {
+      width: 1rem;
+      height: 1rem;
+
+      font-size: 1rem;
+    }
+  }
+
+
+  &__reversal {
+    padding: 0.6rem;
+
+    display: flex;
+
+    gap: 0.5rem;
+
+    border-radius:
+      0.55rem;
+
+    background:
+      #fee2e2;
+
+    color:
+      #b91c1c;
+
+
+    mat-icon {
+      flex-shrink: 0;
+    }
+
+
+    > div {
+      display: flex;
+
+      flex-direction:
+        column;
+
+      gap: 0.1rem;
+    }
+
+
+    strong {
+      font-size: 0.7rem;
+    }
+
+
+    span {
+      font-size: 0.64rem;
+    }
+  }
+}
+
+
+/* =========================================================
+ * APPLICATIONS
+ * ========================================================= */
+
+.application-list {
+  display: grid;
+
+  gap: 0.4rem;
+}
+
+
+.application-card {
+  padding: 0.55rem;
+
+  display: grid;
+
+  grid-template-columns:
+    0.7fr
+    1.5fr
+    0.8fr
+    auto;
+
+  align-items:
+    center;
+
+  gap: 0.65rem;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    0.55rem;
+
+
+  &--reversed {
+    background:
+      #fff7f7;
+  }
+
+
+  > div {
+    display: flex;
+
+    flex-direction:
+      column;
+
+    gap: 0.05rem;
+  }
+
+
+  span {
+    color: #64748b;
+
+    font-size: 0.6rem;
+  }
+
+
+  strong {
+    color: #334155;
+
+    font-size: 0.67rem;
+  }
+
+
+  &__status {
+    font-weight:
+      700;
+  }
+}
+
+
+/* =========================================================
+ * ACCIONES
+ * ========================================================= */
+
+.action-card {
+  padding: 0.7rem;
+
+  display: grid;
+
+  gap: 0.4rem;
+
+  border:
+    1px solid #e2e8f0;
+
+  border-radius:
+    0.65rem;
+
+  background:
+    #ffffff;
+
+
+  header {
+    display: flex;
+
+    justify-content:
+      space-between;
+
+    gap: 1rem;
+
+
+    strong {
+      color: #172033;
+
+      font-size: 0.73rem;
+    }
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.62rem;
+    }
+  }
+
+
+  p {
+    margin: 0;
+
+    color: #475569;
+
+    font-size: 0.66rem;
+  }
+
+
+  &__changes {
+    display: flex;
+
+    flex-wrap:
+      wrap;
+
+    gap: 1rem;
+
+
+    span {
+      color: #64748b;
+
+      font-size: 0.63rem;
+    }
+  }
+}
+
+
+.history-empty {
+  padding: 1rem;
+
+  border:
+    1px dashed #cbd5e1;
+
+  border-radius:
+    0.7rem;
+
+  color: #64748b;
+
+  text-align:
+    center;
+
+  font-size: 0.7rem;
+}
+
+
+@media screen and (max-width: 760px) {
+
+  .movement-summary {
+
+    &__data,
+    &__amounts {
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0, 1fr)
+        );
+    }
+  }
+
+
+  .application-card {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+}
+
+
+@media screen and (max-width: 520px) {
+
+  .movement-summary {
+
+    &__header {
+      align-items:
+        flex-start;
+
+      flex-direction:
+        column;
+    }
+
+
+    &__data,
+    &__amounts {
+      grid-template-columns:
+        minmax(0, 1fr);
+    }
+  }
+
+
+  .application-card {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+
+  .action-card {
+
+    header {
+      flex-direction:
+        column;
+
+      gap: 0.15rem;
+    }
+  }
+}
