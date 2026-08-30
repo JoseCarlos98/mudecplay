@@ -45,6 +45,9 @@ import { TreasuryBankMovementHistoryCurrentMovement, TreasuryManualReopenBankMov
 import { roundMoney } from '../../../../shared/helpers/general-helpers';
 import { ModalBankMovementClassification } from '../treasury-accounts-payable/components/modal-bank-movement-classification/modal-bank-movement-classification';
 import { ModalAccountsPayableHistory } from '../treasury-accounts-payable/components/modal-accounts-payable-history/modal-accounts-payable-history';
+import { TreasuryAccountsReceivableService } from '../treasury-accounts-receivable/services/treasury-accounts-receivable.service';
+import { TreasuryReceivableBankMovementHistoryResponse, TreasuryReceivableManualReopenModalData, TreasuryReceivableMovementMutationResponse } from '../treasury-accounts-receivable/interfaces/treasury-accounts-receivable.interfaces';
+import { ModalAccountsReceivableManualReopen } from '../treasury-accounts-receivable/components/modal-accounts-receivable-manual-reopen/modal-accounts-receivable-manual-reopen';
 
 // =========================================================
 // TESORERÍA: MOVIMIENTOS BANCARIOS - CONSTANTES
@@ -189,7 +192,10 @@ export class TreasuryBankMovements implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
   private readonly dialogService = inject(DialogService);
-
+  private readonly accountsReceivableService =
+    inject(
+      TreasuryAccountsReceivableService,
+    );
   // =========================================================
   // CONFIG UI
   // =========================================================
@@ -724,6 +730,38 @@ export class TreasuryBankMovements implements OnInit {
             0,
           ) > 0,
       },
+
+      {
+        type:
+          'manualReopenReceivable',
+
+        icon:
+          'lock_open',
+
+        tooltip:
+          'Reabrir entrada CxC',
+
+        iconClass:
+          'table-action-icon--info',
+
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+
+        visible: (
+          row,
+        ) =>
+          row.movement_type ===
+          'inflow' &&
+
+          row.status ===
+          'manually_closed' &&
+
+          Number(
+            row.manual_closed_amount ??
+            0,
+          ) > 0,
+      },
     ];
 
   onBankMovementTableAction(
@@ -737,6 +775,14 @@ export class TreasuryBankMovements implements OnInit {
         this.openMovementHistory(
           event.row,
         );
+        break;
+
+      case 'manualReopenReceivable':
+
+        this.openManualReopenReceivable(
+          event.row,
+        );
+
         break;
 
       case 'changeClassification':
@@ -791,6 +837,159 @@ export class TreasuryBankMovements implements OnInit {
         },
       );
   }
+
+  openManualReopenReceivable(
+    row:
+      entity.TreasuryBankMovementTableRow,
+  ): void {
+
+    const manualClosedAmount =
+      Number(
+        row.manual_closed_amount ??
+        0,
+      );
+
+
+    if (
+      !row?.id ||
+
+      row.movement_type !==
+      'inflow' ||
+
+      row.status !==
+      'manually_closed' ||
+
+      manualClosedAmount <= 0
+    ) {
+
+      return;
+    }
+
+
+    /*
+     * Consultamos el movimiento desde el contexto CxC.
+     *
+     * Así usamos el contrato REAL que espera
+     * TreasuryReceivableManualReopenModalData
+     * y no inventamos propiedades ni hacemos casts.
+     */
+    this.loadingTable.set(
+      true,
+    );
+
+
+    this.accountsReceivableService
+      .getBankMovementHistory(
+        String(
+          row.id,
+        ),
+      )
+      .pipe(
+
+        finalize(
+          () => {
+
+            this.loadingTable.set(
+              false,
+            );
+          },
+        ),
+      )
+      .subscribe({
+
+        next: (
+          response:
+            TreasuryReceivableBankMovementHistoryResponse,
+        ) => {
+
+          const movement =
+            response.bank_movement;
+
+
+          if (
+            !movement?.id ||
+
+            movement.status !==
+            'manually_closed' ||
+
+            Number(
+              movement.manual_closed_amount ??
+              0,
+            ) <= 0
+          ) {
+
+            return;
+          }
+
+
+          const modalData:
+            TreasuryReceivableManualReopenModalData = {
+
+            movement,
+          };
+
+
+          this.dialogService
+            .open(
+              ModalAccountsReceivableManualReopen,
+              modalData,
+              'medium',
+            )
+            .afterClosed()
+            .subscribe(
+              (
+                result:
+                  | TreasuryReceivableMovementMutationResponse
+                  | null,
+              ) => {
+
+                if (
+                  !result?.success
+                ) {
+
+                  return;
+                }
+
+
+                this.loadBankMovements();
+              },
+            );
+        },
+
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error cargando el movimiento CxC para reapertura:',
+            error,
+          );
+
+
+          this.dialogService
+            .confirm({
+
+              title:
+                'No se pudo cargar el movimiento',
+
+              message:
+                'No fue posible consultar la información del movimiento para reabrirlo.',
+
+              confirmText:
+                'Aceptar',
+
+              cancelText:
+                '',
+            })
+            .subscribe();
+        },
+
+      });
+  }
+
+
   openBankMovementClassification(
     row:
       entity.TreasuryBankMovementTableRow,
