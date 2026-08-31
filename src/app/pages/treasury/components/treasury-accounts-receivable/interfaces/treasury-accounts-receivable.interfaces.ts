@@ -74,7 +74,7 @@ export interface TreasuryAccountsReceivableBankAccount {
   account_identifier: string;
 
   alias:
-    string | null;
+  string | null;
 
   currency: string;
 }
@@ -93,28 +93,31 @@ export interface TreasuryAccountsReceivableProject {
 
 export interface TreasuryAvailableInflowFilters {
   company_id?:
-    number | null;
+  number | null;
 
   bank_id?:
-    number | null;
+  number | null;
 
   bank_account_id?:
-    number | null;
+  number | null;
+
+  amount:
+  number | null;
 
   date_from?:
-    string | null;
+  string | null;
 
   date_to?:
-    string | null;
+  string | null;
 
   search?:
-    string | null;
+  string | null;
 
   page:
-    number;
+  number;
 
   limit:
-    number;
+  number;
 }
 
 
@@ -129,67 +132,69 @@ export interface TreasuryAvailableInflow {
   movement_date: string;
 
   movement_time:
-    string | null;
+  string | null;
+
+  classification_selected: boolean,
 
   movement_type:
-    'inflow';
+  'inflow';
 
   status:
-    TreasuryAccountsReceivableBankMovementStatus;
+  TreasuryAccountsReceivableBankMovementStatus;
 
   classification:
-    string | null;
+  string | null;
 
   classification_reviewed:
-    boolean;
+  boolean;
 
   is_collectable:
-    boolean;
+  boolean;
 
   requires_classification_review:
-    boolean;
+  boolean;
 
   description_original:
-    string | null;
+  string | null;
 
   bank_reference:
-    string | null;
+  string | null;
 
   receipt_number:
-    string | null;
+  string | null;
 
   tracking_key:
-    string | null;
+  string | null;
 
   counterparty_name:
-    string | null;
+  string | null;
 
   counterparty_account:
-    string | null;
+  string | null;
 
   amount:
-    number;
+  number;
 
   available_amount:
-    number;
+  number;
 
   manual_closed_amount:
-    number;
+  number;
 
   applied_amount:
-    number;
+  number;
 
   notes:
-    string | null;
+  string | null;
 
   company:
-    TreasuryAccountsReceivableCompany | null;
+  TreasuryAccountsReceivableCompany | null;
 
   bank:
-    TreasuryAccountsReceivableBank | null;
+  TreasuryAccountsReceivableBank | null;
 
   bank_account:
-    TreasuryAccountsReceivableBankAccount | null;
+  TreasuryAccountsReceivableBankAccount | null;
 }
 
 
@@ -200,10 +205,10 @@ export interface TreasuryAvailableInflow {
 
 export interface TreasuryAvailableInflowsSummary {
   movements_count:
-    number;
+  number;
 
   available_amount:
-    number;
+  number;
 }
 
 
@@ -214,13 +219,13 @@ export interface TreasuryAvailableInflowsSummary {
 
 export interface TreasuryAvailableInflowsResponse {
   data:
-    TreasuryAvailableInflow[];
+  TreasuryAvailableInflow[];
 
   summary:
-    TreasuryAvailableInflowsSummary;
+  TreasuryAvailableInflowsSummary;
 
   meta:
-    TreasuryAccountsReceivablePaginationMeta;
+  TreasuryAccountsReceivablePaginationMeta;
 }
 
 
@@ -231,25 +236,28 @@ export interface TreasuryAvailableInflowsResponse {
 
 export interface TreasuryPendingReceivableFilters {
   date_from?:
-    string | null;
+  string | null;
 
   date_to?:
-    string | null;
+  string | null;
 
   project_id?:
-    number | null;
+  number | null;
 
   company_code?:
-    string | null;
+  string | null;
 
   search?:
-    string | null;
+  string | null;
+
+   amount?:
+    number | null;
 
   page:
-    number;
+  number;
 
   limit:
-    number;
+  number;
 }
 
 
@@ -262,70 +270,70 @@ export interface TreasuryPendingReceivable {
   id: number;
 
   cfdi_uuid:
-    string;
+  string;
 
   series:
-    string | null;
+  string | null;
 
   folio:
-    string;
+  string;
 
   company_code:
-    string;
+  string;
 
   emitter_rfc:
-    string;
+  string;
 
   emitter_name:
-    string;
+  string;
 
   receiver_rfc:
-    string;
+  string;
 
   receiver_name:
-    string;
+  string;
 
   issue_date:
-    string;
+  string;
 
   estimated_collection_date:
-    string | null;
+  string | null;
 
   subtotal:
-    number;
+  number;
 
   total:
-    number;
+  number;
 
   currency:
-    string;
+  string;
 
   collected_amount:
-    number;
+  number;
 
   pending_amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableFinancialStatus;
+  TreasuryAccountsReceivableFinancialStatus;
 
   financial_source:
-    TreasuryAccountsReceivableFinancialSource;
+  TreasuryAccountsReceivableFinancialSource;
 
   has_treasury_history:
-    boolean;
+  boolean;
 
   requires_legacy_migration:
-    boolean;
+  boolean;
 
   last_collection_date:
-    string | null;
+  string | null;
 
   fully_collected_date:
-    string | null;
+  string | null;
 
   project:
-    TreasuryAccountsReceivableProject | null;
+  TreasuryAccountsReceivableProject | null;
 }
 
 
@@ -336,16 +344,16 @@ export interface TreasuryPendingReceivable {
 
 export interface TreasuryPendingReceivablesSummary {
   receivables_count:
-    number;
+  number;
 
   total_amount:
-    number;
+  number;
 
   collected_amount:
-    number;
+  number;
 
   pending_amount:
-    number;
+  number;
 }
 
 
@@ -356,13 +364,13 @@ export interface TreasuryPendingReceivablesSummary {
 
 export interface TreasuryPendingReceivablesResponse {
   data:
-    TreasuryPendingReceivable[];
+  TreasuryPendingReceivable[];
 
   summary:
-    TreasuryPendingReceivablesSummary;
+  TreasuryPendingReceivablesSummary;
 
   meta:
-    TreasuryAccountsReceivablePaginationMeta;
+  TreasuryAccountsReceivablePaginationMeta;
 }
 
 
@@ -373,10 +381,10 @@ export interface TreasuryPendingReceivablesResponse {
 
 export interface TreasuryApplyBankMovementReceivableApplication {
   account_receivable_id:
-    number;
+  number;
 
   amount:
-    number;
+  number;
 }
 
 
@@ -387,13 +395,13 @@ export interface TreasuryApplyBankMovementReceivableApplication {
 
 export interface TreasuryApplyBankMovementReceivablePayload {
   bank_movement_id:
-    string;
+  string;
 
   applications:
-    TreasuryApplyBankMovementReceivableApplication[];
+  TreasuryApplyBankMovementReceivableApplication[];
 
   notes?:
-    string | null;
+  string | null;
 }
 
 
@@ -404,40 +412,40 @@ export interface TreasuryApplyBankMovementReceivablePayload {
 
 export interface TreasuryApplyBankMovementReceivableResponse {
   success:
-    boolean;
+  boolean;
 
   message:
-    string;
+  string;
 
   collection: {
     id:
-      string;
+    string;
 
     bank_movement_id:
-      string;
+    string;
 
     collection_date:
-      string;
+    string;
 
     amount:
-      number;
+    number;
 
     status:
-      TreasuryAccountsReceivableCollectionStatus;
+    TreasuryAccountsReceivableCollectionStatus;
 
     applications:
-      TreasuryApplyBankMovementReceivableApplication[];
+    TreasuryApplyBankMovementReceivableApplication[];
   };
 
   bank_movement: {
     id:
-      string;
+    string;
 
     available_amount:
-      number;
+    number;
 
     status:
-      TreasuryAccountsReceivableBankMovementStatus;
+    TreasuryAccountsReceivableBankMovementStatus;
   };
 }
 
@@ -449,7 +457,7 @@ export interface TreasuryApplyBankMovementReceivableResponse {
 
 export interface TreasuryReverseCollectionPayload {
   reason:
-    string;
+  string;
 }
 
 
@@ -460,37 +468,37 @@ export interface TreasuryReverseCollectionPayload {
 
 export interface TreasuryReverseCollectionResponse {
   success:
-    boolean;
+  boolean;
 
   message:
-    string;
+  string;
 
   collection: {
     id:
-      string;
+    string;
 
     status:
-      TreasuryAccountsReceivableCollectionStatus;
+    TreasuryAccountsReceivableCollectionStatus;
 
     amount:
-      number;
+    number;
 
     applications_reversed:
-      number;
+    number;
   };
 
   bank_movement: {
     id:
-      string;
+    string;
 
     available_amount:
-      number;
+    number;
 
     manual_closed_amount:
-      number;
+    number;
 
     status:
-      TreasuryAccountsReceivableBankMovementStatus;
+    TreasuryAccountsReceivableBankMovementStatus;
   };
 }
 
@@ -501,7 +509,7 @@ export interface TreasuryReverseCollectionResponse {
 
 export interface TreasuryReceivableManualClosePayload {
   reason:
-    string;
+  string;
 }
 
 
@@ -511,7 +519,7 @@ export interface TreasuryReceivableManualClosePayload {
 
 export interface TreasuryReceivableManualReopenPayload {
   reason:
-    string;
+  string;
 }
 
 
@@ -524,10 +532,10 @@ export interface TreasuryReceivableManualReopenPayload {
  */
 export interface TreasuryReceivableMovementMutationResponse {
   success:
-    boolean;
+  boolean;
 
   message:
-    string;
+  string;
 }
 
 
@@ -538,37 +546,37 @@ export interface TreasuryReceivableMovementMutationResponse {
 
 export interface TreasuryReceivableHistoryReceivable {
   id:
-    number;
+  number;
 
   cfdi_uuid:
-    string;
+  string;
 
   series:
-    string | null;
+  string | null;
 
   folio:
-    string;
+  string;
 
   company_code:
-    string;
+  string;
 
   receiver_rfc:
-    string;
+  string;
 
   receiver_name:
-    string;
+  string;
 
   issue_date:
-    string;
+  string;
 
   total:
-    number;
+  number;
 
   currency:
-    string;
+  string;
 
   project:
-    TreasuryAccountsReceivableProject | null;
+  TreasuryAccountsReceivableProject | null;
 }
 
 
@@ -579,28 +587,28 @@ export interface TreasuryReceivableHistoryReceivable {
 
 export interface TreasuryReceivableHistoryBalance {
   collected_amount:
-    number;
+  number;
 
   pending_amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableFinancialStatus;
+  TreasuryAccountsReceivableFinancialStatus;
 
   financial_source:
-    TreasuryAccountsReceivableFinancialSource;
+  TreasuryAccountsReceivableFinancialSource;
 
   has_treasury_history:
-    boolean;
+  boolean;
 
   requires_legacy_migration:
-    boolean;
+  boolean;
 
   last_collection_date:
-    string | null;
+  string | null;
 
   fully_collected_date:
-    string | null;
+  string | null;
 }
 
 
@@ -611,31 +619,31 @@ export interface TreasuryReceivableHistoryBalance {
 
 export interface TreasuryReceivableHistoryCollection {
   id:
-    string;
+  string;
 
   collection_date:
-    string;
+  string;
 
   amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableCollectionStatus;
+  TreasuryAccountsReceivableCollectionStatus;
 
   origin:
-    TreasuryAccountsReceivableCollectionOrigin;
+  TreasuryAccountsReceivableCollectionOrigin;
 
   notes:
-    string | null;
+  string | null;
 
   created_at:
-    string;
+  string;
 
   reversed_at:
-    string | null;
+  string | null;
 
   reversal_reason:
-    string | null;
+  string | null;
 }
 
 
@@ -646,34 +654,34 @@ export interface TreasuryReceivableHistoryCollection {
 
 export interface TreasuryReceivableHistoryBankMovement {
   id:
-    string;
+  string;
 
   movement_date:
-    string;
+  string;
 
   amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableBankMovementStatus;
+  TreasuryAccountsReceivableBankMovementStatus;
 
   classification:
-    string | null;
+  string | null;
 
   description_original:
-    string | null;
+  string | null;
 
   bank_reference:
-    string | null;
+  string | null;
 
   company:
-    TreasuryAccountsReceivableCompany | null;
+  TreasuryAccountsReceivableCompany | null;
 
   bank:
-    TreasuryAccountsReceivableBank | null;
+  TreasuryAccountsReceivableBank | null;
 
   bank_account:
-    TreasuryAccountsReceivableBankAccount | null;
+  TreasuryAccountsReceivableBankAccount | null;
 }
 
 
@@ -684,31 +692,31 @@ export interface TreasuryReceivableHistoryBankMovement {
 
 export interface TreasuryReceivableHistoryApplication {
   application_id:
-    string;
+  string;
 
   application_status:
-    TreasuryAccountsReceivableCollectionStatus;
+  TreasuryAccountsReceivableCollectionStatus;
 
   applied_amount:
-    number;
+  number;
 
   legacy_advance_id:
-    number | null;
+  number | null;
 
   application_created_at:
-    string;
+  string;
 
   application_reversed_at:
-    string | null;
+  string | null;
 
   application_reversal_reason:
-    string | null;
+  string | null;
 
   collection:
-    TreasuryReceivableHistoryCollection;
+  TreasuryReceivableHistoryCollection;
 
   bank_movement:
-    TreasuryReceivableHistoryBankMovement;
+  TreasuryReceivableHistoryBankMovement;
 }
 
 
@@ -719,13 +727,13 @@ export interface TreasuryReceivableHistoryApplication {
 
 export interface TreasuryReceivableCollectionHistoryResponse {
   receivable:
-    TreasuryReceivableHistoryReceivable;
+  TreasuryReceivableHistoryReceivable;
 
   balance:
-    TreasuryReceivableHistoryBalance;
+  TreasuryReceivableHistoryBalance;
 
   history:
-    TreasuryReceivableHistoryApplication[];
+  TreasuryReceivableHistoryApplication[];
 }
 
 
@@ -736,64 +744,64 @@ export interface TreasuryReceivableCollectionHistoryResponse {
 
 export interface TreasuryReceivableBankMovementHistoryMovement {
   id:
-    string;
+  string;
 
   movement_date:
-    string;
+  string;
 
   movement_time:
-    string | null;
+  string | null;
 
   movement_type:
-    'inflow';
+  'inflow';
 
   amount:
-    number;
+  number;
 
   available_amount:
-    number;
+  number;
 
   manual_closed_amount:
-    number;
+  number;
 
   applied_amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableBankMovementStatus;
+  TreasuryAccountsReceivableBankMovementStatus;
 
   classification:
-    string | null;
+  string | null;
 
   classification_reviewed:
-    boolean;
+  boolean;
 
   description_original:
-    string | null;
+  string | null;
 
   bank_reference:
-    string | null;
+  string | null;
 
   receipt_number:
-    string | null;
+  string | null;
 
   tracking_key:
-    string | null;
+  string | null;
 
   counterparty_name:
-    string | null;
+  string | null;
 
   counterparty_account:
-    string | null;
+  string | null;
 
   company:
-    TreasuryAccountsReceivableCompany | null;
+  TreasuryAccountsReceivableCompany | null;
 
   bank:
-    TreasuryAccountsReceivableBank | null;
+  TreasuryAccountsReceivableBank | null;
 
   bank_account:
-    TreasuryAccountsReceivableBankAccount | null;
+  TreasuryAccountsReceivableBankAccount | null;
 }
 
 
@@ -804,40 +812,40 @@ export interface TreasuryReceivableBankMovementHistoryMovement {
 
 export interface TreasuryReceivableBankMovementHistoryApplication {
   id:
-    string;
+  string;
 
   account_receivable_id:
-    number;
+  number;
 
   folio:
-    string;
+  string;
 
   receiver_name:
-    string;
+  string;
 
   applied_amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableCollectionStatus;
+  TreasuryAccountsReceivableCollectionStatus;
 
   legacy_advance_id:
-    number | null;
+  number | null;
 
   created_by_user_id:
-    number | null;
+  number | null;
 
   created_at:
-    string;
+  string;
 
   reversed_by_user_id:
-    number | null;
+  number | null;
 
   reversed_at:
-    string | null;
+  string | null;
 
   reversal_reason:
-    string | null;
+  string | null;
 }
 
 
@@ -848,43 +856,43 @@ export interface TreasuryReceivableBankMovementHistoryApplication {
 
 export interface TreasuryReceivableBankMovementHistoryCollection {
   id:
-    string;
+  string;
 
   collection_date:
-    string;
+  string;
 
   amount:
-    number;
+  number;
 
   status:
-    TreasuryAccountsReceivableCollectionStatus;
+  TreasuryAccountsReceivableCollectionStatus;
 
   origin:
-    TreasuryAccountsReceivableCollectionOrigin;
+  TreasuryAccountsReceivableCollectionOrigin;
 
   legacy_key:
-    string | null;
+  string | null;
 
   notes:
-    string | null;
+  string | null;
 
   created_by_user_id:
-    number | null;
+  number | null;
 
   created_at:
-    string;
+  string;
 
   reversed_by_user_id:
-    number | null;
+  number | null;
 
   reversed_at:
-    string | null;
+  string | null;
 
   reversal_reason:
-    string | null;
+  string | null;
 
   applications:
-    TreasuryReceivableBankMovementHistoryApplication[];
+  TreasuryReceivableBankMovementHistoryApplication[];
 }
 
 
@@ -895,61 +903,61 @@ export interface TreasuryReceivableBankMovementHistoryCollection {
 
 export interface TreasuryReceivableBankMovementActionMetadata {
   source?:
-    string;
+  string;
 
   movement_type?:
-    string;
+  string;
 
   applied_amount?:
-    string;
+  string;
 
   classification?:
-    string | null;
+  string | null;
 
   [key: string]:
-    unknown;
+  unknown;
 }
 
 
 export interface TreasuryReceivableBankMovementHistoryAction {
   id:
-    string;
+  string;
 
   action_type:
-    TreasuryAccountsReceivableMovementActionType;
+  TreasuryAccountsReceivableMovementActionType;
 
   affected_amount:
-    number;
+  number;
 
   previous_status:
-    TreasuryAccountsReceivableBankMovementStatus | null;
+  TreasuryAccountsReceivableBankMovementStatus | null;
 
   new_status:
-    TreasuryAccountsReceivableBankMovementStatus | null;
+  TreasuryAccountsReceivableBankMovementStatus | null;
 
   previous_available_amount:
-    number;
+  number;
 
   new_available_amount:
-    number;
+  number;
 
   previous_manual_closed_amount:
-    number;
+  number;
 
   new_manual_closed_amount:
-    number;
+  number;
 
   reason:
-    string | null;
+  string | null;
 
   metadata:
-    TreasuryReceivableBankMovementActionMetadata | null;
+  TreasuryReceivableBankMovementActionMetadata | null;
 
   created_by_user_id:
-    number | null;
+  number | null;
 
   created_at:
-    string;
+  string;
 }
 
 
@@ -960,13 +968,13 @@ export interface TreasuryReceivableBankMovementHistoryAction {
 
 export interface TreasuryReceivableBankMovementHistoryResponse {
   bank_movement:
-    TreasuryReceivableBankMovementHistoryMovement;
+  TreasuryReceivableBankMovementHistoryMovement;
 
   collections:
-    TreasuryReceivableBankMovementHistoryCollection[];
+  TreasuryReceivableBankMovementHistoryCollection[];
 
   movement_actions:
-    TreasuryReceivableBankMovementHistoryAction[];
+  TreasuryReceivableBankMovementHistoryAction[];
 }
 
 
@@ -976,10 +984,10 @@ export interface TreasuryReceivableBankMovementHistoryResponse {
 
 export interface TreasuryApplyReceivableModalData {
   movement:
-    TreasuryAvailableInflow;
+  TreasuryAvailableInflow;
 
   receivables:
-    TreasuryPendingReceivable[];
+  TreasuryPendingReceivable[];
 }
 
 
@@ -989,7 +997,7 @@ export interface TreasuryApplyReceivableModalData {
 
 export interface TreasuryReceivableHistoryModalData {
   receivable:
-    TreasuryPendingReceivable;
+  TreasuryPendingReceivable;
 }
 
 
@@ -1004,7 +1012,7 @@ export interface TreasuryReceivableHistoryModalData {
 
 export interface TreasuryReceivableBankMovementHistoryModalData {
   movement_id:
-    string;
+  string;
 }
 
 // =========================================================
@@ -1013,10 +1021,10 @@ export interface TreasuryReceivableBankMovementHistoryModalData {
 
 export interface TreasuryReverseCollectionModalData {
   collection:
-    TreasuryReceivableBankMovementHistoryCollection;
+  TreasuryReceivableBankMovementHistoryCollection;
 
   movement:
-    TreasuryReceivableBankMovementHistoryMovement;
+  TreasuryReceivableBankMovementHistoryMovement;
 }
 
 
@@ -1026,7 +1034,7 @@ export interface TreasuryReverseCollectionModalData {
 
 export interface TreasuryReceivableManualCloseModalData {
   movement:
-    TreasuryAvailableInflow;
+  TreasuryAvailableInflow;
 }
 
 
@@ -1036,9 +1044,17 @@ export interface TreasuryReceivableManualCloseModalData {
 
 export interface TreasuryReceivableManualReopenModalData {
   movement:
-    TreasuryReceivableBankMovementHistoryMovement;
+  TreasuryReceivableBankMovementHistoryMovement;
 }
 
+// =========================================================
+// MODAL: CLASIFICACIÓN MASIVA
+// =========================================================
+
+export interface TreasuryBulkBankMovementClassificationModalData {
+  movements:
+  TreasuryAvailableInflow[];
+}
 
 // =========================================================
 // CLASIFICACIÓN DE ENTRADAS BANCARIAS
@@ -1053,9 +1069,104 @@ export type TreasuryBankMovementInflowReviewClassification =
 
 export interface TreasuryUpdateBankMovementClassificationPayload {
   classification:
-    TreasuryBankMovementInflowReviewClassification;
+  TreasuryBankMovementInflowReviewClassification;
 
   reason: string;
+}
+
+export interface TreasuryUpdateBankMovementsClassificationPayload {
+  movement_ids: string[];
+
+  classification:
+  TreasuryBankMovementInflowReviewClassification;
+
+  reason: string;
+}
+
+
+export interface TreasuryBulkClassifiedBankMovement {
+  id: string;
+
+  previous_classification:
+  string | null;
+
+  classification:
+  TreasuryBankMovementInflowReviewClassification;
+
+  classification_label:
+  string;
+
+  previous_status:
+  TreasuryAccountsReceivableBankMovementStatus;
+
+  status:
+  TreasuryAccountsReceivableBankMovementStatus;
+
+  amount: number;
+
+  available_amount: number;
+
+  audit_action_id: string;
+}
+
+
+export interface TreasuryUpdateBankMovementsClassificationResponse {
+  success: boolean;
+
+  message: string;
+
+  processed_count: number;
+
+  classification:
+  TreasuryBankMovementInflowReviewClassification;
+
+  movements:
+  TreasuryBulkClassifiedBankMovement[];
+}
+
+
+export interface TreasuryConfirmBankMovementsClassificationPayload {
+  movement_ids: string[];
+
+  reason: string;
+}
+
+
+export interface TreasuryConfirmedBankMovement {
+  id: string;
+
+  previous_classification:
+  string | null;
+
+  classification:
+  TreasuryBankMovementInflowReviewClassification;
+
+  classification_label:
+  string;
+
+  previous_status:
+  TreasuryAccountsReceivableBankMovementStatus;
+
+  status:
+  TreasuryAccountsReceivableBankMovementStatus;
+
+  amount: number;
+
+  available_amount: number;
+
+  audit_action_id: string;
+}
+
+
+export interface TreasuryConfirmBankMovementsClassificationResponse {
+  success: boolean;
+
+  message: string;
+
+  processed_count: number;
+
+  movements:
+  TreasuryConfirmedBankMovement[];
 }
 
 
@@ -1067,45 +1178,45 @@ export interface TreasuryUpdateBankMovementClassificationResponse {
     id: string;
 
     movement_type:
-      | 'inflow'
-      | 'outflow';
+    | 'inflow'
+    | 'outflow';
 
     previous_classification:
-      string | null;
+    string | null;
 
     classification:
-      TreasuryBankMovementInflowReviewClassification;
+    TreasuryBankMovementInflowReviewClassification;
 
     classification_label:
-      string;
+    string;
 
     amount: number;
     available_amount: number;
     manual_closed_amount: number;
 
     previous_status:
-      TreasuryAccountsReceivableBankMovementStatus;
+    TreasuryAccountsReceivableBankMovementStatus;
 
     status:
-      TreasuryAccountsReceivableBankMovementStatus;
+    TreasuryAccountsReceivableBankMovementStatus;
 
     bank_reference:
-      string | null;
+    string | null;
 
     description_original:
-      string;
+    string;
 
     company:
-      TreasuryAccountsReceivableCompany
-      | null;
+    TreasuryAccountsReceivableCompany
+    | null;
 
     bank:
-      TreasuryAccountsReceivableBank
-      | null;
+    TreasuryAccountsReceivableBank
+    | null;
 
     bank_account:
-      TreasuryAccountsReceivableBankAccount
-      | null;
+    TreasuryAccountsReceivableBankAccount
+    | null;
   };
 
   audit: {
@@ -1120,7 +1231,7 @@ export interface TreasuryUpdateBankMovementClassificationResponse {
 
 export interface TreasuryBankMovementClassificationModalData {
   movement:
-    TreasuryAvailableInflow;
+  TreasuryAvailableInflow;
 }
 
 // =========================================================
@@ -1129,17 +1240,17 @@ export interface TreasuryBankMovementClassificationModalData {
 
 export interface TreasuryApplyCollectionModalApplication {
   receivable:
-    TreasuryPendingReceivable;
+  TreasuryPendingReceivable;
 
   amount:
-    number;
+  number;
 }
 
 
 export interface TreasuryApplyCollectionModalData {
   movement:
-    TreasuryAvailableInflow;
+  TreasuryAvailableInflow;
 
   applications:
-    TreasuryApplyCollectionModalApplication[];
+  TreasuryApplyCollectionModalApplication[];
 }

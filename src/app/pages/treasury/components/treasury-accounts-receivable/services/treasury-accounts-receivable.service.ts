@@ -68,6 +68,20 @@ export class TreasuryAccountsReceivableService {
           ),
         );
 
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null
+      ) {
+
+        params =
+          params.set(
+            'amount',
+            String(
+              filters.amount,
+            ),
+          );
+      }
+
 
       if (
         filters.search?.trim()
@@ -210,6 +224,20 @@ export class TreasuryAccountsReceivableService {
           params.set(
             'search',
             filters.search.trim(),
+          );
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null
+      ) {
+
+        params =
+          params.set(
+            'amount',
+            String(
+              filters.amount,
+            ),
           );
       }
 
@@ -434,6 +462,47 @@ export class TreasuryAccountsReceivableService {
       payload,
     );
   }
-  
+
+  // =========================================================
+  // MOVIMIENTOS BANCARIOS:
+  // CLASIFICACIÓN MASIVA
+  // =========================================================
+
+  updateBankMovementsClassification(
+    payload:
+      entity.TreasuryUpdateBankMovementsClassificationPayload,
+  ): Observable<
+    entity.TreasuryUpdateBankMovementsClassificationResponse
+  > {
+
+    return this.http.patch<
+      entity.TreasuryUpdateBankMovementsClassificationResponse
+    >(
+      `${this.treasuryApiUrl}/bank-movements/classification/bulk`,
+      payload,
+    );
+  }
+
+
+  // =========================================================
+  // MOVIMIENTOS BANCARIOS:
+  // CONFIRMAR CLASIFICACIONES MASIVAS
+  // =========================================================
+
+  confirmBankMovementsClassification(
+    payload:
+      entity.TreasuryConfirmBankMovementsClassificationPayload,
+  ): Observable<
+    entity.TreasuryConfirmBankMovementsClassificationResponse
+  > {
+
+    return this.http.patch<
+      entity.TreasuryConfirmBankMovementsClassificationResponse
+    >(
+      `${this.treasuryApiUrl}/bank-movements/classification/confirm-bulk`,
+      payload,
+    );
+  }
+
 }
 

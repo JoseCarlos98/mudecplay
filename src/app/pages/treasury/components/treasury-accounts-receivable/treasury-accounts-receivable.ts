@@ -7,6 +7,10 @@ import {
 } from './components/modal-accounts-receivable-classification/modal-accounts-receivable-classification';
 
 import {
+  ModalAccountsReceivableBulkClassification,
+} from './components/modal-accounts-receivable-bulk-classification/modal-accounts-receivable-bulk-classification';
+
+import {
   Component,
   OnInit,
   computed,
@@ -114,6 +118,7 @@ import {
 
 import {
   roundMoney,
+  getTreasuryMovementDescriptionDisplay
 } from '../../../../shared/helpers/general-helpers';
 
 import * as entity
@@ -123,6 +128,7 @@ import { ModalTreasuryAccountsReceivable } from './components/modal-treasury-acc
 import { ModalReceivableHistory } from './components/modal-receivable-history/modal-receivable-history';
 import { PermissionsService } from '../../../../auth/services/permissions.service';
 import { ModalAccountsReceivableManualClose } from './components/modal-accounts-receivable-manual-close/modal-accounts-receivable-manual-close';
+import { ModalReceivableMovementHistory } from './components/modal-receivable-movement-history/modal-receivable-movement-history';
 
 
 // =========================================================
@@ -149,6 +155,8 @@ export type TreasuryAvailableInflowTableRow =
     classification_review_label: string;
 
     status_label: string;
+
+    classification_selected: boolean;
   };
 
 
@@ -172,6 +180,9 @@ interface TreasuryAvailableInflowUiFilters {
 
   search:
   string;
+
+  amount:
+  number | null;
 
   company_id:
   Catalog | number | string | null;
@@ -197,6 +208,10 @@ interface TreasuryPendingReceivableUiFilters {
 
   search:
   string;
+
+
+  amount:
+  number | null;
 
   project_id:
   Catalog | number | string | null;
@@ -343,9 +358,55 @@ const AVAILABLE_INFLOW_COLUMNS:
   ColumnsConfig[] = [
 
     {
+      key: 'classification_selected',
+      label: 'Elegir',
+      type: 'select',
+      align: 'center',
+
+      selectActionType:
+        'toggleClassificationSelection',
+
+      selectedResolver: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) =>
+        row.classification_selected === true,
+
+      selectDisabledResolver: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) =>
+        row.status !== 'unmatched',
+
+      selectTooltip: (
+        row:
+          TreasuryAvailableInflowTableRow,
+      ) => {
+
+        if (
+          row.status !== 'unmatched'
+        ) {
+          return (
+            'El movimiento ya tiene aplicaciones y no puede reclasificarse.'
+          );
+        }
+
+        return row.classification_selected
+          ? 'Quitar de la selección'
+          : 'Seleccionar para revisión';
+      },
+    },
+
+    {
       key: 'movement_date',
       label: 'Fecha',
       type: 'date',
+    },
+    {
+      key: 'amount',
+      label: 'Monto original',
+      type: 'money',
+      align: 'right',
     },
 
     {
@@ -355,17 +416,12 @@ const AVAILABLE_INFLOW_COLUMNS:
       align: 'right',
     },
 
-    {
-      key: 'amount',
-      label: 'Monto original',
-      type: 'money',
-      align: 'right',
-    },
 
-    {
-      key: 'counterparty_display',
-      label: 'Contraparte',
-    },
+
+    // {
+    //   key: 'counterparty_display',
+    //   label: 'Contraparte',
+    // },
 
     {
       key: 'description_display',
@@ -665,7 +721,8 @@ export class TreasuryAccountsReceivable
       () =>
         this.loadingCatalogs() ||
         this.loadingInflows() ||
-        this.loadingReceivables(),
+        this.loadingReceivables() ||
+        this.loadingClassification(),
     );
 
 
@@ -706,6 +763,8 @@ export class TreasuryAccountsReceivable
       search:
         '',
 
+      amount: null,
+
       company_id:
         null,
 
@@ -734,6 +793,7 @@ export class TreasuryAccountsReceivable
 
       search:
         '',
+      amount: null,
 
       project_id:
         null,
@@ -767,6 +827,11 @@ export class TreasuryAccountsReceivable
         this.fb.control<string>(
           '',
         ),
+
+      amount:
+        this.fb.control<
+          number | string | null
+        >(null),
 
       company_id:
         this.fb.control<
@@ -814,6 +879,11 @@ export class TreasuryAccountsReceivable
         this.fb.control<string>(
           '',
         ),
+
+      amount:
+        this.fb.control<
+          number | string | null
+        >(null),
 
       project_id:
         this.fb.control<
@@ -917,6 +987,90 @@ export class TreasuryAccountsReceivable
   // =======================================================
   // SELECCIÓN PARA COBRO
   // =======================================================
+
+  readonly selectedClassificationMovements =
+    signal<
+      Map<
+        string,
+        TreasuryAvailableInflowTableRow
+      >
+    >(
+      new Map<
+        string,
+        TreasuryAvailableInflowTableRow
+      >(),
+    );
+
+
+  readonly selectedClassificationCount =
+    computed(
+      () =>
+        this
+          .selectedClassificationMovements()
+          .size,
+    );
+
+
+  readonly selectedClassificationAmount =
+    computed(() => {
+
+      const total =
+        Array.from(
+          this
+            .selectedClassificationMovements()
+            .values(),
+        )
+          .reduce(
+            (
+              sum,
+              movement,
+            ) =>
+              sum +
+              Number(
+                movement.available_amount ||
+                0,
+              ),
+            0,
+          );
+
+      return roundMoney(
+        total,
+      );
+    });
+
+
+  readonly selectedClassificationRows =
+    computed(
+      () =>
+        Array.from(
+          this
+            .selectedClassificationMovements()
+            .values(),
+        ),
+    );
+
+
+  readonly canConfirmSelectedClassifications =
+    computed(() => {
+
+      const rows =
+        this.selectedClassificationRows();
+
+      if (
+        rows.length === 0
+      ) {
+        return false;
+      }
+
+      return rows.every(
+        (row) =>
+          row.status === 'unmatched' &&
+          row.requires_classification_review &&
+          this.isReviewClassification(
+            row.classification,
+          ),
+      );
+    });
 
   readonly selectedMovement =
     signal<
@@ -1234,6 +1388,40 @@ export class TreasuryAccountsReceivable
             .selectedMovement()
             ?.id ===
           row.id,
+      },
+
+      {
+        type:
+          'movementHistory',
+
+        icon:
+          'history',
+
+        tooltip:
+          'Ver historial',
+      },
+
+      {
+        type:
+          'manualClose',
+
+        icon:
+          'lock',
+
+        tooltip:
+          'Cerrar saldo disponible',
+
+        roles: [
+          'ADMIN_GENERAL',
+        ],
+
+        visible: (
+          row,
+        ) =>
+          row.is_collectable &&
+          Number(
+            row.available_amount,
+          ) > 0,
       },
     ];
 
@@ -1594,6 +1782,7 @@ export class TreasuryAccountsReceivable
     return {
       ...row,
 
+      classification_selected: false,
       company_name:
         row.company
           ?.name ??
@@ -1626,9 +1815,9 @@ export class TreasuryAccountsReceivable
         'Sin contraparte',
 
       description_display:
-        row.description_original
-          ?.trim() ||
-        'Sin descripción',
+        getTreasuryMovementDescriptionDisplay(
+          row,
+        ),
 
       classification_label:
         this.getClassificationLabel(
@@ -1702,6 +1891,11 @@ export class TreasuryAccountsReceivable
         value.dateRange ??
         null,
 
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
+
       search:
         value.search
           ?.trim() ||
@@ -1752,6 +1946,8 @@ export class TreasuryAccountsReceivable
         search:
           '',
 
+        amount: null,
+
         company_id:
           null,
 
@@ -1779,6 +1975,8 @@ export class TreasuryAccountsReceivable
 
       search:
         '',
+
+      amount: null,
 
       company_id:
         null,
@@ -1821,6 +2019,9 @@ export class TreasuryAccountsReceivable
         ui.search
           ?.trim() ||
         '',
+
+      amount:
+        ui.amount ?? null,
 
       company_id:
         this.getNumberId(
@@ -1885,6 +2086,10 @@ export class TreasuryAccountsReceivable
       value.search
         ?.trim() ||
 
+      this.normalizeAmountFilter(
+        value.amount,
+      ) !== null ||
+
       this.getCatalogValue(
         value.company_id,
       ) ||
@@ -1922,6 +2127,11 @@ export class TreasuryAccountsReceivable
         value.search
           ?.trim() ||
         '',
+
+      amount:
+        this.normalizeAmountFilter(
+          value.amount,
+        ),
 
       project_id:
         value.project_id ??
@@ -1963,6 +2173,7 @@ export class TreasuryAccountsReceivable
 
         search:
           '',
+        amount: null,
 
         project_id:
           null,
@@ -1988,6 +2199,8 @@ export class TreasuryAccountsReceivable
 
       search:
         '',
+
+         amount: null,
 
       project_id:
         null,
@@ -2027,6 +2240,9 @@ export class TreasuryAccountsReceivable
         ui.search
           ?.trim() ||
         '',
+
+        amount:
+  ui.amount ?? null,
 
       project_id:
         this.getNumberId(
@@ -2081,6 +2297,10 @@ export class TreasuryAccountsReceivable
 
       value.dateRange
         ?.endDate ||
+
+        this.normalizeAmountFilter(
+  value.amount,
+) !== null ||
 
       value.search
         ?.trim() ||
@@ -2160,6 +2380,31 @@ export class TreasuryAccountsReceivable
       case 'selectMovement':
 
         this.selectMovement(
+          event.row,
+        );
+
+        break;
+
+      case 'movementHistory':
+
+        this.openMovementHistory(
+          event.row,
+        );
+
+        break;
+
+
+      case 'manualClose':
+
+        this.openManualClose(
+          event.row,
+        );
+
+        break;
+
+      case 'toggleClassificationSelection':
+
+        this.toggleClassificationSelection(
           event.row,
         );
 
@@ -2909,6 +3154,9 @@ export class TreasuryAccountsReceivable
               savedInflows
                 .search,
 
+            amount:
+              savedInflows.amount ?? null,
+
             company_id:
               savedInflows
                 .company_id,
@@ -2989,6 +3237,11 @@ export class TreasuryAccountsReceivable
 
       state = {
 
+        amount:
+          this.normalizeAmountFilter(
+            value.amount,
+          ),
+
         dateRange:
           value.dateRange ??
           null,
@@ -3045,6 +3298,11 @@ export class TreasuryAccountsReceivable
           value.dateRange ??
           null,
 
+          amount:
+  this.normalizeAmountFilter(
+    value.amount,
+  ),
+  
         search:
           value.search ??
           '',
@@ -3290,5 +3548,369 @@ export class TreasuryAccountsReceivable
         1,
       )
     );
+  }
+
+
+  private toggleClassificationSelection(
+    row:
+      TreasuryAvailableInflowTableRow,
+  ): void {
+
+    if (
+      !row?.id ||
+      row.status !== 'unmatched'
+    ) {
+      return;
+    }
+
+    const movementId =
+      String(
+        row.id,
+      );
+
+    const isSelected =
+      this
+        .selectedClassificationMovements()
+        .has(
+          movementId,
+        );
+
+    this
+      .selectedClassificationMovements
+      .update(
+        (current) => {
+
+          const next =
+            new Map(
+              current,
+            );
+
+          if (
+            isSelected
+          ) {
+
+            next.delete(
+              movementId,
+            );
+
+          } else {
+
+            next.set(
+              movementId,
+              {
+                ...row,
+
+                classification_selected:
+                  true,
+              },
+            );
+          }
+
+          return next;
+        },
+      );
+
+    this.availableInflowRows =
+      this.availableInflowRows.map(
+        (
+          movement,
+        ) => {
+
+          if (
+            String(
+              movement.id,
+            ) !==
+            movementId
+          ) {
+            return movement;
+          }
+
+          return {
+            ...movement,
+
+            classification_selected:
+              !isSelected,
+          };
+        },
+      );
+  }
+
+
+  clearClassificationSelection():
+    void {
+
+    if (
+      this
+        .selectedClassificationMovements()
+        .size === 0
+    ) {
+      return;
+    }
+
+    this
+      .selectedClassificationMovements
+      .set(
+        new Map<
+          string,
+          TreasuryAvailableInflowTableRow
+        >(),
+      );
+
+    this.availableInflowRows =
+      this.availableInflowRows.map(
+        (
+          movement,
+        ) => ({
+          ...movement,
+
+          classification_selected:
+            false,
+        }),
+      );
+  }
+
+  openBulkClassificationModal():
+    void {
+
+    if (
+      this.loadingClassification()
+    ) {
+      return;
+    }
+
+    const movements =
+      this.selectedClassificationRows();
+
+    if (
+      movements.length === 0
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryBulkBankMovementClassificationModalData = {
+
+      movements:
+        [...movements],
+    };
+
+    const movementIds =
+      movements.map(
+        (
+          movement,
+        ) =>
+          String(
+            movement.id,
+          ),
+      );
+
+    this.dialogService
+      .open(
+        ModalAccountsReceivableBulkClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          result:
+            | entity.TreasuryUpdateBankMovementsClassificationResponse
+            | null,
+        ) => {
+
+          if (
+            !result?.success
+          ) {
+            return;
+          }
+
+          const selectedCollectionMovement =
+            this.selectedMovement();
+
+          if (
+            selectedCollectionMovement &&
+            movementIds.includes(
+              String(
+                selectedCollectionMovement.id,
+              ),
+            )
+          ) {
+
+            this.clearCollectionSelection();
+          }
+
+          this.clearClassificationSelection();
+
+          this.loadAvailableInflows();
+        },
+      );
+  }
+
+  confirmSelectedClassifications():
+    void {
+
+    if (
+      this.loadingClassification() ||
+      !this.canConfirmSelectedClassifications()
+    ) {
+      return;
+    }
+
+    const rows =
+      this.selectedClassificationRows();
+
+    if (
+      rows.length === 0
+    ) {
+      return;
+    }
+
+    const movementIds =
+      rows.map(
+        (
+          row,
+        ) =>
+          String(
+            row.id,
+          ),
+      );
+
+    this.loadingClassification.set(
+      true,
+    );
+
+    this.accountsReceivableService
+      .confirmBankMovementsClassification({
+        movement_ids:
+          movementIds,
+
+        reason:
+          'Clasificaciones revisadas y confirmadas de forma masiva desde Cuentas por cobrar.',
+      })
+      .pipe(
+        finalize(
+          () =>
+            this
+              .loadingClassification
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+
+        next: (
+          response,
+        ) => {
+
+          if (
+            !response?.success
+          ) {
+            return;
+          }
+
+          const selectedCollectionMovement =
+            this.selectedMovement();
+
+          if (
+            selectedCollectionMovement &&
+            movementIds.includes(
+              String(
+                selectedCollectionMovement.id,
+              ),
+            )
+          ) {
+            this.clearCollectionSelection();
+          }
+
+          this.clearClassificationSelection();
+
+          this.loadAvailableInflows();
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error confirmando clasificaciones masivas de entradas:',
+            error,
+          );
+        },
+      });
+  }
+
+  private isReviewClassification(
+    classification:
+      string |
+      null |
+      undefined,
+  ): classification is
+    entity.TreasuryBankMovementInflowReviewClassification {
+
+    return (
+      classification ===
+      'transferencia_entrada' ||
+      classification ===
+      'traspaso_interno_entrada' ||
+      classification ===
+      'pago_tercero' ||
+      classification ===
+      'prestamo'
+    );
+  }
+
+  openMovementHistory(
+    movement:
+      TreasuryAvailableInflowTableRow,
+  ): void {
+
+    if (
+      !movement?.id
+    ) {
+      return;
+    }
+
+    const modalData:
+      entity.TreasuryReceivableBankMovementHistoryModalData = {
+
+      movement_id:
+        String(
+          movement.id,
+        ),
+    };
+
+    this.dialogService
+      .open(
+        ModalReceivableMovementHistory,
+        modalData,
+        'large',
+      );
+  }
+
+  private normalizeAmountFilter(
+    value: unknown,
+  ): number | null {
+
+    if (
+      value === null ||
+      value === undefined ||
+      value === ''
+    ) {
+      return null;
+    }
+
+    const amount =
+      Number(value);
+
+    if (
+      !Number.isFinite(amount) ||
+      amount <= 0
+    ) {
+      return null;
+    }
+
+    return roundMoney(amount);
   }
 }

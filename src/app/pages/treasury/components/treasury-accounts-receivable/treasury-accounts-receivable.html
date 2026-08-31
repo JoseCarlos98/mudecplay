@@ -224,6 +224,9 @@
             placeholder="Referencia, descripción, contraparte o cuenta" type="text" [isFilter]="true">
           </app-input-field>
 
+          <app-input-field formControlName="amount" label="Importe" placeholder="Monto original o disponible"
+            type="money" [isFilter]="true">
+          </app-input-field>
 
           <app-input-select formControlName="company_id" label="Empresa" [options]="companyOptions">
           </app-input-select>
@@ -250,6 +253,120 @@
 
       </form>
 
+      <!-- ===============================================
+     CLASIFICACIÓN MASIVA
+     =============================================== -->
+
+      @if (
+      selectedClassificationCount() > 0
+      ) {
+
+      <div class="classification-bulk-selection">
+
+        <div class="classification-bulk-selection__summary">
+
+          <mat-icon>
+            checklist
+          </mat-icon>
+
+          <div>
+
+            <strong>
+              {{
+              selectedClassificationCount()
+              }}
+
+              movimiento{{
+              selectedClassificationCount() === 1
+              ? ''
+              : 's'
+              }}
+
+              seleccionado{{
+              selectedClassificationCount() === 1
+              ? ''
+              : 's'
+              }}
+            </strong>
+
+            <span>
+              Disponible:
+              {{
+              selectedClassificationAmount()
+              | currency:
+              'MXN':
+              'symbol':
+              '1.2-2'
+              }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="classification-bulk-selection__actions">
+
+          <button type="button" class="
+          accounts-receivable-button
+          accounts-receivable-button--primary
+        " [disabled]="
+          !canConfirmSelectedClassifications() ||
+          loadingClassification()
+        " (click)="
+          confirmSelectedClassifications()
+        ">
+
+            <mat-icon>
+              task_alt
+            </mat-icon>
+
+            Confirmar seleccionados
+
+          </button>
+
+
+          <button type="button" class="
+          accounts-receivable-button
+          accounts-receivable-button--info
+        " [disabled]="
+          selectedClassificationCount() === 0 ||
+          loadingClassification()
+        " (click)="
+          openBulkClassificationModal()
+        ">
+
+            <mat-icon>
+              edit
+            </mat-icon>
+
+            Cambiar clasificación
+
+          </button>
+
+
+          <button type="button" class="
+          accounts-receivable-button
+          accounts-receivable-button--neutral
+        " [disabled]="
+          loadingClassification()
+        " (click)="
+          clearClassificationSelection()
+        ">
+
+            <mat-icon>
+              close
+            </mat-icon>
+
+            Limpiar selección
+
+          </button>
+
+        </div>
+
+      </div>
+
+      }
 
       <!-- ===============================================
            TABLA DE MOVIMIENTOS
@@ -326,41 +443,7 @@
 
 
         <div class="selected-bank-movement__details">
-
           <div>
-
-            <span>
-              Fecha
-            </span>
-
-            <strong>
-              {{
-              movement.movement_date
-              | date:
-              'dd/MM/yyyy'
-              }}
-            </strong>
-
-          </div>
-
-
-          <div>
-
-            <span>
-              Contraparte
-            </span>
-
-            <strong>
-              {{
-              movement.counterparty_display
-              }}
-            </strong>
-
-          </div>
-
-
-          <div>
-
             <span>
               Empresa
             </span>
@@ -443,13 +526,30 @@
           ) {
 
           <button type="button" class="
-        accounts-receivable-button
-        accounts-receivable-button--warning
-      " (click)="
-        openManualClose(
-          movement
-        )
-      ">
+            accounts-receivable-button
+            accounts-receivable-button--info
+          " (click)="
+            openMovementHistory(
+              movement
+            )
+          ">
+
+            <mat-icon>
+              history
+            </mat-icon>
+
+            Ver historial
+
+          </button>
+
+          <button type="button" class="
+              accounts-receivable-button
+              accounts-receivable-button--warning
+            " (click)="
+              openManualClose(
+                movement
+              )
+            ">
 
             <mat-icon>
               lock
@@ -537,16 +637,15 @@
       <!-- ===============================================
            MOVIMIENTO ACTIVO
            =============================================== -->
-
       @if (
       selectedMovement();
       as movement
       ) {
 
       <div class="
-            accounts-receivable-message
-            accounts-receivable-message--success
-          ">
+    accounts-receivable-message
+    accounts-receivable-message--success
+  ">
 
         <mat-icon>
           account_balance
@@ -562,7 +661,19 @@
             }}
           </strong>
 
-          · Disponible:
+          · Monto original:
+
+          <strong>
+            {{
+            movement.amount
+            | currency:
+            'MXN':
+            'symbol':
+            '1.2-2'
+            }}
+          </strong>
+
+          · Disponible actual:
 
           <strong>
             {{
@@ -578,24 +689,7 @@
 
       </div>
 
-      } @else {
-
-      <div class="accounts-receivable-message">
-
-        <mat-icon>
-          info
-        </mat-icon>
-
-        <span>
-          Selecciona primero una
-          <strong>entrada bancaria</strong>
-          para comenzar la conciliación.
-        </span>
-
-      </div>
-
       }
-
 
       <!-- ===============================================
            FILTROS CxC
@@ -614,6 +708,10 @@
 
           <app-input-field formControlName="search" label="Buscar CxC" placeholder="Folio, cliente, RFC o UUID"
             type="text" [isFilter]="true">
+          </app-input-field>
+
+          <app-input-field formControlName="amount" label="Importe" placeholder="Saldo pendiente" type="money"
+            [isFilter]="true">
           </app-input-field>
 
 
