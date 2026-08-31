@@ -1,3 +1,5 @@
+import type { Catalog } from '../../../../../shared/interfaces/general-interfaces';
+
 // =========================================================
 // TESORERÍA CxC:
 // TIPOS BASE
@@ -371,6 +373,105 @@ export interface TreasuryPendingReceivablesResponse {
 
   meta:
   TreasuryAccountsReceivablePaginationMeta;
+}
+
+
+// =========================================================
+// TIPOS UI DEL WORKSPACE CxC
+// =========================================================
+
+export interface TreasuryAccountsReceivableDateRange {
+  startDate: string | null;
+  endDate: string | null;
+}
+
+
+export type TreasuryAvailableInflowTableRow =
+  TreasuryAvailableInflow & {
+
+    company_name: string;
+
+    bank_name: string;
+
+    bank_account_display: string;
+
+    reference_display: string;
+
+    description_display: string;
+
+    classification_label: string;
+
+    classification_review_label: string;
+
+    status_label: string;
+
+    classification_selected: boolean;
+  };
+
+
+export type TreasuryPendingReceivableTableRow =
+  TreasuryPendingReceivable & {
+
+    invoice_display: string;
+
+    project_name: string;
+
+    status_label: string;
+
+    migration_label: string;
+  };
+
+
+export interface TreasuryAvailableInflowUiFilters {
+
+  dateRange:
+  TreasuryAccountsReceivableDateRange | null;
+
+  search:
+  string;
+
+  amount:
+  number | null;
+
+  company_id:
+  Catalog | number | string | null;
+
+  bank_id:
+  Catalog | number | string | null;
+
+  bank_account_id:
+  Catalog | number | string | null;
+
+  page:
+  number;
+
+  limit:
+  number;
+}
+
+
+export interface TreasuryPendingReceivableUiFilters {
+
+  dateRange:
+  TreasuryAccountsReceivableDateRange | null;
+
+  search:
+  string;
+
+  amount:
+  number | null;
+
+  project_id:
+  Catalog | number | string | null;
+
+  company_code:
+  string | null;
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 
 

@@ -123,108 +123,21 @@ import {
 
 import * as entity
   from './interfaces/treasury-accounts-receivable.interfaces';
+import type {
+  TreasuryAvailableInflowTableRow,
+  TreasuryPendingReceivableTableRow,
+  TreasuryAvailableInflowUiFilters,
+  TreasuryPendingReceivableUiFilters,
+} from './interfaces/treasury-accounts-receivable.interfaces';
+export type {
+  TreasuryAvailableInflowTableRow,
+} from './interfaces/treasury-accounts-receivable.interfaces';
 import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalTreasuryAccountsReceivable } from './components/modal-treasury-accounts-receivable/modal-treasury-accounts-receivable';
 import { ModalReceivableHistory } from './components/modal-receivable-history/modal-receivable-history';
 import { PermissionsService } from '../../../../auth/services/permissions.service';
 import { ModalAccountsReceivableManualClose } from './components/modal-accounts-receivable-manual-close/modal-accounts-receivable-manual-close';
 import { ModalReceivableMovementHistory } from './components/modal-receivable-movement-history/modal-receivable-movement-history';
-
-
-// =========================================================
-// TIPOS DE UI
-// =========================================================
-
-export type TreasuryAvailableInflowTableRow =
-  entity.TreasuryAvailableInflow & {
-
-    company_name: string;
-
-    bank_name: string;
-
-    bank_account_display: string;
-
-    reference_display: string;
-
-    counterparty_display: string;
-
-    description_display: string;
-
-    classification_label: string;
-
-    classification_review_label: string;
-
-    status_label: string;
-
-    classification_selected: boolean;
-  };
-
-
-type TreasuryPendingReceivableTableRow =
-  entity.TreasuryPendingReceivable & {
-
-    invoice_display: string;
-
-    project_name: string;
-
-    status_label: string;
-
-    migration_label: string;
-  };
-
-
-interface TreasuryAvailableInflowUiFilters {
-
-  dateRange:
-  DateRangeValue | null;
-
-  search:
-  string;
-
-  amount:
-  number | null;
-
-  company_id:
-  Catalog | number | string | null;
-
-  bank_id:
-  Catalog | number | string | null;
-
-  bank_account_id:
-  Catalog | number | string | null;
-
-  page:
-  number;
-
-  limit:
-  number;
-}
-
-
-interface TreasuryPendingReceivableUiFilters {
-
-  dateRange:
-  DateRangeValue | null;
-
-  search:
-  string;
-
-
-  amount:
-  number | null;
-
-  project_id:
-  Catalog | number | string | null;
-
-  company_code:
-  string | null;
-
-  page:
-  number;
-
-  limit:
-  number;
-}
 
 
 // =========================================================
@@ -416,12 +329,6 @@ const AVAILABLE_INFLOW_COLUMNS:
       align: 'right',
     },
 
-
-
-    // {
-    //   key: 'counterparty_display',
-    //   label: 'Contraparte',
-    // },
 
     {
       key: 'description_display',
@@ -1320,18 +1227,13 @@ export class TreasuryAccountsReceivable
         icon:
           'check_circle',
 
-        iconClass:
-          'table-action-icon--success',
-
         tooltip: (
           row,
         ) => {
 
           if (
-            row
-              .requires_classification_review
+            row.requires_classification_review
           ) {
-
             return (
               'Primero confirma o cambia la clasificación'
             );
@@ -1340,7 +1242,6 @@ export class TreasuryAccountsReceivable
           if (
             !row.is_collectable
           ) {
-
             return (
               'Esta clasificación no puede utilizarse para Cuentas por Cobrar'
             );
@@ -1354,16 +1255,13 @@ export class TreasuryAccountsReceivable
         disabled: (
           row,
         ) =>
-          row
-            .requires_classification_review ||
-          !row
-            .is_collectable,
+          row.requires_classification_review ||
+          !row.is_collectable,
 
         visible: (
           row,
         ) =>
-          this
-            .selectedMovement()
+          this.selectedMovement()
             ?.id !==
           row.id,
       },
@@ -1434,21 +1332,7 @@ export class TreasuryAccountsReceivable
     DataTableExtraAction<
       TreasuryPendingReceivableTableRow
     >[] = [
-      {
-        type:
-          'receivableHistory',
-
-        icon:
-          'history',
-
-        tooltip:
-          'Ver historial de cobros',
-
-        visible: (
-          row,
-        ) =>
-          row.has_treasury_history,
-      },
+     
 
       {
         type:
@@ -1505,6 +1389,22 @@ export class TreasuryAccountsReceivable
             .selectedMovement() ||
           row
             .requires_legacy_migration,
+      },
+
+       {
+        type:
+          'receivableHistory',
+
+        icon:
+          'history',
+
+        tooltip:
+          'Ver historial de cobros',
+
+        visible: (
+          row,
+        ) =>
+          row.has_treasury_history,
       },
 
       {
@@ -1806,14 +1706,6 @@ export class TreasuryAccountsReceivable
         row.tracking_key
           ?.trim() ||
         `Movimiento ${row.id}`,
-
-      counterparty_display:
-        row.counterparty_name
-          ?.trim() ||
-        row.counterparty_account
-          ?.trim() ||
-        'Sin contraparte',
-
       description_display:
         getTreasuryMovementDescriptionDisplay(
           row,
@@ -2200,7 +2092,7 @@ export class TreasuryAccountsReceivable
       search:
         '',
 
-         amount: null,
+      amount: null,
 
       project_id:
         null,
@@ -2241,8 +2133,8 @@ export class TreasuryAccountsReceivable
           ?.trim() ||
         '',
 
-        amount:
-  ui.amount ?? null,
+      amount:
+        ui.amount ?? null,
 
       project_id:
         this.getNumberId(
@@ -2298,9 +2190,9 @@ export class TreasuryAccountsReceivable
       value.dateRange
         ?.endDate ||
 
-        this.normalizeAmountFilter(
-  value.amount,
-) !== null ||
+      this.normalizeAmountFilter(
+        value.amount,
+      ) !== null ||
 
       value.search
         ?.trim() ||
@@ -3298,11 +3190,11 @@ export class TreasuryAccountsReceivable
           value.dateRange ??
           null,
 
-          amount:
-  this.normalizeAmountFilter(
-    value.amount,
-  ),
-  
+        amount:
+          this.normalizeAmountFilter(
+            value.amount,
+          ),
+
         search:
           value.search ??
           '',
