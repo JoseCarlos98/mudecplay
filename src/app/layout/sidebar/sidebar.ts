@@ -93,6 +93,7 @@ export class Sidebar {
             'ADMIN_GENERAL',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+            'TESORERIA_CUENTAS_POR_COBRAR_EDITOR',
           ],
         },
         {

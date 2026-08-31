@@ -96,6 +96,9 @@ export class LoginComponent implements OnInit {
           TESORERIA_CUENTAS_POR_PAGAR_EDITOR:
             '/tesoreria/cuentas-por-pagar',
 
+          TESORERIA_CUENTAS_POR_COBRAR_EDITOR:
+            '/tesoreria/cuentas-por-cobrar',
+
           // Órdenes de compra
           ORDENES_COMPRA_EDITOR:
             '/ordenes-compra',
@@ -142,6 +145,7 @@ export class LoginComponent implements OnInit {
           'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
           'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
           'TESORERIA_CUENTAS_POR_PAGAR_EDITOR',
+          'TESORERIA_CUENTAS_POR_COBRAR_EDITOR',
 
           // Órdenes de compra
           'ORDENES_COMPRA_EDITOR',
