@@ -1,1088 +1,611 @@
 :host {
   display: block;
-
   width: 100%;
   max-width: 100%;
 }
 
+.collection-summary__money--original {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.collection-summary__reference {
+  grid-column: 1 / -1;
+}
+
+.collection-summary__amounts {
+  grid-column: 1 / -1;
+
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  align-items: stretch !important;
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+
+    border: 1px solid #dbeafe;
+    border-radius: 0.55rem;
+
+    background: #ffffff;
+  }
+}
 
 .treasury-collection-modal {
-
-  // =====================================================
-  // CONTENEDOR
-  // =====================================================
-
   display: flex;
   flex-direction: column;
 
   width: 100%;
   max-width: 100%;
 
-  height:
-    min(
-      56rem,
-      calc(100vh - 1rem)
-    );
+  /*
+   * Igual que CxP:
+   * con pocas CxC se adapta al contenido;
+   * con muchas puede crecer hasta este límite.
+   */
+  height: auto;
 
-  height:
-    min(
-      56rem,
-      calc(100dvh - 1rem)
-    );
-
-  max-height:
-    calc(100vh - 1rem);
-
-  max-height:
-    calc(100dvh - 1rem);
+  max-height: min(56rem, calc(100vh - 1rem));
+  max-height: min(56rem, calc(100dvh - 1rem));
 
   overflow: hidden;
-
   box-sizing: border-box;
-
 
   > app-module-header,
   > app-btns-section {
-
-    flex:
-      0 0 auto;
+    flex: 0 0 auto;
   }
-
 
   // =====================================================
   // BODY
   // =====================================================
 
   .treasury-collection-modal__body {
-
-    flex:
-      1 1 0;
+    flex: 0 1 auto;
 
     min-width: 0;
     min-height: 0;
 
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 1rem;
 
-    grid-template-columns:
-      minmax(0, 1fr);
+    overflow-x: hidden;
+    overflow-y: auto;
 
-    grid-auto-rows:
-      max-content;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
 
-    align-content:
-      start;
-
-    gap:
-      1rem;
-
-    overflow-x:
-      hidden;
-
-    overflow-y:
-      auto;
-
-    overscroll-behavior-y:
-      contain;
-
-    scrollbar-gutter:
-      stable;
-
-    padding-right:
-      0.4rem;
-
-    padding-bottom:
-      1rem;
+    padding-right: 0.4rem;
+    padding-bottom: 10px;
   }
-
 
   // =====================================================
   // MOVIMIENTO BANCARIO
   // =====================================================
 
   .collection-summary {
-
     display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 1.25rem;
 
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+    min-width: 0;
+    padding: 1rem;
 
-    gap:
-      0.65rem 1.25rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
 
-    min-width:
-      0;
-
-    padding:
-      1rem;
-
-    border:
-      1px solid #e5e7eb;
-
-    border-radius:
-      0.85rem;
-
-    background:
-      #f9fafb;
-
+    background: #f9fafb;
 
     > div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
 
-      display:
-        flex;
+      min-width: 0;
 
-      align-items:
-        baseline;
-
-      gap:
-        0.35rem;
-
-      min-width:
-        0;
-
-      color:
-        #374151;
-
-      font-size:
-        0.9rem;
-
-      line-height:
-        1.35;
+      color: #374151;
+      font-size: 0.9rem;
+      line-height: 1.35;
     }
-
 
     strong {
+      flex: 0 0 auto;
 
-      flex:
-        0 0 auto;
-
-      color:
-        #111827;
-
-      font-weight:
-        800;
+      color: #111827;
+      font-weight: 800;
     }
-
 
     span {
-
-      min-width:
-        0;
-
-      overflow-wrap:
-        anywhere;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
   }
-
-
-  .collection-summary__reference {
-
-    min-width:
-      0;
-  }
-
-
-  .collection-summary__amounts {
-
-    display:
-      grid !important;
-
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
-
-    gap:
-      0.75rem;
-
-
-    > div {
-
-      display:
-        flex;
-
-      align-items:
-        baseline;
-
-      gap:
-        0.35rem;
-
-      min-width:
-        0;
-    }
-  }
-
 
   .collection-summary__money {
-
-    color:
-      #047857;
-
-    font-weight:
-      800;
+    color: #047857;
+    font-weight: 800;
   }
-
-
-  .collection-summary__money--original {
-
-    color:
-      #111827;
-
-    font-weight:
-      800;
-  }
-
 
   .collection-summary__description {
+    grid-column: 1 / -1;
 
-    grid-column:
-      1 / -1;
+    display: block !important;
 
-    display:
-      block !important;
+    padding-top: 0.75rem;
+    margin-top: 0.15rem;
 
-    padding-top:
-      0.75rem;
-
-    margin-top:
-      0.15rem;
-
-    border-top:
-      1px dashed #d1d5db;
-
+    border-top: 1px dashed #d1d5db;
 
     strong {
-
-      margin-right:
-        0.25rem;
+      margin-right: 0.25rem;
     }
   }
-
 
   // =====================================================
   // RESUMEN DEL COBRO
   // =====================================================
 
   .collection-totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
 
-    display:
-      grid;
+    min-width: 0;
+    padding: 0.7rem 1rem;
 
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
+    border: 1px solid #bae6fd;
+    border-radius: 0.8rem;
 
-    gap:
-      0.75rem;
-
-    min-width:
-      0;
-
-    padding:
-      0.7rem 1rem;
-
-    border:
-      1px solid #bae6fd;
-
-    border-radius:
-      0.8rem;
-
-    background:
-      #f0f9ff;
-
+    background: #f0f9ff;
 
     div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
 
-      display:
-        flex;
-
-      align-items:
-        baseline;
-
-      justify-content:
-        space-between;
-
-      gap:
-        0.65rem;
-
-      min-width:
-        0;
+      min-width: 0;
     }
-
 
     span {
-
-      color:
-        #64748b;
-
-      font-size:
-        0.75rem;
-
-      line-height:
-        1.25;
+      color: #64748b;
+      font-size: 0.75rem;
+      line-height: 1.25;
     }
-
 
     strong {
-
-      color:
-        #0f172a;
-
-      font-size:
-        0.95rem;
-
-      font-weight:
-        800;
-
-      white-space:
-        nowrap;
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 800;
+      white-space: nowrap;
     }
   }
-
 
   .collection-totals__applied {
-
-    color:
-      #047857 !important;
+    color: #047857 !important;
   }
-
 
   .collection-totals__remaining--invalid {
-
-    color:
-      #dc2626 !important;
+    color: #b91c1c !important;
   }
 
-
-  // =====================================================
-  // ERROR GENERAL DE SALDO
-  // =====================================================
-
   .collection-total-error {
+    display: block;
 
-    padding:
-      0.75rem 0.9rem;
+    margin-top: -0.45rem;
+    padding: 0.65rem 0.8rem;
 
-    border:
-      1px solid #fecaca;
+    border: 1px solid #fecaca;
+    border-radius: 0.55rem;
 
-    border-left:
-      4px solid #dc2626;
+    background: #fef2f2;
+    color: #b91c1c;
 
-    border-radius:
-      0.55rem;
-
-    background:
-      #fef2f2;
-
-    color:
-      #991b1b;
-
-    font-size:
-      0.82rem;
-
-    line-height:
-      1.4;
-
+    font-size: 0.78rem;
+    line-height: 1.35;
 
     strong {
-
-      font-weight:
-        800;
+      font-weight: 800;
     }
   }
 
-
   // =====================================================
-  // CUENTAS POR COBRAR
+  // CUENTAS POR COBRAR SELECCIONADAS
   // =====================================================
 
   .collection-applications {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    gap: 0.75rem;
 
-    display:
-      grid;
-
-    grid-template-columns:
-      minmax(0, 1fr);
-
-    grid-auto-rows:
-      max-content;
-
-    gap:
-      0.75rem;
-
-    min-width:
-      0;
-
-    min-height:
-      auto;
+    min-width: 0;
+    min-height: 0;
   }
-
 
   .collection-applications__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
 
-    display:
-      flex;
-
-    align-items:
-      center;
-
-    justify-content:
-      space-between;
-
-    gap:
-      1rem;
-
-    min-width:
-      0;
-
+    min-width: 0;
 
     h3 {
+      margin: 0;
 
-      margin:
-        0;
-
-      color:
-        #111827;
-
-      font-size:
-        1rem;
-
-      font-weight:
-        800;
+      color: #111827;
+      font-size: 1rem;
+      font-weight: 800;
     }
-
 
     p {
+      margin: 0.2rem 0 0;
 
-      margin:
-        0.2rem 0 0;
-
-      color:
-        #6b7280;
-
-      font-size:
-        0.85rem;
+      color: #6b7280;
+      font-size: 0.85rem;
     }
   }
-
 
   .collection-applications__count {
+    flex: 0 0 auto;
 
-    flex:
-      0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-    display:
-      inline-flex;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
 
-    align-items:
-      center;
+    border-radius: 999px;
 
-    justify-content:
-      center;
+    background: #e0f2fe;
+    color: #0369a1;
 
-    min-width:
-      2rem;
-
-    height:
-      2rem;
-
-    padding:
-      0 0.55rem;
-
-    border-radius:
-      999px;
-
-    background:
-      #e0f2fe;
-
-    color:
-      #0369a1;
-
-    font-size:
-      0.85rem;
-
-    font-weight:
-      800;
+    font-size: 0.85rem;
+    font-weight: 800;
   }
 
-
-  // =====================================================
-  // LISTA
-  // =====================================================
-
+  /*
+   * Igual que CxP:
+   * la lista crece hasta un límite y después usa scroll interno.
+   */
   .collection-applications__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 
-    display:
-      grid;
+    width: 100%;
+    min-width: 0;
 
-    grid-template-columns:
-      minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+    max-height: 27rem;
 
-    grid-auto-rows:
-      max-content;
+    overflow-x: hidden;
+    overflow-y: auto;
 
-    gap:
-      0.65rem;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: auto;
 
-    min-width:
-      0;
-
-    min-height:
-      auto;
-
-    max-height:
-      none;
-
-    overflow:
-      visible;
-
-    padding-right:
-      0;
+    padding-right: 0.3rem;
+    box-sizing: border-box;
   }
-
-
-  // =====================================================
-  // CARD CxC
-  // =====================================================
 
   .collection-application {
+    flex: 0 0 auto;
 
-    position:
-      relative;
+    width: 100%;
+    min-width: 0;
+    height: auto;
 
-    min-width:
-      0;
+    padding: 0.65rem 0.8rem;
 
-    min-height:
-      max-content;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.7rem;
 
-    height:
-      auto;
-
-    padding:
-      0.85rem;
-
-    border:
-      1px solid #e5e7eb;
-
-    border-radius:
-      0.75rem;
-
-    background:
-      #ffffff;
-
-    box-sizing:
-      border-box;
+    background: #ffffff;
+    box-sizing: border-box;
   }
 
-
+  /*
+   * Primera franja:
+   * factura, cliente, RFC e importe editable.
+   */
   .collection-application__main {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+    align-items: start;
+    gap: 0.75rem;
 
-    display:
-      flex;
-
-    align-items:
-      flex-start;
-
-    justify-content:
-      space-between;
-
-    gap:
-      1rem;
-
-    min-width:
-      0;
-
+    min-width: 0;
 
     > div:first-child {
+      display: grid;
+      grid-template-columns:
+        max-content
+        minmax(0, 1fr);
+      grid-template-areas:
+        'folio customer'
+        'rfc rfc';
+      column-gap: 0.5rem;
+      row-gap: 0.12rem;
 
-      display:
-        grid;
+      min-width: 0;
 
-      gap:
-        0.15rem;
+      > strong {
+        grid-area: customer;
 
-      min-width:
-        0;
-    }
+        min-width: 0;
 
+        color: #111827;
+        font-size: 0.88rem;
+        font-weight: 800;
+        line-height: 1.25;
 
-    strong {
+        overflow-wrap: anywhere;
+      }
 
-      color:
-        #111827;
+      > small {
+        grid-area: rfc;
 
-      font-size:
-        0.9rem;
-
-      overflow-wrap:
-        anywhere;
-    }
-
-
-    small {
-
-      color:
-        #6b7280;
-
-      font-size:
-        0.8rem;
+        color: #6b7280;
+        font-size: 0.75rem;
+        line-height: 1.2;
+      }
     }
   }
-
 
   .collection-application__folio {
+    grid-area: folio;
 
-    color:
-      #0369a1;
+    display: inline-flex;
+    align-items: center;
 
-    font-size:
-      0.75rem;
+    width: max-content;
+    padding: 0.12rem 0.35rem;
 
-    font-weight:
-      800;
+    border-radius: 0.35rem;
+
+    background: #eff6ff;
+    color: #0369a1;
+
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1.25;
+    white-space: nowrap;
   }
 
-
   // =====================================================
-  // IMPORTE
+  // IMPORTE EDITABLE
   // =====================================================
 
   .collection-application__amount {
+    display: grid;
+    grid-template-columns:
+      max-content
+      minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.45rem;
 
-    flex:
-      0 0 auto;
+    width: 12rem;
+    min-width: 12rem;
+    padding: 0.35rem 0.5rem;
 
-    display:
-      grid;
+    border: 1px solid #bbf7d0;
+    border-radius: 0.5rem;
 
-    justify-items:
-      end;
+    background: #f0fdf4;
 
-    gap:
-      0.2rem;
+    box-sizing: border-box;
 
-    min-width:
-      11rem;
+    ::ng-deep .c-input-field {
+      margin-bottom: 0 !important;
+    }
+
+    ::ng-deep .c-input {
+      width: 175px !important;
+    }
   }
-
 
   .collection-application__amount--invalid {
-
-    .collection-application__error {
-
-      display:
-        block;
-    }
+    border-color: #fecaca;
+    background: #fef2f2;
   }
-
 
   .collection-application__error {
+    grid-column: 1 / -1;
 
-    color:
-      #dc2626;
+    display: block;
 
-    font-size:
-      0.72rem;
+    color: #dc2626;
 
-    line-height:
-      1.3;
+    font-size: 0.72rem;
+    line-height: 1.3;
 
-    text-align:
-      right;
+    text-align: right;
   }
 
-
-  // =====================================================
-  // SALDOS DE CADA CxC
-  // =====================================================
-
+  /*
+   * Segunda franja:
+   * total, saldos y proyecto.
+   */
   .collection-application__balances {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
 
-    display:
-      grid;
+    padding-top: 0.45rem;
+    margin-top: 0.45rem;
 
-    grid-template-columns:
-      repeat(
-        4,
-        minmax(0, 1fr)
-      );
-
-    gap:
-      0.75rem;
-
-    padding-top:
-      0.7rem;
-
-    margin-top:
-      0.7rem;
-
-    border-top:
-      1px dashed #e5e7eb;
-
+    border-top: 1px dashed #e5e7eb;
 
     div {
-
-      display:
-        grid;
-
-      gap:
-        0.1rem;
-
-      min-width:
-        0;
-    }
-
-
-    span {
-
-      color:
-        #6b7280;
-
-      font-size:
-        0.72rem;
-    }
-
-
-    strong {
-
-      color:
-        #374151;
-
-      font-size:
-        0.8rem;
-
-      overflow-wrap:
-        anywhere;
-    }
-  }
-
-
-  // =====================================================
-  // NOTAS + ADVERTENCIA
-  // =====================================================
-
-  .collection-confirmation-row {
-
-    display:
-      grid;
-
-    grid-template-columns:
-      minmax(0, 1fr)
-      minmax(22rem, 1.15fr);
-
-    gap:
-      1rem;
-
-    align-items:
-      stretch;
-
-    min-width:
-      0;
-  }
-
-
-  .collection-notes-form {
-
-    display:
-      block;
-
-    min-width:
-      0;
-
-    margin:
-      0;
-
-    padding:
-      0;
-
-
-    app-input-field {
-
-      display:
-        block;
-
-      width:
-        100%;
-
-      max-width:
-        100%;
-    }
-  }
-
-
-  .collection-warning {
-
-    display:
-      flex;
-
-    align-items:
-      center;
-
-    min-width:
-      0;
-
-    min-height:
-      100%;
-
-    margin:
-      0;
-
-    padding:
-      0.75rem 0.85rem;
-
-    border-left:
-      4px solid #f59e0b;
-
-    border-radius:
-      0.45rem;
-
-    background:
-      #fffbeb;
-
-    color:
-      #92400e;
-
-    font-size:
-      0.82rem;
-
-    line-height:
-      1.4;
-
-    box-sizing:
-      border-box;
-  }
-
-
-  // =====================================================
-  // TABLET
-  // =====================================================
-
-  @media (
-    max-width:
-      900px
-  ) {
-
-    .collection-application__balances {
-
-      grid-template-columns:
-        repeat(
-          2,
-          minmax(0, 1fr)
-        );
-    }
-  }
-
-
-  @media (
-    max-width:
-      820px
-  ) {
-
-    .collection-confirmation-row {
-
-      grid-template-columns:
-        minmax(0, 1fr);
-    }
-  }
-
-
-  // =====================================================
-  // PANTALLAS DE POCA ALTURA
-  // =====================================================
-
-  @media (
-    max-height:
-      760px
-  ) {
-
-    .treasury-collection-modal__body {
-
-      overflow-y:
-        auto;
-    }
-
-
-    .collection-applications__list {
-
-      grid-auto-rows:
-        max-content;
-
-      min-height:
-        auto;
-
-      max-height:
-        none;
-
-      overflow:
-        visible;
-    }
-
-
-    .collection-application {
-
-      min-height:
-        max-content;
-
-      height:
-        auto;
-    }
-  }
-
-
-  // =====================================================
-  // MÓVIL
-  // =====================================================
-
-  @media (
-    max-width:
-      640px
-  ) {
-
-    height:
-      calc(100vh - 0.5rem);
-
-    height:
-      calc(100dvh - 0.5rem);
-
-    max-height:
-      calc(100vh - 0.5rem);
-
-    max-height:
-      calc(100dvh - 0.5rem);
-
-
-    .treasury-collection-modal__body {
-
-      gap:
-        0.85rem;
-
-      padding-right:
-        0.15rem;
-    }
-
-
-    .collection-summary {
-
-      grid-template-columns:
-        minmax(0, 1fr);
-
-      padding:
-        0.85rem;
-    }
-
-
-    .collection-summary__reference,
-    .collection-summary__description {
-
-      grid-column:
-        auto;
-    }
-
-
-    .collection-summary__amounts {
-
-      grid-template-columns:
-        minmax(0, 1fr);
-    }
-
-
-    .collection-totals {
-
-      grid-template-columns:
-        minmax(0, 1fr);
-
-      gap:
-        0.5rem;
-
-      padding:
-        0.75rem 0.85rem;
-
-
-      div {
-
-        padding-bottom:
-          0.45rem;
-
-        border-bottom:
-          1px dashed #bae6fd;
-
-
-        &:last-child {
-
-          padding-bottom:
-            0;
-
-          border-bottom:
-            0;
-        }
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+
+      min-width: 0;
+      padding-right: 0.65rem;
+
+      & + div {
+        padding-left: 0.65rem;
+        border-left: 1px solid #eef2f7;
       }
     }
 
+    span {
+      flex: 0 0 auto;
 
-    .collection-applications__header {
-
-      align-items:
-        flex-start;
+      color: #6b7280;
+      font-size: 0.7rem;
+      line-height: 1.25;
     }
 
+    strong {
+      min-width: 0;
+      white-space: nowrap;
+      color: #374151;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.25;
+
+      overflow-wrap: normal;
+    }
+  }
+
+  // =====================================================
+  // NOTAS Y ADVERTENCIA
+  // =====================================================
+
+  .collection-confirmation-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  .collection-notes-form {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+
+    margin: 0;
+    padding: 0;
+
+    app-input-field {
+      display: block;
+
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  .collection-warning {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+
+    border-left: 4px solid #f59e0b;
+    border-radius: 0.45rem;
+
+    background: #fffbeb;
+    color: #92400e;
+
+    font-size: 0.82rem;
+    line-height: 1.4;
+
+    box-sizing: border-box;
+  }
+
+  // =====================================================
+  // RESPONSIVE
+  // =====================================================
+
+  @media (max-width: 900px) {
+    .collection-application__balances {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      div {
+        padding: 0.35rem 0;
+        border-left: 0 !important;
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .collection-summary,
+    .collection-totals {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .collection-summary__reference,
+    .collection-summary__description {
+      grid-column: auto;
+    }
+
+    .collection-summary__amounts {
+      grid-column: auto;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .collection-application {
+      padding: 0.7rem;
+    }
 
     .collection-application__main {
-
-      flex-direction:
-        column;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.5rem;
     }
-
 
     .collection-application__amount {
-
-      width:
-        100%;
-
-      min-width:
-        0;
-
-      justify-items:
-        stretch;
+      width: 100%;
+      min-width: 0;
     }
-
 
     .collection-application__error {
-
-      text-align:
-        left;
+      text-align: left;
     }
-
 
     .collection-application__balances {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.35rem;
 
-      grid-template-columns:
-        minmax(0, 1fr);
+      div {
+        padding: 0;
+      }
+
+      div + div {
+        padding: 0;
+        border-left: 0;
+      }
     }
 
-
     .collection-applications__list {
-
-      min-height:
-        0;
-
-      max-height:
-        none;
-
-      overflow-x:
-        visible;
-
-      overflow-y:
-        visible;
-
-      padding-right:
-        0;
+      max-height: none;
+      overflow-y: visible;
+      padding-right: 0;
     }
   }
 }

@@ -1391,22 +1391,6 @@ export class TreasuryAccountsReceivable
             .requires_legacy_migration,
       },
 
-       {
-        type:
-          'receivableHistory',
-
-        icon:
-          'history',
-
-        tooltip:
-          'Ver historial de cobros',
-
-        visible: (
-          row,
-        ) =>
-          row.has_treasury_history,
-      },
-
       {
         type:
           'removeReceivable',
@@ -1428,6 +1412,22 @@ export class TreasuryAccountsReceivable
             .has(
               row.id,
             ),
+      },
+
+         {
+        type:
+          'receivableHistory',
+
+        icon:
+          'history',
+
+        tooltip:
+          'Ver historial de cobros',
+
+        visible: (
+          row,
+        ) =>
+          row.has_treasury_history,
       },
     ];
 

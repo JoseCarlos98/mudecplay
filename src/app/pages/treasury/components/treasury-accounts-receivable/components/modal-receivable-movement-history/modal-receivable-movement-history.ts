@@ -279,7 +279,9 @@ export class ModalReceivableMovementHistory
 
   getMovementStatusLabel(
     status:
-      entity.TreasuryAccountsReceivableBankMovementStatus,
+      | entity.TreasuryAccountsReceivableBankMovementStatus
+      | null
+      | undefined,
   ): string {
 
     switch (status) {
@@ -300,7 +302,10 @@ export class ModalReceivableMovementHistory
         return 'Cancelado';
 
       default:
-        return status;
+        return (
+          status ||
+          'Sin estatus'
+        );
     }
   }
 
@@ -334,17 +339,136 @@ export class ModalReceivableMovementHistory
     ) {
 
       case 'manual_close':
-        return 'Cierre manual';
+        return 'Saldo cerrado manualmente';
 
       case 'manual_reopen':
-        return 'Reapertura manual';
+        return 'Cierre manual reabierto';
 
       case 'classification_change':
-        return 'Cambio de clasificación';
+        return 'Clasificación actualizada';
 
       default:
-        return action.action_type;
+        return this.humanizeText(
+          action.action_type,
+        );
     }
+  }
+
+
+  getActionIcon(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    switch (
+      action.action_type
+    ) {
+
+      case 'manual_close':
+        return 'lock';
+
+      case 'manual_reopen':
+        return 'lock_open';
+
+      case 'classification_change':
+        return 'label';
+
+      default:
+        return 'history';
+    }
+  }
+
+
+  getActionClass(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    switch (
+      action.action_type
+    ) {
+
+      case 'manual_close':
+        return 'history-event--warning';
+
+      case 'manual_reopen':
+        return 'history-event--info';
+
+      case 'classification_change':
+        return 'history-event--info';
+
+      default:
+        return 'history-event--neutral';
+    }
+  }
+
+
+  isClassificationChange(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): boolean {
+
+    return (
+      action.action_type ===
+      'classification_change'
+    );
+  }
+
+
+  getPreviousClassificationLabel(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    return this.getClassificationLabel(
+      this.getActionMetadataString(
+        action,
+        'previous_classification',
+      ),
+    );
+  }
+
+
+  getNewClassificationLabel(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    return this.getClassificationLabel(
+      this.getActionMetadataString(
+        action,
+        'new_classification',
+      ) ||
+      this.getActionMetadataString(
+        action,
+        'classification',
+      ),
+    );
+  }
+
+
+  getActionUserLabel(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    const userId =
+      Number(
+        action.created_by_user_id ??
+        0,
+      );
+
+    if (
+      Number.isInteger(
+        userId,
+      ) &&
+      userId > 0
+    ) {
+
+      return `Usuario #${userId}`;
+    }
+
+    return 'Sistema';
   }
 
 
@@ -359,6 +483,119 @@ export class ModalReceivableMovementHistory
         ? 'Migración histórica'
         : 'Nuevo'
     );
+  }
+
+
+  private getActionMetadataString(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+
+    key:
+      string,
+  ): string | null {
+
+    const metadata =
+      action.metadata as
+        | Record<string, unknown>
+        | null
+        | undefined;
+
+    const value =
+      metadata?.[key];
+
+    if (
+      typeof value !==
+      'string'
+    ) {
+
+      return null;
+    }
+
+    const normalized =
+      value.trim();
+
+    return (
+      normalized ||
+      null
+    );
+  }
+
+
+  private getClassificationLabel(
+    classification:
+      | string
+      | null
+      | undefined,
+  ): string {
+
+    if (
+      !classification
+        ?.trim()
+    ) {
+
+      return 'Sin clasificación';
+    }
+
+    const normalized =
+      classification
+        .trim()
+        .replace(
+          /_/g,
+          ' ',
+        );
+
+    return (
+      normalized
+        .charAt(
+          0,
+        )
+        .toUpperCase() +
+      normalized.slice(
+        1,
+      )
+    );
+  }
+
+
+  private humanizeText(
+    value:
+      | string
+      | null
+      | undefined,
+  ): string {
+
+    if (
+      !value
+        ?.trim()
+    ) {
+
+      return 'Evento';
+    }
+
+    return value
+      .trim()
+      .split(
+        '_',
+      )
+      .filter(
+        Boolean,
+      )
+      .map(
+        (
+          part,
+        ) =>
+          part
+            .charAt(
+              0,
+            )
+            .toUpperCase() +
+          part.slice(
+            1,
+          ),
+      )
+      .join(
+        ' ',
+      );
   }
 
 

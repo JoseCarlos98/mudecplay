@@ -460,12 +460,15 @@
 
       <section class="history-section">
 
-        <header class="history-section__header">
+        <header
+          class="
+            history-section__header
+            history-section__header--timeline
+          ">
 
           <mat-icon>
             history
           </mat-icon>
-
 
           <div>
 
@@ -474,11 +477,15 @@
             </strong>
 
             <span>
-              {{ actions.length }}
-              acción(es)
+              Secuencia de cierres, reaperturas
+              y reclasificaciones.
             </span>
 
           </div>
+
+          <span class="history-section__total">
+            {{ actions.length }}
+          </span>
 
         </header>
 
@@ -487,7 +494,7 @@
           actions.length
         ) {
 
-          <div class="action-list">
+          <div class="history-timeline">
 
             @for (
               action
@@ -495,85 +502,290 @@
               track action.id
             ) {
 
-              <article class="action-card">
+              <article
+                class="history-event"
+                [ngClass]="
+                  getActionClass(
+                    action
+                  )
+                ">
 
-                <header>
+                <div class="history-event__marker">
 
-                  <strong>
+                  <mat-icon>
                     {{
-                      getActionLabel(
+                      getActionIcon(
                         action
                       )
                     }}
-                  </strong>
+                  </mat-icon>
+
+                </div>
 
 
-                  <span>
-                    {{
-                      action.created_at
-                        | date:
-                          'dd/MM/yyyy HH:mm'
-                    }}
-                  </span>
+                <div class="history-event__content">
 
-                </header>
+                  <header class="history-event__header">
 
+                    <div>
 
-                @if (
-                  action.reason
-                ) {
+                      <strong>
+                        {{
+                          getActionLabel(
+                            action
+                          )
+                        }}
+                      </strong>
 
-                  <p>
-                    {{ action.reason }}
-                  </p>
+                      <span>
+                        {{
+                          getActionUserLabel(
+                            action
+                          )
+                        }}
+                      </span>
 
-                }
-
-
-                <div class="action-card__changes">
-
-                  <span>
-                    Disponible:
-                    {{
-                      action.previous_available_amount
-                        | currency:
-                          'MXN':
-                          'symbol':
-                          '1.2-2'
-                    }}
-
-                    →
-
-                    {{
-                      action.new_available_amount
-                        | currency:
-                          'MXN':
-                          'symbol':
-                          '1.2-2'
-                    }}
-                  </span>
+                    </div>
 
 
-                  <span>
-                    Cerrado:
-                    {{
-                      action.previous_manual_closed_amount
-                        | currency:
-                          'MXN':
-                          'symbol':
-                          '1.2-2'
-                    }}
+                    <time>
+                      {{
+                        action.created_at
+                          | date:
+                            'dd/MM/yyyy HH:mm'
+                      }}
+                    </time>
 
-                    →
+                  </header>
 
-                    {{
-                      action.new_manual_closed_amount
-                        | currency:
-                          'MXN':
-                          'symbol':
-                          '1.2-2'
-                    }}
-                  </span>
+
+                  <div class="history-event__amounts">
+
+                    @if (
+                      isClassificationChange(
+                        action
+                      )
+                    ) {
+
+                      <div>
+
+                        <span>
+                          Clasificación anterior
+                        </span>
+
+                        <strong>
+                          {{
+                            getPreviousClassificationLabel(
+                              action
+                            )
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Clasificación nueva
+                        </span>
+
+                        <strong>
+                          {{
+                            getNewClassificationLabel(
+                              action
+                            )
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Disponible anterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.previous_available_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Disponible posterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.new_available_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+                    } @else {
+
+                      @if (
+                        action.affected_amount >
+                        0
+                      ) {
+
+                        <div>
+
+                          <span>
+                            Importe
+                          </span>
+
+                          <strong>
+                            {{
+                              action.affected_amount
+                                | currency:
+                                  'MXN':
+                                  'symbol':
+                                  '1.2-2'
+                            }}
+                          </strong>
+
+                        </div>
+
+                      }
+
+
+                      <div>
+
+                        <span>
+                          Disponible anterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.previous_available_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Disponible posterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.new_available_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Cerrado anterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.previous_manual_closed_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      <div>
+
+                        <span>
+                          Cerrado posterior
+                        </span>
+
+                        <strong>
+                          {{
+                            action.new_manual_closed_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
+
+                      </div>
+
+
+                      @if (
+                        action.new_status
+                      ) {
+
+                        <div>
+
+                          <span>
+                            Nuevo estatus
+                          </span>
+
+                          <strong>
+                            {{
+                              getMovementStatusLabel(
+                                action.new_status
+                              )
+                            }}
+                          </strong>
+
+                        </div>
+
+                      }
+
+                    }
+
+                  </div>
+
+
+                  @if (
+                    action.reason
+                  ) {
+
+                    <p class="history-event__reason">
+
+                      <mat-icon>
+                        notes
+                      </mat-icon>
+
+                      <span>
+                        {{ action.reason }}
+                      </span>
+
+                    </p>
+
+                  }
 
                 </div>
 
