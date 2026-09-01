@@ -1,4 +1,8 @@
-<div class="reverse-collection-modal">
+<div class="c-modal reverse-collection-modal">
+
+  <!-- =====================================================
+       ENCABEZADO
+       ===================================================== -->
 
   <app-module-header
     title="Revertir cobro"
@@ -7,103 +11,367 @@
   </app-module-header>
 
 
+  <!-- =====================================================
+       CONTENIDO
+       ===================================================== -->
+
   <div class="reverse-collection-modal__body">
 
-    <!-- COLLECTION -->
+    <!-- ===================================================
+         COBRO REGISTRADO
+         =================================================== -->
 
     <section class="reverse-collection-card">
 
-      <div class="reverse-collection-card__icon">
-        <mat-icon>
-          undo
-        </mat-icon>
+      <div class="reverse-collection-card__header">
+
+        <div class="reverse-collection-card__identity">
+
+          <span class="reverse-collection-card__icon">
+            <mat-icon>
+              account_balance
+            </mat-icon>
+          </span>
+
+
+          <div>
+
+            <span>
+              Cobro registrado
+            </span>
+
+            <strong>
+              Collection #{{ collection.id }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <span class="reverse-collection-method">
+          Transferencia
+        </span>
+
       </div>
 
 
-      <div class="reverse-collection-card__content">
+      <div class="reverse-collection-card__grid">
+
+        <div>
+
+          <span>
+            Fecha del cobro
+          </span>
+
+          <strong>
+            {{
+              collection.collection_date
+                | date:
+                  'dd/MM/yyyy':
+                  'UTC'
+            }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Empresa
+          </span>
+
+          <strong>
+            {{ companyDisplay }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Referencia
+          </span>
+
+          <strong>
+            {{ referenceDisplay }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Movimiento
+          </span>
+
+          <strong>
+            {{ movementDisplay }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Banco
+          </span>
+
+          <strong>
+            {{ bankDisplay }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Cuenta
+          </span>
+
+          <strong>
+            {{ accountDisplay }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      @if (
+        collectionNotes
+      ) {
+
+        <div class="reverse-collection-card__notes">
+
+          <span>
+            Notas del cobro
+          </span>
+
+          <strong>
+            {{ collectionNotes }}
+          </strong>
+
+        </div>
+
+      }
+
+    </section>
+
+
+    <!-- ===================================================
+         CUENTA POR COBRAR RELACIONADA
+         =================================================== -->
+
+    <section class="reverse-collection-receivable">
+
+      <header class="reverse-collection-receivable__header">
+
+        <div>
+
+          <mat-icon>
+            receipt_long
+          </mat-icon>
+
+
+          <div>
+
+            <span>
+              Cuenta por cobrar relacionada
+            </span>
+
+            <strong>
+              Factura {{ invoiceDisplay }}
+            </strong>
+
+          </div>
+
+        </div>
+
 
         <span>
-          Collection
+          Application #{{ item.application_id }}
+        </span>
+
+      </header>
+
+
+      <div class="reverse-collection-receivable__description">
+
+        <span>
+          Cliente
         </span>
 
         <strong>
-          #{{ collection.id }}
+          {{ clientDisplay }}
         </strong>
-
-        <small>
-          Factura {{ invoiceDisplay }}
-        </small>
 
       </div>
 
 
-      <strong class="reverse-collection-card__amount">
-        {{
-          collectionAmount
-            | currency:
-              'MXN':
-              'symbol':
-              '1.2-2'
-        }}
-      </strong>
+      <div class="reverse-collection-receivable__grid">
 
-    </section>
+        <div>
 
+          <span>
+            Total factura
+          </span>
 
-    <!-- DATOS -->
+          <strong>
+            {{
+              receivable.total
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
 
-    <section class="reverse-collection-grid">
-
-      <div>
-        <span>Fecha de cobro</span>
-
-        <strong>
-          {{
-            collection.collection_date
-              | date:
-                'dd/MM/yyyy':
-                'UTC'
-          }}
-        </strong>
-      </div>
+        </div>
 
 
-      <div>
-        <span>Movimiento bancario</span>
+        <div>
 
-        <strong>
-          #{{ movement.id }}
-        </strong>
-      </div>
+          <span>
+            Aplicado a esta CxC
+          </span>
 
+          <strong class="amount-reversed">
+            {{
+              appliedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
 
-      <div>
-        <span>Banco</span>
-
-        <strong>
-          {{
-            movement.bank?.name ||
-            'Sin banco'
-          }}
-        </strong>
-      </div>
+        </div>
 
 
-      <div>
-        <span>Referencia</span>
+        <div>
 
-        <strong>
-          {{
-            movement.bank_reference ||
-            'Sin referencia'
-          }}
-        </strong>
+          <span>
+            Proyecto
+          </span>
+
+          <strong>
+            {{ projectDisplay }}
+          </strong>
+
+        </div>
+
       </div>
 
     </section>
 
 
-    <!-- ADVERTENCIA -->
+    <!-- ===================================================
+         EFECTO DE LA REVERSIÓN
+         =================================================== -->
+
+    <section class="reverse-collection-amounts">
+
+      <article>
+
+        <span class="reverse-collection-amounts__icon">
+          <mat-icon>
+            payments
+          </mat-icon>
+        </span>
+
+
+        <div>
+
+          <span>
+            Importe total del cobro
+          </span>
+
+          <strong>
+            {{
+              collectionAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <article>
+
+        <span class="reverse-collection-amounts__icon">
+          <mat-icon>
+            undo
+          </mat-icon>
+        </span>
+
+
+        <div>
+
+          <span>
+            Aplicado a esta CxC
+          </span>
+
+          <strong class="amount-reversed">
+            {{
+              appliedAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+
+      <article>
+
+        <span class="reverse-collection-amounts__icon">
+          <mat-icon>
+            account_balance_wallet
+          </mat-icon>
+        </span>
+
+
+        <div>
+
+          <span>
+            Regresa al movimiento
+          </span>
+
+          <strong class="amount-pending">
+            {{
+              collectionAmount
+                | currency:
+                  'MXN':
+                  'symbol':
+                  '1.2-2'
+            }}
+          </strong>
+
+        </div>
+
+      </article>
+
+    </section>
+
+
+    <!-- ===================================================
+         ADVERTENCIA
+         =================================================== -->
 
     <section class="reverse-collection-warning">
 
@@ -115,19 +383,21 @@
       <div>
 
         <strong>
-          Esta acción revertirá la Collection completa
+          Esta acción no se puede deshacer directamente
         </strong>
 
-        <p>
-          Todas las Applications activas pertenecientes a esta
-          Collection serán revertidas. El importe regresará al
-          saldo disponible del movimiento bancario y las CxC
-          afectadas recuperarán su saldo pendiente.
-        </p>
 
         <p>
-          El cobro no se eliminará: permanecerá visible en el
-          historial como revertido.
+          Se revertirá la Collection completa y todas sus
+          Applications activas, no solamente la aplicación
+          mostrada en esta cuenta por cobrar.
+        </p>
+
+
+        <p>
+          El importe regresará al saldo disponible del movimiento
+          bancario y las CxC afectadas recuperarán su saldo pendiente.
+          El cobro permanecerá visible en el historial como revertido.
         </p>
 
       </div>
@@ -135,11 +405,14 @@
     </section>
 
 
-    <!-- FORM -->
+    <!-- ===================================================
+         FORMULARIO
+         =================================================== -->
 
     <form
       id="reverseCollectionForm"
       class="reverse-collection-form"
+      autocomplete="off"
       [formGroup]="form"
       (ngSubmit)="saveData()">
 
@@ -154,7 +427,12 @@
   </div>
 
 
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
   <app-btns-section
+    class="reverse-collection-modal__footer"
     type="save"
     form="reverseCollectionForm"
     cancelLabel="Cerrar"
@@ -165,6 +443,10 @@
     (action)="onBtnsSectionAction($event)">
   </app-btns-section>
 
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
 
   <app-loading-overlay
     [visible]="saving()"

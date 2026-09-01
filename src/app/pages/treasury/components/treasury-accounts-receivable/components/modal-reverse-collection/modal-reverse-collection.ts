@@ -73,8 +73,6 @@ import {
 
 // =========================================================
 // DATA LOCAL DEL MODAL
-//
-// No agregamos otra interface global.
 // =========================================================
 
 export interface ReverseCollectionDialogData {
@@ -89,8 +87,8 @@ export interface ReverseCollectionDialogData {
 
 const HEADER_CONFIG:
   ModuleHeaderConfig = {
-  modal: true,
-};
+    modal: true,
+  };
 
 
 @Component({
@@ -263,6 +261,115 @@ export class ModalReverseCollection {
   }
 
 
+  get companyDisplay():
+    string {
+
+    return (
+      this.movement.company?.name ||
+      'Empresa no identificada'
+    );
+  }
+
+
+  get referenceDisplay():
+    string {
+
+    return (
+      this.movement.bank_reference ||
+      'Sin referencia'
+    );
+  }
+
+
+  get movementDisplay():
+    string {
+
+    return (
+      `Movimiento ${this.movement.id} · ` +
+      this.referenceDisplay
+    );
+  }
+
+
+  get bankDisplay():
+    string {
+
+    return (
+      this.movement.bank?.name ||
+      'Sin banco'
+    );
+  }
+
+
+  get accountDisplay():
+    string {
+
+    const account =
+      this.movement.bank_account;
+
+
+    if (!account) {
+
+      return 'Sin cuenta';
+    }
+
+
+    const alias =
+      account.alias?.trim();
+
+
+    const identifier =
+      account.account_identifier?.trim();
+
+
+    if (
+      alias &&
+      identifier
+    ) {
+
+      return `${alias} · ${identifier}`;
+    }
+
+
+    return (
+      alias ||
+      identifier ||
+      'Sin cuenta'
+    );
+  }
+
+
+  get clientDisplay():
+    string {
+
+    return (
+      this.receivable.receiver_name ||
+      'Sin cliente'
+    );
+  }
+
+
+  get projectDisplay():
+    string {
+
+    return (
+      this.receivable.project?.name ||
+      'Sin proyecto'
+    );
+  }
+
+
+  get collectionNotes():
+    string |
+    null {
+
+    return (
+      this.collection.notes ??
+      null
+    );
+  }
+
+
   get canSave():
     boolean {
 
@@ -325,8 +432,8 @@ export class ModalReverseCollection {
     const payload:
       entity.TreasuryReverseCollectionPayload = {
 
-      reason,
-    };
+        reason,
+      };
 
 
     this.saving.set(
@@ -398,12 +505,22 @@ export class ModalReverseCollection {
       ModuleFooterAction,
   ): void {
 
-    if (
-      action ===
-      'cancel'
+    switch (
+      action
     ) {
 
-      this.closeModal();
+      case 'save':
+        this.saveData();
+        break;
+
+
+      case 'cancel':
+        this.closeModal();
+        break;
+
+
+      default:
+        break;
     }
   }
 
