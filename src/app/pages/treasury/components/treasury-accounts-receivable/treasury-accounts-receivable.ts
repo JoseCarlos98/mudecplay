@@ -2614,7 +2614,7 @@ export class TreasuryAccountsReceivable
       .open(
         ModalReceivableHistory,
         modalData,
-        'medium',
+        'large',
       )
       .afterClosed()
       .subscribe(
