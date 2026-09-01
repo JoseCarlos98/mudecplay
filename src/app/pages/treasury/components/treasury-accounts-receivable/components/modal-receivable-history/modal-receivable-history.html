@@ -1,428 +1,666 @@
-<div class="receivable-history-modal">
+<div class="c-modal receivable-history-modal">
 
-  <app-module-header title="Historial de cobros" [config]="headerConfig">
+  <app-module-header
+    title="Historial de cobros"
+    [config]="headerConfig"
+    (action)="closeModal()">
   </app-module-header>
 
 
   <div class="receivable-history-modal__body">
 
-    @if (historyResponse) {
+    @if (
+      historyResponse;
+      as response
+    ) {
 
-    <!-- =================================================
+      <!-- =============================================
            RESUMEN DE LA CxC
-           ================================================= -->
+           ============================================= -->
 
-    <section class="receivable-summary">
+      <section class="receivable-summary-card">
 
-      <header class="receivable-summary__header">
+        <div class="receivable-summary-card__header">
 
-        <div class="receivable-summary__identity">
+          <div class="receivable-summary-card__identity">
 
-          <mat-icon>
-            receipt_long
-          </mat-icon>
+            <span class="receivable-summary-card__icon">
 
-          <div>
-            <span>Factura</span>
+              <mat-icon>
+                receipt_long
+              </mat-icon>
 
-            <strong>
-              {{ invoiceDisplay }}
-            </strong>
-          </div>
-
-        </div>
-
-
-        <span class="receivable-status" [class.receivable-status--success]="
-              financialStatus === 'collected'
-            " [class.receivable-status--warning]="
-              financialStatus === 'partial'
-            " [class.receivable-status--pending]="
-              financialStatus === 'pending'
-            ">
-
-          {{ financialStatusLabel }}
-
-        </span>
-
-      </header>
-
-
-      <div class="receivable-summary__grid">
-
-        <div>
-          <span>Cliente</span>
-          <strong>{{ clientName }}</strong>
-        </div>
-
-        <div>
-          <span>RFC</span>
-          <strong>{{ clientRfc }}</strong>
-        </div>
-
-        <div>
-          <span>Proyecto</span>
-          <strong>{{ projectName }}</strong>
-        </div>
-
-        <div>
-          <span>Fuente financiera</span>
-          <strong>{{ financialSourceLabel }}</strong>
-        </div>
-
-      </div>
-
-
-      <div class="receivable-summary__amounts">
-
-        <div>
-          <span>Total factura</span>
-
-          <strong>
-            {{
-            totalAmount
-            | currency:
-            'MXN':
-            'symbol':
-            '1.2-2'
-            }}
-          </strong>
-        </div>
-
-
-        <div class="receivable-summary__amount--success">
-          <span>Cobrado</span>
-
-          <strong>
-            {{
-            collectedAmount
-            | currency:
-            'MXN':
-            'symbol':
-            '1.2-2'
-            }}
-          </strong>
-        </div>
-
-
-        <div class="receivable-summary__amount--pending">
-          <span>Pendiente</span>
-
-          <strong>
-            {{
-            pendingAmount
-            | currency:
-            'MXN':
-            'symbol':
-            '1.2-2'
-            }}
-          </strong>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- =================================================
-           HISTORIAL
-           ================================================= -->
-
-    <section class="receivable-history">
-
-      <header class="receivable-history__header">
-
-        <div>
-          <mat-icon>
-            history
-          </mat-icon>
-
-          <div>
-            <strong>
-              Cobros registrados
-            </strong>
-
-            <span>
-              {{ history.length }}
-              movimiento(s)
-            </span>
-          </div>
-        </div>
-
-      </header>
-
-
-      @if (history.length) {
-
-      <div class="receivable-history__list">
-
-        @for (
-        item of history;
-        track item.application_id
-        ) {
-
-        <article class="collection-history-card" [class.collection-history-card--reversed]="
-                  item.application_status === 'reversed'
-                ">
-
-          <header class="collection-history-card__header">
-
-            <div>
-
-              <span>
-                Fecha de cobro
-              </span>
-
-              <strong>
-                {{
-                item.collection.collection_date
-                | date:
-                'dd/MM/yyyy':
-                'UTC'
-                }}
-              </strong>
-
-            </div>
-
-
-            <div class="collection-history-card__amount">
-
-              <strong>
-                {{
-                item.applied_amount
-                | currency:
-                'MXN':
-                'symbol':
-                '1.2-2'
-                }}
-              </strong>
-
-
-              <span class="collection-history-card__status" [class.collection-history-card__status--reversed]="
-      item.application_status === 'reversed'
-    ">
-
-                {{
-                getApplicationStatusLabel(
-                item
-                )
-                }}
-
-              </span>
-
-
-              @if (
-              canReverseCollection(
-              item
-              )
-              ) {
-
-              <button type="button" mat-stroked-button class="collection-history-card__reverse-button"
-                [disabled]="loading()" (click)="
-        openReverseCollection(
-          item
-        )
-      ">
-
-                <mat-icon>
-                  undo
-                </mat-icon>
-
-                <span>
-                  Revertir cobro
-                </span>
-
-              </button>
-
-              }
-
-            </div>
-
-          </header>
-
-
-          <div class="collection-history-card__details">
-
-            <div>
-              <span>Referencia</span>
-
-              <strong>
-                {{ getReference(item) }}
-              </strong>
-            </div>
-
-
-            <div>
-              <span>Banco</span>
-
-              <strong>
-                {{ getBankName(item) }}
-              </strong>
-            </div>
-
-
-            <div>
-              <span>Cuenta</span>
-
-              <strong>
-                {{
-                getBankAccountDisplay(
-                item
-                )
-                }}
-              </strong>
-            </div>
-
-
-            <div>
-              <span>Movimiento</span>
-
-              <strong>
-                #{{ item.bank_movement.id }}
-              </strong>
-            </div>
-
-
-            <div>
-              <span>Collection</span>
-
-              <strong>
-                #{{ item.collection.id }}
-              </strong>
-            </div>
-
-
-            <div>
-              <span>Application</span>
-
-              <strong>
-                #{{ item.application_id }}
-              </strong>
-            </div>
-
-          </div>
-
-
-          @if (getNotes(item)) {
-
-          <div class="collection-history-card__note">
-
-            <mat-icon>
-              notes
-            </mat-icon>
-
-            <span>
-              {{ getNotes(item) }}
             </span>
 
-          </div>
-
-          }
-
-
-          @if (
-          item.application_status ===
-          'reversed'
-          ) {
-
-          <div class="collection-history-card__reversal">
-
-            <mat-icon>
-              undo
-            </mat-icon>
 
             <div>
 
+              <span>
+                Factura
+              </span>
+
               <strong>
-                Cobro revertido
+                {{ invoiceDisplay }}
               </strong>
-
-              @if (
-              item.application_reversed_at ||
-              item.collection.reversed_at
-              ) {
-
-              <span>
-                {{
-                (
-                item.application_reversed_at ||
-                item.collection.reversed_at
-                )
-                | date:
-                'dd/MM/yyyy HH:mm'
-                }}
-              </span>
-
-              }
-
-
-              @if (getReversalReason(item)) {
-
-              <span>
-                Motivo:
-                {{ getReversalReason(item) }}
-              </span>
-
-              }
 
             </div>
 
           </div>
 
-          }
+
+          <span
+            class="receivable-status"
+            [ngClass]="financialStatusClass">
+
+            {{ financialStatusLabel }}
+
+          </span>
+
+        </div>
+
+
+        <div class="receivable-summary-card__grid">
+
+          <div>
+
+            <span>
+              Cliente
+            </span>
+
+            <strong>
+              {{ clientName }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              RFC
+            </span>
+
+            <strong>
+              {{ clientRfc }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Proyecto
+            </span>
+
+            <strong>
+              {{ projectName }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span>
+              Fuente financiera
+            </span>
+
+            <strong>
+              {{ financialSourceLabel }}
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =============================================
+           SALDOS ACTUALES
+           ============================================= -->
+
+      <section class="current-balances">
+
+        <article>
+
+          <span class="current-balances__icon">
+
+            <mat-icon>
+              request_quote
+            </mat-icon>
+
+          </span>
+
+
+          <div>
+
+            <span>
+              Total factura
+            </span>
+
+            <strong>
+              {{
+                totalAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+
+          </div>
 
         </article>
 
+
+        <article>
+
+          <span class="current-balances__icon">
+
+            <mat-icon>
+              payments
+            </mat-icon>
+
+          </span>
+
+
+          <div>
+
+            <span>
+              Cobrado
+            </span>
+
+            <strong class="current-balances__paid">
+              {{
+                collectedAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+
+        <article>
+
+          <span class="current-balances__icon">
+
+            <mat-icon>
+              account_balance_wallet
+            </mat-icon>
+
+          </span>
+
+
+          <div>
+
+            <span>
+              Pendiente
+            </span>
+
+            <strong class="current-balances__pending">
+              {{
+                pendingAmount
+                  | currency:
+                    'MXN':
+                    'symbol':
+                    '1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+        </article>
+
+
+        <article>
+
+          <span class="current-balances__icon">
+
+            <mat-icon>
+              format_list_numbered
+            </mat-icon>
+
+          </span>
+
+
+          <div>
+
+            <span>
+              Aplicaciones
+            </span>
+
+            <strong>
+              {{ applicationsCount }}
+            </strong>
+
+            <small>
+              {{ activeApplicationsCount }}
+              activas ·
+              {{ reversedApplicationsCount }}
+              revertidas
+            </small>
+
+          </div>
+
+        </article>
+
+      </section>
+
+
+      <!-- =============================================
+           BITÁCORA
+           ============================================= -->
+
+      <section class="collection-history">
+
+        <div class="collection-history__header">
+
+          <div>
+
+            <h3>
+              Bitácora de cobros
+            </h3>
+
+            <p>
+              Aplicaciones y reversiones registradas para esta cuenta por cobrar.
+            </p>
+
+          </div>
+
+
+          <span class="collection-history__count">
+            {{ timelineEvents.length }}
+          </span>
+
+        </div>
+
+
+        @if (
+          timelineEvents.length > 0
+        ) {
+
+          <div class="collection-timeline">
+
+            @for (
+              event
+              of timelineEvents;
+              track event.event_id
+            ) {
+
+              <article
+                class="collection-event"
+                [ngClass]="
+                  getEventClass(
+                    event
+                  )
+                ">
+
+                <div class="collection-event__marker">
+
+                  <mat-icon>
+                    {{
+                      getEventIcon(
+                        event
+                      )
+                    }}
+                  </mat-icon>
+
+                </div>
+
+
+                <div class="collection-event__content">
+
+                  <header class="collection-event__header">
+
+                    <div>
+
+                      <strong>
+                        {{
+                          getEventTitle(
+                            event
+                          )
+                        }}
+                      </strong>
+
+                      <span>
+                        Origen:
+                        {{
+                          getEventOriginLabel(
+                            event
+                          )
+                        }}
+                      </span>
+
+                    </div>
+
+
+                    <div class="collection-event__header-right">
+
+                      @if (
+                        canReverseEvent(
+                          event
+                        )
+                      ) {
+
+                        <button
+                          type="button"
+                          class="collection-event__reverse-button"
+                          title="Revertir cobro"
+                          [disabled]="loading()"
+                          (click)="
+                            openReverseCollection(
+                              event.item
+                            )
+                          ">
+
+                          <mat-icon>
+                            undo
+                          </mat-icon>
+
+                          <span>
+                            Revertir
+                          </span>
+
+                        </button>
+
+                      }
+
+
+                      <span
+                        class="event-status"
+                        [ngClass]="
+                          getEventStatusClass(
+                            event
+                          )
+                        ">
+
+                        {{
+                          getEventStatusLabel(
+                            event
+                          )
+                        }}
+
+                      </span>
+
+
+                      <time>
+                        {{
+                          event.event_at
+                            | date:
+                              'dd/MM/yyyy HH:mm'
+                        }}
+                      </time>
+
+                    </div>
+
+                  </header>
+
+
+                  <div class="collection-event__amounts">
+
+                    <div>
+
+                      <span>
+                        Importe
+                      </span>
+
+                      <strong>
+                        {{
+                          event.amount
+                            | currency:
+                              'MXN':
+                              'symbol':
+                              '1.2-2'
+                        }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Saldo anterior
+                      </span>
+
+                      <strong>
+                        {{
+                          event.previous_pending_amount
+                            | currency:
+                              'MXN':
+                              'symbol':
+                              '1.2-2'
+                        }}
+                      </strong>
+
+                    </div>
+
+
+                    <span class="collection-event__arrow">
+
+                      <mat-icon>
+                        arrow_forward
+                      </mat-icon>
+
+                    </span>
+
+
+                    <div>
+
+                      <span>
+                        Saldo posterior
+                      </span>
+
+                      <strong>
+                        {{
+                          event.new_pending_amount
+                            | currency:
+                              'MXN':
+                              'symbol':
+                              '1.2-2'
+                        }}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="collection-event__details">
+
+                    <div>
+
+                      <span>
+                        Collection
+                      </span>
+
+                      <strong>
+                        #{{ event.item.collection.id }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Application
+                      </span>
+
+                      <strong>
+                        #{{ event.item.application_id }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Origen
+                      </span>
+
+                      <strong>
+                        {{
+                          getOriginLabel(
+                            event.item.collection.origin
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Empresa
+                      </span>
+
+                      <strong>
+                        {{
+                          getCompanyName(
+                            event.item
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Movimiento / referencia
+                      </span>
+
+                      <strong>
+                        {{
+                          getMovementDisplay(
+                            event.item
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+
+                    <div>
+
+                      <span>
+                        Banco / cuenta
+                      </span>
+
+                      <strong>
+                        {{
+                          getBankName(
+                            event.item
+                          )
+                        }}
+                        ·
+                        {{
+                          getBankAccountDisplay(
+                            event.item
+                          )
+                        }}
+                      </strong>
+
+                    </div>
+
+                  </div>
+
+
+                  @if (
+                    getEventReason(
+                      event
+                    );
+                    as eventReason
+                  ) {
+
+                    <p class="collection-event__reason">
+
+                      <mat-icon>
+                        notes
+                      </mat-icon>
+
+                      <span>
+                        {{ eventReason }}
+                      </span>
+
+                    </p>
+
+                  }
+
+                </div>
+
+              </article>
+
+            }
+
+          </div>
+
+        } @else if (!loading()) {
+
+          <div class="collection-history-empty">
+
+            <mat-icon>
+              history
+            </mat-icon>
+
+            <strong>
+              Sin cobros registrados
+            </strong>
+
+            <span>
+              Esta cuenta por cobrar todavía no tiene historial en Tesorería.
+            </span>
+
+          </div>
+
         }
 
-      </div>
-
-      } @else if (!loading()) {
-
-      <div class="receivable-history-empty">
-
-        <mat-icon>
-          history
-        </mat-icon>
-
-        <strong>
-          Sin cobros registrados
-        </strong>
-
-        <span>
-          Esta cuenta por cobrar todavía no tiene historial en Tesorería.
-        </span>
-
-      </div>
-
-      }
-
-    </section>
+      </section>
 
     } @else if (!loading()) {
 
-    <div class="receivable-history-empty">
+      <div class="collection-history-empty">
 
-      <mat-icon>
-        error_outline
-      </mat-icon>
+        <mat-icon>
+          error_outline
+        </mat-icon>
 
-      <strong>
-        No fue posible mostrar el historial
-      </strong>
+        <strong>
+          No fue posible mostrar el historial
+        </strong>
 
-    </div>
+        <span>
+          No se encontraron datos para la cuenta por cobrar seleccionada.
+        </span>
+
+      </div>
 
     }
 
   </div>
 
 
-  <app-btns-section type="close" (action)="onFooterAction($event)">
+  <app-btns-section
+    type="close"
+    (action)="onFooterAction($event)">
   </app-btns-section>
 
 
-  <app-loading-overlay [visible]="loading()" [fullscreen]="false" text="Cargando historial de cobros.">
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="false"
+    text="Cargando historial de cobros.">
   </app-loading-overlay>
 
 </div>

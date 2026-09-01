@@ -1,6 +1,4 @@
-import {
-  CommonModule,
-} from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import {
   Component,
@@ -64,8 +62,15 @@ import * as entity
 import {
   TreasuryAccountsReceivableService,
 } from '../../services/treasury-accounts-receivable.service';
-import { PermissionsService } from '../../../../../../auth/services/permissions.service';
-import { ModalReverseCollection, ReverseCollectionDialogData } from '../modal-reverse-collection/modal-reverse-collection';
+
+import {
+  PermissionsService,
+} from '../../../../../../auth/services/permissions.service';
+
+import {
+  ModalReverseCollection,
+  ReverseCollectionDialogData,
+} from '../modal-reverse-collection/modal-reverse-collection';
 
 
 // =========================================================
@@ -74,8 +79,55 @@ import { ModalReverseCollection, ReverseCollectionDialogData } from '../modal-re
 
 const HEADER_CONFIG:
   ModuleHeaderConfig = {
-  modal: true,
-};
+    modal: true,
+  };
+
+
+type ReceivableHistoryEventType =
+  | 'collection_applied'
+  | 'collection_reversed';
+
+
+interface ReceivableHistoryTimelineEvent {
+  event_id:
+    string;
+
+  action_type:
+    ReceivableHistoryEventType;
+
+  event_at:
+    string;
+
+  amount:
+    number;
+
+  previous_pending_amount:
+    number;
+
+  new_pending_amount:
+    number;
+
+  item:
+    entity.TreasuryReceivableHistoryApplication;
+}
+
+
+interface ReceivableHistoryRawEvent {
+  event_id:
+    string;
+
+  action_type:
+    ReceivableHistoryEventType;
+
+  event_at:
+    string;
+
+  amount_cents:
+    number;
+
+  item:
+    entity.TreasuryReceivableHistoryApplication;
+}
 
 
 @Component({
@@ -113,6 +165,7 @@ export class ModalReceivableHistory
     >(
       MAT_DIALOG_DATA,
     );
+
 
   private readonly permissionsService =
     inject(
@@ -156,6 +209,7 @@ export class ModalReceivableHistory
       false,
     );
 
+
   readonly headerConfig =
     HEADER_CONFIG;
 
@@ -176,11 +230,17 @@ export class ModalReceivableHistory
     null;
 
 
+  timelineEvents:
+    ReceivableHistoryTimelineEvent[] =
+    [];
+
+
   // =======================================================
   // CICLO DE VIDA
   // =======================================================
 
-  ngOnInit(): void {
+  ngOnInit():
+    void {
 
     this.loadHistory();
   }
@@ -349,7 +409,7 @@ export class ModalReceivableHistory
     string {
 
     switch (
-    this.financialStatus
+      this.financialStatus
     ) {
 
       case 'collected':
@@ -363,6 +423,28 @@ export class ModalReceivableHistory
       case 'pending':
       default:
         return 'Pendiente';
+    }
+  }
+
+
+  get financialStatusClass():
+    string {
+
+    switch (
+      this.financialStatus
+    ) {
+
+      case 'collected':
+        return 'receivable-status--collected';
+
+
+      case 'partial':
+        return 'receivable-status--partial';
+
+
+      case 'pending':
+      default:
+        return 'receivable-status--pending';
     }
   }
 
@@ -384,22 +466,182 @@ export class ModalReceivableHistory
   }
 
 
+  get applicationsCount():
+    number {
+
+    return this.history.length;
+  }
+
+
+  get activeApplicationsCount():
+    number {
+
+    return this.history
+      .filter(
+        (
+          item,
+        ) =>
+          item.application_status ===
+          'active',
+      )
+      .length;
+  }
+
+
+  get reversedApplicationsCount():
+    number {
+
+    return this.history
+      .filter(
+        (
+          item,
+        ) =>
+          item.application_status ===
+          'reversed',
+      )
+      .length;
+  }
+
+
   // =======================================================
-  // HISTORIAL
+  // EVENTOS
   // =======================================================
 
-  getApplicationStatusLabel(
-    item:
-      entity.TreasuryReceivableHistoryApplication,
+  getEventTitle(
+    event:
+      ReceivableHistoryTimelineEvent,
   ): string {
 
-    return item
+    return event.action_type ===
+      'collection_reversed'
+      ? 'Cobro revertido'
+      : 'Cobro aplicado';
+  }
+
+
+  getEventIcon(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string {
+
+    return event.action_type ===
+      'collection_reversed'
+      ? 'undo'
+      : 'payments';
+  }
+
+
+  getEventClass(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string {
+
+    return event.action_type ===
+      'collection_reversed'
+      ? 'collection-event--reversed'
+      : 'collection-event--applied';
+  }
+
+
+  getEventStatusLabel(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string {
+
+    if (
+      event.action_type ===
+      'collection_reversed'
+    ) {
+
+      return 'Revertido';
+    }
+
+
+    return event.item
       .application_status ===
       'reversed'
-      ? 'Revertido'
+      ? 'Revertido posteriormente'
       : 'Activo';
   }
 
+
+  getEventStatusClass(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string {
+
+    if (
+      event.action_type ===
+        'collection_reversed' ||
+
+      event.item
+        .application_status ===
+        'reversed'
+    ) {
+
+      return 'event-status--reversed';
+    }
+
+
+    return 'event-status--active';
+  }
+
+
+  getEventOriginLabel(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string {
+
+    return this.getOriginLabel(
+      event.item
+        .collection
+        .origin,
+    );
+  }
+
+
+  getEventReason(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): string |
+    null {
+
+    if (
+      event.action_type ===
+      'collection_reversed'
+    ) {
+
+      return this.getReversalReason(
+        event.item,
+      );
+    }
+
+
+    return this.getNotes(
+      event.item,
+    );
+  }
+
+
+  canReverseEvent(
+    event:
+      ReceivableHistoryTimelineEvent,
+  ): boolean {
+
+    return (
+      event.action_type ===
+        'collection_applied' &&
+
+      this.canReverseCollection(
+        event.item,
+      )
+    );
+  }
+
+
+  // =======================================================
+  // DATOS DE COBRO
+  // =======================================================
 
   getReference(
     item:
@@ -447,11 +689,74 @@ export class ModalReceivableHistory
     }
 
 
+    const alias =
+      account.alias
+        ?.trim();
+
+
+    const identifier =
+      account
+        .account_identifier
+        ?.trim();
+
+
+    if (
+      alias &&
+      identifier
+    ) {
+
+      return (
+        `${alias} · ${identifier}`
+      );
+    }
+
+
     return (
-      account.alias ||
-      account.account_identifier ||
+      alias ||
+      identifier ||
       'Sin cuenta'
     );
+  }
+
+
+  getCompanyName(
+    item:
+      entity.TreasuryReceivableHistoryApplication,
+  ): string {
+
+    return (
+      item
+        .bank_movement
+        .company
+        ?.name ||
+      'Empresa no identificada'
+    );
+  }
+
+
+  getMovementDisplay(
+    item:
+      entity.TreasuryReceivableHistoryApplication,
+  ): string {
+
+    return (
+      `Movimiento ${item.bank_movement.id} · ` +
+      this.getReference(
+        item,
+      )
+    );
+  }
+
+
+  getOriginLabel(
+    origin:
+      entity.TreasuryAccountsReceivableCollectionOrigin,
+  ): string {
+
+    return origin ===
+      'historical_migration'
+      ? 'Migración histórica'
+      : 'Nuevo';
   }
 
 
@@ -477,10 +782,292 @@ export class ModalReceivableHistory
     return (
       item
         .application_reversal_reason ||
+
       item
         .collection
         .reversal_reason ||
+
       null
+    );
+  }
+
+
+  // =======================================================
+  // TIMELINE
+  // =======================================================
+
+  private buildTimeline():
+    ReceivableHistoryTimelineEvent[] {
+
+    const rawEvents:
+      ReceivableHistoryRawEvent[] =
+      [];
+
+
+    for (
+      const item
+      of this.history
+    ) {
+
+      const amountCents =
+        this.moneyToCents(
+          item.applied_amount,
+        );
+
+
+      rawEvents.push({
+        event_id:
+          `application-${item.application_id}-applied`,
+
+        action_type:
+          'collection_applied',
+
+        event_at:
+          item.application_created_at ||
+          item.collection.created_at ||
+          item.collection.collection_date,
+
+        amount_cents:
+          amountCents,
+
+        item,
+      });
+
+
+      if (
+        item.application_status ===
+        'reversed'
+      ) {
+
+        rawEvents.push({
+          event_id:
+            `application-${item.application_id}-reversed`,
+
+          action_type:
+            'collection_reversed',
+
+          event_at:
+            item.application_reversed_at ||
+            item.collection.reversed_at ||
+            item.collection.created_at ||
+            item.application_created_at ||
+            item.collection.collection_date,
+
+          amount_cents:
+            amountCents,
+
+          item,
+        });
+      }
+    }
+
+
+    rawEvents.sort(
+      (
+        left,
+        right,
+      ) => {
+
+        const dateDifference =
+          this.getTimestamp(
+            left.event_at,
+          ) -
+          this.getTimestamp(
+            right.event_at,
+          );
+
+
+        if (
+          dateDifference !==
+          0
+        ) {
+
+          return dateDifference;
+        }
+
+
+        if (
+          left.action_type !==
+          right.action_type
+        ) {
+
+          return left.action_type ===
+            'collection_applied'
+            ? -1
+            : 1;
+        }
+
+
+        return left.event_id
+          .localeCompare(
+            right.event_id,
+          );
+      },
+    );
+
+
+    const totalCents =
+      this.moneyToCents(
+        this.totalAmount,
+      );
+
+
+    let pendingCents =
+      totalCents;
+
+
+    const calculated =
+      rawEvents.map(
+        (
+          event,
+        ):
+          ReceivableHistoryTimelineEvent => {
+
+          const previousPendingCents =
+            pendingCents;
+
+
+          if (
+            event.action_type ===
+            'collection_reversed'
+          ) {
+
+            pendingCents =
+              Math.min(
+                totalCents,
+                pendingCents +
+                event.amount_cents,
+              );
+
+          } else {
+
+            pendingCents =
+              Math.max(
+                0,
+                pendingCents -
+                event.amount_cents,
+              );
+          }
+
+
+          return {
+            event_id:
+              event.event_id,
+
+            action_type:
+              event.action_type,
+
+            event_at:
+              event.event_at,
+
+            amount:
+              event.amount_cents /
+              100,
+
+            previous_pending_amount:
+              previousPendingCents /
+              100,
+
+            new_pending_amount:
+              pendingCents /
+              100,
+
+            item:
+              event.item,
+          };
+        },
+      );
+
+
+    return calculated
+      .sort(
+        (
+          left,
+          right,
+        ) => {
+
+          const dateDifference =
+            this.getTimestamp(
+              right.event_at,
+            ) -
+            this.getTimestamp(
+              left.event_at,
+            );
+
+
+          if (
+            dateDifference !==
+            0
+          ) {
+
+            return dateDifference;
+          }
+
+
+          return right.event_id
+            .localeCompare(
+              left.event_id,
+            );
+        },
+      );
+  }
+
+
+  private getTimestamp(
+    value:
+      string |
+      null |
+      undefined,
+  ): number {
+
+    if (!value) {
+
+      return 0;
+    }
+
+
+    const timestamp =
+      Date.parse(
+        value,
+      );
+
+
+    return Number.isFinite(
+      timestamp,
+    )
+      ? timestamp
+      : 0;
+  }
+
+
+  private moneyToCents(
+    value:
+      unknown,
+  ): number {
+
+    const amount =
+      Number(
+        value ??
+        0,
+      );
+
+
+    if (
+      !Number.isFinite(
+        amount,
+      )
+    ) {
+
+      return 0;
+    }
+
+
+    return Math.round(
+      (
+        amount +
+        Number.EPSILON
+      ) *
+      100,
     );
   }
 
@@ -504,12 +1091,14 @@ export class ModalReceivableHistory
   }
 
 
-  closeModal(): void {
+  closeModal():
+    void {
 
     this.dialogRef.close(
       this.historyChanged(),
     );
   }
+
 
   // =======================================================
   // CARGA
@@ -571,6 +1160,10 @@ export class ModalReceivableHistory
 
           this.historyResponse =
             response;
+
+
+          this.timelineEvents =
+            this.buildTimeline();
         },
 
 
@@ -578,6 +1171,14 @@ export class ModalReceivableHistory
           error:
             unknown,
         ) => {
+
+          this.historyResponse =
+            null;
+
+
+          this.timelineEvents =
+            [];
+
 
           console.error(
             'Error al cargar el historial de la cuenta por cobrar:',
@@ -680,6 +1281,7 @@ export class ModalReceivableHistory
     );
   }
 
+
   // =======================================================
   // REVERSA
   // =======================================================
@@ -730,12 +1332,13 @@ export class ModalReceivableHistory
     }
 
 
-    const modalData: ReverseCollectionDialogData = {
+    const modalData:
+      ReverseCollectionDialogData = {
 
-      receivable,
+        receivable,
 
-      item,
-    };
+        item,
+      };
 
 
     this.dialogService
