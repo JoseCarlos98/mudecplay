@@ -68,8 +68,8 @@ import {
 
 const HEADER_CONFIG:
   ModuleHeaderConfig = {
-  modal: true,
-};
+    modal: true,
+  };
 
 
 @Component({
@@ -97,9 +97,9 @@ const HEADER_CONFIG:
 export class ModalReceivableMovementHistory
   implements OnInit {
 
-  // =========================================================
+  // =======================================================
   // INYECCIONES
-  // =========================================================
+  // =======================================================
 
   readonly data =
     inject<
@@ -135,9 +135,9 @@ export class ModalReceivableMovementHistory
     );
 
 
-  // =========================================================
+  // =======================================================
   // UI
-  // =========================================================
+  // =======================================================
 
   readonly headerConfig =
     HEADER_CONFIG;
@@ -149,9 +149,9 @@ export class ModalReceivableMovementHistory
     );
 
 
-  // =========================================================
+  // =======================================================
   // DATA
-  // =========================================================
+  // =======================================================
 
   historyResponse:
     entity.TreasuryReceivableBankMovementHistoryResponse |
@@ -165,6 +165,10 @@ export class ModalReceivableMovementHistory
     this.loadHistory();
   }
 
+
+  // =======================================================
+  // MOVIMIENTO
+  // =======================================================
 
   get movement():
     entity.TreasuryReceivableBankMovementHistoryMovement |
@@ -273,9 +277,70 @@ export class ModalReceivableMovementHistory
   }
 
 
-  // =========================================================
-  // LABELS
-  // =========================================================
+  get movementStatusLabel():
+    string {
+
+    return this.getMovementStatusLabel(
+      this.movement
+        ?.status,
+    );
+  }
+
+
+  get movementStatusClass():
+    string {
+
+    switch (
+      this.movement
+        ?.status
+    ) {
+
+      case 'matched':
+        return 'movement-status--success';
+
+      case 'partially_matched':
+        return 'movement-status--warning';
+
+      case 'manually_closed':
+        return 'movement-status--closed';
+
+      case 'cancelled':
+        return 'movement-status--danger';
+
+      case 'unmatched':
+      default:
+        return 'movement-status--neutral';
+    }
+  }
+
+
+  get totalApplications():
+    number {
+
+    return this.collections
+      .reduce(
+        (
+          total,
+          collection,
+        ) => {
+
+          return (
+            total +
+            (
+              collection.applications
+                ?.length ??
+              0
+            )
+          );
+        },
+        0,
+      );
+  }
+
+
+  // =======================================================
+  // LABELS: MOVIMIENTO / COLLECTION
+  // =======================================================
 
   getMovementStatusLabel(
     status:
@@ -302,17 +367,16 @@ export class ModalReceivableMovementHistory
         return 'Cancelado';
 
       default:
-        return (
-          status ||
-          'Sin estatus'
-        );
+        return 'Sin estatus';
     }
   }
 
 
   getCollectionStatusLabel(
     status:
-      entity.TreasuryAccountsReceivableCollectionStatus,
+      | entity.TreasuryAccountsReceivableCollectionStatus
+      | null
+      | undefined,
   ): string {
 
     switch (status) {
@@ -324,10 +388,76 @@ export class ModalReceivableMovementHistory
         return 'Revertido';
 
       default:
-        return status;
+        return 'Sin estatus';
     }
   }
 
+
+  getCollectionStatusClass(
+    status:
+      | entity.TreasuryAccountsReceivableCollectionStatus
+      | null
+      | undefined,
+  ): string {
+
+    switch (status) {
+
+      case 'active':
+        return 'collection-status--success';
+
+      case 'reversed':
+        return 'collection-status--danger';
+
+      default:
+        return 'collection-status--neutral';
+    }
+  }
+
+
+  getCollectionUserLabel(
+    collection:
+      entity.TreasuryReceivableBankMovementHistoryCollection,
+  ): string {
+
+    const userId =
+      Number(
+        collection.created_by_user_id ??
+        0,
+      );
+
+
+    if (
+      Number.isInteger(
+        userId,
+      ) &&
+      userId > 0
+    ) {
+
+      return `Usuario #${userId}`;
+    }
+
+
+    return 'Sistema';
+  }
+
+
+  getOriginLabel(
+    origin:
+      entity.TreasuryAccountsReceivableCollectionOrigin,
+  ): string {
+
+    return (
+      origin ===
+        'historical_migration'
+        ? 'Migración histórica'
+        : 'Nuevo'
+    );
+  }
+
+
+  // =======================================================
+  // LABELS: BITÁCORA
+  // =======================================================
 
   getActionLabel(
     action:
@@ -392,14 +522,39 @@ export class ModalReceivableMovementHistory
         return 'history-event--warning';
 
       case 'manual_reopen':
-        return 'history-event--info';
-
       case 'classification_change':
         return 'history-event--info';
 
       default:
         return 'history-event--neutral';
     }
+  }
+
+
+  getActionUserLabel(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): string {
+
+    const userId =
+      Number(
+        action.created_by_user_id ??
+        0,
+      );
+
+
+    if (
+      Number.isInteger(
+        userId,
+      ) &&
+      userId > 0
+    ) {
+
+      return `Usuario #${userId}`;
+    }
+
+
+    return 'Sistema';
   }
 
 
@@ -411,6 +566,24 @@ export class ModalReceivableMovementHistory
     return (
       action.action_type ===
       'classification_change'
+    );
+  }
+
+
+  hasManualClosedAmountChange(
+    action:
+      entity.TreasuryReceivableBankMovementHistoryAction,
+  ): boolean {
+
+    return (
+      Number(
+        action.previous_manual_closed_amount ??
+        0,
+      ) !==
+      Number(
+        action.new_manual_closed_amount ??
+        0,
+      )
     );
   }
 
@@ -447,45 +620,6 @@ export class ModalReceivableMovementHistory
   }
 
 
-  getActionUserLabel(
-    action:
-      entity.TreasuryReceivableBankMovementHistoryAction,
-  ): string {
-
-    const userId =
-      Number(
-        action.created_by_user_id ??
-        0,
-      );
-
-    if (
-      Number.isInteger(
-        userId,
-      ) &&
-      userId > 0
-    ) {
-
-      return `Usuario #${userId}`;
-    }
-
-    return 'Sistema';
-  }
-
-
-  getOriginLabel(
-    origin:
-      entity.TreasuryAccountsReceivableCollectionOrigin,
-  ): string {
-
-    return (
-      origin ===
-        'historical_migration'
-        ? 'Migración histórica'
-        : 'Nuevo'
-    );
-  }
-
-
   private getActionMetadataString(
     action:
       entity.TreasuryReceivableBankMovementHistoryAction,
@@ -500,8 +634,10 @@ export class ModalReceivableMovementHistory
         | null
         | undefined;
 
+
     const value =
       metadata?.[key];
+
 
     if (
       typeof value !==
@@ -511,8 +647,10 @@ export class ModalReceivableMovementHistory
       return null;
     }
 
+
     const normalized =
       value.trim();
+
 
     return (
       normalized ||
@@ -536,6 +674,7 @@ export class ModalReceivableMovementHistory
       return 'Sin clasificación';
     }
 
+
     const normalized =
       classification
         .trim()
@@ -543,6 +682,7 @@ export class ModalReceivableMovementHistory
           /_/g,
           ' ',
         );
+
 
     return (
       normalized
@@ -572,6 +712,7 @@ export class ModalReceivableMovementHistory
       return 'Evento';
     }
 
+
     return value
       .trim()
       .split(
@@ -599,9 +740,9 @@ export class ModalReceivableMovementHistory
   }
 
 
-  // =========================================================
+  // =======================================================
   // LOAD
-  // =========================================================
+  // =======================================================
 
   private loadHistory():
     void {
@@ -690,9 +831,9 @@ export class ModalReceivableMovementHistory
   }
 
 
-  // =========================================================
+  // =======================================================
   // FOOTER
-  // =========================================================
+  // =======================================================
 
   onFooterAction(
     action:

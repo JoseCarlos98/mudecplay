@@ -14,63 +14,56 @@
       as movement
     ) {
 
-      <!-- ===============================================
-           MOVIMIENTO
-           =============================================== -->
+      <!-- =================================================
+           RESUMEN DEL MOVIMIENTO
+           ================================================= -->
 
       <section class="movement-summary">
 
         <div class="movement-summary__header">
 
-          <div class="movement-summary__identity">
+          <div>
+            <span>
+              Referencia bancaria
+            </span>
 
-            <mat-icon>
-              account_balance
-            </mat-icon>
-
-
-            <div>
-
-              <span>
-                Referencia bancaria
-              </span>
-
-              <strong>
-                {{ referenceDisplay }}
-              </strong>
-
-            </div>
-
+            <strong>
+              {{ referenceDisplay }}
+            </strong>
           </div>
 
 
-          <span class="movement-summary__status">
-            {{
-              getMovementStatusLabel(
-                movement.status
-              )
-            }}
+          <span
+            class="movement-status"
+            [ngClass]="movementStatusClass">
+
+            {{ movementStatusLabel }}
+
           </span>
 
         </div>
 
 
-        <div class="movement-summary__data">
+        <div class="movement-summary__information">
 
           <div>
-            <span>Empresa</span>
+            <span>
+              Empresa
+            </span>
 
             <strong>
               {{
                 movement.company?.name ||
-                'Sin empresa'
+                'Empresa no identificada'
               }}
             </strong>
           </div>
 
 
           <div>
-            <span>Banco</span>
+            <span>
+              Banco
+            </span>
 
             <strong>
               {{
@@ -82,7 +75,9 @@
 
 
           <div>
-            <span>Cuenta</span>
+            <span>
+              Cuenta
+            </span>
 
             <strong>
               {{ accountDisplay }}
@@ -91,7 +86,9 @@
 
 
           <div>
-            <span>Fecha</span>
+            <span>
+              Fecha
+            </span>
 
             <strong>
               {{
@@ -103,21 +100,21 @@
             </strong>
           </div>
 
-        </div>
 
+          <div class="movement-summary__description">
 
-        <div class="movement-summary__description">
+            <span>
+              Descripción
+            </span>
 
-          <span>
-            Descripción
-          </span>
+            <strong>
+              {{
+                movement.description_original ||
+                'Sin descripción'
+              }}
+            </strong>
 
-          <strong>
-            {{
-              movement.description_original ||
-              'Sin descripción'
-            }}
-          </strong>
+          </div>
 
         </div>
 
@@ -126,76 +123,100 @@
 
           <article>
 
-            <span>
-              Monto original
-            </span>
+            <mat-icon>
+              account_balance_wallet
+            </mat-icon>
 
-            <strong>
-              {{
-                movement.amount
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
-              }}
-            </strong>
+            <div>
+              <span>
+                Monto original
+              </span>
 
-          </article>
-
-
-          <article>
-
-            <span>
-              Aplicado a CxC
-            </span>
-
-            <strong class="amount--success">
-              {{
-                movement.applied_amount
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
-              }}
-            </strong>
+              <strong>
+                {{
+                  movement.amount
+                    | currency:
+                      'MXN':
+                      'symbol':
+                      '1.2-2'
+                }}
+              </strong>
+            </div>
 
           </article>
 
 
           <article>
 
-            <span>
-              Cerrado manualmente
-            </span>
+            <mat-icon>
+              payments
+            </mat-icon>
 
-            <strong class="amount--warning">
-              {{
-                movement.manual_closed_amount
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
-              }}
-            </strong>
+            <div>
+              <span>
+                Aplicado a CxC
+              </span>
+
+              <strong class="amount-success">
+                {{
+                  movement.applied_amount
+                    | currency:
+                      'MXN':
+                      'symbol':
+                      '1.2-2'
+                }}
+              </strong>
+            </div>
 
           </article>
 
 
           <article>
 
-            <span>
-              Disponible
-            </span>
+            <mat-icon>
+              lock
+            </mat-icon>
 
-            <strong class="amount--available">
-              {{
-                movement.available_amount
-                  | currency:
-                    'MXN':
-                    'symbol':
-                    '1.2-2'
-              }}
-            </strong>
+            <div>
+              <span>
+                Cerrado manualmente
+              </span>
+
+              <strong class="amount-warning">
+                {{
+                  movement.manual_closed_amount
+                    | currency:
+                      'MXN':
+                      'symbol':
+                      '1.2-2'
+                }}
+              </strong>
+            </div>
+
+          </article>
+
+
+          <article>
+
+            <mat-icon>
+              account_balance
+            </mat-icon>
+
+            <div>
+              <span>
+                Disponible actual
+              </span>
+
+              <strong>
+                {{
+                  movement.available_amount
+                    | currency:
+                      'MXN':
+                      'symbol':
+                      '1.2-2'
+                }}
+              </strong>
+            </div>
 
           </article>
 
@@ -204,28 +225,39 @@
       </section>
 
 
-      <!-- ===============================================
-           COLLECTIONS
-           =============================================== -->
+      <!-- =================================================
+           COBROS RELACIONADOS
+           ================================================= -->
 
       <section class="history-section">
 
         <header class="history-section__header">
 
-          <mat-icon>
-            payments
-          </mat-icon>
-
-
           <div>
-
-            <strong>
+            <h3>
               Cobros relacionados
-            </strong>
+            </h3>
+
+            <p>
+              Aplicaciones registradas contra este movimiento.
+            </p>
+          </div>
+
+
+          <div class="history-section__counters">
 
             <span>
-              {{ collections.length }}
-              cobro(s)
+              Cobros:
+              <strong>
+                {{ collections.length }}
+              </strong>
+            </span>
+
+            <span>
+              Aplicaciones:
+              <strong>
+                {{ totalApplications }}
+              </strong>
             </span>
 
           </div>
@@ -234,30 +266,56 @@
 
 
         @if (
-          collections.length
+          collections.length > 0
         ) {
 
-          <div class="collection-list">
+          <div class="collection-history-list">
 
             @for (
-              collection
-              of collections;
+              collection of collections;
               track collection.id
             ) {
 
               <article
-                class="collection-card"
-                [class.collection-card--reversed]="
+                class="collection-history-card"
+                [class.collection-history-card--reversed]="
                   collection.status === 'reversed'
                 ">
 
-                <header class="collection-card__header">
+                <header class="collection-history-card__header">
 
-                  <div>
+                  <div class="collection-history-card__identity">
 
-                    <span>
-                      Collection #{{ collection.id }}
+                    <span class="collection-history-card__icon">
+
+                      <mat-icon>
+                        payments
+                      </mat-icon>
+
                     </span>
+
+
+                    <div>
+
+                      <strong>
+                        Cobro #{{ collection.id }}
+                      </strong>
+
+                      <span>
+                        {{
+                          collection.collection_date
+                            | date:
+                              'dd/MM/yyyy':
+                              'UTC'
+                        }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  <div class="collection-history-card__amount">
 
                     <strong>
                       {{
@@ -269,112 +327,135 @@
                       }}
                     </strong>
 
+
+                    <span
+                      class="collection-status"
+                      [ngClass]="
+                        getCollectionStatusClass(
+                          collection.status
+                        )
+                      ">
+
+                      {{
+                        getCollectionStatusLabel(
+                          collection.status
+                        )
+                      }}
+
+                    </span>
+
                   </div>
-
-
-                  <span
-                    class="collection-card__status"
-                    [class.collection-card__status--reversed]="
-                      collection.status === 'reversed'
-                    ">
-
-                    {{
-                      getCollectionStatusLabel(
-                        collection.status
-                      )
-                    }}
-
-                  </span>
 
                 </header>
 
 
-                <div class="collection-card__meta">
+                <div class="collection-history-card__details">
 
-                  <span>
-                    Fecha:
-                    {{
-                      collection.collection_date
-                        | date:
-                          'dd/MM/yyyy':
-                          'UTC'
-                    }}
-                  </span>
+                  <div>
 
-                  <span>
-                    Origen:
-                    {{
-                      getOriginLabel(
-                        collection.origin
-                      )
-                    }}
-                  </span>
+                    <span>
+                      Origen
+                    </span>
+
+                    <strong>
+                      {{
+                        getOriginLabel(
+                          collection.origin
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  <div>
+
+                    <span>
+                      Registrado por
+                    </span>
+
+                    <strong>
+                      {{
+                        getCollectionUserLabel(
+                          collection
+                        )
+                      }}
+                    </strong>
+
+                  </div>
+
+
+                  @if (
+                    collection.notes
+                  ) {
+
+                    <div class="collection-history-card__notes">
+
+                      <span>
+                        Notas
+                      </span>
+
+                      <strong>
+                        {{ collection.notes }}
+                      </strong>
+
+                    </div>
+
+                  }
 
                 </div>
 
 
                 @if (
-                  collection.notes
+                  collection.applications &&
+                  collection.applications.length > 0
                 ) {
 
-                  <div class="collection-card__notes">
+                  <div class="collection-applications-table">
 
-                    <mat-icon>
-                      notes
-                    </mat-icon>
+                    <div class="collection-applications-table__header">
 
-                    {{ collection.notes }}
+                      <span>
+                        Factura
+                      </span>
 
-                  </div>
+                      <span>
+                        Cliente
+                      </span>
 
-                }
+                      <span>
+                        Aplicado
+                      </span>
 
+                      <span>
+                        Estado
+                      </span>
 
-                <div class="application-list">
-
-                  @for (
-                    application
-                    of collection.applications;
-                    track application.id
-                  ) {
-
-                    <div
-                      class="application-card"
-                      [class.application-card--reversed]="
-                        application.status === 'reversed'
-                      ">
-
-                      <div>
-
-                        <span>
-                          Factura
-                        </span>
-
-                        <strong>
-                          {{ application.folio }}
-                        </strong>
-
-                      </div>
+                    </div>
 
 
-                      <div>
+                    @for (
+                      application of collection.applications;
+                      track application.id
+                    ) {
+
+                      <div class="collection-applications-table__row">
 
                         <span>
-                          Cliente
+                          {{
+                            application.folio ||
+                            'Sin folio'
+                          }}
                         </span>
 
-                        <strong>
-                          {{ application.receiver_name }}
-                        </strong>
-
-                      </div>
-
-
-                      <div>
 
                         <span>
-                          Aplicado
+                          {{
+                            application.receiver_name ||
+                            'Cliente no identificado'
+                          }}
                         </span>
+
 
                         <strong>
                           {{
@@ -386,52 +467,26 @@
                           }}
                         </strong>
 
+
+                        <span
+                          class="collection-status collection-status--inline"
+                          [ngClass]="
+                            getCollectionStatusClass(
+                              application.status
+                            )
+                          ">
+
+                          {{
+                            getCollectionStatusLabel(
+                              application.status
+                            )
+                          }}
+
+                        </span>
+
                       </div>
 
-
-                      <span
-                        class="application-card__status">
-
-                        {{
-                          getCollectionStatusLabel(
-                            application.status
-                          )
-                        }}
-
-                      </span>
-
-                    </div>
-
-                  }
-
-                </div>
-
-
-                @if (
-                  collection.status === 'reversed'
-                ) {
-
-                  <div class="collection-card__reversal">
-
-                    <mat-icon>
-                      undo
-                    </mat-icon>
-
-
-                    <div>
-
-                      <strong>
-                        Cobro revertido
-                      </strong>
-
-                      <span>
-                        {{
-                          collection.reversal_reason ||
-                          'Sin motivo registrado'
-                        }}
-                      </span>
-
-                    </div>
+                    }
 
                   </div>
 
@@ -443,10 +498,22 @@
 
           </div>
 
-        } @else {
+        } @else if (!loading()) {
 
-          <div class="history-empty">
-            Este movimiento todavía no tiene cobros registrados.
+          <div class="history-empty-state">
+
+            <mat-icon>
+              payments
+            </mat-icon>
+
+            <strong>
+              Sin cobros relacionados
+            </strong>
+
+            <span>
+              Este movimiento todavía no tiene cobros registrados.
+            </span>
+
           </div>
 
         }
@@ -454,34 +521,24 @@
       </section>
 
 
-      <!-- ===============================================
-           AUDITORÍA DEL MOVIMIENTO
-           =============================================== -->
+      <!-- =================================================
+           BITÁCORA DEL MOVIMIENTO
+           ================================================= -->
 
       <section class="history-section">
 
-        <header
-          class="
-            history-section__header
-            history-section__header--timeline
-          ">
-
-          <mat-icon>
-            history
-          </mat-icon>
+        <header class="history-section__header">
 
           <div>
+            <h3>
+              Bitácora del movimiento
+            </h3>
 
-            <strong>
-              Auditoría del movimiento
-            </strong>
-
-            <span>
-              Secuencia de cierres, reaperturas
-              y reclasificaciones.
-            </span>
-
+            <p>
+              Secuencia de cierres, reaperturas y reclasificaciones.
+            </p>
           </div>
+
 
           <span class="history-section__total">
             {{ actions.length }}
@@ -491,14 +548,13 @@
 
 
         @if (
-          actions.length
+          actions.length > 0
         ) {
 
           <div class="history-timeline">
 
             @for (
-              action
-              of actions;
+              action of actions;
               track action.id
             ) {
 
@@ -640,30 +696,23 @@
 
                     } @else {
 
-                      @if (
-                        action.affected_amount >
-                        0
-                      ) {
+                      <div>
 
-                        <div>
+                        <span>
+                          Importe
+                        </span>
 
-                          <span>
-                            Importe
-                          </span>
+                        <strong>
+                          {{
+                            action.affected_amount
+                              | currency:
+                                'MXN':
+                                'symbol':
+                                '1.2-2'
+                          }}
+                        </strong>
 
-                          <strong>
-                            {{
-                              action.affected_amount
-                                | currency:
-                                  'MXN':
-                                  'symbol':
-                                  '1.2-2'
-                            }}
-                          </strong>
-
-                        </div>
-
-                      }
+                      </div>
 
 
                       <div>
@@ -707,66 +756,59 @@
                       <div>
 
                         <span>
-                          Cerrado anterior
+                          Nuevo estatus
                         </span>
 
                         <strong>
                           {{
-                            action.previous_manual_closed_amount
-                              | currency:
-                                'MXN':
-                                'symbol':
-                                '1.2-2'
+                            getMovementStatusLabel(
+                              action.new_status
+                            )
                           }}
                         </strong>
 
                       </div>
-
-
-                      <div>
-
-                        <span>
-                          Cerrado posterior
-                        </span>
-
-                        <strong>
-                          {{
-                            action.new_manual_closed_amount
-                              | currency:
-                                'MXN':
-                                'symbol':
-                                '1.2-2'
-                          }}
-                        </strong>
-
-                      </div>
-
-
-                      @if (
-                        action.new_status
-                      ) {
-
-                        <div>
-
-                          <span>
-                            Nuevo estatus
-                          </span>
-
-                          <strong>
-                            {{
-                              getMovementStatusLabel(
-                                action.new_status
-                              )
-                            }}
-                          </strong>
-
-                        </div>
-
-                      }
 
                     }
 
                   </div>
+
+
+                  @if (
+                    hasManualClosedAmountChange(
+                      action
+                    )
+                  ) {
+
+                    <p class="history-event__secondary">
+
+                      <strong>
+                        Cerrado manual:
+                      </strong>
+
+                      <span>
+                        {{
+                          action.previous_manual_closed_amount
+                            | currency:
+                              'MXN':
+                              'symbol':
+                              '1.2-2'
+                        }}
+
+                        →
+
+                        {{
+                          action.new_manual_closed_amount
+                            | currency:
+                              'MXN':
+                              'symbol':
+                              '1.2-2'
+                        }}
+                      </span>
+
+                    </p>
+
+                  }
 
 
                   @if (
@@ -795,10 +837,22 @@
 
           </div>
 
-        } @else {
+        } @else if (!loading()) {
 
-          <div class="history-empty">
-            Sin acciones de auditoría registradas.
+          <div class="history-empty-state">
+
+            <mat-icon>
+              history
+            </mat-icon>
+
+            <strong>
+              Sin eventos de auditoría
+            </strong>
+
+            <span>
+              No hay acciones adicionales registradas para este movimiento.
+            </span>
+
           </div>
 
         }
