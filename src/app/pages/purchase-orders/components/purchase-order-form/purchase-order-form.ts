@@ -31,6 +31,7 @@ import { AuthService } from '../../../../auth/services/auth.service';
 import { PurchaseOrdersService } from '../../services/purchase-orders.service';
 import * as entity from '../../interfaces/purchase-orders.interfaces';
 import { PermissionsService } from '../../../../auth/services/permissions.service';
+import { WorkstationPrinterService } from '../../../../shared/services/workstation-printer.service';
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   formFull: true,
@@ -63,6 +64,8 @@ export class PurchaseOrderForm implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly purchaseOrdersService = inject(PurchaseOrdersService);
   private readonly permissionsService = inject(PermissionsService);
+  private readonly workstationPrinterService =
+    inject(WorkstationPrinterService);
 
   readonly headerConfig = HEADER_CONFIG;
 
@@ -467,6 +470,8 @@ export class PurchaseOrderForm implements OnInit {
       zero_amount_reason: isZeroAmountInvoice ? zeroAmountReason : null,
       requested_by_employee_id: requesterId,
       notes: raw.notes?.trim() || null,
+      printer_code:
+        this.workstationPrinterService.getPrinterCode(),
     };
   }
 

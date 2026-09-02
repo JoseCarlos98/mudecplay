@@ -617,6 +617,7 @@ export class PurchaseOrdersService {
 
   reprintPurchaseOrder(
     id: number | string,
+    payload: entity.ReprintPurchaseOrderDto = {},
   ): Observable<
     entity.ReprintPurchaseOrderResponse
   > {
@@ -624,7 +625,7 @@ export class PurchaseOrdersService {
       entity.ReprintPurchaseOrderResponse
     >(
       `${this.apiUrl}/${id}/reprint`,
-      {},
+      payload,
     );
   }
 

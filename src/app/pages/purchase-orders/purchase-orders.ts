@@ -10,8 +10,13 @@ import {
   FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  Router,
+} from '@angular/router';
 import { finalize } from 'rxjs';
+
+import { WorkstationPrinterService } from '../../shared/services/workstation-printer.service';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -344,6 +349,12 @@ export class PurchaseOrders
   private readonly permissionsService =
     inject(PermissionsService);
 
+  private readonly route =
+    inject(ActivatedRoute);
+
+  private readonly workstationPrinterService =
+    inject(WorkstationPrinterService);
+
 
   // =========================================================
   // CONFIGURACIÓN
@@ -541,8 +552,8 @@ export class PurchaseOrders
         tooltip:
           (row) =>
             row.printing?.last_error
-              ? `Reimprimir ticket. Error: ${row.printing.last_error}`
-              : 'Reimprimir ticket',
+              ? `Enviar a impresora de respaldo. Error: ${row.printing.last_error}`
+              : 'Enviar a impresora de respaldo',
 
         visible:
           (row) =>
@@ -654,6 +665,7 @@ export class PurchaseOrders
   // =========================================================
 
   ngOnInit(): void {
+    this.configureWorkstationPrinterFromUrl();
     this.restoreFiltersFromStorage();
   }
 
@@ -1794,46 +1806,108 @@ export class PurchaseOrders
 
 
   private reprintPurchaseOrder(
-    row:
-      entity.PurchaseOrderResponseDto,
+    row: entity.PurchaseOrderResponseDto,
   ): void {
     if (
       !row?.id ||
-      row.printing?.can_reprint !==
-      true
+      row.printing?.can_reprint !== true
     ) {
       return;
     }
 
-    this.loadingTable.set(
-      true,
-    );
-
-    this.purchaseOrdersService
-      .reprintPurchaseOrder(
-        row.id,
+    const currentPrinterCode =
+      String(
+        row.printing?.printer_code ?? '',
       )
-      .subscribe({
-        next: () => {
-          this.loadingTable.set(
-            false,
-          );
+        .trim()
+        .toUpperCase();
 
-          this.loadPurchaseOrders();
-        },
+    let backupPrinterCode:
+      | 'JEFE_OFICINA'
+      | 'JEFE_OFICINA_2'
+      | null = null;
 
-        error: (error) => {
-          this.loadingTable.set(
-            false,
-          );
+    if (
+      currentPrinterCode ===
+      'JEFE_OFICINA'
+    ) {
+      backupPrinterCode =
+        'JEFE_OFICINA_2';
+    } else if (
+      currentPrinterCode ===
+      'JEFE_OFICINA_2'
+    ) {
+      backupPrinterCode =
+        'JEFE_OFICINA';
+    }
 
-          console.error(
-            'Error al reimprimir ticket de O.C.:',
-            error,
-          );
+    if (!backupPrinterCode) {
+      console.error(
+        'No se pudo determinar la impresora de respaldo.',
+      );
 
-          this.loadPurchaseOrders();
-        },
+      return;
+    }
+    const backupPrinterLabel =
+      backupPrinterCode ===
+        'JEFE_OFICINA_2'
+        ? 'Impresora 2'
+        : 'Impresora 1';
+
+    this.dialogService
+      .confirm({
+        title:
+          'Enviar a impresora de respaldo',
+
+        message:
+          `La O.C. ${row.folio} se enviará a ${backupPrinterLabel}. ¿Deseas continuar?`,
+
+        confirmText:
+          'Sí, enviar',
+
+        cancelText:
+          'Cancelar',
+
+        size:
+          'mini',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.loadingTable.set(
+          true,
+        );
+
+        this.purchaseOrdersService
+          .reprintPurchaseOrder(
+            row.id,
+            {
+              printer_code:
+                backupPrinterCode,
+            },
+          )
+          .subscribe({
+            next: () => {
+              this.loadingTable.set(
+                false,
+              );
+
+              this.loadPurchaseOrders();
+            },
+
+            error: (error) => {
+              this.loadingTable.set(
+                false,
+              );
+
+              console.error(
+                'Error al enviar ticket a impresora de respaldo:',
+                error,
+              );
+            },
+          });
       });
   }
 
@@ -3211,6 +3285,37 @@ export class PurchaseOrders
     );
   }
 
+  private configureWorkstationPrinterFromUrl(): void {
+    const printerCode = String(
+      this.route.snapshot.queryParamMap.get(
+        'printer_code',
+      ) ?? '',
+    )
+      .trim()
+      .toUpperCase();
+
+    if (
+      printerCode !== 'JEFE_OFICINA' &&
+      printerCode !== 'JEFE_OFICINA_2'
+    ) {
+      return;
+    }
+
+    this.workstationPrinterService.setPrinterCode(
+      printerCode,
+    );
+
+    void this.router.navigate([], {
+      relativeTo: this.route,
+
+      queryParams: {
+        printer_code: null,
+      },
+
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
 
   private getActiveRelatedExpenseAmount():
     number | null {
