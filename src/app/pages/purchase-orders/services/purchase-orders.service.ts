@@ -44,6 +44,13 @@ export class PurchaseOrdersService {
 
       params = setScalar(
         params,
+        'search',
+        filters.search,
+      );
+
+
+      params = setScalar(
+        params,
         'startDate',
         filters.startDate,
       );

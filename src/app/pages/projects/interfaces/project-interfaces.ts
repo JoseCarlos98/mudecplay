@@ -1,4 +1,5 @@
 import { Area } from "../../suppliers/interfaces/supplier-interfaces";
+import { Catalog } from "../../../shared/interfaces/general-interfaces";
 
 export interface FiltersProject {
   name?: string | '';
@@ -14,41 +15,55 @@ export interface FiltersProject {
 export interface ProjectResponseDto {
   id: number;
   name: string;
-  contact_name: string;
-  location: string;
+  contact_name: string | null;
+  location: string | null;
   phone: string;
   email: string;
   days_credit: number;
+
+  charge_amount: number;
+
   will_invoice: boolean;
   statusProject: boolean;
-  area: Area; 
+
+  area: Area | null;
+
+  client?: Catalog | null;
+  responsible?: Catalog | null;
 }
 
 export interface CreateProject {
-  id?: number;
-  responsible_id?: number;
-  client_id?: number;
+  responsible_id?: number | null;
+  client_id?: number | null;
+  area_id?: number | null;
+
   name: string;
-  location: string;
+  location?: string | null;
   phone: string;
   email: string;
-  days_credit: number;
-  contact_name: string;
+  days_credit?: number | null;
+
+  charge_amount: number;
+
+  contact_name?: string | null;
   will_invoice: boolean;
   statusProject: boolean;
 }
 
 export interface PatchProject {
-  id?: number;
-  responsible_id?: number;
-  client_id?: number;
+  responsible_id?: number | null;
+  client_id?: number | null;
+  area_id?: number | null;
+
   name: string;
-  location?: string;
+  location?: string | null;
   phone: string;
   email: string;
-  days_credit?: number;
+  days_credit?: number | null;
+
   charge_amount?: number;
-  contact_name?: string;
+
+  contact_name?: string | null;
   will_invoice: boolean;
   statusProject: boolean;
 }
@@ -62,4 +77,44 @@ export interface ProjectUiFilters {
   name: string;
   page: number;
   limit: number;
+}
+
+
+// ======================================================
+// COBROS EN EFECTIVO
+// ======================================================
+
+export interface ProjectCashCollection {
+  id: number;
+  project_id: number;
+
+  amount: number;
+
+  received_date: string;
+
+  notes: string | null;
+
+  created_at: string;
+}
+
+export interface ProjectCashCollectionsResponse {
+  data: ProjectCashCollection[];
+  total_amount: number;
+}
+
+export interface CreateProjectCashCollection {
+  amount: number;
+  received_date: string;
+  notes?: string | null;
+}
+
+
+// ======================================================
+// RESPUESTA CREACIÓN PROYECTO
+// ======================================================
+
+export interface CreateProjectResponse {
+  id: number;
+  message: string;
+  success: boolean;
 }

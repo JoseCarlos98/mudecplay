@@ -421,6 +421,8 @@ export class PurchaseOrders
 
       endDate: null,
 
+      search: null,
+
       requested_amount: null,
 
       related_expense_amount: null,
@@ -443,6 +445,13 @@ export class PurchaseOrders
 
   formFilters =
     this.fb.group({
+
+      search:
+        this.fb.control<
+          string | null
+        >(
+          null,
+        ),
 
       dateRange:
         this.fb.control<
@@ -695,6 +704,10 @@ export class PurchaseOrders
         .getRawValue();
 
 
+    const hasSearch =
+      !!form.search?.trim();
+
+
     const hasDates =
       !!(
         form.dateRange?.startDate ||
@@ -725,6 +738,7 @@ export class PurchaseOrders
 
 
     return (
+      hasSearch ||
       hasDates ||
       hasRequestedAmount ||
       hasRelatedExpenseAmount ||
@@ -751,6 +765,12 @@ export class PurchaseOrders
       ).trim();
 
 
+    const search =
+      String(
+        ui.search ?? '',
+      ).trim();
+
+
     return {
 
       page:
@@ -758,6 +778,11 @@ export class PurchaseOrders
 
       limit:
         ui.limit,
+
+
+      search:
+        search ||
+        null,
 
 
       startDate:
@@ -1331,6 +1356,11 @@ export class PurchaseOrders
     const uiState:
       entity.PurchaseOrderUiFilters = {
 
+      search:
+        value.search?.trim() ||
+        null,
+
+
       dateRange:
         value.dateRange ??
         null,
@@ -1398,6 +1428,9 @@ export class PurchaseOrders
     this.formFilters.reset(
       {
 
+        search:
+          null,
+
         dateRange:
           null,
 
@@ -1435,6 +1468,9 @@ export class PurchaseOrders
         null,
 
       endDate:
+        null,
+
+      search:
         null,
 
       requested_amount:
@@ -2147,6 +2183,11 @@ export class PurchaseOrders
     this.formFilters.patchValue(
       {
 
+        search:
+          saved.search ??
+          null,
+
+
         dateRange:
           saved.dateRange ??
           null,
@@ -2186,6 +2227,11 @@ export class PurchaseOrders
     this.filters =
       this.buildBackendFiltersFromUi({
         ...saved,
+
+
+        search:
+          saved.search ??
+          null,
 
 
         dateRange:
@@ -2240,6 +2286,11 @@ export class PurchaseOrders
 
 
       state = {
+
+        search:
+          value.search?.trim() ||
+          null,
+
 
         dateRange:
           value.dateRange ??

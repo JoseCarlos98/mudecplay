@@ -9,14 +9,23 @@
 
     <form [formGroup]="formFilters">
       <div
-        class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7"
+        class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8"
       >
+      
+
         <app-input-date
           formControlName="dateRange"
           label="Fecha"
           mode="range"
         >
         </app-input-date>
+
+          <app-input-field
+          formControlName="search"
+          label="Buscar"
+          [isFilter]="true"
+        >
+        </app-input-field>
 
         <app-input-field
           formControlName="requested_amount"
