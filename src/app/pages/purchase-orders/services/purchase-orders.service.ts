@@ -44,6 +44,13 @@ export class PurchaseOrdersService {
 
       params = setScalar(
         params,
+        'search',
+        filters.search,
+      );
+
+
+      params = setScalar(
+        params,
         'startDate',
         filters.startDate,
       );
@@ -617,6 +624,7 @@ export class PurchaseOrdersService {
 
   reprintPurchaseOrder(
     id: number | string,
+    payload: entity.ReprintPurchaseOrderDto = {},
   ): Observable<
     entity.ReprintPurchaseOrderResponse
   > {
@@ -624,7 +632,7 @@ export class PurchaseOrdersService {
       entity.ReprintPurchaseOrderResponse
     >(
       `${this.apiUrl}/${id}/reprint`,
-      {},
+      payload,
     );
   }
 

@@ -93,6 +93,7 @@ export class Sidebar {
             'ADMIN_GENERAL',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_CONSULTOR',
             'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
+            'TESORERIA_CUENTAS_POR_COBRAR_EDITOR',
           ],
         },
         {
@@ -113,12 +114,12 @@ export class Sidebar {
           route: '/tesoreria/cuentas-por-pagar',
           roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_PAGAR_EDITOR'],
         },
-        // {
-        //   name: 'Cuentas por cobrar',
-        //   icon: 'request_quote',
-        //   route: '/tesoreria/cuentas-por-cobrar',
-        //   roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_COBRAR_EDITOR'],
-        // },
+        {
+          name: 'Cuentas por cobrar',
+          icon: 'request_quote',
+          route: '/tesoreria/cuentas-por-cobrar',
+          roles: ['ADMIN_GENERAL', 'TESORERIA_CUENTAS_POR_COBRAR_EDITOR'],
+        },
         // {
         //   name: 'Flujo de efectivo',
         //   icon: 'trending_up',

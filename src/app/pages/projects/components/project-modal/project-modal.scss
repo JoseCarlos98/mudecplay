@@ -1,0 +1,213 @@
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.c-modal {
+  width: 100%;
+  min-width: 0;
+
+  max-height: calc(100dvh - 32px);
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.c-modal > app-module-header {
+  flex: 0 0 auto;
+}
+
+
+/* =========================================================
+   BODY CON SCROLL
+   ========================================================= */
+
+.c-modal__body {
+  flex: 1 1 auto;
+
+  /*
+   * Importante cuando el padre es flex.
+   * Permite que el body reduzca su altura y genere scroll
+   * en lugar de hacer crecer todo el modal.
+   */
+  min-height: 0;
+
+  max-height: calc(100dvh - 150px);
+
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  overscroll-behavior: contain;
+
+  padding-right: 8px;
+  padding-bottom: 16px;
+
+  scrollbar-gutter: stable;
+}
+
+
+/* =========================================================
+   FORMULARIO PROYECTO
+   ========================================================= */
+
+.c-form {
+  width: 100%;
+  min-width: 0;
+
+  margin: 0;
+
+  overflow: visible;
+}
+
+
+.c-content-form {
+  width: 100%;
+  min-width: 0;
+
+  column-gap: 28px !important;
+  row-gap: 8px;
+}
+
+
+/* =========================================================
+   COBROS EN EFECTIVO
+   ========================================================= */
+
+.cash-section {
+  width: 100%;
+  min-width: 0;
+}
+
+
+.cash-section__header {
+  width: 100%;
+  gap: 24px;
+}
+
+
+.cash-section__total {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+
+.cash-history {
+  width: 100%;
+  min-width: 0;
+}
+
+
+.cash-history__table {
+  width: 100%;
+  min-width: 0;
+}
+
+
+.cash-history__table table {
+  min-width: 620px;
+  border-collapse: collapse;
+}
+
+
+.cash-history__table thead th {
+  white-space: nowrap;
+}
+
+
+.cash-history__table td {
+  vertical-align: middle;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.c-modal__footer {
+  flex: 0 0 auto;
+
+  position: relative;
+  z-index: 2;
+
+  background: #ffffff;
+
+  padding-top: 8px;
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+.c-modal__body::-webkit-scrollbar {
+  width: 8px;
+}
+
+
+.c-modal__body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.c-modal__body::-webkit-scrollbar-thumb {
+  background: #c7c7c7;
+  border-radius: 999px;
+}
+
+
+.c-modal__body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  .c-modal {
+    max-height: calc(100dvh - 16px);
+  }
+
+
+  .c-modal__body {
+    max-height: calc(100dvh - 135px);
+
+    padding-right: 4px;
+  }
+
+
+  .cash-section__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+
+  .cash-section__total {
+    width: 100%;
+    text-align: left;
+  }
+
+
+  .cash-history__table table {
+    min-width: 560px;
+  }
+
+}

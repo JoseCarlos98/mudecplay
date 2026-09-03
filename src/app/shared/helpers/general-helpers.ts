@@ -175,3 +175,349 @@ export function roundMoney(
     ) / factor
   );
 }
+
+
+
+export interface TreasuryBankMovementDescriptionSource {
+  description_original?:
+    string | null;
+
+  counterparty_name?:
+    string | null;
+}
+
+
+export function getTreasuryMovementDescriptionDisplay(
+  row:
+    TreasuryBankMovementDescriptionSource,
+): string {
+
+  const description =
+    row.description_original
+      ?.trim() ||
+    '';
+
+  if (!description) {
+    return 'Sin descripción';
+  }
+
+
+  // 1. BENEFICIARIO explícito
+  const beneficiaryMatch =
+    description.match(
+      /BENEFICIARIO\s*:\s*([^|]+)/i,
+    );
+
+  if (
+    beneficiaryMatch?.[1]?.trim()
+  ) {
+
+    return cleanMovementDisplayText(
+      beneficiaryMatch[1],
+    );
+  }
+
+
+  // 2. Contraparte detectada por parser
+  if (
+    row.counterparty_name
+      ?.trim()
+  ) {
+
+    return cleanMovementDisplayText(
+      row.counterparty_name,
+    );
+  }
+
+
+  const parts =
+    description
+      .split('|')
+      .map(
+        (part) =>
+          part.trim(),
+      )
+      .filter(Boolean);
+
+
+  // 3. Contraparte al final del texto bancario
+  if (
+    parts.length >= 4
+  ) {
+
+    const lastPart =
+      parts[
+        parts.length - 1
+      ];
+
+    if (
+      looksLikeCounterpartyName(
+        lastPart,
+      )
+    ) {
+
+      return cleanMovementDisplayText(
+        lastPart,
+      );
+    }
+  }
+
+
+  // 4. Concepto útil
+  const concept =
+    extractMovementConcept(
+      description,
+    );
+
+  if (concept) {
+
+    return limitMovementDisplayText(
+      concept,
+    );
+  }
+
+
+  // 5. Fallback limitado
+  return limitMovementDisplayText(
+    description,
+  );
+}
+
+
+function extractMovementConcept(
+  description:
+    string,
+): string {
+
+  const parts =
+    description
+      .split('|')
+      .map(
+        (part) =>
+          part.trim(),
+      )
+      .filter(Boolean);
+
+  for (
+    const part of parts
+  ) {
+
+    const candidate =
+      cleanMovementConceptPart(
+        part,
+      );
+
+    if (
+      isUsefulMovementConcept(
+        candidate,
+      )
+    ) {
+
+      return candidate;
+    }
+  }
+
+  return '';
+}
+
+
+function cleanMovementConceptPart(
+  value:
+    string,
+): string {
+
+  let result =
+    value.trim();
+
+
+  // BanBajío
+  result =
+    result
+      .replace(
+        /^ENV[IÍ]O\s+SPEI\s*:\s*/i,
+        '',
+      )
+      .replace(
+        /^DEP[ÓO]SITO\s+SPEI\s*:\s*/i,
+        '',
+      );
+
+
+  // BBVA
+  result =
+    result.replace(
+      /^SPEI\s+(?:ENVIADO|RECIBIDO)\s+[A-ZÁÉÍÓÚÑ0-9.-]+(?:\/\d+)?\s*/i,
+      '',
+    );
+
+
+  // Códigos iniciales
+  result =
+    result.replace(
+      /^(?:\d{3}\s+)?\d{6,8}(?=[A-ZÁÉÍÓÚÑ])/i,
+      '',
+    );
+
+
+  // Referencias técnicas
+  result =
+    result.replace(
+      /\s+REF\.?\s*.*$/i,
+      '',
+    );
+
+
+  return result.trim();
+}
+
+
+function isUsefulMovementConcept(
+  value:
+    string,
+): boolean {
+
+  const text =
+    value.trim();
+
+  if (!text) {
+    return false;
+  }
+
+  const compact =
+    text.replace(
+      /\s+/g,
+      '',
+    );
+
+
+  if (
+    /^\d+$/.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+
+  if (
+    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+
+  if (
+    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+
+
+  return /[A-ZÁÉÍÓÚÑ]/i.test(
+    text,
+  );
+}
+
+
+function looksLikeCounterpartyName(
+  value:
+    string,
+): boolean {
+
+  const text =
+    value.trim();
+
+  if (!text) {
+    return false;
+  }
+
+
+  const compact =
+    text.replace(
+      /\s+/g,
+      '',
+    );
+
+
+  if (
+    /^\d+$/.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+
+  if (
+    /^(?:BB|BNET)[A-Z0-9]+$/i.test(
+      compact,
+    )
+  ) {
+    return false;
+  }
+
+
+  if (
+    /^(?:INSTITUCI[ÓO]N|CUENTA|REFERENCIA|CLAVE DE RASTREO|HORA)\b/i.test(
+      text,
+    )
+  ) {
+    return false;
+  }
+
+
+  return (
+    text
+      .split(/\s+/)
+      .length >= 2 &&
+    /[A-ZÁÉÍÓÚÑ]{2,}/i.test(
+      text,
+    )
+  );
+}
+
+
+function cleanMovementDisplayText(
+  value:
+    string,
+): string {
+
+  return value
+    .replace(
+      /\s*\(B(?:I)?(?:-[^)]*)?\)?\s*$/i,
+      '',
+    )
+    .trim();
+}
+
+
+function limitMovementDisplayText(
+  value:
+    string,
+
+  maxLength =
+    90,
+): string {
+
+  const text =
+    value.trim();
+
+  if (
+    text.length <=
+    maxLength
+  ) {
+    return text;
+  }
+
+
+  return `${text
+    .slice(
+      0,
+      maxLength - 1,
+    )
+    .trim()}…`;
+}

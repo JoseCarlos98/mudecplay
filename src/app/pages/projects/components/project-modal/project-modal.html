@@ -1,123 +1,720 @@
 <div class="c-modal">
+
+  <!-- ================================================== -->
+  <!-- HEADER -->
+  <!-- ================================================== -->
+
   <app-module-header
-    [title]="this.data?.id ? 'Editar proyecto' : 'Registrar proyecto'"
+    [title]="data?.id ? 'Editar proyecto' : 'Registrar proyecto'"
     [config]="headerConfig"
     (action)="closeModal()">
   </app-module-header>
 
-  <form [formGroup]="form" class="c-form">
-    <div class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
 
-      <!-- Identidad -->
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="name"
-          label="Nombre"
-          type="text">
-        </app-input-field>
-      </div>
+  <!-- ================================================== -->
+  <!-- BODY SCROLLEABLE -->
+  <!-- ================================================== -->
 
-      <!-- Relaciones -->
-      <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="client_id"
-          label="Cliente"
-          [remote]="true"
-          catalogType="client">
-        </app-autocomplete>
-      </div>
+  <div class="c-modal__body">
 
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="charge_amount"
-          label="Monto de cargo"
-          type="money">
-        </app-input-field>
-      </div>
 
-           <!-- Clasificación -->
-      <div class="md:col-span-1">
-        <app-input-select
-          formControlName="area_id"
-          label="Área"
-          [options]="catalogArea">
-        </app-input-select>
-      </div>
+    <!-- ================================================== -->
+    <!-- DATOS GENERALES -->
+    <!-- ================================================== -->
 
-      <div class="md:col-span-1">
-        <app-autocomplete
-          formControlName="responsible_id"
-          label="Responsable"
-          [remote]="true"
-          catalogType="responsible">
-        </app-autocomplete>
-      </div>
+    <form
+      [formGroup]="form"
+      class="c-form">
 
-      <!-- Contacto -->
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="contact_name"
-          label="Nombre de contacto"
-          type="text">
-        </app-input-field>
-      </div>
+      <div
+        class="c-content-form grid md:grid-cols-3 sm:grid-cols-1">
 
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="phone"
-          label="Teléfono"
-          type="phone">
-        </app-input-field>
-      </div>
 
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="email"
-          label="Correo"
-          type="email">
-        </app-input-field>
-      </div>
+        <!-- Nombre -->
 
-      <!-- Contexto -->
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="location"
-          label="Ubicación"
-          type="text">
-        </app-input-field>
-      </div>
+        <div class="md:col-span-1">
 
-      <!-- Administrativos -->
-      <div class="md:col-span-1">
-        <app-input-field
-          formControlName="days_credit"
-          label="Días de crédito"
-          type="number">
-        </app-input-field>
-      </div>
+          <app-input-field
+            formControlName="name"
+            label="Nombre"
+            type="text">
+          </app-input-field>
 
-      <div class="md:col-span-1 mt-6 flex justify-center">
-        <mat-slide-toggle
-          color="primary"
-          class="input-toggle me-4"
-          formControlName="statusProject">
-          <p>¿Abierto?</p>
-        </mat-slide-toggle>
+        </div>
+
+
+        <!-- Cliente -->
+
+        <div class="md:col-span-1">
+
+          <app-autocomplete
+            formControlName="client_id"
+            label="Cliente"
+            [remote]="true"
+            catalogType="client">
+          </app-autocomplete>
+
+        </div>
+
+
+        <!-- Monto -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="charge_amount"
+            label="Monto de cargo"
+            type="money">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Área -->
+
+        <div class="md:col-span-1">
+
+          <app-input-select
+            formControlName="area_id"
+            label="Área"
+            [options]="catalogArea">
+          </app-input-select>
+
+        </div>
+
+
+        <!-- Responsable -->
+
+        <div class="md:col-span-1">
+
+          <app-autocomplete
+            formControlName="responsible_id"
+            label="Responsable"
+            [remote]="true"
+            catalogType="responsible">
+          </app-autocomplete>
+
+        </div>
+
+
+        <!-- Contacto -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="contact_name"
+            label="Nombre de contacto"
+            type="text">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Teléfono -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="phone"
+            label="Teléfono"
+            type="phone">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Correo -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="email"
+            label="Correo"
+            type="email">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Ubicación -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="location"
+            label="Ubicación"
+            type="text">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Crédito -->
+
+        <div class="md:col-span-1">
+
+          <app-input-field
+            formControlName="days_credit"
+            label="Días de crédito"
+            type="number">
+          </app-input-field>
+
+        </div>
+
+
+        <!-- Estados -->
+
+        <div
+          class="md:col-span-1 mt-6 flex justify-center">
 
           <mat-slide-toggle
-          color="primary"
-          class="input-toggle"
-          formControlName="will_invoice">
-          <p>¿Factura?</p>
-        </mat-slide-toggle>
+            color="primary"
+            class="input-toggle me-4"
+            formControlName="statusProject">
+
+            <p>
+              ¿Abierto?
+            </p>
+
+          </mat-slide-toggle>
+
+
+          <mat-slide-toggle
+            color="primary"
+            class="input-toggle"
+            formControlName="will_invoice">
+
+            <p>
+              ¿Factura?
+            </p>
+
+          </mat-slide-toggle>
+
+        </div>
+
+      </div>
+
+    </form>
+
+
+    <!-- ================================================== -->
+    <!-- COBROS EN EFECTIVO -->
+    <!-- ================================================== -->
+
+    <div
+      class="cash-section mt-6 border-t pt-5">
+
+
+      <!-- Encabezado -->
+
+      <div
+        class="cash-section__header flex items-center justify-between mb-4">
+
+        <div>
+
+          <h3
+            class="text-lg font-semibold">
+
+            Cobros en efectivo
+
+          </h3>
+
+
+          <p class="text-sm">
+
+            @if (data?.id) {
+
+              Registra nuevas entregas en efectivo para este proyecto.
+
+            } @else {
+
+              Puedes agregar los cobros iniciales antes de guardar el proyecto.
+
+            }
+
+          </p>
+
+        </div>
+
+
+        <div class="cash-section__total text-right">
+
+          <div class="text-sm">
+
+            @if (data?.id) {
+
+              Total cobrado en efectivo
+
+            } @else {
+
+              Total por registrar
+
+            }
+
+          </div>
+
+
+          <div
+            class="text-xl font-semibold">
+
+            {{
+              displayedCashTotal
+                | currency:'MXN':'symbol-narrow':'1.2-2'
+            }}
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ================================================== -->
+      <!-- FORM COBRO -->
+      <!-- ================================================== -->
+
+      <form
+        [formGroup]="cashCollectionForm">
+
+
+        <div
+          class="grid md:grid-cols-3 sm:grid-cols-1 gap-3">
+
+
+          <!-- Monto -->
+
+          <div>
+
+            <app-input-field
+              formControlName="amount"
+              label="Monto recibido"
+              type="money">
+            </app-input-field>
+
+          </div>
+
+
+          <!-- Fecha -->
+
+          <div>
+
+            <app-input-date
+              formControlName="received_date"
+              label="Fecha de cobro"
+              mode="single"
+              [showClear]="true">
+            </app-input-date>
+
+          </div>
+
+
+          <!-- Nota -->
+
+          <div>
+
+            <app-input-field
+              formControlName="notes"
+              label="Notas"
+              type="text">
+            </app-input-field>
+
+          </div>
+
+        </div>
+
+
+        <!-- Agregar -->
+
+        <div
+          class="flex justify-end mt-2">
+
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="
+              cashCollectionForm.invalid ||
+              savingCashCollection ||
+              savingProject
+            "
+            (click)="saveCashCollection()">
+
+
+            @if (savingCashCollection) {
+
+              Guardando...
+
+            } @else if (data?.id) {
+
+              Registrar cobro
+
+            } @else {
+
+              Agregar cobro
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+
+      <!-- ================================================== -->
+      <!-- HISTORIAL -->
+      <!-- ================================================== -->
+
+      <div
+        class="cash-history mt-6">
+
+
+        <div
+          class="flex items-center justify-between mb-3">
+
+          <h4
+            class="font-semibold">
+
+            @if (data?.id) {
+
+              Historial de cobros en efectivo
+
+            } @else {
+
+              Cobros por registrar
+
+            }
+
+          </h4>
+
+
+          <span
+            class="text-sm">
+
+            {{ displayedCashCount }}
+            registro(s)
+
+          </span>
+
+        </div>
+
+
+        <!-- Cargando historial -->
+
+        @if (
+          data?.id &&
+          loadingCashCollections
+        ) {
+
+          <div
+            class="py-5 text-center">
+
+            Cargando cobros...
+
+          </div>
+
+        }
+
+
+        <!-- Proyecto existente sin cobros -->
+
+        @else if (
+          data?.id &&
+          cashCollections.length === 0
+        ) {
+
+          <div
+            class="py-5 text-center border rounded">
+
+            No hay cobros en efectivo registrados.
+
+          </div>
+
+        }
+
+
+        <!-- Proyecto nuevo sin cobros -->
+
+        @else if (
+          !data?.id &&
+          pendingCashCollections.length === 0
+        ) {
+
+          <div
+            class="py-5 text-center border rounded">
+
+            No hay cobros en efectivo por registrar.
+
+          </div>
+
+        }
+
+
+        <!-- ================================================= -->
+        <!-- TABLA -->
+        <!-- ================================================= -->
+
+        @else {
+
+          <div
+            class="cash-history__table overflow-x-auto border rounded">
+
+            <table
+              class="w-full">
+
+
+              <thead>
+
+                <tr
+                  class="border-b">
+
+                  <th
+                    class="text-left px-4 py-3">
+
+                    Monto
+
+                  </th>
+
+
+                  <th
+                    class="text-left px-4 py-3">
+
+                    Fecha
+
+                  </th>
+
+
+                  <th
+                    class="text-left px-4 py-3">
+
+                    Nota
+
+                  </th>
+
+
+                  @if (!data?.id) {
+
+                    <th
+                      class="text-center px-4 py-3">
+
+                      Acción
+
+                    </th>
+
+                  }
+
+                </tr>
+
+              </thead>
+
+
+              <!-- =========================================== -->
+              <!-- EDITAR: COBROS DE BD -->
+              <!-- =========================================== -->
+
+              @if (data?.id) {
+
+                <tbody>
+
+                  @for (
+                    collection of cashCollections;
+                    track collection.id
+                  ) {
+
+                    <tr
+                      class="border-b">
+
+
+                      <td
+                        class="px-4 py-3 font-semibold">
+
+                        {{
+                          collection.amount
+                            | currency:'MXN':'symbol':'1.2-2'
+                        }}
+
+                      </td>
+
+
+                      <td
+                        class="px-4 py-3">
+
+                        {{
+                          formatDateOnly(
+                            collection.received_date
+                          )
+                        }}
+
+                      </td>
+
+
+                      <td
+                        class="px-4 py-3">
+
+                        {{
+                          collection.notes ||
+                          'Sin nota'
+                        }}
+
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              }
+
+
+              <!-- =========================================== -->
+              <!-- NUEVO: COBROS TEMPORALES -->
+              <!-- =========================================== -->
+
+              @else {
+
+                <tbody>
+
+                  @for (
+                    collection of pendingCashCollections;
+                    track $index;
+                    let i = $index
+                  ) {
+
+                    <tr
+                      class="border-b">
+
+
+                      <td
+                        class="px-4 py-3 font-semibold">
+
+                        {{
+                          collection.amount
+                            | currency:'MXN':'symbol':'1.2-2'
+                        }}
+
+                      </td>
+
+
+                      <td
+                        class="px-4 py-3">
+
+                        {{
+                          formatDateOnly(
+                            collection.received_date
+                          )
+                        }}
+
+                      </td>
+
+
+                      <td
+                        class="px-4 py-3">
+
+                        {{
+                          collection.notes ||
+                          'Sin nota'
+                        }}
+
+                      </td>
+
+
+                      <td
+                        class="px-4 py-3 text-center">
+
+                        <button
+                          type="button"
+                          class="btn-outline"
+                          [disabled]="savingProject"
+                          (click)="
+                            removePendingCashCollection(i)
+                          ">
+
+                          Quitar
+
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              }
+
+
+              <!-- =========================================== -->
+              <!-- TOTAL -->
+              <!-- =========================================== -->
+
+              <tfoot>
+
+                <tr>
+
+                  <td
+                    [attr.colspan]="
+                      data?.id ? 2 : 3
+                    "
+                    class="px-4 py-3 text-right font-semibold">
+
+
+                    @if (data?.id) {
+
+                      Total cobrado en efectivo
+
+                    } @else {
+
+                      Total por registrar
+
+                    }
+
+                  </td>
+
+
+                  <td
+                    class="px-4 py-3 font-semibold">
+
+                    {{
+                      displayedCashTotal
+                        | currency:'MXN':'symbol-narrow':'1.2-2'
+                    }}
+
+                  </td>
+
+                </tr>
+
+              </tfoot>
+
+            </table>
+
+          </div>
+
+        }
+
       </div>
 
     </div>
-  </form>
 
-  <app-btns-section
-    type="save"
-    (action)="onBtnsSectionAction($event)"
-    [saveDisabled]="!form.valid">
-  </app-btns-section>
+  </div>
+
+
+  <!-- ================================================== -->
+  <!-- FOOTER FIJO -->
+  <!-- ================================================== -->
+
+  <div class="c-modal__footer">
+
+    <app-btns-section
+      type="save"
+      (action)="onBtnsSectionAction($event)"
+      [saveDisabled]="
+        form.invalid ||
+        savingProject ||
+        savingCashCollection
+      ">
+    </app-btns-section>
+
+  </div>
+
 </div>

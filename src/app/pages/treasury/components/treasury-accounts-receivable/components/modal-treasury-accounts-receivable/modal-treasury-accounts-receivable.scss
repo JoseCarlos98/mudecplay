@@ -1,0 +1,611 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+}
+
+.collection-summary__money--original {
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.collection-summary__reference {
+  grid-column: 1 / -1;
+}
+
+.collection-summary__amounts {
+  grid-column: 1 / -1;
+
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  align-items: stretch !important;
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+
+    min-width: 0;
+    padding: 0.65rem 0.75rem;
+
+    border: 1px solid #dbeafe;
+    border-radius: 0.55rem;
+
+    background: #ffffff;
+  }
+}
+
+.treasury-collection-modal {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: 100%;
+
+  /*
+   * Igual que CxP:
+   * con pocas CxC se adapta al contenido;
+   * con muchas puede crecer hasta este límite.
+   */
+  height: auto;
+
+  max-height: min(56rem, calc(100vh - 1rem));
+  max-height: min(56rem, calc(100dvh - 1rem));
+
+  overflow: hidden;
+  box-sizing: border-box;
+
+  > app-module-header,
+  > app-btns-section {
+    flex: 0 0 auto;
+  }
+
+  // =====================================================
+  // BODY
+  // =====================================================
+
+  .treasury-collection-modal__body {
+    flex: 0 1 auto;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    align-content: start;
+    gap: 1rem;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+
+    padding-right: 0.4rem;
+    padding-bottom: 10px;
+  }
+
+  // =====================================================
+  // MOVIMIENTO BANCARIO
+  // =====================================================
+
+  .collection-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem 1.25rem;
+
+    min-width: 0;
+    padding: 1rem;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 0.85rem;
+
+    background: #f9fafb;
+
+    > div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+
+      min-width: 0;
+
+      color: #374151;
+      font-size: 0.9rem;
+      line-height: 1.35;
+    }
+
+    strong {
+      flex: 0 0 auto;
+
+      color: #111827;
+      font-weight: 800;
+    }
+
+    span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  .collection-summary__money {
+    color: #047857;
+    font-weight: 800;
+  }
+
+  .collection-summary__description {
+    grid-column: 1 / -1;
+
+    display: block !important;
+
+    padding-top: 0.75rem;
+    margin-top: 0.15rem;
+
+    border-top: 1px dashed #d1d5db;
+
+    strong {
+      margin-right: 0.25rem;
+    }
+  }
+
+  // =====================================================
+  // RESUMEN DEL COBRO
+  // =====================================================
+
+  .collection-totals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    min-width: 0;
+    padding: 0.7rem 1rem;
+
+    border: 1px solid #bae6fd;
+    border-radius: 0.8rem;
+
+    background: #f0f9ff;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.65rem;
+
+      min-width: 0;
+    }
+
+    span {
+      color: #64748b;
+      font-size: 0.75rem;
+      line-height: 1.25;
+    }
+
+    strong {
+      color: #0f172a;
+      font-size: 0.95rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+  }
+
+  .collection-totals__applied {
+    color: #047857 !important;
+  }
+
+  .collection-totals__remaining--invalid {
+    color: #b91c1c !important;
+  }
+
+  .collection-total-error {
+    display: block;
+
+    margin-top: -0.45rem;
+    padding: 0.65rem 0.8rem;
+
+    border: 1px solid #fecaca;
+    border-radius: 0.55rem;
+
+    background: #fef2f2;
+    color: #b91c1c;
+
+    font-size: 0.78rem;
+    line-height: 1.35;
+
+    strong {
+      font-weight: 800;
+    }
+  }
+
+  // =====================================================
+  // CUENTAS POR COBRAR SELECCIONADAS
+  // =====================================================
+
+  .collection-applications {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-auto-rows: max-content;
+    gap: 0.75rem;
+
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .collection-applications__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    min-width: 0;
+
+    h3 {
+      margin: 0;
+
+      color: #111827;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    p {
+      margin: 0.2rem 0 0;
+
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+  }
+
+  .collection-applications__count {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 0.55rem;
+
+    border-radius: 999px;
+
+    background: #e0f2fe;
+    color: #0369a1;
+
+    font-size: 0.85rem;
+    font-weight: 800;
+  }
+
+  /*
+   * Igual que CxP:
+   * la lista crece hasta un límite y después usa scroll interno.
+   */
+  .collection-applications__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    width: 100%;
+    min-width: 0;
+
+    height: auto;
+    min-height: 0;
+    max-height: 27rem;
+
+    overflow-x: hidden;
+    overflow-y: auto;
+
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: auto;
+
+    padding-right: 0.3rem;
+    box-sizing: border-box;
+  }
+
+  .collection-application {
+    flex: 0 0 auto;
+
+    width: 100%;
+    min-width: 0;
+    height: auto;
+
+    padding: 0.65rem 0.8rem;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 0.7rem;
+
+    background: #ffffff;
+    box-sizing: border-box;
+  }
+
+  /*
+   * Primera franja:
+   * factura, cliente, RFC e importe editable.
+   */
+  .collection-application__main {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+    align-items: start;
+    gap: 0.75rem;
+
+    min-width: 0;
+
+    > div:first-child {
+      display: grid;
+      grid-template-columns:
+        max-content
+        minmax(0, 1fr);
+      grid-template-areas:
+        'folio customer'
+        'rfc rfc';
+      column-gap: 0.5rem;
+      row-gap: 0.12rem;
+
+      min-width: 0;
+
+      > strong {
+        grid-area: customer;
+
+        min-width: 0;
+
+        color: #111827;
+        font-size: 0.88rem;
+        font-weight: 800;
+        line-height: 1.25;
+
+        overflow-wrap: anywhere;
+      }
+
+      > small {
+        grid-area: rfc;
+
+        color: #6b7280;
+        font-size: 0.75rem;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .collection-application__folio {
+    grid-area: folio;
+
+    display: inline-flex;
+    align-items: center;
+
+    width: max-content;
+    padding: 0.12rem 0.35rem;
+
+    border-radius: 0.35rem;
+
+    background: #eff6ff;
+    color: #0369a1;
+
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1.25;
+    white-space: nowrap;
+  }
+
+  // =====================================================
+  // IMPORTE EDITABLE
+  // =====================================================
+
+  .collection-application__amount {
+    display: grid;
+    grid-template-columns:
+      max-content
+      minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.45rem;
+
+    width: 12rem;
+    min-width: 12rem;
+    padding: 0.35rem 0.5rem;
+
+    border: 1px solid #bbf7d0;
+    border-radius: 0.5rem;
+
+    background: #f0fdf4;
+
+    box-sizing: border-box;
+
+    ::ng-deep .c-input-field {
+      margin-bottom: 0 !important;
+    }
+
+    ::ng-deep .c-input {
+      width: 175px !important;
+    }
+  }
+
+  .collection-application__amount--invalid {
+    border-color: #fecaca;
+    background: #fef2f2;
+  }
+
+  .collection-application__error {
+    grid-column: 1 / -1;
+
+    display: block;
+
+    color: #dc2626;
+
+    font-size: 0.72rem;
+    line-height: 1.3;
+
+    text-align: right;
+  }
+
+  /*
+   * Segunda franja:
+   * total, saldos y proyecto.
+   */
+  .collection-application__balances {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+
+    padding-top: 0.45rem;
+    margin-top: 0.45rem;
+
+    border-top: 1px dashed #e5e7eb;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      gap: 0.35rem;
+
+      min-width: 0;
+      padding-right: 0.65rem;
+
+      & + div {
+        padding-left: 0.65rem;
+        border-left: 1px solid #eef2f7;
+      }
+    }
+
+    span {
+      flex: 0 0 auto;
+
+      color: #6b7280;
+      font-size: 0.7rem;
+      line-height: 1.25;
+    }
+
+    strong {
+      min-width: 0;
+      white-space: nowrap;
+      color: #374151;
+      font-size: 0.78rem;
+      font-weight: 800;
+      line-height: 1.25;
+
+      overflow-wrap: normal;
+    }
+  }
+
+  // =====================================================
+  // NOTAS Y ADVERTENCIA
+  // =====================================================
+
+  .collection-confirmation-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+
+  .collection-notes-form {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+
+    margin: 0;
+    padding: 0;
+
+    app-input-field {
+      display: block;
+
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  .collection-warning {
+    display: flex;
+    align-items: center;
+
+    width: 100%;
+    min-width: 0;
+    min-height: auto;
+
+    margin: 0;
+    padding: 0.75rem 0.85rem;
+
+    border-left: 4px solid #f59e0b;
+    border-radius: 0.45rem;
+
+    background: #fffbeb;
+    color: #92400e;
+
+    font-size: 0.82rem;
+    line-height: 1.4;
+
+    box-sizing: border-box;
+  }
+
+  // =====================================================
+  // RESPONSIVE
+  // =====================================================
+
+  @media (max-width: 900px) {
+    .collection-application__balances {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+
+      div {
+        padding: 0.35rem 0;
+        border-left: 0 !important;
+      }
+    }
+  }
+
+  @media (max-width: 640px) {
+    .collection-summary,
+    .collection-totals {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .collection-summary__reference,
+    .collection-summary__description {
+      grid-column: auto;
+    }
+
+    .collection-summary__amounts {
+      grid-column: auto;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .collection-application {
+      padding: 0.7rem;
+    }
+
+    .collection-application__main {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.5rem;
+    }
+
+    .collection-application__amount {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .collection-application__error {
+      text-align: left;
+    }
+
+    .collection-application__balances {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.35rem;
+
+      div {
+        padding: 0;
+      }
+
+      div + div {
+        padding: 0;
+        border-left: 0;
+      }
+    }
+
+    .collection-applications__list {
+      max-height: none;
+      overflow-y: visible;
+      padding-right: 0;
+    }
+  }
+}

@@ -342,6 +342,8 @@ export interface CreatePurchaseOrderDto {
   zero_amount_reason?: string | null;
   requested_by_employee_id: number;
   notes?: string | null;
+
+  printer_code?: string | null;
 }
 
 export interface UpdatePurchaseOrderDto {
@@ -1401,12 +1403,18 @@ export interface PurchaseOrderPrintingDto {
 
   reprint_of_job_id: number | null;
 
+  printer_code: string | null;
+
   dispatched_at: string | null;
   printed_at: string | null;
 
   last_error: string | null;
 
   created_at: string | null;
+}
+
+export interface ReprintPurchaseOrderDto {
+  printer_code?: string | null;
 }
 
 export interface ReprintPurchaseOrderResponse {

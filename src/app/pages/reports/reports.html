@@ -1,4 +1,4 @@
-<app-page-tabs
+<!-- <app-page-tabs
   [title]="'Reportes'"
   [description]="'Genera reportes en PDF a partir de filtros: proyecto, proveedor, estado financiero y cuentas por cobrar.'"
   [tabs]="tabs"
@@ -15,7 +15,7 @@
     }
 
     @case ('by_area') {
-      <!-- <app-area-report></app-area-report> -->
+      <app-area-report></app-area-report>
     }
 
     @case ('project_payables') {
@@ -30,4 +30,25 @@
       <app-accounts-receivable-report></app-accounts-receivable-report>
     }
   }
+</app-page-tabs> -->
+
+<app-page-tabs
+
+  [title]="'Reportes'"
+
+  [description]="
+    'Genera el resumen financiero consolidado de un proyecto.'
+  "
+
+  [tabs]="tabs"
+
+  [activeTab]="activeSection()"
+
+  (activeTabChange)="
+    onActiveTabChange($event)
+  ">
+
+  <app-project-all-report>
+  </app-project-all-report>
+
 </app-page-tabs>
