@@ -460,18 +460,33 @@ export class PurchaseOrderForm implements OnInit {
       return null;
     }
 
-    return {
+    const payload = {
       project_id: projectId,
       destination_type: destinationType,
       will_have_invoice: willHaveInvoice,
       concept,
       requested_amount: requestedAmount,
       is_zero_amount_invoice: isZeroAmountInvoice,
-      zero_amount_reason: isZeroAmountInvoice ? zeroAmountReason : null,
-      requested_by_employee_id: requesterId,
-      notes: raw.notes?.trim() || null,
+      zero_amount_reason:
+        isZeroAmountInvoice
+          ? zeroAmountReason
+          : null,
+      requested_by_employee_id:
+        requesterId,
+      notes:
+        raw.notes?.trim() || null,
+    };
+
+    if (this.isEditMode) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+
       printer_code:
-        this.workstationPrinterService.getPrinterCode(),
+        this.workstationPrinterService
+          .getPrinterCode(),
     };
   }
 
