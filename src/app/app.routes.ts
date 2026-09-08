@@ -81,6 +81,17 @@ export const routes: Routes = [
         data: { roles: ['ALMACEN_EDITOR'] },
       },
       {
+        path: 'monitor',
+        loadComponent: () =>
+          import('./pages/project-monitor/project-monitor')
+            .then((m) => m.ProjectMonitor),
+        canActivate: [rolesGuard],
+        data: {
+          roles: ['REPORTES_EMISOR'],
+        },
+      },
+
+      {
         path: 'reportes',
         loadComponent: () =>
           import('./pages/reports/reports').then((m) => m.Reports),

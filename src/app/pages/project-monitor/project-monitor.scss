@@ -1,0 +1,1197 @@
+:host {
+  display:
+    block;
+
+  width:
+    100%;
+}
+
+
+// =========================================================
+// PAGE
+// =========================================================
+
+.project-monitor {
+  width:
+    100%;
+
+  padding:
+    0.75rem;
+}
+
+
+.project-monitor__shell {
+  width:
+    100%;
+
+  padding:
+    1rem;
+
+  background:
+    #ffffff;
+
+  border-radius:
+    0.9rem;
+
+  box-shadow:
+    0 2px 10px
+    rgba(
+      15,
+      62,
+      86,
+      0.08
+    );
+}
+
+
+// =========================================================
+// SUBHEADER
+// =========================================================
+
+.project-monitor__subheader {
+  margin-top:
+    0.35rem;
+
+  margin-bottom:
+    1rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    1rem;
+}
+
+
+.project-monitor__description {
+  margin:
+    0;
+
+  color:
+    #66758b;
+
+  font-size:
+    0.9rem;
+}
+
+
+.project-monitor__actions {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  flex-wrap:
+    wrap;
+
+  gap:
+    0.8rem;
+}
+
+
+.project-monitor__updated {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.4rem;
+
+  color:
+    #6c7a8e;
+
+  font-size:
+    0.78rem;
+
+
+  mat-icon {
+    width:
+      18px;
+
+    height:
+      18px;
+
+    font-size:
+      18px;
+
+    color:
+      #178dbb;
+  }
+
+
+  strong {
+    color:
+      #44546a;
+
+    font-weight:
+      600;
+  }
+}
+
+
+.project-monitor__refresh {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    0.4rem;
+
+  white-space:
+    nowrap;
+
+
+  mat-icon {
+    width:
+      20px;
+
+    height:
+      20px;
+
+    font-size:
+      20px;
+  }
+}
+
+
+.project-monitor__refresh-icon--loading {
+  animation:
+    monitor-spin
+    0.8s
+    linear
+    infinite;
+}
+
+
+@keyframes monitor-spin {
+
+  from {
+    transform:
+      rotate(0deg);
+  }
+
+  to {
+    transform:
+      rotate(360deg);
+  }
+
+}
+
+
+// =========================================================
+// ERROR
+// =========================================================
+
+.project-monitor__error {
+  margin-bottom:
+    1rem;
+
+  padding:
+    0.75rem 0.9rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.5rem;
+
+  border:
+    1px solid
+    #fecaca;
+
+  border-radius:
+    0.65rem;
+
+  background:
+    #fff5f5;
+
+  color:
+    #b42318;
+
+
+  mat-icon {
+    width:
+      19px;
+
+    height:
+      19px;
+
+    font-size:
+      19px;
+  }
+}
+
+
+// =========================================================
+// INITIAL LOADING
+// =========================================================
+
+.project-monitor__initial-loading {
+  min-height:
+    320px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex-direction:
+    column;
+
+  gap:
+    0.65rem;
+
+  color:
+    #64748b;
+
+
+  mat-icon {
+    width:
+      32px;
+
+    height:
+      32px;
+
+    font-size:
+      32px;
+
+    animation:
+      monitor-spin
+      0.8s
+      linear
+      infinite;
+  }
+}
+
+
+// =========================================================
+// SUMMARY
+// =========================================================
+
+.monitor-summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(220px, 0.65fr)
+    minmax(0, 1fr);
+
+  gap:
+    0.9rem;
+
+  margin-bottom:
+    1rem;
+}
+
+
+.monitor-summary-card {
+  min-width:
+    0;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    #bfe4f4;
+
+  border-radius:
+    0.75rem;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f5fcff 0%,
+      #ffffff 100%
+    );
+}
+
+
+.monitor-summary-card--projects {
+  background:
+    linear-gradient(
+      180deg,
+      #eefaff 0%,
+      #e5f6fc 100%
+    );
+}
+
+
+.monitor-summary-card__header {
+  min-height:
+    52px;
+
+  padding:
+    0.75rem 1rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.6rem;
+
+  border-bottom:
+    1px solid
+    #d9edf6;
+
+
+  h2 {
+    margin:
+      0;
+
+    color:
+      #17345a;
+
+    font-size:
+      1rem;
+
+    font-weight:
+      700;
+  }
+}
+
+
+.monitor-summary-card__icon {
+  width:
+    32px;
+
+  height:
+    32px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex:
+    0 0 auto;
+
+  border-radius:
+    0.55rem;
+
+  background:
+    #dcf3fc;
+
+  color:
+    #078abe;
+
+
+  mat-icon {
+    width:
+      20px;
+
+    height:
+      20px;
+
+    font-size:
+      20px;
+  }
+}
+
+
+// =========================================================
+// TRAFFIC LIGHT
+// =========================================================
+
+.monitor-traffic {
+  min-height:
+    135px;
+
+  padding:
+    1rem 0.7rem;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+}
+
+
+.monitor-traffic__item {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-start;
+
+  flex-direction:
+    column;
+
+  gap:
+    0.16rem;
+
+  text-align:
+    center;
+
+
+  &:not(
+    :last-child
+  ) {
+
+    border-right:
+      1px solid
+      #e5edf3;
+
+  }
+
+
+  strong {
+    margin-top:
+      0.15rem;
+
+    color:
+      #142e50;
+
+    font-size:
+      1.3rem;
+
+    line-height:
+      1;
+  }
+
+
+  small {
+    margin-top:
+      0.35rem;
+
+    color:
+      #718096;
+
+    font-size:
+      0.72rem;
+  }
+}
+
+
+.monitor-traffic__percent {
+  color:
+    #18375f;
+
+  font-size:
+    1rem;
+
+  font-weight:
+    700;
+}
+
+
+// =========================================================
+// ACTIVE PROJECTS
+// =========================================================
+
+.monitor-active-projects {
+  min-height:
+    135px;
+
+  padding:
+    1rem;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex-direction:
+    column;
+
+
+  strong {
+    color:
+      #133762;
+
+    font-size:
+      2.35rem;
+
+    line-height:
+      1;
+  }
+
+
+  span {
+    margin-top:
+      0.3rem;
+
+    color:
+      #173d6b;
+
+    font-size:
+      1.25rem;
+
+    font-weight:
+      700;
+  }
+
+
+  small {
+    margin-top:
+      0.35rem;
+
+    color:
+      #66758b;
+
+    font-size:
+      0.75rem;
+  }
+}
+
+
+// =========================================================
+// SEMÁFOROS
+// =========================================================
+
+.monitor-light {
+  width:
+    29px;
+
+  height:
+    29px;
+
+  display:
+    inline-block;
+
+  flex:
+    0 0 auto;
+
+  border:
+    2px solid
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+
+  border-radius:
+    50%;
+
+  box-shadow:
+    0 2px 4px
+    rgba(
+      0,
+      0,
+      0,
+      0.08
+    );
+}
+
+
+.monitor-light--small {
+  width:
+    22px;
+
+  height:
+    22px;
+
+  border-width:
+    1px;
+}
+
+
+.monitor-light--green {
+  background:
+    #43a536;
+}
+
+
+.monitor-light--yellow {
+  background:
+    #ffd900;
+}
+
+
+.monitor-light--red {
+  background:
+    #ff1e1e;
+}
+
+
+// =========================================================
+// TABLE CARD
+// =========================================================
+
+.monitor-table-card {
+  width:
+    100%;
+
+  overflow:
+    hidden;
+
+  border:
+    1px solid
+    #d5e9f2;
+
+  border-radius:
+    0.75rem;
+
+  background:
+    #ffffff;
+}
+
+
+// =========================================================
+// SCROLL INTERNO
+//
+// Dejamos la tabla contenida dentro del viewport.
+// =========================================================
+
+.monitor-table-scroll {
+  width:
+    100%;
+
+  max-height:
+    calc(
+      100vh -
+      415px
+    );
+
+  min-height:
+    260px;
+
+  overflow:
+    auto;
+
+  scrollbar-gutter:
+    stable;
+}
+
+
+// =========================================================
+// TABLE
+// =========================================================
+
+.monitor-table {
+  width:
+    100%;
+
+  min-width:
+    1180px;
+
+  border-collapse:
+    separate;
+
+  border-spacing:
+    0;
+
+  table-layout:
+    fixed;
+
+
+  th,
+  td {
+    border-right:
+      1px solid
+      #e6edf2;
+
+    border-bottom:
+      1px solid
+      #e4ebf0;
+
+    vertical-align:
+      middle;
+
+
+    &:last-child {
+      border-right:
+        0;
+    }
+  }
+
+
+  // =====================================================
+  // HEADER STICKY
+  // =====================================================
+
+  thead {
+
+    th {
+      position:
+        sticky;
+
+      top:
+        0;
+
+      z-index:
+        4;
+
+      padding:
+        0.8rem 0.75rem;
+
+      background:
+        #f1f8fc;
+
+      color:
+        #1c3c64;
+
+      font-size:
+        0.76rem;
+
+      font-weight:
+        700;
+
+      text-align:
+        left;
+
+      white-space:
+        nowrap;
+
+      box-shadow:
+        0 1px 0
+        #dbe8ee;
+    }
+
+  }
+
+
+  // =====================================================
+  // BODY
+  // =====================================================
+
+  tbody {
+
+    td {
+      padding:
+        0.75rem;
+
+      background:
+        #ffffff;
+
+      color:
+        #22354e;
+
+      font-size:
+        0.78rem;
+
+
+      strong {
+        display:
+          block;
+
+        color:
+          inherit;
+
+        font-size:
+          0.82rem;
+
+        font-weight:
+          600;
+
+        white-space:
+          nowrap;
+      }
+
+
+      small {
+        display:
+          block;
+
+        margin-top:
+          0.15rem;
+
+        color:
+          #758399;
+
+        font-size:
+          0.69rem;
+
+        font-weight:
+          500;
+
+        white-space:
+          nowrap;
+      }
+    }
+
+
+    tr {
+
+      &:nth-child(
+        even
+      ) {
+
+        td {
+          background:
+            #fbfdfe;
+        }
+
+      }
+
+
+      &:hover {
+
+        td {
+          background:
+            #f4faff;
+        }
+
+      }
+
+    }
+
+  }
+
+
+  // =====================================================
+  // TOTAL STICKY
+  // =====================================================
+
+  tfoot {
+
+    td {
+      position:
+        sticky;
+
+      bottom:
+        0;
+
+      z-index:
+        3;
+
+      padding:
+        0.75rem;
+
+      background:
+        #eaf7fc;
+
+      color:
+        #22354e;
+
+      font-size:
+        0.78rem;
+
+      font-weight:
+        700;
+
+      border-bottom:
+        0;
+
+      box-shadow:
+        0 -1px 0
+        #cde4ee;
+
+
+      strong {
+        display:
+          block;
+
+        color:
+          inherit;
+
+        font-size:
+          0.82rem;
+
+        font-weight:
+          700;
+
+        white-space:
+          nowrap;
+      }
+
+
+      small {
+        display:
+          block;
+
+        margin-top:
+          0.15rem;
+
+        color:
+          #61748d;
+
+        font-size:
+          0.69rem;
+
+        font-weight:
+          600;
+
+        white-space:
+          nowrap;
+      }
+    }
+
+  }
+}
+
+
+// =========================================================
+// PROJECT
+// =========================================================
+
+.monitor-table__project {
+  color:
+    #087cad !important;
+
+  font-weight:
+    600;
+}
+
+
+// =========================================================
+// ALERTA
+// =========================================================
+
+.monitor-table__danger {
+
+  strong,
+  small {
+    color:
+      #e01f1f !important;
+  }
+}
+
+
+// =========================================================
+// EMPTY
+// =========================================================
+
+.monitor-table__empty {
+  padding:
+    2rem !important;
+
+  text-align:
+    center;
+
+  color:
+    #7b8797 !important;
+}
+
+
+// =========================================================
+// STATUS CELL
+// =========================================================
+
+.monitor-status-cell {
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    0.65rem;
+
+  min-width:
+    0;
+}
+
+
+// =========================================================
+// INFORMACIÓN
+// =========================================================
+
+.monitor-info {
+  margin-top:
+    0.75rem;
+
+  padding:
+    0.7rem 0.9rem;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  gap:
+    0.75rem;
+
+  border:
+    1px solid
+    #cce8f3;
+
+  border-radius:
+    0.7rem;
+
+  background:
+    #effaff;
+
+  color:
+    #63748a;
+
+
+  > mat-icon {
+    width:
+      22px;
+
+    height:
+      22px;
+
+    flex:
+      0 0 auto;
+
+    color:
+      #0b94c5;
+
+    font-size:
+      22px;
+  }
+
+
+  p {
+    margin:
+      0;
+
+    font-size:
+      0.73rem;
+
+    line-height:
+      1.45;
+
+
+    & + p {
+      margin-top:
+        0.15rem;
+    }
+  }
+}
+
+
+// =========================================================
+// RESPONSIVE
+// =========================================================
+
+@media (
+  max-width: 1100px
+) {
+
+  .monitor-summary {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+
+  .monitor-summary-card--projects {
+    grid-column:
+      span 2;
+  }
+
+
+  .monitor-table-scroll {
+    max-height:
+      480px;
+  }
+
+}
+
+
+@media (
+  max-width: 768px
+) {
+
+  .project-monitor {
+    padding:
+      0.5rem;
+  }
+
+
+  .project-monitor__shell {
+    padding:
+      0.8rem;
+  }
+
+
+  .project-monitor__subheader {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+
+  .project-monitor__actions {
+    width:
+      100%;
+
+    align-items:
+      flex-start;
+
+    justify-content:
+      flex-start;
+  }
+
+
+  .monitor-summary {
+    grid-template-columns:
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+
+  .monitor-summary-card--projects {
+    grid-column:
+      auto;
+  }
+
+
+  .project-monitor__refresh {
+    width:
+      100%;
+  }
+
+
+  .monitor-table-scroll {
+    max-height:
+      500px;
+  }
+
+
+  .monitor-info {
+    align-items:
+      flex-start;
+  }
+
+}

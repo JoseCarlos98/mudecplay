@@ -1,0 +1,1289 @@
+<div class="c-table-page project-monitor">
+
+
+  <!-- ================================================== -->
+  <!-- CONTENEDOR PRINCIPAL -->
+  <!-- ================================================== -->
+
+  <div class="project-monitor__shell shadow-md">
+
+
+    <!-- ================================================== -->
+    <!-- HEADER GLOBAL MUDECPLAY -->
+    <!-- ================================================== -->
+
+    <app-module-header
+      title="Monitor de proyectos"
+      [config]="headerConfig">
+    </app-module-header>
+
+
+    <!-- ================================================== -->
+    <!-- SUBHEADER / ACTUALIZACIÓN -->
+    <!-- ================================================== -->
+
+    <div class="project-monitor__subheader">
+
+
+      <p class="project-monitor__description">
+
+        Resumen del desempeño financiero de los
+        proyectos activos en MUDECPLAY.
+
+      </p>
+
+
+      <div class="project-monitor__actions">
+
+
+        @if (
+          monitor()?.generatedAt
+        ) {
+
+          <div class="project-monitor__updated">
+
+            <mat-icon>
+              schedule
+            </mat-icon>
+
+
+            <span>
+
+              Última actualización:
+
+              <strong>
+
+                {{
+                  monitor()!.generatedAt
+                    | date:
+                      'dd MMM yyyy, hh:mm:ss a'
+                }}
+
+              </strong>
+
+            </span>
+
+          </div>
+
+        }
+
+
+        <button
+          type="button"
+          class="
+            btn-primary
+            project-monitor__refresh
+          "
+          [disabled]="loading()"
+          (click)="refreshNow()">
+
+
+          <mat-icon
+            [class.project-monitor__refresh-icon--loading]="
+              loading()
+            ">
+
+            refresh
+
+          </mat-icon>
+
+
+          <span>
+
+            @if (
+              loading()
+            ) {
+
+              Actualizando...
+
+            } @else {
+
+              Actualizar ahora
+
+            }
+
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
+    <!-- ERROR -->
+    <!-- ================================================== -->
+
+    @if (
+      error()
+    ) {
+
+      <div class="project-monitor__error">
+
+        <mat-icon>
+          warning
+        </mat-icon>
+
+        <span>
+          {{ error() }}
+        </span>
+
+      </div>
+
+    }
+
+
+    <!-- ================================================== -->
+    <!-- CARGA INICIAL -->
+    <!-- ================================================== -->
+
+    @if (
+      loading() &&
+      !monitor()
+    ) {
+
+      <div class="project-monitor__initial-loading">
+
+        <mat-icon>
+          sync
+        </mat-icon>
+
+        <span>
+          Cargando monitor...
+        </span>
+
+      </div>
+
+    }
+
+
+    <!-- ================================================== -->
+    <!-- DATOS -->
+    <!-- ================================================== -->
+
+    @if (
+      monitor();
+      as data
+    ) {
+
+
+      <!-- ================================================ -->
+      <!-- RESUMEN SUPERIOR -->
+      <!-- ================================================ -->
+
+      <div class="monitor-summary">
+
+
+        <!-- ============================================== -->
+        <!-- FLUJO DISPONIBLE -->
+        <!-- ============================================== -->
+
+        <article class="monitor-summary-card">
+
+
+          <header class="monitor-summary-card__header">
+
+            <span class="monitor-summary-card__icon">
+
+              <mat-icon>
+                account_balance_wallet
+              </mat-icon>
+
+            </span>
+
+
+            <h2>
+              Flujo disponible
+            </h2>
+
+          </header>
+
+
+          <div class="monitor-traffic">
+
+
+            <!-- VERDE -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--green
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .green
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .green
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                &gt; 20%
+              </small>
+
+            </div>
+
+
+            <!-- AMARILLO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--yellow
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .yellow
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .yellow
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                0% a 20%
+              </small>
+
+            </div>
+
+
+            <!-- ROJO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--red
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .red
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .red
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                &lt; 0%
+              </small>
+
+            </div>
+
+          </div>
+
+        </article>
+
+
+        <!-- ============================================== -->
+        <!-- PROYECTOS ACTIVOS -->
+        <!-- ============================================== -->
+
+        <article
+          class="
+            monitor-summary-card
+            monitor-summary-card--projects
+          ">
+
+
+          <header class="monitor-summary-card__header">
+
+            <span class="monitor-summary-card__icon">
+
+              <mat-icon>
+                folder_open
+              </mat-icon>
+
+            </span>
+
+
+            <h2>
+              Proyectos activos
+            </h2>
+
+          </header>
+
+
+          <div class="monitor-active-projects">
+
+            <strong>
+
+              {{
+                data.activeProjects.count
+              }}
+
+            </strong>
+
+
+            <span>
+
+              {{
+                data.activeProjects.percent
+                  | number:'1.0-2'
+              }}%
+
+            </span>
+
+
+            <small>
+              del total de proyectos
+            </small>
+
+          </div>
+
+        </article>
+
+
+        <!-- ============================================== -->
+        <!-- UTILIDAD ESTIMADA -->
+        <!-- ============================================== -->
+
+        <article class="monitor-summary-card">
+
+
+          <header class="monitor-summary-card__header">
+
+            <span class="monitor-summary-card__icon">
+
+              <mat-icon>
+                monitoring
+              </mat-icon>
+
+            </span>
+
+
+            <h2>
+              Utilidad estimada
+            </h2>
+
+          </header>
+
+
+          <div class="monitor-traffic">
+
+
+            <!-- VERDE -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--green
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .green
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .green
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                &gt; 20%
+              </small>
+
+            </div>
+
+
+            <!-- AMARILLO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--yellow
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .yellow
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .yellow
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                9% a 20%
+              </small>
+
+            </div>
+
+
+            <!-- ROJO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--red
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .red
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .red
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                &lt; 9%
+              </small>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      </div>
+
+
+      <!-- ================================================ -->
+      <!-- TABLA -->
+      <!-- ================================================ -->
+
+      <section class="monitor-table-card">
+
+
+        <div class="monitor-table-scroll">
+
+
+          <table class="monitor-table">
+
+
+            <!-- ========================================== -->
+            <!-- HEADER STICKY -->
+            <!-- ========================================== -->
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Proyecto
+                </th>
+
+                <th>
+                  Total de proyecto
+                </th>
+
+                <th>
+                  Facturado
+                </th>
+
+                <th>
+                  Cobrado
+                </th>
+
+                <th>
+                  Invertido
+                </th>
+
+                <th>
+                  Flujo disponible
+                </th>
+
+                <th>
+                  CxC
+                </th>
+
+                <th>
+                  Utilidad estimada
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <!-- ========================================== -->
+            <!-- PROYECTOS -->
+            <!-- ========================================== -->
+
+            <tbody>
+
+
+              @for (
+                project
+                of data.projects;
+                track project.projectId
+              ) {
+
+                <tr>
+
+
+                  <!-- PROYECTO -->
+
+                  <td class="monitor-table__project">
+
+                    {{ project.projectName }}
+
+                  </td>
+
+
+                  <!-- TOTAL PROYECTO -->
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        project
+                          .totalProject
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+
+                    <small>
+
+                      {{
+                        project
+                          .totalProject
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <!-- FACTURADO -->
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        project
+                          .invoiced
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+
+                    <small>
+
+                      {{
+                        project
+                          .invoiced
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <!-- COBRADO -->
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        project
+                          .collected
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+
+                    <small>
+
+                      {{
+                        project
+                          .collected
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <!-- INVERTIDO -->
+
+                  <td
+                    [class.monitor-table__danger]="
+                      project
+                        .invested
+                        .overBudget
+                    ">
+
+                    <strong>
+
+                      {{
+                        project
+                          .invested
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+
+                    <small>
+
+                      {{
+                        project
+                          .invested
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <!-- FLUJO DISPONIBLE -->
+
+                  <td>
+
+                    <div class="monitor-status-cell">
+
+
+                      <span
+                        class="
+                          monitor-light
+                          monitor-light--small
+                        "
+                        [class.monitor-light--green]="
+                          project
+                            .availableFlow
+                            .status ===
+                          'green'
+                        "
+                        [class.monitor-light--yellow]="
+                          project
+                            .availableFlow
+                            .status ===
+                          'yellow'
+                        "
+                        [class.monitor-light--red]="
+                          project
+                            .availableFlow
+                            .status ===
+                          'red'
+                        ">
+                      </span>
+
+
+                      <div
+                        [class.monitor-table__danger]="
+                          project
+                            .availableFlow
+                            .status ===
+                          'red'
+                        ">
+
+                        <strong>
+
+                          {{
+                            project
+                              .availableFlow
+                              .amount
+                              | currency:
+                                'MXN':
+                                'symbol-narrow':
+                                '1.2-2'
+                          }}
+
+                        </strong>
+
+
+                        <small>
+
+                          {{
+                            project
+                              .availableFlow
+                              .percent
+                              | number:'1.0-2'
+                          }}%
+
+                        </small>
+
+                      </div>
+
+                    </div>
+
+                  </td>
+
+
+                  <!-- CXC -->
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        project
+                          .accountsReceivable
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+
+                    <small>
+
+                      {{
+                        project
+                          .accountsReceivable
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <!-- UTILIDAD ESTIMADA -->
+
+                  <td>
+
+                    <div class="monitor-status-cell">
+
+
+                      <span
+                        class="
+                          monitor-light
+                          monitor-light--small
+                        "
+                        [class.monitor-light--green]="
+                          project
+                            .estimatedProfit
+                            .status ===
+                          'green'
+                        "
+                        [class.monitor-light--yellow]="
+                          project
+                            .estimatedProfit
+                            .status ===
+                          'yellow'
+                        "
+                        [class.monitor-light--red]="
+                          project
+                            .estimatedProfit
+                            .status ===
+                          'red'
+                        ">
+                      </span>
+
+
+                      <div
+                        [class.monitor-table__danger]="
+                          project
+                            .estimatedProfit
+                            .status ===
+                          'red'
+                        ">
+
+                        <strong>
+
+                          {{
+                            project
+                              .estimatedProfit
+                              .amount
+                              | currency:
+                                'MXN':
+                                'symbol-narrow':
+                                '1.2-2'
+                          }}
+
+                        </strong>
+
+
+                        <small>
+
+                          {{
+                            project
+                              .estimatedProfit
+                              .percent
+                              | number:'1.0-2'
+                          }}%
+
+                        </small>
+
+                      </div>
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+
+              @empty {
+
+                <tr>
+
+                  <td
+                    colspan="8"
+                    class="monitor-table__empty">
+
+                    No hay proyectos activos para mostrar.
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+
+            <!-- ========================================== -->
+            <!-- TOTAL STICKY -->
+            <!-- ========================================== -->
+
+            @if (
+              data.projects.length >
+              0
+            ) {
+
+              <tfoot>
+
+                <tr>
+
+
+                  <td>
+
+                    <strong>
+                      TOTAL
+                    </strong>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .totalProject
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .totalProject
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .invoiced
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .invoiced
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .collected
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .collected
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .invested
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .invested
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .availableFlow
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .availableFlow
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .accountsReceivable
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .accountsReceivable
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+
+                  <td>
+
+                    <strong>
+
+                      {{
+                        data
+                          .totals
+                          .estimatedProfit
+                          .amount
+                          | currency:
+                            'MXN':
+                            'symbol-narrow':
+                            '1.2-2'
+                      }}
+
+                    </strong>
+
+                    <small>
+
+                      {{
+                        data
+                          .totals
+                          .estimatedProfit
+                          .percent
+                          | number:'1.0-2'
+                      }}%
+
+                    </small>
+
+                  </td>
+
+                </tr>
+
+              </tfoot>
+
+            }
+
+          </table>
+
+        </div>
+
+      </section>
+
+
+      <!-- ================================================ -->
+      <!-- INFORMACIÓN -->
+      <!-- ================================================ -->
+
+      <footer class="monitor-info">
+
+        <mat-icon>
+          info
+        </mat-icon>
+
+
+        <div>
+
+          <p>
+
+            Los porcentajes por proyecto se calculan
+            en relación con el total de cada proyecto.
+
+          </p>
+
+
+          <p>
+
+            Flujo disponible =
+            Cobrado - Invertido.
+
+            Utilidad estimada =
+            Total del proyecto - Invertido.
+
+          </p>
+
+        </div>
+
+      </footer>
+
+    }
+
+  </div>
+
+</div>
