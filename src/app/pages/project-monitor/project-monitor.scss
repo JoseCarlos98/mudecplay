@@ -1,37 +1,37 @@
 :host {
-  display:
-    block;
-
-  width:
-    100%;
+  display: block;
+  width: 100%;
 }
-
 
 // =========================================================
 // PAGE
+//
+// IMPORTANTE:
+// El monitor ya no fuerza una altura cerrada. La página crece
+// con la tabla y el scroll ocurre en el contenedor/página principal.
 // =========================================================
 
 .project-monitor {
-  width:
-    100%;
-
-  padding:
-    0.75rem;
+  width: 100%;
+  min-height: 100%;
+  height: auto;
+  max-height: none;
+  padding: 0.65rem;
+  overflow: visible;
 }
 
+// =========================================================
+// CONTENEDOR PRINCIPAL
+// =========================================================
 
 .project-monitor__shell {
-  width:
-    100%;
+  width: 100%;
+  min-height: 0;
+  padding: 0.85rem;
 
-  padding:
-    1rem;
+  background: #ffffff;
 
-  background:
-    #ffffff;
-
-  border-radius:
-    0.9rem;
+  border-radius: 0.9rem;
 
   box-shadow:
     0 2px 10px
@@ -43,133 +43,91 @@
     );
 }
 
-
 // =========================================================
 // SUBHEADER
 // =========================================================
 
 .project-monitor__subheader {
-  margin-top:
-    0.35rem;
+  margin-top: 0.2rem;
+  margin-bottom: 0.55rem;
 
-  margin-bottom:
-    1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    space-between;
-
-  gap:
-    1rem;
+  gap: 0.8rem;
 }
-
 
 .project-monitor__description {
-  margin:
-    0;
+  margin: 0;
 
-  color:
-    #66758b;
+  color: #586a82;
 
-  font-size:
-    0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.3;
 }
-
 
 .project-monitor__actions {
-  display:
-    flex;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
 
-  align-items:
-    center;
-
-  justify-content:
-    flex-end;
-
-  flex-wrap:
-    wrap;
-
-  gap:
-    0.8rem;
+  gap: 0.65rem;
 }
-
 
 .project-monitor__updated {
-  display:
-    flex;
+  display: flex;
+  align-items: center;
 
-  align-items:
-    center;
+  gap: 0.4rem;
 
-  gap:
-    0.4rem;
+  color: #5f7087;
 
-  color:
-    #6c7a8e;
-
-  font-size:
-    0.78rem;
-
+  font-size: 0.9rem;
 
   mat-icon {
-    width:
-      18px;
+    width: 20px;
+    height: 20px;
 
-    height:
-      18px;
+    font-size: 20px;
 
-    font-size:
-      18px;
-
-    color:
-      #178dbb;
+    color: #178dbb;
   }
-
 
   strong {
-    color:
-      #44546a;
+    color: #344861;
 
-    font-weight:
-      600;
+    font-weight: 700;
   }
 }
-
 
 .project-monitor__refresh {
-  display:
-    inline-flex;
+  min-height: 40px;
 
-  align-items:
-    center;
+  padding:
+    0.5rem
+    0.9rem;
 
-  justify-content:
-    center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  gap:
-    0.4rem;
+  gap: 0.4rem;
 
-  white-space:
-    nowrap;
+  white-space: nowrap;
 
+  font-size: 0.95rem;
+  font-weight: 600;
 
   mat-icon {
-    width:
-      20px;
+    width: 21px;
+    height: 21px;
 
-    height:
-      20px;
-
-    font-size:
-      20px;
+    font-size: 21px;
   }
 }
-
 
 .project-monitor__refresh-icon--loading {
   animation:
@@ -179,105 +137,74 @@
     infinite;
 }
 
-
 @keyframes monitor-spin {
-
   from {
-    transform:
-      rotate(0deg);
+    transform: rotate(0deg);
   }
 
   to {
-    transform:
-      rotate(360deg);
+    transform: rotate(360deg);
   }
-
 }
-
 
 // =========================================================
 // ERROR
 // =========================================================
 
 .project-monitor__error {
-  margin-bottom:
-    1rem;
+  margin-bottom: 0.6rem;
 
   padding:
-    0.75rem 0.9rem;
+    0.7rem
+    0.9rem;
 
-  display:
-    flex;
+  display: flex;
+  align-items: center;
 
-  align-items:
-    center;
-
-  gap:
-    0.5rem;
+  gap: 0.55rem;
 
   border:
     1px solid
     #fecaca;
 
-  border-radius:
-    0.65rem;
+  border-radius: 0.65rem;
 
-  background:
-    #fff5f5;
+  background: #fff5f5;
+  color: #b42318;
 
-  color:
-    #b42318;
-
+  font-size: 0.95rem;
 
   mat-icon {
-    width:
-      19px;
+    width: 21px;
+    height: 21px;
 
-    height:
-      19px;
-
-    font-size:
-      19px;
+    font-size: 21px;
   }
 }
-
 
 // =========================================================
 // INITIAL LOADING
 // =========================================================
 
 .project-monitor__initial-loading {
-  min-height:
-    320px;
+  min-height: 320px;
 
-  display:
-    flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 
-  align-items:
-    center;
+  gap: 0.7rem;
 
-  justify-content:
-    center;
+  color: #64748b;
 
-  flex-direction:
-    column;
-
-  gap:
-    0.65rem;
-
-  color:
-    #64748b;
-
+  font-size: 1.05rem;
 
   mat-icon {
-    width:
-      32px;
+    width: 36px;
+    height: 36px;
 
-    height:
-      32px;
-
-    font-size:
-      32px;
+    font-size: 36px;
 
     animation:
       monitor-spin
@@ -287,41 +214,36 @@
   }
 }
 
-
 // =========================================================
 // SUMMARY
+//
+// Se conserva exactamente la misma información, pero se reduce
+// la altura para que la tabla aparezca antes en pantalla.
 // =========================================================
 
 .monitor-summary {
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     minmax(0, 1fr)
-    minmax(220px, 0.65fr)
+    minmax(230px, 0.65fr)
     minmax(0, 1fr);
 
-  gap:
-    0.9rem;
+  gap: 0.75rem;
 
-  margin-bottom:
-    1rem;
+  margin-bottom: 0.6rem;
 }
 
-
 .monitor-summary-card {
-  min-width:
-    0;
+  min-width: 0;
 
-  overflow:
-    hidden;
+  overflow: hidden;
 
   border:
     1px solid
     #bfe4f4;
 
-  border-radius:
-    0.75rem;
+  border-radius: 0.8rem;
 
   background:
     linear-gradient(
@@ -330,7 +252,6 @@
       #ffffff 100%
     );
 }
-
 
 .monitor-summary-card--projects {
   background:
@@ -341,99 +262,72 @@
     );
 }
 
+// =========================================================
+// HEADER TARJETAS
+// =========================================================
 
 .monitor-summary-card__header {
-  min-height:
-    52px;
+  min-height: 46px;
 
   padding:
-    0.75rem 1rem;
+    0.5rem
+    0.85rem;
 
-  display:
-    flex;
+  display: flex;
+  align-items: center;
 
-  align-items:
-    center;
-
-  gap:
-    0.6rem;
+  gap: 0.6rem;
 
   border-bottom:
     1px solid
     #d9edf6;
 
-
   h2 {
-    margin:
-      0;
+    margin: 0;
 
-    color:
-      #17345a;
+    color: #17345a;
 
-    font-size:
-      1rem;
-
-    font-weight:
-      700;
+    font-size: 1.08rem;
+    font-weight: 700;
+    line-height: 1.15;
   }
 }
-
 
 .monitor-summary-card__icon {
-  width:
-    32px;
+  width: 32px;
+  height: 32px;
 
-  height:
-    32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  display:
-    inline-flex;
+  flex: 0 0 auto;
 
-  align-items:
-    center;
+  border-radius: 0.55rem;
 
-  justify-content:
-    center;
-
-  flex:
-    0 0 auto;
-
-  border-radius:
-    0.55rem;
-
-  background:
-    #dcf3fc;
-
-  color:
-    #078abe;
-
+  background: #dcf3fc;
+  color: #078abe;
 
   mat-icon {
-    width:
-      20px;
+    width: 21px;
+    height: 21px;
 
-    height:
-      20px;
-
-    font-size:
-      20px;
+    font-size: 21px;
   }
 }
-
 
 // =========================================================
 // TRAFFIC LIGHT
 // =========================================================
 
 .monitor-traffic {
-  min-height:
-    135px;
+  min-height: 98px;
 
   padding:
-    1rem 0.7rem;
+    0.5rem
+    0.65rem;
 
-  display:
-    grid;
+  display: grid;
 
   grid-template-columns:
     repeat(
@@ -445,158 +339,107 @@
     );
 }
 
-
 .monitor-traffic__item {
-  display:
-    flex;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 
-  align-items:
-    center;
+  gap: 0.1rem;
 
-  justify-content:
-    flex-start;
+  text-align: center;
 
-  flex-direction:
-    column;
-
-  gap:
-    0.16rem;
-
-  text-align:
-    center;
-
-
-  &:not(
-    :last-child
-  ) {
-
+  &:not(:last-child) {
     border-right:
       1px solid
-      #e5edf3;
-
+      #dfeaf0;
   }
-
 
   strong {
-    margin-top:
-      0.15rem;
+    margin-top: 0.08rem;
 
-    color:
-      #142e50;
+    color: #142e50;
 
-    font-size:
-      1.3rem;
-
-    line-height:
-      1;
+    font-size: 1.42rem;
+    line-height: 1;
+    font-weight: 800;
   }
-
 
   small {
-    margin-top:
-      0.35rem;
+    margin-top: 0.18rem;
 
-    color:
-      #718096;
+    color: #64748b;
 
-    font-size:
-      0.72rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.1;
   }
 }
 
-
 .monitor-traffic__percent {
-  color:
-    #18375f;
+  color: #18375f;
 
-  font-size:
-    1rem;
-
-  font-weight:
-    700;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
 }
-
 
 // =========================================================
 // ACTIVE PROJECTS
 // =========================================================
 
 .monitor-active-projects {
-  min-height:
-    135px;
+  min-height: 98px;
 
   padding:
-    1rem;
+    0.45rem
+    0.85rem;
 
-  display:
-    flex;
-
-  align-items:
-    center;
-
-  justify-content:
-    center;
-
-  flex-direction:
-    column;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 
   strong {
-    color:
-      #133762;
+    color: #133762;
 
-    font-size:
-      2.35rem;
-
-    line-height:
-      1;
+    font-size: 2.5rem;
+    line-height: 0.95;
+    font-weight: 800;
   }
-
 
   span {
-    margin-top:
-      0.3rem;
+    margin-top: 0.18rem;
 
-    color:
-      #173d6b;
+    color: #173d6b;
 
-    font-size:
-      1.25rem;
-
-    font-weight:
-      700;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
   }
-
 
   small {
-    margin-top:
-      0.35rem;
+    margin-top: 0.22rem;
 
-    color:
-      #66758b;
+    color: #5e7088;
 
-    font-size:
-      0.75rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    line-height: 1.1;
   }
 }
-
 
 // =========================================================
 // SEMÁFOROS
 // =========================================================
 
 .monitor-light {
-  width:
-    29px;
+  width: 29px;
+  height: 29px;
 
-  height:
-    29px;
+  display: inline-block;
 
-  display:
-    inline-block;
-
-  flex:
-    0 0 auto;
+  flex: 0 0 auto;
 
   border:
     2px solid
@@ -607,498 +450,380 @@
       0.12
     );
 
-  border-radius:
-    50%;
+  border-radius: 50%;
 
   box-shadow:
-    0 2px 4px
+    0 2px 5px
     rgba(
       0,
       0,
       0,
-      0.08
+      0.1
     );
 }
 
-
 .monitor-light--small {
-  width:
-    22px;
+  width: 24px;
+  height: 24px;
 
-  height:
-    22px;
-
-  border-width:
-    1px;
+  border-width: 1px;
 }
-
 
 .monitor-light--green {
-  background:
-    #43a536;
+  background: #43a536;
 }
-
 
 .monitor-light--yellow {
-  background:
-    #ffd900;
+  background: #ffd900;
 }
-
 
 .monitor-light--red {
-  background:
-    #ff1e1e;
+  background: #ff1e1e;
 }
-
 
 // =========================================================
 // TABLE CARD
+//
+// DOBLE SCROLL:
+// 1) La página puede bajar para ocultar header + resumen.
+// 2) La tabla tiene su propio scroll para recorrer proyectos.
+//
+// Al quitar `c-table-page` del HTML, los estilos globales ya no
+// bloquean el scroll exterior de `.content`.
 // =========================================================
 
 .monitor-table-card {
-  width:
-    100%;
+  width: 100%;
 
-  overflow:
-    hidden;
+  // Cuando llegas a la tabla, ocupa casi todo el viewport.
+  height: calc(100dvh - 90px);
+  min-height: 520px;
+  max-height: none;
+
+  overflow: hidden;
 
   border:
     1px solid
     #d5e9f2;
 
-  border-radius:
-    0.75rem;
+  border-radius: 0.75rem;
 
-  background:
-    #ffffff;
+  background: #ffffff;
 }
 
-
 // =========================================================
-// SCROLL INTERNO
+// TABLE WRAPPER
 //
-// Dejamos la tabla contenida dentro del viewport.
+// Scroll interno de proyectos.
+// Al llegar al inicio/final, el wheel puede continuar con el
+// scroll exterior de la página de forma natural.
 // =========================================================
 
 .monitor-table-scroll {
-  width:
-    100%;
+  width: 100%;
+  height: 100%;
 
-  max-height:
-    calc(
-      100vh -
-      415px
-    );
+  overflow-x: auto;
+  overflow-y: auto;
 
-  min-height:
-    260px;
+  scrollbar-gutter: stable;
+  overscroll-behavior: auto;
 
-  overflow:
-    auto;
-
-  scrollbar-gutter:
-    stable;
+  -webkit-overflow-scrolling: touch;
 }
-
 
 // =========================================================
 // TABLE
 // =========================================================
 
 .monitor-table {
-  width:
-    100%;
+  width: 100%;
 
-  min-width:
-    1180px;
+  min-width: 1280px;
 
-  border-collapse:
-    separate;
+  border-collapse: separate;
+  border-spacing: 0;
 
-  border-spacing:
-    0;
-
-  table-layout:
-    fixed;
-
+  table-layout: fixed;
 
   th,
   td {
     border-right:
       1px solid
-      #e6edf2;
+      #e0e9ef;
 
     border-bottom:
       1px solid
-      #e4ebf0;
+      #dce6ec;
 
-    vertical-align:
-      middle;
-
+    vertical-align: middle;
 
     &:last-child {
-      border-right:
-        0;
+      border-right: 0;
     }
   }
-
 
   // =====================================================
   // HEADER STICKY
+  //
+  // Al bajar la página, el resumen desaparece y este encabezado
+  // queda pegado arriba mientras se recorren los proyectos.
   // =====================================================
 
   thead {
-
     th {
-      position:
-        sticky;
+      position: sticky;
+      top: 0;
 
-      top:
-        0;
-
-      z-index:
-        4;
+      z-index: 10;
 
       padding:
-        0.8rem 0.75rem;
+        0.65rem
+        0.72rem;
 
-      background:
-        #f1f8fc;
+      background: #f1f8fc;
+      color: #17375f;
 
-      color:
-        #1c3c64;
+      font-size: 0.95rem;
+      font-weight: 800;
+      line-height: 1.15;
+      text-align: left;
 
-      font-size:
-        0.76rem;
-
-      font-weight:
-        700;
-
-      text-align:
-        left;
-
-      white-space:
-        nowrap;
+      white-space: nowrap;
 
       box-shadow:
         0 1px 0
-        #dbe8ee;
+        #d4e4eb;
     }
-
   }
-
 
   // =====================================================
   // BODY
+  //
+  // Números ligeramente más grandes que antes, pero con menor
+  // padding vertical para ver más proyectos simultáneamente.
   // =====================================================
 
   tbody {
-
     td {
       padding:
-        0.75rem;
+        0.5rem
+        0.72rem;
 
-      background:
-        #ffffff;
+      background: #ffffff;
+      color: #20344e;
 
-      color:
-        #22354e;
-
-      font-size:
-        0.78rem;
-
+      font-size: 0.94rem;
+      line-height: 1.15;
 
       strong {
-        display:
-          block;
+        display: block;
 
-        color:
-          inherit;
+        color: inherit;
 
-        font-size:
-          0.82rem;
+        font-size: 1.04rem;
+        font-weight: 750;
+        line-height: 1.1;
 
-        font-weight:
-          600;
-
-        white-space:
-          nowrap;
+        white-space: nowrap;
       }
-
 
       small {
-        display:
-          block;
+        display: block;
 
-        margin-top:
-          0.15rem;
+        margin-top: 0.12rem;
 
-        color:
-          #758399;
+        color: #667991;
 
-        font-size:
-          0.69rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.05;
 
-        font-weight:
-          500;
-
-        white-space:
-          nowrap;
+        white-space: nowrap;
       }
     }
-
 
     tr {
-
-      &:nth-child(
-        even
-      ) {
-
+      &:nth-child(even) {
         td {
-          background:
-            #fbfdfe;
+          background: #fbfdfe;
         }
-
       }
-
 
       &:hover {
-
         td {
-          background:
-            #f4faff;
+          background: #f1f9fd;
         }
-
       }
-
     }
-
   }
-
 
   // =====================================================
   // TOTAL STICKY
+  //
+  // Se conserva tu comportamiento actual, pero ahora sobre el
+  // scroll de la página. Mientras la tabla está en pantalla, TOTAL
+  // permanece visible abajo.
   // =====================================================
 
   tfoot {
-
     td {
-      position:
-        sticky;
+      position: sticky;
+      bottom: 0;
 
-      bottom:
-        0;
-
-      z-index:
-        3;
+      z-index: 9;
 
       padding:
-        0.75rem;
+        0.6rem
+        0.72rem;
 
-      background:
-        #eaf7fc;
+      background: #e5f5fb;
+      color: #1e3856;
 
-      color:
-        #22354e;
+      font-size: 0.94rem;
+      font-weight: 800;
 
-      font-size:
-        0.78rem;
-
-      font-weight:
-        700;
-
-      border-bottom:
-        0;
+      border-bottom: 0;
 
       box-shadow:
         0 -1px 0
-        #cde4ee;
-
+        #bddde9;
 
       strong {
-        display:
-          block;
+        display: block;
 
-        color:
-          inherit;
+        color: inherit;
 
-        font-size:
-          0.82rem;
+        font-size: 1.04rem;
+        font-weight: 800;
+        line-height: 1.1;
 
-        font-weight:
-          700;
-
-        white-space:
-          nowrap;
+        white-space: nowrap;
       }
-
 
       small {
-        display:
-          block;
+        display: block;
 
-        margin-top:
-          0.15rem;
+        margin-top: 0.12rem;
 
-        color:
-          #61748d;
+        color: #526b87;
 
-        font-size:
-          0.69rem;
+        font-size: 0.82rem;
+        font-weight: 700;
+        line-height: 1.05;
 
-        font-weight:
-          600;
-
-        white-space:
-          nowrap;
+        white-space: nowrap;
       }
     }
-
   }
 }
-
 
 // =========================================================
 // PROJECT
 // =========================================================
 
 .monitor-table__project {
-  color:
-    #087cad !important;
+  color: #087cad !important;
 
-  font-weight:
-    600;
+  font-size: 0.98rem !important;
+  font-weight: 750 !important;
+  line-height: 1.2;
 }
-
 
 // =========================================================
 // ALERTA
 // =========================================================
 
 .monitor-table__danger {
-
   strong,
   small {
-    color:
-      #e01f1f !important;
+    color: #e01f1f !important;
   }
 }
-
 
 // =========================================================
 // EMPTY
 // =========================================================
 
 .monitor-table__empty {
-  padding:
-    2rem !important;
+  padding: 2rem !important;
 
-  text-align:
-    center;
+  text-align: center;
 
-  color:
-    #7b8797 !important;
+  color: #6b7b8f !important;
+
+  font-size: 1rem !important;
 }
-
 
 // =========================================================
 // STATUS CELL
 // =========================================================
 
 .monitor-status-cell {
-  display:
-    flex;
+  display: flex;
+  align-items: center;
 
-  align-items:
-    center;
+  gap: 0.55rem;
 
-  gap:
-    0.65rem;
-
-  min-width:
-    0;
+  min-width: 0;
 }
-
 
 // =========================================================
 // INFORMACIÓN
 // =========================================================
 
 .monitor-info {
-  margin-top:
-    0.75rem;
+  margin-top: 0.55rem;
 
   padding:
-    0.7rem 0.9rem;
-
-  display:
-    flex;
-
-  align-items:
-    flex-start;
-
-  gap:
+    0.5rem
     0.75rem;
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.65rem;
 
   border:
     1px solid
     #cce8f3;
 
-  border-radius:
-    0.7rem;
+  border-radius: 0.7rem;
 
-  background:
-    #effaff;
-
-  color:
-    #63748a;
-
+  background: #effaff;
+  color: #52677f;
 
   > mat-icon {
-    width:
-      22px;
+    width: 21px;
+    height: 21px;
 
-    height:
-      22px;
+    flex: 0 0 auto;
 
-    flex:
-      0 0 auto;
+    color: #0b94c5;
 
-    color:
-      #0b94c5;
-
-    font-size:
-      22px;
+    font-size: 21px;
   }
 
-
   p {
-    margin:
-      0;
+    margin: 0;
 
-    font-size:
-      0.73rem;
-
-    line-height:
-      1.45;
-
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1.2;
 
     & + p {
-      margin-top:
-        0.15rem;
+      margin-top: 0.08rem;
     }
   }
 }
 
-
 // =========================================================
-// RESPONSIVE
+// RESPONSIVE TABLET
 // =========================================================
 
 @media (
   max-width: 1100px
 ) {
-
   .monitor-summary {
     grid-template-columns:
       repeat(
@@ -1110,57 +835,54 @@
       );
   }
 
-
   .monitor-summary-card--projects {
-    grid-column:
-      span 2;
+    grid-column: span 2;
   }
 
+  // En pantallas angostas permitimos scroll horizontal.
+  // El objetivo principal de encabezado sticky es el monitor desktop.
+  .monitor-table-card {
+    height: calc(100dvh - 80px);
+    min-height: 480px;
+  }
 
   .monitor-table-scroll {
-    max-height:
-      480px;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
   }
-
 }
 
+// =========================================================
+// RESPONSIVE MÓVIL
+// =========================================================
 
 @media (
   max-width: 768px
 ) {
-
   .project-monitor {
-    padding:
-      0.5rem;
+    padding: 0.5rem;
   }
-
 
   .project-monitor__shell {
-    padding:
-      0.8rem;
+    padding: 0.7rem;
   }
-
 
   .project-monitor__subheader {
-    align-items:
-      flex-start;
-
-    flex-direction:
-      column;
+    align-items: flex-start;
+    flex-direction: column;
   }
 
+  .project-monitor__description {
+    font-size: 0.95rem;
+  }
 
   .project-monitor__actions {
-    width:
-      100%;
+    width: 100%;
 
-    align-items:
-      flex-start;
-
-    justify-content:
-      flex-start;
+    align-items: flex-start;
+    justify-content: flex-start;
   }
-
 
   .monitor-summary {
     grid-template-columns:
@@ -1170,28 +892,26 @@
       );
   }
 
-
   .monitor-summary-card--projects {
-    grid-column:
-      auto;
+    grid-column: auto;
   }
-
 
   .project-monitor__refresh {
-    width:
-      100%;
+    width: 100%;
   }
 
+  .monitor-table-card {
+    height: calc(100dvh - 80px);
+    min-height: 480px;
+  }
 
   .monitor-table-scroll {
-    max-height:
-      500px;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
   }
-
 
   .monitor-info {
-    align-items:
-      flex-start;
+    align-items: flex-start;
   }
-
 }
