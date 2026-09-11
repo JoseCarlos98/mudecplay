@@ -334,6 +334,50 @@
 
             </div>
 
+
+            <!-- SIN MONTO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--neutral
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .neutral
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .availableFlowTrafficLight
+                    .neutral
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                Sin monto
+              </small>
+
+            </div>
+
           </div>
 
         </article>
@@ -389,9 +433,38 @@
             </span>
 
 
-            <small>
-              del total de proyectos
-            </small>
+            <div class="monitor-active-projects__detail">
+
+              <span>
+
+                <b>
+                  {{
+                    data
+                      .activeProjects
+                      .withAmountCount
+                  }}
+                </b>
+
+                con monto
+
+              </span>
+
+
+              <span>
+
+                <b>
+                  {{
+                    data
+                      .activeProjects
+                      .withoutAmountCount
+                  }}
+                </b>
+
+                sin monto
+
+              </span>
+
+            </div>
 
           </div>
 
@@ -557,6 +630,50 @@
 
             </div>
 
+
+            <!-- SIN MONTO -->
+
+            <div class="monitor-traffic__item">
+
+              <span
+                class="
+                  monitor-light
+                  monitor-light--neutral
+                ">
+              </span>
+
+
+              <strong>
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .neutral
+                    .count
+                }}
+
+              </strong>
+
+
+              <span class="monitor-traffic__percent">
+
+                {{
+                  data
+                    .estimatedProfitTrafficLight
+                    .neutral
+                    .percent
+                    | number:'1.0-2'
+                }}%
+
+              </span>
+
+
+              <small>
+                Sin monto
+              </small>
+
+            </div>
+
           </div>
 
         </article>
@@ -635,52 +752,87 @@
                 track project.projectId
               ) {
 
-                <tr>
+                <tr
+                  [class.monitor-table__row--without-amount]="
+                    !project.hasProjectAmount
+                  ">
 
 
+                  <!-- ==================================== -->
                   <!-- PROYECTO -->
+                  <!-- ==================================== -->
 
                   <td class="monitor-table__project">
 
-                    {{ project.projectName }}
+                    <div class="monitor-project-name">
+
+                      <span>
+                        {{ project.projectName }}
+                      </span>
+
+
+                      @if (
+                        !project.hasProjectAmount
+                      ) {
+
+                        <!-- <span class="monitor-no-amount-badge">
+                          Sin monto
+                        </span> -->
+
+                      }
+
+                    </div>
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- TOTAL PROYECTO -->
+                  <!-- ==================================== -->
 
                   <td>
 
-                    <strong>
+                    @if (
+                      project.hasProjectAmount
+                    ) {
 
-                      {{
-                        project
-                          .totalProject
-                          .amount
-                          | currency:
-                            'MXN':
-                            'symbol-narrow':
-                            '1.2-2'
-                      }}
+                      <strong>
 
-                    </strong>
+                        {{
+                          project
+                            .totalProject
+                            .amount
+                            | currency:
+                              'MXN':
+                              'symbol-narrow':
+                              '1.2-2'
+                        }}
+
+                      </strong>
 
 
-                    <small>
+                      <small>
+                        100%
+                      </small>
 
-                      {{
-                        project
-                          .totalProject
-                          .percent
-                          | number:'1.0-2'
-                      }}%
+                    } @else {
 
-                    </small>
+                      <strong class="monitor-table__undefined">
+                        Sin monto definido
+                      </strong>
+
+                      <small>
+                        —
+                      </small>
+
+                    }
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- FACTURADO -->
+                  <!-- ==================================== -->
 
                   <td>
 
@@ -701,19 +853,32 @@
 
                     <small>
 
-                      {{
-                        project
-                          .invoiced
-                          .percent
-                          | number:'1.0-2'
-                      }}%
+                      @if (
+                        project.invoiced.percent !==
+                        null
+                      ) {
+
+                        {{
+                          project
+                            .invoiced
+                            .percent
+                            | number:'1.0-2'
+                        }}%
+
+                      } @else {
+
+                        —
+
+                      }
 
                     </small>
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- COBRADO -->
+                  <!-- ==================================== -->
 
                   <td>
 
@@ -734,19 +899,32 @@
 
                     <small>
 
-                      {{
-                        project
-                          .collected
-                          .percent
-                          | number:'1.0-2'
-                      }}%
+                      @if (
+                        project.collected.percent !==
+                        null
+                      ) {
+
+                        {{
+                          project
+                            .collected
+                            .percent
+                            | number:'1.0-2'
+                        }}%
+
+                      } @else {
+
+                        —
+
+                      }
 
                     </small>
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- INVERTIDO -->
+                  <!-- ==================================== -->
 
                   <td
                     [class.monitor-table__danger]="
@@ -772,19 +950,32 @@
 
                     <small>
 
-                      {{
-                        project
-                          .invested
-                          .percent
-                          | number:'1.0-2'
-                      }}%
+                      @if (
+                        project.invested.percent !==
+                        null
+                      ) {
+
+                        {{
+                          project
+                            .invested
+                            .percent
+                            | number:'1.0-2'
+                        }}%
+
+                      } @else {
+
+                        —
+
+                      }
 
                     </small>
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- FLUJO DISPONIBLE -->
+                  <!-- ==================================== -->
 
                   <td>
 
@@ -813,6 +1004,12 @@
                             .availableFlow
                             .status ===
                           'red'
+                        "
+                        [class.monitor-light--neutral]="
+                          project
+                            .availableFlow
+                            .status ===
+                          'neutral'
                         ">
                       </span>
 
@@ -842,12 +1039,25 @@
 
                         <small>
 
-                          {{
+                          @if (
                             project
                               .availableFlow
-                              .percent
-                              | number:'1.0-2'
-                          }}%
+                              .percent !==
+                            null
+                          ) {
+
+                            {{
+                              project
+                                .availableFlow
+                                .percent
+                                | number:'1.0-2'
+                            }}%
+
+                          } @else {
+
+                            —
+
+                          }
 
                         </small>
 
@@ -858,109 +1068,163 @@
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- CXC -->
+                  <!-- ==================================== -->
 
                   <td>
 
-                    <strong>
+                    @if (
+                      project.hasProjectAmount
+                    ) {
 
-                      {{
-                        project
-                          .accountsReceivable
-                          .amount
-                          | currency:
-                            'MXN':
-                            'symbol-narrow':
-                            '1.2-2'
-                      }}
+                      <strong>
 
-                    </strong>
+                        {{
+                          project
+                            .accountsReceivable
+                            .amount
+                            | currency:
+                              'MXN':
+                              'symbol-narrow':
+                              '1.2-2'
+                        }}
+
+                      </strong>
 
 
-                    <small>
+                      <small>
 
-                      {{
-                        project
-                          .accountsReceivable
-                          .percent
-                          | number:'1.0-2'
-                      }}%
+                        {{
+                          project
+                            .accountsReceivable
+                            .percent
+                            | number:'1.0-2'
+                        }}%
 
-                    </small>
+                      </small>
+
+                    } @else {
+
+                      <strong class="monitor-table__undefined">
+                        —
+                      </strong>
+
+                      <small>
+                        Sin base
+                      </small>
+
+                    }
 
                   </td>
 
 
+                  <!-- ==================================== -->
                   <!-- UTILIDAD ESTIMADA -->
+                  <!-- ==================================== -->
 
                   <td>
 
-                    <div class="monitor-status-cell">
+                    @if (
+                      project.hasProjectAmount
+                    ) {
+
+                      <div class="monitor-status-cell">
 
 
-                      <span
-                        class="
-                          monitor-light
-                          monitor-light--small
-                        "
-                        [class.monitor-light--green]="
-                          project
-                            .estimatedProfit
-                            .status ===
-                          'green'
-                        "
-                        [class.monitor-light--yellow]="
-                          project
-                            .estimatedProfit
-                            .status ===
-                          'yellow'
-                        "
-                        [class.monitor-light--red]="
-                          project
-                            .estimatedProfit
-                            .status ===
-                          'red'
-                        ">
-                      </span>
-
-
-                      <div
-                        [class.monitor-table__danger]="
-                          project
-                            .estimatedProfit
-                            .status ===
-                          'red'
-                        ">
-
-                        <strong>
-
-                          {{
+                        <span
+                          class="
+                            monitor-light
+                            monitor-light--small
+                          "
+                          [class.monitor-light--green]="
                             project
                               .estimatedProfit
-                              .amount
-                              | currency:
-                                'MXN':
-                                'symbol-narrow':
-                                '1.2-2'
-                          }}
-
-                        </strong>
-
-
-                        <small>
-
-                          {{
+                              .status ===
+                            'green'
+                          "
+                          [class.monitor-light--yellow]="
                             project
                               .estimatedProfit
-                              .percent
-                              | number:'1.0-2'
-                          }}%
+                              .status ===
+                            'yellow'
+                          "
+                          [class.monitor-light--red]="
+                            project
+                              .estimatedProfit
+                              .status ===
+                            'red'
+                          ">
+                        </span>
 
-                        </small>
+
+                        <div
+                          [class.monitor-table__danger]="
+                            project
+                              .estimatedProfit
+                              .status ===
+                            'red'
+                          ">
+
+                          <strong>
+
+                            {{
+                              project
+                                .estimatedProfit
+                                .amount
+                                | currency:
+                                  'MXN':
+                                  'symbol-narrow':
+                                  '1.2-2'
+                            }}
+
+                          </strong>
+
+
+                          <small>
+
+                            {{
+                              project
+                                .estimatedProfit
+                                .percent
+                                | number:'1.0-2'
+                            }}%
+
+                          </small>
+
+                        </div>
 
                       </div>
 
-                    </div>
+                    } @else {
+
+                      <div class="monitor-status-cell">
+
+
+                        <span
+                          class="
+                            monitor-light
+                            monitor-light--small
+                            monitor-light--neutral
+                          ">
+                        </span>
+
+
+                        <div>
+
+                          <strong class="monitor-table__undefined">
+                            —
+                          </strong>
+
+                          <small>
+                            Sin base
+                          </small>
+
+                        </div>
+
+                      </div>
+
+                    }
 
                   </td>
 
@@ -1008,6 +1272,10 @@
                       TOTAL
                     </strong>
 
+                    <small>
+                      Proyectos con monto
+                    </small>
+
                   </td>
 
 
@@ -1027,6 +1295,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1059,6 +1328,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1091,6 +1361,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1123,6 +1394,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1155,6 +1427,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1187,6 +1460,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1219,6 +1493,7 @@
                       }}
 
                     </strong>
+
 
                     <small>
 
@@ -1262,8 +1537,12 @@
 
           <p>
 
-            Los porcentajes por proyecto se calculan
-            en relación con el total de cada proyecto.
+            Los proyectos abiertos sin monto definido
+            también aparecen en el monitor.
+
+            En estos proyectos no se calculan porcentajes,
+            CxC proyectada ni utilidad estimada hasta
+            capturar el monto total.
 
           </p>
 
@@ -1273,8 +1552,8 @@
             Flujo disponible =
             Cobrado - Invertido.
 
-            Utilidad estimada =
-            Total del proyecto - Invertido.
+            Los totales financieros consideran
+            proyectos con monto definido.
 
           </p>
 

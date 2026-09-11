@@ -1,95 +1,147 @@
 export type ProjectMonitorStatus =
   | 'green'
   | 'yellow'
-  | 'red';
+  | 'red'
+  | 'neutral';
 
 
 export interface ProjectMonitorMetric {
   amount: number;
-  percent: number;
+
+  percent:
+    number |
+    null;
 }
 
 
 export interface ProjectMonitorStatusMetric
   extends ProjectMonitorMetric {
 
-  status: ProjectMonitorStatus;
+  status:
+    ProjectMonitorStatus;
 }
 
 
 export interface ProjectMonitorInvestedMetric
   extends ProjectMonitorMetric {
 
-  overBudget: boolean;
+  overBudget:
+    boolean;
 }
 
 
 export interface ProjectMonitorTrafficLightItem {
-  count: number;
-  percent: number;
+  count:
+    number;
+
+  percent:
+    number;
 }
 
 
 export interface ProjectMonitorTrafficLight {
-  green: ProjectMonitorTrafficLightItem;
-  yellow: ProjectMonitorTrafficLightItem;
-  red: ProjectMonitorTrafficLightItem;
+  green:
+    ProjectMonitorTrafficLightItem;
+
+  yellow:
+    ProjectMonitorTrafficLightItem;
+
+  red:
+    ProjectMonitorTrafficLightItem;
+
+  neutral:
+    ProjectMonitorTrafficLightItem;
 }
 
 
 export interface ProjectMonitorActiveProjects {
-  count: number;
-  percent: number;
+  count:
+    number;
+
+  percent:
+    number;
+
+  withAmountCount:
+    number;
+
+  withoutAmountCount:
+    number;
 }
 
 
 export interface ProjectMonitorProject {
-  projectId: number;
-  projectName: string;
+  projectId:
+    number;
 
-  totalProject: ProjectMonitorMetric;
+  projectName:
+    string;
 
-  invoiced: ProjectMonitorMetric;
+  hasProjectAmount:
+    boolean;
 
-  collected: ProjectMonitorMetric;
+  totalProject:
+    ProjectMonitorMetric;
 
-  invested: ProjectMonitorInvestedMetric;
+  invoiced:
+    ProjectMonitorMetric;
 
-  availableFlow: ProjectMonitorStatusMetric;
+  collected:
+    ProjectMonitorMetric;
 
-  accountsReceivable: ProjectMonitorMetric;
+  invested:
+    ProjectMonitorInvestedMetric;
 
-  estimatedProfit: ProjectMonitorStatusMetric;
+  availableFlow:
+    ProjectMonitorStatusMetric;
+
+  accountsReceivable:
+    ProjectMonitorMetric;
+
+  estimatedProfit:
+    ProjectMonitorStatusMetric;
 }
 
 
 export interface ProjectMonitorTotals {
-  totalProject: ProjectMonitorMetric;
+  totalProject:
+    ProjectMonitorMetric;
 
-  invoiced: ProjectMonitorMetric;
+  invoiced:
+    ProjectMonitorMetric;
 
-  collected: ProjectMonitorMetric;
+  collected:
+    ProjectMonitorMetric;
 
-  invested: ProjectMonitorMetric;
+  invested:
+    ProjectMonitorMetric;
 
-  availableFlow: ProjectMonitorMetric;
+  availableFlow:
+    ProjectMonitorMetric;
 
-  accountsReceivable: ProjectMonitorMetric;
+  accountsReceivable:
+    ProjectMonitorMetric;
 
-  estimatedProfit: ProjectMonitorMetric;
+  estimatedProfit:
+    ProjectMonitorMetric;
 }
 
 
 export interface ProjectMonitorResponse {
-  generatedAt: string;
+  generatedAt:
+    string;
 
-  activeProjects: ProjectMonitorActiveProjects;
+  activeProjects:
+    ProjectMonitorActiveProjects;
 
-  availableFlowTrafficLight: ProjectMonitorTrafficLight;
+  availableFlowTrafficLight:
+    ProjectMonitorTrafficLight;
 
-  estimatedProfitTrafficLight: ProjectMonitorTrafficLight;
+  estimatedProfitTrafficLight:
+    ProjectMonitorTrafficLight;
 
-  projects: ProjectMonitorProject[];
+  projects:
+    ProjectMonitorProject[];
 
-  totals: ProjectMonitorTotals;
+  totals:
+    ProjectMonitorTotals;
 }
