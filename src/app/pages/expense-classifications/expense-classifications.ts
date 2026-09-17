@@ -78,6 +78,9 @@ import {
 import {
   toIdForm,
 } from '../../shared/helpers/general-helpers';
+import { DialogService } from '../../shared/services/dialog.service';
+import { ModalExpenseReportClassification } from './components/modal-expense-report-classification/modal-expense-report-classification';
+import { ModalReassignExpenseClassification } from './components/modal-reassign-expense-classification/modal-reassign-expense-classification';
 
 
 // =========================================================
@@ -311,6 +314,10 @@ export class ExpenseClassifications
       FormBuilder,
     );
 
+  private readonly dialogService =
+    inject(
+      DialogService,
+    );
 
   // =========================================================
   // UI
@@ -374,13 +381,20 @@ export class ExpenseClassifications
       false,
     );
 
+  readonly classifyingPending =
+    signal(false);
+
+  readonly changingMappingStatus =
+    signal(false);
 
   readonly loadingPage =
     computed(
       () =>
         this.loadingClassifications() ||
         this.loadingPending() ||
-        this.loadingMappings(),
+        this.loadingMappings() ||
+        this.classifyingPending() ||
+        this.changingMappingStatus(),
     );
 
 
@@ -390,7 +404,7 @@ export class ExpenseClassifications
 
   classifications:
     entity.ExpenseReportClassification[] =
-      [];
+    [];
 
 
   get activeClassifications():
@@ -442,12 +456,12 @@ export class ExpenseClassifications
 
   pendingItems:
     entity.ExpenseClassificationPendingItem[] =
-      [];
+    [];
 
 
   pendingRows:
     entity.ExpenseClassificationPendingTableRow[] =
-      [];
+    [];
 
 
   /*
@@ -504,41 +518,41 @@ export class ExpenseClassifications
 
   mappingsResponse:
     entity.ExpenseClassificationMappingsResponse =
-      {
-        data: [],
+    {
+      data: [],
 
-        meta: {
-          total: 0,
-          page: 1,
-          limit: 25,
-          totalPages: 0,
-        },
-      };
+      meta: {
+        total: 0,
+        page: 1,
+        limit: 25,
+        totalPages: 0,
+      },
+    };
 
 
   mappingRows:
     entity.ExpenseClassificationMappingTableRow[] =
-      [];
+    [];
 
 
   mappingFilters:
     entity.ExpenseClassificationMappingFilters =
-      {
-        search: '',
+    {
+      search: '',
 
-        sourceType:
-          undefined,
+      sourceType:
+        undefined,
 
-        status:
-          'active',
+      status:
+        'active',
 
-        classificationId:
-          null,
+      classificationId:
+        null,
 
-        page: 1,
+      page: 1,
 
-        limit: 25,
-      };
+      limit: 25,
+    };
 
 
   // =========================================================
@@ -788,6 +802,82 @@ export class ExpenseClassifications
         );
   }
 
+
+  // =========================================================
+  // CLASIFICACIONES:
+  // CREAR
+  // =========================================================
+
+  openCreateClassificationModal():
+    void {
+
+    const modalData:
+      entity.ExpenseReportClassificationModalData = {
+      mode:
+        'create',
+    };
+
+
+    this.dialogService
+      .open(
+        ModalExpenseReportClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          classification:
+            | entity.ExpenseReportClassification
+            | null,
+        ) => {
+
+          if (
+            !classification?.id
+          ) {
+            return;
+          }
+
+
+          /*
+           * Actualizamos únicamente el catálogo.
+           *
+           * NO recargamos pendientes para evitar
+           * perder selección, búsqueda, página, etc.
+           */
+          const classifications =
+            this.classifications
+              .filter(
+                (item) =>
+                  item.id !==
+                  classification.id,
+              );
+
+
+          this.setClassifications([
+            ...classifications,
+            classification,
+          ]);
+
+
+          /*
+           * La clasificación recién creada
+           * queda seleccionada automáticamente.
+           *
+           * Esto permite:
+           *
+           * 1. seleccionar conceptos
+           * 2. crear categoría
+           * 3. regresar del modal
+           * 4. homologar inmediatamente
+           */
+          this.selectedClassificationId
+            .set(
+              classification.id,
+            );
+        },
+      );
+  }
 
   // =========================================================
   // PENDIENTES:
@@ -1056,7 +1146,7 @@ export class ExpenseClassifications
   private loadPending(
     filters:
       entity.ExpenseClassificationPendingFilters =
-        {},
+      {},
   ): void {
 
     this.loadingPending
@@ -1272,21 +1362,27 @@ export class ExpenseClassifications
       >,
   ): void {
 
-    /*
-     * Estas acciones se conectarán
-     * cuando creemos los modales
-     * y confirmaciones.
-     */
-
     switch (
-      event.type
+    event.type
     ) {
 
       case 'reassign':
+
+        this.openReassignMappingModal(
+          event.row,
+        );
+
         break;
 
+
       case 'deactivate':
+
+        this.confirmDeactivateMapping(
+          event.row,
+        );
+
         break;
+
 
       case 'reactivate':
         break;
@@ -1295,8 +1391,198 @@ export class ExpenseClassifications
 
 
   // =========================================================
-  // HELPERS
+  // HOMOLOGADOS:
+  // DESACTIVAR
   // =========================================================
+
+  private confirmDeactivateMapping(
+    mapping:
+      entity.ExpenseClassificationMappingTableRow,
+  ): void {
+
+    if (
+      this.changingMappingStatus()
+    ) {
+      return;
+    }
+
+
+    this.dialogService
+      .confirm({
+        title:
+          'Desactivar homologación',
+
+        message:
+          `¿Deseas desactivar la homologación de "${mapping.displayName}"? ` +
+          `Dejará de clasificarse como "${mapping.classification.name}" ` +
+          `y volverá a aparecer entre los pendientes por homologar.`,
+
+        confirmText:
+          'Desactivar',
+
+        cancelText:
+          'Cancelar',
+      })
+      .subscribe(
+        (
+          confirmed:
+            boolean,
+        ) => {
+
+          if (
+            !confirmed
+          ) {
+            return;
+          }
+
+
+          this.deactivateMapping(
+            mapping,
+          );
+        },
+      );
+  }
+
+
+  // =========================================================
+  // HOMOLOGADOS:
+  // EJECUTAR DESACTIVACIÓN
+  // =========================================================
+
+  private deactivateMapping(
+    mapping:
+      entity.ExpenseClassificationMappingTableRow,
+  ): void {
+
+    const payload:
+      entity.ChangeExpenseClassificationMappingStatusPayload = {
+
+      sourceType:
+        mapping.sourceType,
+
+      mappingId:
+        mapping.mappingId,
+    };
+
+
+    this.changingMappingStatus
+      .set(
+        true,
+      );
+
+
+    this.service
+      .deactivateMapping(
+        payload,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.changingMappingStatus
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+        next: () => {
+
+          /*
+           * Si llegamos aquí, el PATCH respondió
+           * correctamente.
+           *
+           * Recargamos homologados porque la vista
+           * actual muestra únicamente activos.
+           */
+          this.loadMappings();
+
+
+          /*
+           * La homologación desactivada vuelve
+           * a quedar disponible en Pendientes.
+           */
+          this.reloadCurrentPendingResults();
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error desactivando homologación:',
+            error,
+          );
+        },
+      });
+  }
+
+  // =========================================================
+  // HOMOLOGADOS:
+  // REASIGNAR
+  // =========================================================
+
+  private openReassignMappingModal(
+    mapping:
+      entity.ExpenseClassificationMappingTableRow,
+  ): void {
+
+    const classifications =
+      this.classifications
+        .filter(
+          (
+            classification,
+          ) =>
+            classification.isActive,
+        );
+
+
+    if (
+      classifications.length <= 1
+    ) {
+      return;
+    }
+
+
+    const modalData:
+      entity.ReassignExpenseClassificationModalData = {
+
+      mapping,
+
+      classifications,
+    };
+
+
+    this.dialogService
+      .open(
+        ModalReassignExpenseClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          changed:
+            boolean |
+            null,
+        ) => {
+
+          if (
+            !changed
+          ) {
+            return;
+          }
+
+
+          /*
+           * Reconsultamos porque si hay filtros
+           * por clasificación, la fila podría
+           * incluso dejar de pertenecer a la vista.
+           */
+          this.loadMappings();
+        },
+      );
+  }
 
   private resolveSourceType(
     value:
@@ -1403,7 +1689,7 @@ export class ExpenseClassifications
   ): void {
 
     switch (
-      action
+    action
     ) {
 
       case 'search':
@@ -1423,7 +1709,7 @@ export class ExpenseClassifications
   ): void {
 
     switch (
-      action
+    action
     ) {
 
       case 'search':
@@ -1434,5 +1720,222 @@ export class ExpenseClassifications
         this.clearMappingFilters();
         break;
     }
+  }
+
+  // =========================================================
+  // PENDIENTES:
+  // HOMOLOGAR SELECCIONADOS
+  // =========================================================
+
+  classifySelectedPending():
+    void {
+
+    if (
+      this.classifyingPending()
+    ) {
+      return;
+    }
+
+
+    const classificationId =
+      this.selectedClassificationId();
+
+
+    if (
+      !classificationId
+    ) {
+      return;
+    }
+
+
+    const selectedKeys =
+      this.selectedPendingKeys();
+
+
+    if (
+      selectedKeys.size === 0
+    ) {
+      return;
+    }
+
+
+    /*
+     * Recuperamos únicamente las filas
+     * seleccionadas de los resultados actuales.
+     */
+    const selectedRows =
+      this.pendingRows
+        .filter(
+          (row) =>
+            selectedKeys.has(
+              row.id,
+            ),
+        );
+
+
+    if (
+      selectedRows.length === 0
+    ) {
+      return;
+    }
+
+
+    /*
+     * Convertimos cada pendiente al contrato
+     * que espera POST /classify.
+     *
+     * CONCEPTO:
+     * {
+     *   sourceType: 'concept',
+     *   conceptName: 'gasolina magna'
+     * }
+     *
+     * PRODUCTO HISTÓRICO:
+     * {
+     *   sourceType: 'product',
+     *   productId: 123
+     * }
+     */
+    const items:
+      entity.ExpenseClassificationSelection[] =
+      selectedRows
+        .map(
+          (
+            row,
+          ):
+            entity.ExpenseClassificationSelection => {
+
+            if (
+              row.sourceType ===
+              'concept'
+            ) {
+
+              return {
+                sourceType:
+                  'concept',
+
+                conceptName:
+                  row.normalizedConcept,
+              };
+            }
+
+
+            return {
+              sourceType:
+                'product',
+
+              productId:
+                row.productId,
+            };
+          },
+        );
+
+
+    const payload:
+      entity.BulkClassifyExpensePendingPayload = {
+
+      classificationId,
+
+      items,
+    };
+
+
+    this.classifyingPending
+      .set(
+        true,
+      );
+
+
+    this.service
+      .classifyPending(
+        payload,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.classifyingPending
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+        next: (
+          response:
+            entity.BulkClassifyExpensePendingResponse,
+        ) => {
+
+          if (
+            !response?.success
+          ) {
+            return;
+          }
+
+
+          /*
+           * Ya fueron homologados.
+           * La selección anterior deja de tener sentido.
+           */
+          this.clearPendingSelection();
+
+
+          /*
+           * Importante:
+           *
+           * NO limpiamos selectedClassificationId.
+           *
+           * Así GASOLINA sigue seleccionada y el usuario
+           * puede continuar homologando otro grupo
+           * hacia la misma clasificación.
+           */
+
+
+          /*
+           * Volvemos a consultar pendientes
+           * respetando los filtros actualmente visibles.
+           *
+           * Los recién homologados deben desaparecer
+           * porque backend ya los considera clasificados.
+           */
+          this.reloadCurrentPendingResults();
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error homologando conceptos de gasto:',
+            error,
+          );
+        },
+      });
+  }
+
+
+  // =========================================================
+  // PENDIENTES:
+  // RECARGAR FILTRO ACTUAL
+  // =========================================================
+
+  private reloadCurrentPendingResults():
+    void {
+
+    const form =
+      this.pendingFilterForm
+        .getRawValue();
+
+
+    this.loadPending({
+      search:
+        form.search
+          .trim(),
+
+      sourceType:
+        this.resolveSourceType(
+          form.sourceType,
+        ),
+    });
   }
 }

@@ -1,0 +1,139 @@
+<div
+  class="
+    c-modal
+    expense-report-classification-modal
+  ">
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <app-module-header
+    [title]="modalTitle"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+
+  <!-- =====================================================
+       BODY
+       ===================================================== -->
+
+  <div
+    class="
+      expense-report-classification-modal__body
+    ">
+
+
+    <!-- ===================================================
+         INFORMACIÓN
+         =================================================== -->
+
+    <section class="classification-info">
+
+      <mat-icon>
+        category
+      </mat-icon>
+
+
+      <div>
+
+        <strong>
+          Clasificación para reportes
+        </strong>
+
+        <span>
+          Agrupa conceptos equivalentes bajo una misma
+          categoría para utilizarlos posteriormente
+          en reportes.
+        </span>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         FORMULARIO
+         =================================================== -->
+
+    <form
+      id="expenseReportClassificationForm"
+      class="classification-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-field
+        formControlName="name"
+        label="Nombre de la clasificación"
+        placeholder="Ej. SOLVENTES"
+        type="text">
+      </app-input-field>
+
+    </form>
+
+
+    <!-- ===================================================
+         EJEMPLO
+         =================================================== -->
+
+    <div class="classification-example">
+
+      <span>
+        Ejemplo
+      </span>
+
+      <strong>
+        THINNER STD · REDUCTOR · THINNER AMERICANO
+      </strong>
+
+      <div>
+
+        <mat-icon>
+          arrow_downward
+        </mat-icon>
+
+        <span>
+          SOLVENTES
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <app-btns-section
+    class="
+      expense-report-classification-modal__footer
+    "
+    type="save"
+    form="expenseReportClassificationForm"
+    cancelLabel="Cerrar"
+    [saveLabel]="saveLabel"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="
+      onBtnsSectionAction(
+        $event
+      )
+    ">
+  </app-btns-section>
+
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    [text]="loadingText">
+  </app-loading-overlay>
+
+</div>

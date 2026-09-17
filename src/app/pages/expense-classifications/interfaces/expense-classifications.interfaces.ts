@@ -324,13 +324,18 @@ export type ExpenseReportClassificationModalMode =
   | 'edit';
 
 
-export interface ExpenseReportClassificationModalData {
-  mode:
-    ExpenseReportClassificationModalMode;
+export type ExpenseReportClassificationModalData =
+  | {
+      mode: 'create';
 
-  classification?:
-    ExpenseReportClassification;
-}
+      classification?: never;
+    }
+  | {
+      mode: 'edit';
+
+      classification:
+        ExpenseReportClassification;
+    };
 
 
 // =========================================================

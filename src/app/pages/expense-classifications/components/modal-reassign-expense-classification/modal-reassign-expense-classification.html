@@ -1,0 +1,147 @@
+<div
+  class="
+    c-modal
+    reassign-expense-classification-modal
+  ">
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
+  <app-module-header
+    title="Cambiar clasificación"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+
+  <!-- =====================================================
+       BODY
+       ===================================================== -->
+
+  <div
+    class="
+      reassign-expense-classification-modal__body
+    ">
+
+
+    <!-- ===================================================
+         CONCEPTO / PRODUCTO
+         =================================================== -->
+
+    <section class="mapping-summary">
+
+      <div class="mapping-summary__icon">
+
+        <mat-icon>
+          swap_horiz
+        </mat-icon>
+
+      </div>
+
+
+      <div class="mapping-summary__content">
+
+        <span>
+          {{ sourceTypeLabel }}
+        </span>
+
+        <strong>
+          {{ mapping.displayName }}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================
+         CLASIFICACIÓN ACTUAL
+         =================================================== -->
+
+    <section class="current-classification">
+
+      <span>
+        Clasificación actual
+      </span>
+
+      <strong>
+        {{ mapping.classification.name }}
+      </strong>
+
+    </section>
+
+
+    <!-- ===================================================
+         FORMULARIO
+         =================================================== -->
+
+    <form
+      id="reassignExpenseClassificationForm"
+      class="reassign-form"
+      [formGroup]="form"
+      (ngSubmit)="saveData()">
+
+      <app-input-select
+        formControlName="classificationId"
+        label="Nueva clasificación"
+        [options]="classificationOptions">
+      </app-input-select>
+
+    </form>
+
+
+    <!-- ===================================================
+         AYUDA
+         =================================================== -->
+
+    <div class="reassign-help">
+
+      <mat-icon>
+        info
+      </mat-icon>
+
+      <span>
+        Esta acción cambia la clasificación asignada
+        al concepto o producto. La homologación seguirá
+        activa y quedará registrada en la auditoría.
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- =====================================================
+       FOOTER
+       ===================================================== -->
+
+  <app-btns-section
+    class="
+      reassign-expense-classification-modal__footer
+    "
+    type="save"
+    form="reassignExpenseClassificationForm"
+    cancelLabel="Cerrar"
+    saveLabel="Cambiar clasificación"
+    [cancelDisabled]="saving()"
+    [saveDisabled]="!canSave"
+    (action)="
+      onBtnsSectionAction(
+        $event
+      )
+    ">
+  </app-btns-section>
+
+
+  <!-- =====================================================
+       LOADING
+       ===================================================== -->
+
+  <app-loading-overlay
+    [visible]="saving()"
+    [fullscreen]="false"
+    text="Cambiando clasificación...">
+  </app-loading-overlay>
+
+</div>
