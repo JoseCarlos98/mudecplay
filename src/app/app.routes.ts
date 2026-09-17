@@ -120,6 +120,24 @@ export const routes: Routes = [
         data: { roles: ['PRODUCTOS_EDITOR'] },
       },
       {
+        path: 'homologacion-gastos',
+        loadComponent: () =>
+          import(
+            './pages/expense-classifications/expense-classifications'
+          ).then(
+            (m) =>
+              m.ExpenseClassifications,
+          ),
+        canActivate: [
+          rolesGuard,
+        ],
+        data: {
+          roles: [
+            'HOMOLOGACION_GASTOS_EDITOR',
+          ],
+        },
+      },
+      {
         path: 'cuentas-por-cobrar',
         loadChildren: () => import('./pages/accounts-receivable/accounts-receivable.routes').then((m) => m.ACCOUNTS_RECEIVABLE_ROUTES),
         canActivate: [rolesGuard],

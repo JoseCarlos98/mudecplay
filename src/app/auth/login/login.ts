@@ -115,6 +115,7 @@ export class LoginComponent implements OnInit {
           CLIENTES_EDITOR: '/clientes',
           RESPONSABLES_EDITOR: '/responsables',
           PRODUCTOS_EDITOR: '/productos',
+          HOMOLOGACION_GASTOS_EDITOR: '/homologacion-gastos',
           USUARIOS_EDITOR: '/usuarios',
 
           AREAS_EDITOR: '/areas',
@@ -168,6 +169,7 @@ export class LoginComponent implements OnInit {
           'CLIENTES_EDITOR',
           'RESPONSABLES_EDITOR',
           'PRODUCTOS_EDITOR',
+          'HOMOLOGACION_GASTOS_EDITOR',
           'USUARIOS_EDITOR',
           'AREAS_EDITOR',
           'AREAS_EMPLEADOS_EDITOR',

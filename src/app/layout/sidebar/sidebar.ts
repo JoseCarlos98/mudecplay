@@ -253,6 +253,14 @@ export class Sidebar {
           roles: ['PRODUCTOS_EDITOR'],
         },
         {
+          name: 'Homologación de gastos',
+          icon: 'account_tree',
+          route: '/homologacion-gastos',
+          roles: [
+            'HOMOLOGACION_GASTOS_EDITOR',
+          ],
+        },
+        {
           name: 'Usuarios',
           icon: 'people',
           route: '/usuarios',

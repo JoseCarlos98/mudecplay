@@ -20,7 +20,6 @@ import {
   forkJoin,
 } from 'rxjs';
 
-// Angular Material
 import {
   MatIconModule,
 } from '@angular/material/icon';
@@ -30,24 +29,55 @@ import {
   PageEvent,
 } from '@angular/material/paginator';
 
-
-
 import * as entity
   from './interfaces/expense-classifications.interfaces';
 
 import {
   ExpenseClassificationsService,
 } from './services/expense-classifications.service';
-import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
-import { Catalog } from '../../shared/interfaces/general-interfaces';
-import { ColumnsConfig, ColumnVariant, DataTableActionEvent, DataTableExtraAction } from '../../shared/ui/data-table/interfaces/table-interfaces';
-import { ModuleHeader } from '../../shared/ui/module-header/module-header';
-import { DataTable } from '../../shared/ui/data-table/data-table';
-import { InputField } from '../../shared/ui/input-field/input-field';
-import { InputSelect } from '../../shared/ui/input-select/input-select';
-import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
-import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
-import { toIdForm } from '../../shared/helpers/general-helpers';
+
+import {
+  ModuleHeaderConfig,
+} from '../../shared/ui/module-header/interfaces/module-header-interface';
+
+import {
+  Catalog,
+} from '../../shared/interfaces/general-interfaces';
+
+import {
+  ColumnsConfig,
+  ColumnVariant,
+  DataTableActionEvent,
+  DataTableExtraAction,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
+
+import {
+  ModuleHeader,
+} from '../../shared/ui/module-header/module-header';
+
+import {
+  DataTable,
+} from '../../shared/ui/data-table/data-table';
+
+import {
+  InputField,
+} from '../../shared/ui/input-field/input-field';
+
+import {
+  InputSelect,
+} from '../../shared/ui/input-select/input-select';
+
+import {
+  BtnsSection,
+} from '../../shared/ui/btns-section/btns-section';
+
+import {
+  LoadingOverlay,
+} from '../../shared/ui/loading-overlay/loading-overlay';
+
+import {
+  toIdForm,
+} from '../../shared/helpers/general-helpers';
 
 
 // =========================================================
@@ -221,6 +251,7 @@ const MAPPING_DISPLAYED_COLUMNS = [
 // =========================================================
 // HELPERS VISUALES
 // =========================================================
+
 function resolveSourceTypeVariant(
   sourceType:
     entity.ExpenseClassificationSourceType,
@@ -276,7 +307,9 @@ export class ExpenseClassifications
     );
 
   private readonly fb =
-    inject(FormBuilder);
+    inject(
+      FormBuilder,
+    );
 
 
   // =========================================================
@@ -285,6 +318,7 @@ export class ExpenseClassifications
 
   readonly headerConfig =
     HEADER_CONFIG;
+
 
   readonly activeTab =
     signal<
@@ -326,13 +360,19 @@ export class ExpenseClassifications
   // =========================================================
 
   readonly loadingClassifications =
-    signal(false);
+    signal(
+      false,
+    );
 
   readonly loadingPending =
-    signal(false);
+    signal(
+      false,
+    );
 
   readonly loadingMappings =
-    signal(false);
+    signal(
+      false,
+    );
 
 
   readonly loadingPage =
@@ -353,14 +393,14 @@ export class ExpenseClassifications
       [];
 
 
-  readonly activeClassifications =
-    computed(
-      () =>
-        this.classifications.filter(
-          (classification) =>
-            classification.isActive,
-        ),
+  get activeClassifications():
+    entity.ExpenseReportClassification[] {
+
+    return this.classifications.filter(
+      (classification) =>
+        classification.isActive,
     );
+  }
 
 
   classificationOptions:
@@ -371,6 +411,29 @@ export class ExpenseClassifications
     signal<number | null>(
       null,
     );
+
+
+  get selectedClassificationName():
+    string {
+
+    const classificationId =
+      this.selectedClassificationId();
+
+    if (
+      classificationId === null
+    ) {
+      return 'Sin seleccionar';
+    }
+
+    return (
+      this.activeClassifications.find(
+        (classification) =>
+          classification.id ===
+          classificationId,
+      )?.name ??
+      'Sin seleccionar'
+    );
+  }
 
 
   // =========================================================
@@ -385,6 +448,38 @@ export class ExpenseClassifications
   pendingRows:
     entity.ExpenseClassificationPendingTableRow[] =
       [];
+
+
+  /*
+   * /pending devuelve todo el conjunto filtrado.
+   *
+   * La paginación se realiza únicamente en frontend
+   * para no modificar el DataTable compartido ni
+   * cambiar el contrato actual del backend.
+   */
+  pendingPageIndex =
+    0;
+
+  pendingPageSize =
+    10;
+
+
+  get pendingVisibleRows():
+    entity.ExpenseClassificationPendingTableRow[] {
+
+    const start =
+      this.pendingPageIndex *
+      this.pendingPageSize;
+
+    const end =
+      start +
+      this.pendingPageSize;
+
+    return this.pendingRows.slice(
+      start,
+      end,
+    );
+  }
 
 
   readonly selectedPendingKeys =
@@ -544,8 +639,7 @@ export class ExpenseClassifications
       },
       {
         type: 'reactivate',
-        icon:
-          'restart_alt',
+        icon: 'restart_alt',
         tooltip:
           'Reactivar homologación',
 
@@ -564,7 +658,8 @@ export class ExpenseClassifications
   // INIT
   // =========================================================
 
-  ngOnInit(): void {
+  ngOnInit():
+    void {
 
     this.loadInitialData();
   }
@@ -578,10 +673,14 @@ export class ExpenseClassifications
     void {
 
     this.loadingClassifications
-      .set(true);
+      .set(
+        true,
+      );
 
     this.loadingPending
-      .set(true);
+      .set(
+        true,
+      );
 
     forkJoin({
       classifications:
@@ -597,11 +696,16 @@ export class ExpenseClassifications
       .pipe(
         finalize(
           () => {
+
             this.loadingClassifications
-              .set(false);
+              .set(
+                false,
+              );
 
             this.loadingPending
-              .set(false);
+              .set(
+                false,
+              );
           },
         ),
       )
@@ -639,7 +743,9 @@ export class ExpenseClassifications
     }
 
     this.activeTab
-      .set(tab);
+      .set(
+        tab,
+      );
 
     if (
       tab ===
@@ -696,13 +802,21 @@ export class ExpenseClassifications
     this.pendingItems =
       items;
 
+    /*
+     * Una nueva búsqueda/filtro siempre vuelve
+     * a la primera página.
+     */
+    this.pendingPageIndex =
+      0;
+
     const selected =
       this.selectedPendingKeys();
 
-
     this.pendingRows =
       items.map(
-        (item) => {
+        (
+          item,
+        ) => {
 
           const id =
             this.getPendingKey(
@@ -791,23 +905,35 @@ export class ExpenseClassifications
         row.id,
       )
     ) {
+
       next.delete(
         row.id,
       );
+
     } else {
+
       next.add(
         row.id,
       );
     }
 
     this.selectedPendingKeys
-      .set(next);
+      .set(
+        next,
+      );
 
     this.syncPendingSelection();
   }
 
 
-  selectAllVisiblePending():
+  /*
+   * IMPORTANTE:
+   *
+   * Selecciona todos los registros del conjunto
+   * actualmente filtrado, no solamente la página
+   * que está visible.
+   */
+  selectAllPendingResults():
     void {
 
     const next =
@@ -819,13 +945,16 @@ export class ExpenseClassifications
       const row of
       this.pendingRows
     ) {
+
       next.add(
         row.id,
       );
     }
 
     this.selectedPendingKeys
-      .set(next);
+      .set(
+        next,
+      );
 
     this.syncPendingSelection();
   }
@@ -851,7 +980,9 @@ export class ExpenseClassifications
 
     this.pendingRows =
       this.pendingRows.map(
-        (row) => ({
+        (
+          row,
+        ) => ({
           ...row,
 
           selected:
@@ -860,6 +991,24 @@ export class ExpenseClassifications
             ),
         }),
       );
+  }
+
+
+  // =========================================================
+  // PENDIENTES:
+  // PAGINACIÓN LOCAL
+  // =========================================================
+
+  onPendingPageChange(
+    event:
+      PageEvent,
+  ): void {
+
+    this.pendingPageIndex =
+      event.pageIndex;
+
+    this.pendingPageSize =
+      event.pageSize;
   }
 
 
@@ -911,7 +1060,9 @@ export class ExpenseClassifications
   ): void {
 
     this.loadingPending
-      .set(true);
+      .set(
+        true,
+      );
 
     this.service
       .getPendingClassifications(
@@ -921,7 +1072,9 @@ export class ExpenseClassifications
         finalize(
           () =>
             this.loadingPending
-              .set(false),
+              .set(
+                false,
+              ),
         ),
       )
       .subscribe({
@@ -946,7 +1099,9 @@ export class ExpenseClassifications
     void {
 
     this.loadingMappings
-      .set(true);
+      .set(
+        true,
+      );
 
     this.service
       .getMappings(
@@ -956,7 +1111,9 @@ export class ExpenseClassifications
         finalize(
           () =>
             this.loadingMappings
-              .set(false),
+              .set(
+                false,
+              ),
         ),
       )
       .subscribe({
@@ -969,7 +1126,9 @@ export class ExpenseClassifications
 
           this.mappingRows =
             response.data.map(
-              (item) => ({
+              (
+                item,
+              ) => ({
                 ...item,
 
                 id:
@@ -1114,10 +1273,9 @@ export class ExpenseClassifications
   ): void {
 
     /*
-     * Por ahora solo dejamos el switch preparado.
-     *
-     * Los casos se conectarán cuando creemos
-     * los modales y confirmaciones.
+     * Estas acciones se conectarán
+     * cuando creemos los modales
+     * y confirmaciones.
      */
 
     switch (
@@ -1151,7 +1309,7 @@ export class ExpenseClassifications
 
     const raw =
       typeof value ===
-      'object'
+        'object'
         ? value?.id
         : value;
 
@@ -1177,7 +1335,7 @@ export class ExpenseClassifications
 
     const raw =
       typeof value ===
-      'object'
+        'object'
         ? value?.id
         : value;
 
@@ -1190,5 +1348,91 @@ export class ExpenseClassifications
     }
 
     return 'active';
+  }
+
+
+  // =========================================================
+  // ESTADO DE FILTROS
+  // =========================================================
+
+  get hasActivePendingFilters():
+    boolean {
+
+    const value =
+      this.pendingFilterForm
+        .getRawValue();
+
+    return Boolean(
+      value.search.trim() ||
+      this.resolveSourceType(
+        value.sourceType,
+      ),
+    );
+  }
+
+
+  get hasActiveMappingFilters():
+    boolean {
+
+    const value =
+      this.mappingFilterForm
+        .getRawValue();
+
+    return Boolean(
+      value.search.trim() ||
+      this.resolveSourceType(
+        value.sourceType,
+      ) ||
+      this.resolveStatus(
+        value.status,
+      ) !== 'active' ||
+      toIdForm(
+        value.classificationId,
+      ),
+    );
+  }
+
+
+  // =========================================================
+  // BTN SECTIONS
+  // =========================================================
+
+  onPendingBtnsSectionAction(
+    action:
+      string,
+  ): void {
+
+    switch (
+      action
+    ) {
+
+      case 'search':
+        this.applyPendingFilters();
+        break;
+
+      case 'clean':
+        this.clearPendingFilters();
+        break;
+    }
+  }
+
+
+  onMappingBtnsSectionAction(
+    action:
+      string,
+  ): void {
+
+    switch (
+      action
+    ) {
+
+      case 'search':
+        this.applyMappingFilters();
+        break;
+
+      case 'clean':
+        this.clearMappingFilters();
+        break;
+    }
   }
 }
