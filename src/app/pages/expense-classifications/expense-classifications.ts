@@ -1385,10 +1385,140 @@ export class ExpenseClassifications
 
 
       case 'reactivate':
+
+        this.confirmReactivateMapping(
+          event.row,
+        );
+
         break;
     }
   }
 
+  // =========================================================
+  // HOMOLOGADOS:
+  // REACTIVAR
+  // =========================================================
+
+  private confirmReactivateMapping(
+    mapping:
+      entity.ExpenseClassificationMappingTableRow,
+  ): void {
+
+    if (
+      this.changingMappingStatus()
+    ) {
+      return;
+    }
+
+
+    this.dialogService
+      .confirm({
+        title:
+          'Reactivar homologación',
+
+        message:
+          `¿Deseas reactivar la homologación de "${mapping.displayName}"? ` +
+          `Volverá a clasificarse como "${mapping.classification.name}" ` +
+          `y dejará de aparecer entre los pendientes por homologar.`,
+
+        confirmText:
+          'Reactivar',
+
+        cancelText:
+          'Cancelar',
+      })
+      .subscribe(
+        (
+          confirmed:
+            boolean,
+        ) => {
+
+          if (
+            !confirmed
+          ) {
+            return;
+          }
+
+
+          this.reactivateMapping(
+            mapping,
+          );
+        },
+      );
+  }
+
+
+  // =========================================================
+  // HOMOLOGADOS:
+  // EJECUTAR REACTIVACIÓN
+  // =========================================================
+
+  private reactivateMapping(
+    mapping:
+      entity.ExpenseClassificationMappingTableRow,
+  ): void {
+
+    const payload:
+      entity.ChangeExpenseClassificationMappingStatusPayload = {
+
+      sourceType:
+        mapping.sourceType,
+
+      mappingId:
+        mapping.mappingId,
+    };
+
+
+    this.changingMappingStatus
+      .set(
+        true,
+      );
+
+
+    this.service
+      .reactivateMapping(
+        payload,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.changingMappingStatus
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+        next: () => {
+
+          /*
+           * Si estamos viendo Inactivos,
+           * la fila debe desaparecer porque
+           * acaba de volver a estar activa.
+           */
+          this.loadMappings();
+
+
+          /*
+           * El concepto/producto deja de ser
+           * pendiente porque recuperó su
+           * homologación anterior.
+           */
+          this.reloadCurrentPendingResults();
+        },
+
+        error: (
+          error:
+            unknown,
+        ) => {
+
+          console.error(
+            'Error reactivando homologación:',
+            error,
+          );
+        },
+      });
+  }
 
   // =========================================================
   // HOMOLOGADOS:
