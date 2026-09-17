@@ -143,7 +143,7 @@ export class ExpenseClassificationsService {
     filters?:
       entity.ExpenseClassificationPendingFilters,
   ): Observable<
-    entity.ExpenseClassificationPendingItem[]
+    entity.ExpenseClassificationPendingResponse
   > {
 
     let params =
@@ -162,10 +162,22 @@ export class ExpenseClassificationsService {
         'sourceType',
         filters.sourceType,
       );
+
+      params = setScalar(
+        params,
+        'page',
+        filters.page,
+      );
+
+      params = setScalar(
+        params,
+        'limit',
+        filters.limit,
+      );
     }
 
     return this.http.get<
-      entity.ExpenseClassificationPendingItem[]
+      entity.ExpenseClassificationPendingResponse
     >(
       `${this.apiUrl}/pending`,
       {

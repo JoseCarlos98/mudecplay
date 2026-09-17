@@ -464,6 +464,17 @@ export class ExpenseClassifications
     [];
 
 
+  pendingResponse:
+    entity.ExpenseClassificationPendingResponse = {
+      data: [],
+
+      meta: {
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+      },
+    };
   /*
    * /pending devuelve todo el conjunto filtrado.
    *
@@ -705,7 +716,11 @@ export class ExpenseClassifications
 
       pending:
         this.service
-          .getPendingClassifications(),
+          .getPendingClassifications({
+            page: 1,
+            limit:
+              this.pendingPageSize,
+          }),
     })
       .pipe(
         finalize(
@@ -732,8 +747,11 @@ export class ExpenseClassifications
             response.classifications,
           );
 
+          this.pendingResponse =
+            response.pending;
+
           this.setPendingItems(
-            response.pending,
+            response.pending.data,
           );
         },
       });
@@ -1155,9 +1173,17 @@ export class ExpenseClassifications
       );
 
     this.service
-      .getPendingClassifications(
-        filters,
-      )
+      .getPendingClassifications({
+        ...filters,
+
+        page:
+          filters.page ??
+          1,
+
+        limit:
+          filters.limit ??
+          this.pendingPageSize,
+      })
       .pipe(
         finalize(
           () =>
@@ -1169,16 +1195,18 @@ export class ExpenseClassifications
       )
       .subscribe({
         next: (
-          items,
+          response,
         ) => {
 
+          this.pendingResponse =
+            response;
+
           this.setPendingItems(
-            items,
+            response.data,
           );
         },
       });
   }
-
 
   // =========================================================
   // HOMOLOGADOS:

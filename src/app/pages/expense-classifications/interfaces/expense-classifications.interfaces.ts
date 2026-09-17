@@ -72,6 +72,10 @@ export interface ExpenseClassificationPendingFilters {
 
   sourceType?:
     ExpenseClassificationSourceType;
+
+  page?: number;
+
+  limit?: number;
 }
 
 
@@ -113,7 +117,13 @@ export type ExpenseClassificationPendingItem =
   | ExpenseClassificationPendingConcept
   | ExpenseClassificationPendingProduct;
 
+export interface ExpenseClassificationPendingResponse {
+  data:
+    ExpenseClassificationPendingItem[];
 
+  meta:
+    ExpenseClassificationPaginationMeta;
+}
 // =========================================================
 // FILA UI: PENDIENTES
 // =========================================================
