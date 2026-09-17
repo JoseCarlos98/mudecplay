@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   ci:
@@ -30,3 +31,14 @@ jobs:
 
       - name: Build production
         run: npm run build:prod
+
+      - name: Configure AWS credentials with OIDC
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          role-to-assume: arn:aws:iam::806364132626:role/mudecplay-github-actions-panel-role
+          aws-region: us-east-2
+
+      - name: Verify AWS identity
+        if: github.ref == 'refs/heads/main'
+        run: aws sts get-caller-identity
