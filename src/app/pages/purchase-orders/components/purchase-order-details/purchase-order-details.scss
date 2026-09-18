@@ -176,7 +176,11 @@ $shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.035);
     align-items: center;
     gap: 11px;
     padding: 11px 15px;
-    @include card-border(12px, rgba(148, 163, 184, 0.28), linear-gradient(180deg, $white 0%, #fbfdff 100%));
+    @include card-border(
+      12px,
+      rgba(148, 163, 184, 0.28),
+      linear-gradient(180deg, $white 0%, #fbfdff 100%)
+    );
 
     &--amount {
       background: linear-gradient(180deg, $white 0%, #f8fffb 100%);
@@ -489,12 +493,30 @@ $shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.035);
 }
 
 $chip-variants: (
-  success: ($success-soft, #287348),
-  warning: ($warning-soft, #b45309),
-  danger: ($danger-soft, #b91c1c),
-  info: ($blue-soft, #1164a3),
-  neutral: ($neutral-soft, #475569),
-  primary: (rgba(39, 170, 225, 0.14), $primary)
+  success: (
+    $success-soft,
+    #287348,
+  ),
+  warning: (
+    $warning-soft,
+    #b45309,
+  ),
+  danger: (
+    $danger-soft,
+    #b91c1c,
+  ),
+  info: (
+    $blue-soft,
+    #1164a3,
+  ),
+  neutral: (
+    $neutral-soft,
+    #475569,
+  ),
+  primary: (
+    rgba(39, 170, 225, 0.14),
+    $primary,
+  ),
 );
 
 @each $name, $variant in $chip-variants {
@@ -789,7 +811,10 @@ $chip-variants: (
     radial-gradient(circle at 100% 0%, rgba(39, 170, 225, 0.035) 0, transparent 32%),
     linear-gradient(180deg, $white 0%, #fbfdff 100%);
   box-shadow: $shadow-soft;
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 
   &:hover {
     border-color: rgba(30, 134, 177, 0.32);
@@ -962,8 +987,6 @@ $chip-variants: (
     }
   }
 
-
-
   &__pending-expense {
     width: fit-content;
     max-width: 100%;
@@ -1038,6 +1061,8 @@ $chip-variants: (
 
     &--history {
       max-height: 400px;
+      overflow-y: auto;
+      background: $white;
     }
   }
 
@@ -1120,7 +1145,6 @@ $chip-variants: (
   .purchase-order-payment-overview--with-difference {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 }
 
 @media screen and (max-width: 875px) {

@@ -263,7 +263,7 @@
             select_all
           </mat-icon>
 
-          Seleccionar resultados
+          Seleccionar visibles
 
         </button>
 
@@ -372,7 +372,82 @@
         </div>
 
 
-        <div class="c-btns-actions">
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="openCreateClassificationModal()">
+
+          <mat-icon>
+            add
+          </mat-icon>
+
+          Nueva
+
+        </button>
+
+      </div>
+
+
+      <!-- ===============================================
+             ESTADO + ACCIONES DE CLASIFICACIÓN
+             =============================================== -->
+
+      <div class="classification-catalog-toolbar">
+
+        <div
+          class="classification-status-switch"
+          role="group"
+          aria-label="Estado de clasificaciones">
+
+          <button
+            type="button"
+            class="classification-status-switch__button"
+            [class.classification-status-switch__button--active]="
+              classificationStatusView() === 'active'
+            "
+            (click)="setClassificationStatusView('active')">
+
+            <mat-icon>
+              check_circle
+            </mat-icon>
+
+            <span>
+              Activas
+            </span>
+
+            <small>
+              {{ activeClassifications.length }}
+            </small>
+
+          </button>
+
+
+          <button
+            type="button"
+            class="classification-status-switch__button"
+            [class.classification-status-switch__button--active]="
+              classificationStatusView() === 'inactive'
+            "
+            (click)="setClassificationStatusView('inactive')">
+
+            <mat-icon>
+              block
+            </mat-icon>
+
+            <span>
+              Inactivas
+            </span>
+
+            <small>
+              {{ inactiveClassifications.length }}
+            </small>
+
+          </button>
+
+        </div>
+
+
+        <div class="classification-catalog-actions">
 
           <button
             type="button"
@@ -389,18 +464,47 @@
           </button>
 
 
-          <button
-            type="button"
-            class="btn-primary"
-            (click)="openCreateClassificationModal()">
+          @if (
+            selectedClassification
+          ) {
 
-            <mat-icon>
-              add
-            </mat-icon>
+            @if (
+              selectedClassificationIsActive
+            ) {
 
-            Nueva
+              <button
+                type="button"
+                class="btn-outline"
+                [disabled]="loadingClassifications()"
+                (click)="confirmDeactivateSelectedClassification()">
 
-          </button>
+                <mat-icon>
+                  block
+                </mat-icon>
+
+                Desactivar
+
+              </button>
+
+            } @else {
+
+              <button
+                type="button"
+                class="btn-outline"
+                [disabled]="loadingClassifications()"
+                (click)="confirmReactivateSelectedClassification()">
+
+                <mat-icon>
+                  restart_alt
+                </mat-icon>
+
+                Reactivar
+
+              </button>
+
+            }
+
+          }
 
         </div>
 
@@ -414,82 +518,106 @@
       <div class="classification-list">
 
         @for (
-        classification
-        of activeClassifications;
-        track classification.id
+          classification
+          of visibleClassifications;
+          track classification.id
         ) {
 
-        <button type="button" class="classification-option" [class.classification-option--selected]="
-                selectedClassificationId() ===
+          <button
+            type="button"
+            class="classification-option"
+            [class.classification-option--inactive]="
+              !classification.isActive
+            "
+            [class.classification-option--selected]="
+              selectedClassificationId() ===
+              classification.id
+            "
+            (click)="
+              selectedClassificationId.set(
                 classification.id
-              " (click)="
-                selectedClassificationId.set(
-                  classification.id
-                )
+              )
+            ">
+
+            <span class="classification-option__icon">
+
+              <mat-icon>
+                {{
+                  classification.isActive
+                    ? 'category'
+                    : 'block'
+                }}
+              </mat-icon>
+
+            </span>
+
+
+            <span class="classification-option__content">
+
+              <strong>
+                {{ classification.name }}
+              </strong>
+
+              <small>
+                {{
+                  classification.isActive
+                    ? 'Clasificación de reporte'
+                    : 'Clasificación inactiva'
+                }}
+              </small>
+
+            </span>
+
+
+            @if (
+              selectedClassificationId() ===
+              classification.id
+            ) {
+
+              <mat-icon class="
+                classification-option__selected
               ">
+                check_circle
+              </mat-icon>
 
-          <span class="classification-option__icon">
+            }
 
-            <mat-icon>
-              category
-            </mat-icon>
-
-          </span>
-
-
-          <span class="classification-option__content">
-
-            <strong>
-              {{ classification.name }}
-            </strong>
-
-            <small>
-              Clasificación de reporte
-            </small>
-
-          </span>
-
-
-          @if (
-          selectedClassificationId() ===
-          classification.id
-          ) {
-
-          <mat-icon class="
-                    classification-option__selected
-                  ">
-
-            check_circle
-
-          </mat-icon>
-
-          }
-
-        </button>
+          </button>
 
         }
 
 
         @if (
-        activeClassifications.length === 0
+          visibleClassifications.length === 0
         ) {
 
-        <div class="classification-list__empty">
+          <div class="classification-list__empty">
 
-          <mat-icon>
-            category
-          </mat-icon>
+            <mat-icon>
+              {{
+                classificationStatusView() === 'active'
+                  ? 'category'
+                  : 'block'
+              }}
+            </mat-icon>
 
-          <strong>
-            No hay clasificaciones activas
-          </strong>
+            <strong>
+              {{
+                classificationStatusView() === 'active'
+                  ? 'No hay clasificaciones activas'
+                  : 'No hay clasificaciones inactivas'
+              }}
+            </strong>
 
-          <p>
-            Crea una clasificación para comenzar
-            a homologar conceptos.
-          </p>
+            <p>
+              {{
+                classificationStatusView() === 'active'
+                  ? 'Crea una clasificación para comenzar a homologar conceptos.'
+                  : 'Las clasificaciones que desactives aparecerán aquí.'
+              }}
+            </p>
 
-        </div>
+          </div>
 
         }
 
@@ -530,6 +658,7 @@
         <button type="button" class="btn-primary" [disabled]="
           selectedPendingCount() === 0 ||
           !selectedClassificationId() ||
+          !selectedClassificationIsActive ||
           classifyingPending()
         " (click)="
           classifySelectedPending()
@@ -542,7 +671,7 @@
           {{
           classifyingPending()
           ? 'Homologando...'
-          : 'Homologar seleccionados'
+          : 'Homologar'
           }}
 
         </button>

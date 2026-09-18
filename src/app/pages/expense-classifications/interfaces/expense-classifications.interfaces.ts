@@ -364,3 +364,10 @@ export interface ReassignExpenseClassificationModalData {
   classifications:
     ExpenseReportClassification[];
 }
+
+
+export interface ChangeExpenseReportClassificationStatusResponse {
+  success: boolean;
+
+  classification: ExpenseReportClassification;
+}

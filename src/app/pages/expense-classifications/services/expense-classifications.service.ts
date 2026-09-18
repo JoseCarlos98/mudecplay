@@ -103,36 +103,34 @@ export class ExpenseClassificationsService {
       payload,
     );
   }
+deactivateClassification(
+  classificationId: number,
+): Observable<
+  entity.ChangeExpenseReportClassificationStatusResponse
+> {
+
+  return this.http.patch<
+    entity.ChangeExpenseReportClassificationStatusResponse
+  >(
+    `${this.apiUrl}/classifications/${classificationId}/deactivate`,
+    {},
+  );
+}
 
 
-  deactivateClassification(
-    classificationId: number,
-  ): Observable<
-    entity.ExpenseReportClassification
-  > {
+reactivateClassification(
+  classificationId: number,
+): Observable<
+  entity.ChangeExpenseReportClassificationStatusResponse
+> {
 
-    return this.http.patch<
-      entity.ExpenseReportClassification
-    >(
-      `${this.apiUrl}/classifications/${classificationId}/deactivate`,
-      {},
-    );
-  }
-
-
-  reactivateClassification(
-    classificationId: number,
-  ): Observable<
-    entity.ExpenseReportClassification
-  > {
-
-    return this.http.patch<
-      entity.ExpenseReportClassification
-    >(
-      `${this.apiUrl}/classifications/${classificationId}/reactivate`,
-      {},
-    );
-  }
+  return this.http.patch<
+    entity.ChangeExpenseReportClassificationStatusResponse
+  >(
+    `${this.apiUrl}/classifications/${classificationId}/reactivate`,
+    {},
+  );
+}
 
 
   // =========================================================

@@ -427,8 +427,17 @@ export class ExpenseClassifications
     );
 
 
-  get selectedClassificationName():
-    string {
+  readonly classificationStatusView =
+    signal<
+      'active' |
+      'inactive'
+    >(
+      'active',
+    );
+
+
+  get selectedClassification():
+    entity.ExpenseReportClassification | null {
 
     const classificationId =
       this.selectedClassificationId();
@@ -436,17 +445,65 @@ export class ExpenseClassifications
     if (
       classificationId === null
     ) {
-      return 'Sin seleccionar';
+      return null;
     }
 
     return (
-      this.activeClassifications.find(
+      this.classifications.find(
         (classification) =>
           classification.id ===
           classificationId,
-      )?.name ??
-      'Sin seleccionar'
+      ) ??
+      null
     );
+  }
+
+
+  get selectedClassificationIsActive():
+    boolean {
+
+    return Boolean(
+      this.selectedClassification
+        ?.isActive,
+    );
+  }
+
+
+  get inactiveClassifications():
+    entity.ExpenseReportClassification[] {
+
+    return this.classifications.filter(
+      (classification) =>
+        !classification.isActive,
+    );
+  }
+
+
+  get visibleClassifications():
+    entity.ExpenseReportClassification[] {
+
+    return this.classificationStatusView() ===
+      'active'
+      ? this.activeClassifications
+      : this.inactiveClassifications;
+  }
+
+
+  get selectedClassificationName():
+    string {
+
+    const classification =
+      this.selectedClassification;
+
+    if (
+      !classification
+    ) {
+      return 'Sin seleccionar';
+    }
+
+    return classification.isActive
+      ? classification.name
+      : `${classification.name} (inactiva)`;
   }
 
 
@@ -712,19 +769,51 @@ export class ExpenseClassifications
         true,
       );
 
+    this.loadingMappings
+      .set(
+        true,
+      );
+
+
     forkJoin({
+
       classifications:
         this.service
           .getClassifications({
-            status: 'all',
+            status:
+              'all',
           }),
+
 
       pending:
         this.service
           .getPendingClassifications({
-            page: 1,
+            page:
+              1,
+
             limit:
               this.pendingPageSize,
+          }),
+
+
+      /*
+       * Solo necesitamos conocer el total inicial
+       * de homologaciones para el resumen.
+       *
+       * Pedimos 1 registro porque la tabla completa
+       * se cargará cuando el usuario entre a
+       * la pestaña Homologados.
+       */
+      mappings:
+        this.service
+          .getMappings({
+            ...this.mappingFilters,
+
+            page:
+              1,
+
+            limit:
+              1,
           }),
     })
       .pipe(
@@ -740,6 +829,11 @@ export class ExpenseClassifications
               .set(
                 false,
               );
+
+            this.loadingMappings
+              .set(
+                false,
+              );
           },
         ),
       )
@@ -748,9 +842,18 @@ export class ExpenseClassifications
           response,
         ) => {
 
+          // =====================================================
+          // CLASIFICACIONES
+          // =====================================================
+
           this.setClassifications(
             response.classifications,
           );
+
+
+          // =====================================================
+          // PENDIENTES
+          // =====================================================
 
           this.pendingResponse =
             response.pending;
@@ -758,6 +861,27 @@ export class ExpenseClassifications
           this.setPendingItems(
             response.pending.data,
           );
+
+
+          // =====================================================
+          // HOMOLOGADOS - SOLO META INICIAL
+          // =====================================================
+          /*
+           * No guardamos el único registro solicitado.
+           *
+           * Aquí únicamente necesitamos que el resumen superior
+           * conozca el total real.
+           *
+           * Cuando se abra la pestaña Homologados,
+           * loadMappings() traerá la página completa.
+           */
+          this.mappingsResponse = {
+            data:
+              [],
+
+            meta:
+              response.mappings.meta,
+          };
         },
       });
   }
@@ -894,6 +1018,11 @@ export class ExpenseClassifications
            * 3. regresar del modal
            * 4. homologar inmediatamente
            */
+          this.classificationStatusView
+            .set(
+              'active',
+            );
+
           this.selectedClassificationId
             .set(
               classification.id,
@@ -971,7 +1100,7 @@ export class ExpenseClassifications
             this.classifications.map(
               (item) =>
                 item.id ===
-                updatedClassification.id
+                  updatedClassification.id
                   ? updatedClassification
                   : item,
             ),
@@ -989,6 +1118,250 @@ export class ExpenseClassifications
             );
         },
       );
+  }
+
+
+  setClassificationStatusView(
+    status:
+      'active' |
+      'inactive',
+  ): void {
+
+    if (
+      this.classificationStatusView() ===
+      status
+    ) {
+      return;
+    }
+
+    this.classificationStatusView
+      .set(
+        status,
+      );
+
+    this.selectedClassificationId
+      .set(
+        null,
+      );
+  }
+
+
+  confirmDeactivateSelectedClassification():
+    void {
+
+    const classification =
+      this.selectedClassification;
+
+    if (
+      !classification ||
+      !classification.isActive ||
+      this.loadingClassifications()
+    ) {
+      return;
+    }
+
+
+    this.dialogService
+      .confirm({
+        title:
+          'Desactivar clasificación',
+
+        message:
+          `¿Deseas desactivar "${classification.name}"? ` +
+          'Dejará de estar disponible para nuevas homologaciones. ' +
+          'Las homologaciones existentes no se eliminan.',
+
+        confirmText:
+          'Desactivar',
+
+        cancelText:
+          'Cancelar',
+      })
+      .subscribe(
+        (
+          confirmed:
+            boolean,
+        ) => {
+
+          if (
+            !confirmed
+          ) {
+            return;
+          }
+
+          this.deactivateSelectedClassification(
+            classification.id,
+          );
+        },
+      );
+  }
+
+
+  private deactivateSelectedClassification(
+    classificationId:
+      number,
+  ): void {
+
+    this.loadingClassifications
+      .set(
+        true,
+      );
+
+
+    this.service
+      .deactivateClassification(
+        classificationId,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.loadingClassifications
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+        next: (
+          response,
+        ) => {
+
+          const updatedClassification =
+            response.classification;
+
+
+          this.setClassifications(
+            this.classifications.map(
+              (item) =>
+                item.id ===
+                  updatedClassification.id
+                  ? updatedClassification
+                  : item,
+            ),
+          );
+
+
+          this.classificationStatusView
+            .set(
+              'inactive',
+            );
+
+
+          this.selectedClassificationId
+            .set(
+              updatedClassification.id,
+            );
+        },
+      });
+  }
+
+
+  confirmReactivateSelectedClassification():
+    void {
+
+    const classification =
+      this.selectedClassification;
+
+    if (
+      !classification ||
+      classification.isActive ||
+      this.loadingClassifications()
+    ) {
+      return;
+    }
+
+
+    this.dialogService
+      .confirm({
+        title:
+          'Reactivar clasificación',
+
+        message:
+          `¿Deseas reactivar "${classification.name}"? ` +
+          'Volverá a estar disponible para nuevas homologaciones.',
+
+        confirmText:
+          'Reactivar',
+
+        cancelText:
+          'Cancelar',
+      })
+      .subscribe(
+        (
+          confirmed:
+            boolean,
+        ) => {
+
+          if (
+            !confirmed
+          ) {
+            return;
+          }
+
+          this.reactivateSelectedClassification(
+            classification.id,
+          );
+        },
+      );
+  }
+
+
+  private reactivateSelectedClassification(
+    classificationId:
+      number,
+  ): void {
+
+    this.loadingClassifications
+      .set(
+        true,
+      );
+
+
+    this.service
+      .reactivateClassification(
+        classificationId,
+      )
+      .pipe(
+        finalize(
+          () =>
+            this.loadingClassifications
+              .set(
+                false,
+              ),
+        ),
+      )
+      .subscribe({
+        next: (
+          response,
+        ) => {
+
+          const updatedClassification =
+            response.classification;
+
+
+          this.setClassifications(
+            this.classifications.map(
+              (item) =>
+                item.id ===
+                  updatedClassification.id
+                  ? updatedClassification
+                  : item,
+            ),
+          );
+
+
+          this.classificationStatusView
+            .set(
+              'active',
+            );
+
+
+          this.selectedClassificationId
+            .set(
+              updatedClassification.id,
+            );
+        },
+      });
   }
 
   // =========================================================
@@ -2060,7 +2433,8 @@ export class ExpenseClassifications
 
 
     if (
-      !classificationId
+      !classificationId ||
+      !this.selectedClassificationIsActive
     ) {
       return;
     }
@@ -2115,7 +2489,7 @@ export class ExpenseClassifications
                   'concept',
 
                 conceptName:
-                  item.normalizedConcept,
+                  item.displayName,
               };
             }
 

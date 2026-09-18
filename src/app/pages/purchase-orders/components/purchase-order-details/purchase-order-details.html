@@ -19,7 +19,7 @@
 
         <div class="purchase-order-detail-card__actions">
           @if (shouldShowCancelPurchaseOrderButton()) {
-          <span [title]="getCancelPurchaseOrderTooltip()">
+          <span [matTooltip]="getCancelPurchaseOrderTooltip()" matTooltipPosition="below">
             <button type="button" class="btn-outline" [disabled]="!canCancelPurchaseOrder()"
               (click)="cancelPurchaseOrder()">
 
@@ -35,7 +35,7 @@
           }
 
           @if (shouldShowClosePurchaseOrderButton()) {
-          <span [title]="getClosePurchaseOrderTooltip()">
+          <span [matTooltip]="getClosePurchaseOrderTooltip()" matTooltipPosition="below">
             <button type="button" class="btn-primary" [disabled]="!canClosePurchaseOrder()"
               (click)="closePurchaseOrder()">
 

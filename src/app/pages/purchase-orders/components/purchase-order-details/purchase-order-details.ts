@@ -24,6 +24,7 @@ import { DialogService } from '../../../../shared/services/dialog.service';
 import { ModalSeePhoto } from '../photo-without-cost/components/modal-see-photo/modal-see-photo';
 import { PendingTicketPhotoRow } from '../../interfaces/purchase-orders.interfaces';
 import { PermissionsService } from '../../../../auth/services/permissions.service';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 type DetailStatusVariant =
   | 'success'
@@ -224,6 +225,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatPaginatorModule,
     ModuleHeader,
     DataTable,
+    MatTooltipModule
   ],
   templateUrl: './purchase-order-details.html',
   styleUrl: './purchase-order-details.scss',
@@ -802,16 +804,16 @@ export class PurchaseOrderDetails implements OnInit {
       return 'Orden de compra no disponible.';
     }
 
+    if (this.order.status === 'closed') {
+      return 'La O.C. ya está cerrada y no puede cancelarse.';
+    }
+
     if (this.order.status === 'cancelled') {
       return 'La O.C. ya está cancelada.';
     }
 
-    if (this.order.status === 'closed') {
-      return 'La O.C. ya está cerrada.';
-    }
-
     if (this.expenses.length > 0) {
-      return 'Para cancelar esta O.C., primero quita o elimina los gastos relacionados.';
+      return 'No se puede cancelar: la O.C. tiene gastos relacionados.';
     }
 
     const hasReconciledPhotos = this.photos.some(
@@ -819,24 +821,53 @@ export class PurchaseOrderDetails implements OnInit {
     );
 
     if (hasReconciledPhotos) {
-      return 'Para cancelar esta O.C., primero desconcilia las fotos relacionadas.';
+      return 'No se puede cancelar: existen fotos conciliadas relacionadas.';
     }
 
-    if (this.order.status === 'authorized' && !this.isAdminGeneral()) {
+    if (
+      this.order.status === 'authorized' &&
+      !this.isAdminGeneral()
+    ) {
       return 'Solo un administrador puede cancelar una O.C. autorizada.';
     }
 
-    if (this.order.status === 'authorized' && this.isAdminGeneral()) {
-      return 'Cancelar O.C. autorizada como corrección administrativa.';
+    if (
+      this.order.status === 'authorized' &&
+      this.isAdminGeneral()
+    ) {
+      return 'Cancelar esta O.C. autorizada como corrección administrativa.';
     }
 
     return 'Cancelar orden de compra.';
   }
 
+  private hasManualCloseSurplus(): boolean {
+    const requestedAmountCents =
+      Math.round(
+        Number(
+          this.paymentSummary.requestedAmount ?? 0,
+        ) * 100,
+      );
+
+    const registeredAmountCents =
+      Math.round(
+        Number(
+          this.paymentSummary.totalRegistered ?? 0,
+        ) * 100,
+      );
+
+    return (
+      this.paymentSummary.hasExpenses &&
+      requestedAmountCents >
+      registeredAmountCents
+    );
+  }
+
   shouldShowClosePurchaseOrderButton(): boolean {
     return (
       !!this.order.id &&
-      this.order.status === 'authorized'
+      this.order.status === 'authorized' &&
+      this.hasManualCloseSurplus()
     );
   }
 
@@ -850,6 +881,10 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     if (this.order.status !== 'authorized') {
+      return false;
+    }
+
+    if (!this.hasManualCloseSurplus()) {
       return false;
     }
 
@@ -885,37 +920,52 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     if (this.order.status === 'closed') {
-      return 'Esta O.C. ya está cerrada.';
+      return 'La O.C. ya está cerrada.';
     }
 
     if (this.order.status !== 'authorized') {
       return 'Solo se puede cerrar una O.C. autorizada.';
     }
 
+    if (!this.hasManualCloseSurplus()) {
+      return 'Esta O.C. no requiere cierre manual porque el monto solicitado fue utilizado completamente.';
+    }
+
+    const reasons: string[] = [];
+
     if (!this.paymentSummary.hasExpenses) {
-      return 'La O.C. debe tener al menos un gasto relacionado para poder cerrarse.';
+      reasons.push('no tiene gastos relacionados');
     }
 
     if (this.paymentSummary.exceedsRequested) {
-      return 'El total gastado supera el monto solicitado. Primero debe regularizarse.';
+      reasons.push('el gasto supera el monto solicitado');
     }
 
     if (this.paymentSummary.totalBalance > 0.01) {
-      return 'Todos los gastos relacionados deben estar pagados al 100%.';
-    }
-
-    const hasPendingPhotoWithoutExpense =
-      this.photos.some(
-        (photo) =>
-          photo.status !== 'discarded' &&
-          !photo.hasExpense,
+      reasons.push(
+        `tiene ${this.formatMoney(
+          this.paymentSummary.totalBalance,
+        )} pendientes de pago`,
       );
-
-    if (hasPendingPhotoWithoutExpense) {
-      return 'Existen fotos o tickets pendientes de registrar como gasto.';
     }
 
-    return 'Cerrar definitivamente esta orden de compra.';
+    const pendingPhotos = this.photos.filter(
+      (photo) =>
+        photo.status !== 'discarded' &&
+        !photo.hasExpense,
+    ).length;
+
+    if (pendingPhotos > 0) {
+      reasons.push(
+        `${pendingPhotos} foto(s)/ticket(s) todavía no tienen gasto registrado`,
+      );
+    }
+
+    if (reasons.length > 0) {
+      return `No se puede cerrar: ${reasons.join('; ')}.`;
+    }
+
+    return 'La O.C. está lista para cerrarse definitivamente.';
   }
 
   closePurchaseOrder(): void {
