@@ -5,7 +5,8 @@ export type PurchaseOrderStatus =
   | 'in_review'
   | 'authorized'
   | 'not_authorized'
-  | 'cancelled';
+  | 'cancelled'
+  | 'closed';
 
 export type PurchaseOrderDestinationType = 'direct' | 'warehouse';
 
@@ -17,7 +18,8 @@ export type PurchaseOrderTrackingStatus =
   | 'expense_registered'
   | 'payment_completed'
   | 'not_authorized'
-  | 'cancelled';
+  | 'cancelled'
+  | 'closed';
 
 export type PurchaseOrderTrackingVariant =
   | 'success'
@@ -33,6 +35,7 @@ export type PurchaseOrderHistoryEventType =
   | 'authorized'
   | 'not_authorized'
   | 'cancelled'
+  | 'closed'
   | 'ticket_uploaded'
   | 'ticket_reconciled'
   | 'expense_linked';
@@ -172,8 +175,8 @@ export interface PurchaseOrderResponseDto {
   id: number;
 
   folio: string;
-  printing?: PurchaseOrderPrintingDto;
 
+  printing?: PurchaseOrderPrintingDto;
 
   project: PurchaseOrderProjectDto | null;
 
@@ -181,10 +184,15 @@ export interface PurchaseOrderResponseDto {
   tracking_status_label?: string | null;
   tracking_status_detail?: string | null;
   tracking_status_icon?: string | null;
-  tracking_status_variant?: PurchaseOrderTrackingVariant | string | null;
+  tracking_status_variant?:
+  | PurchaseOrderTrackingVariant
+  | string
+  | null;
   tracking_step?: number | null;
 
-  requested_by_employee?: PurchaseOrderEmployeeDto | null;
+  requested_by_employee?:
+  | PurchaseOrderEmployeeDto
+  | null;
 
   destination_type: PurchaseOrderDestinationType;
   destination_type_label: string;
@@ -193,47 +201,86 @@ export interface PurchaseOrderResponseDto {
   will_have_invoice_label: string;
 
   concept: string;
+
   requested_amount: number;
+
   is_zero_amount_invoice: boolean;
   zero_amount_reason: string | null;
 
   status: PurchaseOrderStatus;
   status_label: string;
 
-  requested_by_user?: PurchaseOrderUserDto | null;
+  requested_by_user?:
+  | PurchaseOrderUserDto
+  | null;
+
   requested_by_name: string | null;
 
-  created_by_user: PurchaseOrderUserDto | null;
+  created_by_user:
+  | PurchaseOrderUserDto
+  | null;
 
-  authorized_by_employee?: PurchaseOrderEmployeeDto | null;
+  authorized_by_employee?:
+  | PurchaseOrderEmployeeDto
+  | null;
+
   authorized_by_name: string | null;
-  authorization_registered_by_user: PurchaseOrderUserDto | null;
+
+  authorization_registered_by_user:
+  | PurchaseOrderUserDto
+  | null;
+
   authorized_at: string | null;
+
+  closed_by_user:
+  | PurchaseOrderUserDto
+  | null;
+
+  closed_at: string | null;
 
   notes: string | null;
 
   created_at: string;
   updated_at: string;
 
+  // =========================================================
   // Campos solo cuando venga detalle / flow-detail
+  // =========================================================
+
   ticket_photos_count?: number;
   expense_links_count?: number;
-  ticket_photos?: PurchaseOrderTicketPhotoDto[];
-  expense_links?: PurchaseOrderExpenseLinkDto[];
-  history?: PurchaseOrderHistoryEventDto[];
 
+  ticket_photos?:
+  PurchaseOrderTicketPhotoDto[];
+
+  expense_links?:
+  PurchaseOrderExpenseLinkDto[];
+
+  history?:
+  PurchaseOrderHistoryEventDto[];
+
+  // =========================================================
   // Campos UI
+  // =========================================================
+
   project_name?: string;
+
   requested_by_display?: string;
+
   destination_name?: string;
+
   invoice_name?: string;
+
   status_name?: string;
+
   created_at_date?: string;
-  authorized_at_date?: string | null;
+
+  authorized_at_date?:
+  | string
+  | null;
 
   printing_status_label?: string;
 }
-
 export interface PurchaseOrderFlowDetailResponse extends PurchaseOrderResponseDto {
   ticket_photos_count: number;
   expense_links_count: number;

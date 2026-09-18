@@ -65,6 +65,14 @@ $shadow-soft: 0 8px 18px rgba(15, 23, 42, 0.035);
   display: block;
 }
 
+.purchase-order-detail-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .purchase-order-detail-page {
   min-height: unset;
 
@@ -500,7 +508,7 @@ $chip-variants: (
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   align-items: start;
   padding: 35px 24px 20px;
   @include card-border(12px);

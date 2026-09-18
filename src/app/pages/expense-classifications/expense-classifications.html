@@ -29,7 +29,7 @@
           </span>
 
           <strong>
-            {{ pendingRows.length }}
+            {{ pendingResponse.meta.total }}
           </strong>
 
           <small>
@@ -137,7 +137,7 @@
         </span>
 
         <span class="expense-classifications-tab__count">
-          {{ pendingRows.length }}
+          {{ pendingResponse.meta.total }}
         </span>
 
       </button>
@@ -205,7 +205,7 @@
           Disponibles
 
           <strong>
-            {{ pendingRows.length }}
+            {{ pendingResponse.meta.total }}
           </strong>
 
         </div>
@@ -330,7 +330,7 @@
         </app-data-table>
 
 
-        <mat-paginator [length]="pendingRows.length" [pageSize]="pendingPageSize" [pageIndex]="pendingPageIndex"
+        <mat-paginator [length]="pendingResponse.meta.total" [pageSize]="pendingPageSize" [pageIndex]="pendingPageIndex"
           [pageSizeOptions]="
               [5, 10, 25, 50]
             " (page)="
@@ -372,17 +372,37 @@
         </div>
 
 
-        <button type="button" class="btn-primary" (click)="
-          openCreateClassificationModal()
-        ">
+        <div class="c-btns-actions">
 
-          <mat-icon>
-            add
-          </mat-icon>
+          <button
+            type="button"
+            class="btn-outline"
+            [disabled]="!selectedClassificationId()"
+            (click)="openEditSelectedClassificationModal()">
 
-          Nueva
+            <mat-icon>
+              edit
+            </mat-icon>
 
-        </button>
+            Editar
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="openCreateClassificationModal()">
+
+            <mat-icon>
+              add
+            </mat-icon>
+
+            Nueva
+
+          </button>
+
+        </div>
 
       </div>
 

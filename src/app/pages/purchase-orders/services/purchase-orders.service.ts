@@ -167,6 +167,15 @@ export class PurchaseOrdersService {
     );
   }
 
+  closePurchaseOrder(
+    id: number | string,
+  ): Observable<ApiSuccess> {
+    return this.http.patch<ApiSuccess>(
+      `${this.apiUrl}/${id}/close`,
+      {},
+    );
+  }
+
   getAvailableForReconciliation(
     filters: entity.PurchaseOrderFilters,
   ): Observable<entity.AvailableForReconciliationResponse> {

@@ -176,6 +176,8 @@ interface PurchaseOrderDetailViewModel {
   authorizedBy: string;
   authorizationRegisteredBy: string;
   authorizedAt: string;
+  closedBy: string;
+  closedAt: string;
 }
 
 interface PurchaseOrderFlowDetailResponse {
@@ -198,6 +200,8 @@ interface PurchaseOrderFlowDetailResponse {
   authorized_by_name: string | null;
   authorization_registered_by_user: BasicRef | null;
   authorized_at: string | null;
+  closed_by_user: BasicRef | null;
+  closed_at: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -239,6 +243,7 @@ export class PurchaseOrderDetails implements OnInit {
 
   loadingDetail = false;
   cancellingOrder = false;
+  closingOrder = false;
 
   unreconcilingPhotoId: number | null = null;
   unlinkingExpenseLinkId: number | null = null;
@@ -466,7 +471,8 @@ export class PurchaseOrderDetails implements OnInit {
       !!photo?.id &&
       photo.status === 'reconciled' &&
       !photo.hasExpense &&
-      this.order.status !== 'cancelled'
+      this.order.status !== 'cancelled' &&
+      this.order.status !== 'closed'
     );
   }
 
@@ -520,7 +526,12 @@ export class PurchaseOrderDetails implements OnInit {
 
     if (!expense?.linkId) return false;
 
-    if (this.order.status === 'cancelled') return false;
+    if (
+      this.order.status === 'cancelled' ||
+      this.order.status === 'closed'
+    ) {
+      return false;
+    }
 
     if (this.unlinkingExpenseLinkId === expense.linkId) return false;
 
@@ -576,6 +587,10 @@ export class PurchaseOrderDetails implements OnInit {
 
     if (this.order.status === 'cancelled') {
       return ['No se pueden quitar gastos de una O.C. cancelada.'];
+    }
+
+    if (this.order.status === 'closed') {
+      return ['No se pueden quitar gastos de una O.C. cerrada.'];
     }
 
     if (
@@ -678,7 +693,12 @@ export class PurchaseOrderDetails implements OnInit {
   shouldShowCancelPurchaseOrderButton(): boolean {
     if (!this.order.id) return false;
 
-    if (this.order.status === 'cancelled') return false;
+    if (
+      this.order.status === 'cancelled' ||
+      this.order.status === 'closed'
+    ) {
+      return false;
+    }
 
     if (this.isPurchaseOrderPaymentCompleted()) return false;
 
@@ -752,7 +772,12 @@ export class PurchaseOrderDetails implements OnInit {
 
     if (this.cancellingOrder) return false;
 
-    if (this.order.status === 'cancelled') return false;
+    if (
+      this.order.status === 'cancelled' ||
+      this.order.status === 'closed'
+    ) {
+      return false;
+    }
 
     const hasExpenses = this.expenses.length > 0;
 
@@ -781,6 +806,10 @@ export class PurchaseOrderDetails implements OnInit {
       return 'La O.C. ya está cancelada.';
     }
 
+    if (this.order.status === 'closed') {
+      return 'La O.C. ya está cerrada.';
+    }
+
     if (this.expenses.length > 0) {
       return 'Para cancelar esta O.C., primero quita o elimina los gastos relacionados.';
     }
@@ -802,6 +831,171 @@ export class PurchaseOrderDetails implements OnInit {
     }
 
     return 'Cancelar orden de compra.';
+  }
+
+  shouldShowClosePurchaseOrderButton(): boolean {
+    return (
+      !!this.order.id &&
+      this.order.status === 'authorized'
+    );
+  }
+
+  canClosePurchaseOrder(): boolean {
+    if (!this.order.id) {
+      return false;
+    }
+
+    if (this.closingOrder) {
+      return false;
+    }
+
+    if (this.order.status !== 'authorized') {
+      return false;
+    }
+
+    if (!this.paymentSummary.hasExpenses) {
+      return false;
+    }
+
+    if (this.paymentSummary.exceedsRequested) {
+      return false;
+    }
+
+    if (this.paymentSummary.totalBalance > 0.01) {
+      return false;
+    }
+
+    const hasPendingPhotoWithoutExpense =
+      this.photos.some(
+        (photo) =>
+          photo.status !== 'discarded' &&
+          !photo.hasExpense,
+      );
+
+    if (hasPendingPhotoWithoutExpense) {
+      return false;
+    }
+
+    return true;
+  }
+
+  getClosePurchaseOrderTooltip(): string {
+    if (!this.order.id) {
+      return 'Orden de compra no disponible.';
+    }
+
+    if (this.order.status === 'closed') {
+      return 'Esta O.C. ya está cerrada.';
+    }
+
+    if (this.order.status !== 'authorized') {
+      return 'Solo se puede cerrar una O.C. autorizada.';
+    }
+
+    if (!this.paymentSummary.hasExpenses) {
+      return 'La O.C. debe tener al menos un gasto relacionado para poder cerrarse.';
+    }
+
+    if (this.paymentSummary.exceedsRequested) {
+      return 'El total gastado supera el monto solicitado. Primero debe regularizarse.';
+    }
+
+    if (this.paymentSummary.totalBalance > 0.01) {
+      return 'Todos los gastos relacionados deben estar pagados al 100%.';
+    }
+
+    const hasPendingPhotoWithoutExpense =
+      this.photos.some(
+        (photo) =>
+          photo.status !== 'discarded' &&
+          !photo.hasExpense,
+      );
+
+    if (hasPendingPhotoWithoutExpense) {
+      return 'Existen fotos o tickets pendientes de registrar como gasto.';
+    }
+
+    return 'Cerrar definitivamente esta orden de compra.';
+  }
+
+  closePurchaseOrder(): void {
+    if (
+      !this.canClosePurchaseOrder() ||
+      !this.order.id
+    ) {
+      return;
+    }
+
+    const requestedAmount =
+      Number(
+        this.paymentSummary.requestedAmount ?? 0,
+      );
+
+    const registeredAmount =
+      Number(
+        this.paymentSummary.totalRegistered ?? 0,
+      );
+
+    const unusedAmount =
+      Math.max(
+        requestedAmount - registeredAmount,
+        0,
+      );
+
+    const message =
+      `¿Quieres cerrar la O.C. ${this.order.folio}?\n\n` +
+      `Monto solicitado: ${this.formatMoney(requestedAmount)}\n` +
+      `Gasto relacionado: ${this.formatMoney(registeredAmount)}\n` +
+      `Saldo no utilizado: ${this.formatMoney(unusedAmount)}\n\n` +
+      'Una vez cerrada, la O.C. no podrá recibir nuevos gastos, tickets o movimientos.';
+
+    this.dialogService
+      .confirm({
+        size: 'mini',
+        title: 'Cerrar O.C.',
+        message,
+        confirmText: 'Cerrar O.C.',
+        cancelText: 'Volver',
+      })
+      .subscribe((confirmed) => {
+        if (
+          !confirmed ||
+          !this.order.id
+        ) {
+          return;
+        }
+
+        this.closingOrder = true;
+
+        this.purchaseOrdersService
+          .closePurchaseOrder(
+            this.order.id,
+          )
+          .pipe(
+            finalize(() => {
+              this.closingOrder = false;
+            }),
+          )
+          .subscribe({
+            next: () => {
+              this.reloadCurrentDetail();
+            },
+
+            error: (err) => {
+              console.error(
+                'Error al cerrar O.C.:',
+                err,
+              );
+
+              this.showErrorDialog(
+                this.getHttpErrorMessage(
+                  err,
+                  'No se pudo cerrar la orden de compra.',
+                ),
+              );
+            },
+          });
+      });
   }
 
   cancelPurchaseOrder(): void {
@@ -985,6 +1179,8 @@ export class PurchaseOrderDetails implements OnInit {
       authorizationRegisteredBy:
         detail.authorization_registered_by_user?.name ?? 'Sin dato',
       authorizedAt: this.formatDateTime(detail.authorized_at),
+      closedBy: detail.closed_by_user?.name ?? 'Sin dato',
+      closedAt: this.formatDateTime(detail.closed_at),
     };
   }
 
@@ -1070,7 +1266,10 @@ export class PurchaseOrderDetails implements OnInit {
   private buildFlowSteps(
     detail: PurchaseOrderFlowDetailResponse,
   ): PurchaseOrderFlowStep[] {
-    const isAuthorized = detail.status === 'authorized';
+    const isClosed = detail.status === 'closed';
+    const isAuthorized =
+      detail.status === 'authorized' ||
+      isClosed;
     const isInReview = detail.status === 'in_review';
     const isRejected = detail.status === 'not_authorized';
     const isCancelled = detail.status === 'cancelled';
@@ -1107,6 +1306,24 @@ export class PurchaseOrderDetails implements OnInit {
 
     const hasAnyPayment = totalPaid > 0;
     const hasFullPayment = hasExpenses && totalBalance <= 0;
+
+    const totalRegistered = this.expenses.reduce((total, expense) => {
+      return total + Number(expense.total ?? 0);
+    }, 0);
+
+    const requestedAmount = Number(detail.requested_amount ?? 0);
+
+    const hasPendingPhotoWithoutExpense = this.photos.some(
+      (photo) =>
+        photo.status !== 'discarded' &&
+        !photo.hasExpense,
+    );
+
+    const canReachCloseStep =
+      hasExpenses &&
+      hasFullPayment &&
+      totalRegistered <= requestedAmount &&
+      !hasPendingPhotoWithoutExpense;
 
     const paymentStepLabel = hasFullPayment
       ? 'Pago completado'
@@ -1234,6 +1451,22 @@ export class PurchaseOrderDetails implements OnInit {
               ? 'blocked'
               : 'pending',
       },
+      {
+        label: isClosed ? 'O.C. cerrada' : 'Cierre de O.C.',
+        date: isClosed
+          ? this.formatDateTime(detail.closed_at)
+          : canReachCloseStep
+            ? 'Lista para cerrar'
+            : 'Pendiente',
+        icon: isClosed ? 'task_alt' : 'lock_clock',
+        status: isClosed
+          ? 'done'
+          : isRejected || isCancelled
+            ? 'blocked'
+            : canReachCloseStep
+              ? 'current'
+              : 'pending',
+      },
     ];
   }
 
@@ -1325,6 +1558,19 @@ export class PurchaseOrderDetails implements OnInit {
       });
     }
 
+    if (detail.status === 'closed') {
+      rows.push({
+        id: rows.length + 1,
+        title: 'Orden cerrada',
+        user: detail.closed_by_user?.name ?? 'Sistema',
+        tag: 'Cierre',
+        tagVariant: 'success',
+        date: this.formatDateTime(detail.closed_at),
+        description: 'La orden de compra fue cerrada correctamente.',
+        icon: 'task_alt',
+      });
+    }
+
     this.photos.forEach((photo) => {
       rows.push({
         id: rows.length + 1,
@@ -1374,6 +1620,9 @@ export class PurchaseOrderDetails implements OnInit {
       case 'cancelled':
         return 'Orden cancelada';
 
+      case 'closed':
+        return 'Orden cerrada';
+
       case 'ticket_uploaded':
         return 'Foto subida';
 
@@ -1405,6 +1654,9 @@ export class PurchaseOrderDetails implements OnInit {
       case 'cancelled':
         return 'Cancelación';
 
+      case 'closed':
+        return 'Cierre';
+
       case 'ticket_uploaded':
         return 'Foto';
 
@@ -1429,6 +1681,9 @@ export class PurchaseOrderDetails implements OnInit {
 
       case 'cancelled':
         return 'danger';
+
+      case 'closed':
+        return 'success';
 
       case 'ticket_reconciled':
         return 'info';
@@ -1461,6 +1716,9 @@ export class PurchaseOrderDetails implements OnInit {
       case 'cancelled':
         return 'cancel';
 
+      case 'closed':
+        return 'task_alt';
+
       case 'ticket_uploaded':
         return 'photo_camera';
 
@@ -1491,6 +1749,9 @@ export class PurchaseOrderDetails implements OnInit {
 
       case 'cancelled':
         return 'La orden fue cancelada.';
+
+      case 'closed':
+        return 'La orden de compra fue cerrada.';
 
       case 'ticket_uploaded':
         return 'Se subió una foto o comprobante.';
@@ -1798,6 +2059,7 @@ export class PurchaseOrderDetails implements OnInit {
   }
 
   private getFlowLabel(detail: PurchaseOrderFlowDetailResponse): string {
+    if (detail.status === 'closed') return 'Cerrada';
     if (detail.status === 'cancelled') return 'Cancelada';
     if (detail.status === 'not_authorized') return 'No autorizada';
     if (detail.status === 'in_review') return 'En revisión';
@@ -1884,6 +2146,7 @@ export class PurchaseOrderDetails implements OnInit {
   private getStatusVariant(status: string): DetailStatusVariant {
     switch (status) {
       case 'authorized':
+      case 'closed':
         return 'success';
 
       case 'in_review':
@@ -1904,6 +2167,9 @@ export class PurchaseOrderDetails implements OnInit {
     switch (detail.status) {
       case 'authorized':
         return 'info';
+
+      case 'closed':
+        return 'success';
 
       case 'in_review':
       case 'not_authorized':
@@ -1930,6 +2196,9 @@ export class PurchaseOrderDetails implements OnInit {
 
       case 'cancelled':
         return 'Cancelada';
+
+      case 'closed':
+        return 'Cerrada';
 
       default:
         return 'Sin estatus';
@@ -2167,6 +2436,8 @@ export class PurchaseOrderDetails implements OnInit {
       authorizedBy: 'Sin autorizar',
       authorizationRegisteredBy: 'Sin dato',
       authorizedAt: 'Sin dato',
+      closedBy: 'Sin dato',
+      closedAt: 'Sin dato',
     };
   }
 }

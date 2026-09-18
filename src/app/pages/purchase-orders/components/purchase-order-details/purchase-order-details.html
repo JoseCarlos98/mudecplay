@@ -17,21 +17,39 @@
           </div>
         </div>
 
-        @if (shouldShowCancelPurchaseOrderButton()) {
-        <span [title]="getCancelPurchaseOrderTooltip()">
-          <button type="button" class="btn-outline" [disabled]="!canCancelPurchaseOrder()"
-            (click)="cancelPurchaseOrder()">
+        <div class="purchase-order-detail-card__actions">
+          @if (shouldShowCancelPurchaseOrderButton()) {
+          <span [title]="getCancelPurchaseOrderTooltip()">
+            <button type="button" class="btn-outline" [disabled]="!canCancelPurchaseOrder()"
+              (click)="cancelPurchaseOrder()">
 
-            <mat-icon>
-              {{ cancellingOrder ? 'hourglass_empty' : 'cancel' }}
-            </mat-icon>
+              <mat-icon>
+                {{ cancellingOrder ? 'hourglass_empty' : 'cancel' }}
+              </mat-icon>
 
-            <span>
-              {{ cancellingOrder ? 'Cancelando...' : 'Cancelar O.C.' }}
-            </span>
-          </button>
-        </span>
-        }
+              <span>
+                {{ cancellingOrder ? 'Cancelando...' : 'Cancelar O.C.' }}
+              </span>
+            </button>
+          </span>
+          }
+
+          @if (shouldShowClosePurchaseOrderButton()) {
+          <span [title]="getClosePurchaseOrderTooltip()">
+            <button type="button" class="btn-primary" [disabled]="!canClosePurchaseOrder()"
+              (click)="closePurchaseOrder()">
+
+              <mat-icon>
+                {{ closingOrder ? 'hourglass_empty' : 'task_alt' }}
+              </mat-icon>
+
+              <span>
+                {{ closingOrder ? 'Cerrando...' : 'Cerrar O.C.' }}
+              </span>
+            </button>
+          </span>
+          }
+        </div>
       </div>
 
       @if (orderInfoItems.length >= 8) {

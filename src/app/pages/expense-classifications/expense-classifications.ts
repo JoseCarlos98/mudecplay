@@ -476,11 +476,8 @@ export class ExpenseClassifications
       },
     };
   /*
-   * /pending devuelve todo el conjunto filtrado.
-   *
-   * La paginación se realiza únicamente en frontend
-   * para no modificar el DataTable compartido ni
-   * cambiar el contrato actual del backend.
+   * /pending ya viene paginado desde backend.
+   * pendingRows contiene únicamente la página actual.
    */
   pendingPageIndex =
     0;
@@ -492,18 +489,7 @@ export class ExpenseClassifications
   get pendingVisibleRows():
     entity.ExpenseClassificationPendingTableRow[] {
 
-    const start =
-      this.pendingPageIndex *
-      this.pendingPageSize;
-
-    const end =
-      start +
-      this.pendingPageSize;
-
-    return this.pendingRows.slice(
-      start,
-      end,
-    );
+    return this.pendingRows;
   }
 
 
@@ -512,6 +498,25 @@ export class ExpenseClassifications
       Set<string>
     >(
       new Set<string>(),
+    );
+
+
+  /*
+   * Conserva los objetos seleccionados aunque el usuario
+   * cambie de página. pendingRows solo contiene la página
+   * actual porque /pending ya está paginado en backend.
+   */
+  readonly selectedPendingItems =
+    signal<
+      Map<
+        string,
+        entity.ExpenseClassificationPendingItem
+      >
+    >(
+      new Map<
+        string,
+        entity.ExpenseClassificationPendingItem
+      >(),
     );
 
 
@@ -897,6 +902,95 @@ export class ExpenseClassifications
       );
   }
 
+
+  // =========================================================
+  // CLASIFICACIONES:
+  // EDITAR
+  // =========================================================
+
+  openEditSelectedClassificationModal():
+    void {
+
+    const classificationId =
+      this.selectedClassificationId();
+
+
+    if (
+      classificationId === null
+    ) {
+      return;
+    }
+
+
+    const classification =
+      this.classifications.find(
+        (item) =>
+          item.id ===
+          classificationId,
+      );
+
+
+    if (
+      !classification
+    ) {
+      return;
+    }
+
+
+    const modalData:
+      entity.ExpenseReportClassificationModalData = {
+      mode:
+        'edit',
+
+      classification,
+    };
+
+
+    this.dialogService
+      .open(
+        ModalExpenseReportClassification,
+        modalData,
+        'medium',
+      )
+      .afterClosed()
+      .subscribe(
+        (
+          updatedClassification:
+            | entity.ExpenseReportClassification
+            | null,
+        ) => {
+
+          if (
+            !updatedClassification?.id
+          ) {
+            return;
+          }
+
+
+          this.setClassifications(
+            this.classifications.map(
+              (item) =>
+                item.id ===
+                updatedClassification.id
+                  ? updatedClassification
+                  : item,
+            ),
+          );
+
+
+          /*
+           * Conservamos seleccionada la clasificación
+           * editada para no interrumpir el flujo
+           * de homologación que el usuario lleva.
+           */
+          this.selectedClassificationId
+            .set(
+              updatedClassification.id,
+            );
+        },
+      );
+  }
+
   // =========================================================
   // PENDIENTES:
   // TRANSFORMACIÓN
@@ -909,13 +1003,6 @@ export class ExpenseClassifications
 
     this.pendingItems =
       items;
-
-    /*
-     * Una nueva búsqueda/filtro siempre vuelve
-     * a la primera página.
-     */
-    this.pendingPageIndex =
-      0;
 
     const selected =
       this.selectedPendingKeys();
@@ -1003,31 +1090,50 @@ export class ExpenseClassifications
       entity.ExpenseClassificationPendingTableRow,
   ): void {
 
-    const next =
+    const nextKeys =
       new Set(
         this.selectedPendingKeys(),
       );
 
+    const nextItems =
+      new Map(
+        this.selectedPendingItems(),
+      );
+
     if (
-      next.has(
+      nextKeys.has(
         row.id,
       )
     ) {
 
-      next.delete(
+      nextKeys.delete(
+        row.id,
+      );
+
+      nextItems.delete(
         row.id,
       );
 
     } else {
 
-      next.add(
+      nextKeys.add(
         row.id,
+      );
+
+      nextItems.set(
+        row.id,
+        row,
       );
     }
 
     this.selectedPendingKeys
       .set(
-        next,
+        nextKeys,
+      );
+
+    this.selectedPendingItems
+      .set(
+        nextItems,
       );
 
     this.syncPendingSelection();
@@ -1035,18 +1141,23 @@ export class ExpenseClassifications
 
 
   /*
-   * IMPORTANTE:
+   * Por ahora agrega a la selección todos los registros
+   * de la página actualmente cargada.
    *
-   * Selecciona todos los registros del conjunto
-   * actualmente filtrado, no solamente la página
-   * que está visible.
+   * El modo "todos los resultados del filtro" se resolverá
+   * aparte en backend para no descargar todas las páginas.
    */
   selectAllPendingResults():
     void {
 
-    const next =
+    const nextKeys =
       new Set(
         this.selectedPendingKeys(),
+      );
+
+    const nextItems =
+      new Map(
+        this.selectedPendingItems(),
       );
 
     for (
@@ -1054,14 +1165,24 @@ export class ExpenseClassifications
       this.pendingRows
     ) {
 
-      next.add(
+      nextKeys.add(
         row.id,
+      );
+
+      nextItems.set(
+        row.id,
+        row,
       );
     }
 
     this.selectedPendingKeys
       .set(
-        next,
+        nextKeys,
+      );
+
+    this.selectedPendingItems
+      .set(
+        nextItems,
       );
 
     this.syncPendingSelection();
@@ -1074,6 +1195,14 @@ export class ExpenseClassifications
     this.selectedPendingKeys
       .set(
         new Set<string>(),
+      );
+
+    this.selectedPendingItems
+      .set(
+        new Map<
+          string,
+          entity.ExpenseClassificationPendingItem
+        >(),
       );
 
     this.syncPendingSelection();
@@ -1104,7 +1233,7 @@ export class ExpenseClassifications
 
   // =========================================================
   // PENDIENTES:
-  // PAGINACIÓN LOCAL
+  // PAGINACIÓN BACKEND
   // =========================================================
 
   onPendingPageChange(
@@ -1117,6 +1246,28 @@ export class ExpenseClassifications
 
     this.pendingPageSize =
       event.pageSize;
+
+
+    const form =
+      this.pendingFilterForm
+        .getRawValue();
+
+
+    this.loadPending({
+      search:
+        form.search.trim(),
+
+      sourceType:
+        this.resolveSourceType(
+          form.sourceType,
+        ),
+
+      page:
+        event.pageIndex + 1,
+
+      limit:
+        event.pageSize,
+    });
   }
 
 
@@ -1200,6 +1351,15 @@ export class ExpenseClassifications
 
           this.pendingResponse =
             response;
+
+          this.pendingPageIndex =
+            Math.max(
+              0,
+              response.meta.page - 1,
+            );
+
+          this.pendingPageSize =
+            response.meta.limit;
 
           this.setPendingItems(
             response.data,
@@ -1906,33 +2066,15 @@ export class ExpenseClassifications
     }
 
 
-    const selectedKeys =
-      this.selectedPendingKeys();
+    const selectedItems =
+      Array.from(
+        this.selectedPendingItems()
+          .values(),
+      );
 
 
     if (
-      selectedKeys.size === 0
-    ) {
-      return;
-    }
-
-
-    /*
-     * Recuperamos únicamente las filas
-     * seleccionadas de los resultados actuales.
-     */
-    const selectedRows =
-      this.pendingRows
-        .filter(
-          (row) =>
-            selectedKeys.has(
-              row.id,
-            ),
-        );
-
-
-    if (
-      selectedRows.length === 0
+      selectedItems.length === 0
     ) {
       return;
     }
@@ -1956,15 +2098,15 @@ export class ExpenseClassifications
      */
     const items:
       entity.ExpenseClassificationSelection[] =
-      selectedRows
+      selectedItems
         .map(
           (
-            row,
+            item,
           ):
             entity.ExpenseClassificationSelection => {
 
             if (
-              row.sourceType ===
+              item.sourceType ===
               'concept'
             ) {
 
@@ -1973,7 +2115,7 @@ export class ExpenseClassifications
                   'concept',
 
                 conceptName:
-                  row.normalizedConcept,
+                  item.normalizedConcept,
               };
             }
 
@@ -1983,7 +2125,7 @@ export class ExpenseClassifications
                 'product',
 
               productId:
-                row.productId,
+                item.productId,
             };
           },
         );
