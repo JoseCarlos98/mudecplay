@@ -247,7 +247,29 @@ export class RecordOcExpense implements OnInit {
     this.itemsArray.removeAt(index);
   }
 
+  onProductSelected(
+    index: number,
+    product: Catalog,
+  ): void {
+    const group =
+      this.itemsArray.at(index);
 
+    if (!group) return;
+
+    const productName =
+      String(product?.name ?? '')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    if (!productName) return;
+
+    group.controls.concept.setValue(
+      productName,
+    );
+
+    group.controls.concept.markAsDirty();
+    group.controls.concept.updateValueAndValidity();
+  }
 
   saveExpense(): void {
     if (!this.canSave || !this.photoId) return;

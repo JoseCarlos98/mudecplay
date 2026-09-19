@@ -1316,206 +1316,492 @@ export class PurchaseOrderDetails implements OnInit {
   private buildFlowSteps(
     detail: PurchaseOrderFlowDetailResponse,
   ): PurchaseOrderFlowStep[] {
-    const isClosed = detail.status === 'closed';
+    const isClosed =
+      detail.status === 'closed';
+
     const isAuthorized =
       detail.status === 'authorized' ||
       isClosed;
-    const isInReview = detail.status === 'in_review';
-    const isRejected = detail.status === 'not_authorized';
-    const isCancelled = detail.status === 'cancelled';
+
+    const isInReview =
+      detail.status === 'in_review';
+
+    const isRejected =
+      detail.status === 'not_authorized';
+
+    const isCancelled =
+      detail.status === 'cancelled';
+
+    // =========================================================
+    // FOTOS
+    // =========================================================
 
     const hasPhotos =
-      this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
+      this.photos.length > 0 ||
+      Number(
+        detail.ticket_photos_count ?? 0,
+      ) > 0;
 
-    const reconciledPhotos = this.photos.filter(
-      (photo) => photo.status === 'reconciled',
-    );
+    const reconciledPhotos =
+      this.photos.filter(
+        (photo) =>
+          photo.status === 'reconciled',
+      );
 
-    const reconciledPhotosCount = reconciledPhotos.length;
+    const reconciledPhotosCount =
+      reconciledPhotos.length;
 
-    const photosWithExpenseCount = this.photos.filter(
-      (photo) => photo.hasExpense,
-    ).length;
+    const photosWithExpenseCount =
+      this.photos.filter(
+        (photo) =>
+          photo.hasExpense,
+      ).length;
 
-    const hasReconciledPhoto = reconciledPhotosCount > 0;
+    const hasReconciledPhoto =
+      reconciledPhotosCount > 0;
+
+    // =========================================================
+    // GASTOS
+    // =========================================================
 
     const hasExpenses =
-      this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
+      this.expenses.length > 0 ||
+      Number(
+        detail.expense_links_count ?? 0,
+      ) > 0;
 
     const allReconciledPhotosHaveExpense =
       hasReconciledPhoto &&
-      photosWithExpenseCount >= reconciledPhotosCount;
+      photosWithExpenseCount >=
+      reconciledPhotosCount;
 
-    const totalPaid = this.expenses.reduce((total, expense) => {
-      return total + Number(expense.paid ?? 0);
-    }, 0);
+    // =========================================================
+    // PAGOS
+    // =========================================================
 
-    const totalBalance = this.expenses.reduce((total, expense) => {
-      return total + Number(expense.balance ?? 0);
-    }, 0);
+    const totalPaid =
+      this.expenses.reduce(
+        (total, expense) => {
+          return (
+            total +
+            Number(
+              expense.paid ?? 0,
+            )
+          );
+        },
+        0,
+      );
 
-    const hasAnyPayment = totalPaid > 0;
-    const hasFullPayment = hasExpenses && totalBalance <= 0;
+    const totalBalance =
+      this.expenses.reduce(
+        (total, expense) => {
+          return (
+            total +
+            Number(
+              expense.balance ?? 0,
+            )
+          );
+        },
+        0,
+      );
 
-    const totalRegistered = this.expenses.reduce((total, expense) => {
-      return total + Number(expense.total ?? 0);
-    }, 0);
+    const hasAnyPayment =
+      totalPaid > 0;
 
-    const requestedAmount = Number(detail.requested_amount ?? 0);
+    const hasFullPayment =
+      hasExpenses &&
+      totalBalance <= 0;
 
-    const hasPendingPhotoWithoutExpense = this.photos.some(
-      (photo) =>
-        photo.status !== 'discarded' &&
-        !photo.hasExpense,
-    );
+    // =========================================================
+    // MONTO REGISTRADO VS MONTO SOLICITADO
+    // =========================================================
+
+    const totalRegistered =
+      this.expenses.reduce(
+        (total, expense) => {
+          return (
+            total +
+            Number(
+              expense.total ?? 0,
+            )
+          );
+        },
+        0,
+      );
+
+    /*
+     * Trabajamos en centavos para evitar problemas como:
+     *
+     * 199.999999 !== 200
+     */
+    const requestedAmountCents =
+      Math.round(
+        Number(
+          detail.requested_amount ?? 0,
+        ) * 100,
+      );
+
+    const registeredAmountCents =
+      Math.round(
+        Number(
+          totalRegistered ?? 0,
+        ) * 100,
+      );
+
+    /*
+     * Ejemplo:
+     *
+     * solicitado: $200
+     * gastado:    $150
+     *
+     * Hay $50 sin utilizar.
+     *
+     * Esta O.C. SÍ requiere cierre manual.
+     */
+    const hasUnusedAmount =
+      requestedAmountCents >
+      registeredAmountCents;
+
+    /*
+     * Ejemplo:
+     *
+     * solicitado: $200
+     * gastado:    $200
+     *
+     * El monto se utilizó completamente.
+     *
+     * Si además ya está pagado,
+     * NO requiere cierre manual.
+     */
+    const isFullyConsumed =
+      hasExpenses &&
+      requestedAmountCents ===
+      registeredAmountCents;
+
+    // =========================================================
+    // FOTOS PENDIENTES SIN GASTO
+    // =========================================================
+
+    const hasPendingPhotoWithoutExpense =
+      this.photos.some(
+        (photo) =>
+          photo.status !==
+          'discarded' &&
+          !photo.hasExpense,
+      );
+
+    // =========================================================
+    // CIERRE MANUAL
+    //
+    // Solo procede cuando:
+    //
+    // - existen gastos
+    // - están totalmente pagados
+    // - quedó dinero sin utilizar
+    // - no existen tickets pendientes de gasto
+    //
+    // Si se consumió exactamente el monto solicitado,
+    // NO requiere cierre manual.
+    // =========================================================
 
     const canReachCloseStep =
       hasExpenses &&
       hasFullPayment &&
-      totalRegistered <= requestedAmount &&
+      hasUnusedAmount &&
       !hasPendingPhotoWithoutExpense;
 
-    const paymentStepLabel = hasFullPayment
-      ? 'Pago completado'
-      : hasExpenses && hasAnyPayment
-        ? 'Pago parcial'
-        : hasExpenses
-          ? 'Pago pendiente'
-          : 'Pago completado';
+    // =========================================================
+    // PASO DE PAGO
+    // =========================================================
 
-    const paymentStepDate = hasFullPayment
-      ? 'Completado'
-      : hasExpenses && hasAnyPayment
-        ? 'Con saldo'
-        : hasExpenses
-          ? 'Sin pago'
-          : 'Pendiente';
+    const paymentStepLabel =
+      hasFullPayment
+        ? 'Pago completado'
+        : hasExpenses &&
+          hasAnyPayment
+          ? 'Pago parcial'
+          : hasExpenses
+            ? 'Pago pendiente'
+            : 'Pago completado';
 
-    const firstPhoto = this.photos[0];
-    const reconciledPhoto = reconciledPhotos[0];
+    const paymentStepDate =
+      hasFullPayment
+        ? 'Completado'
+        : hasExpenses &&
+          hasAnyPayment
+          ? 'Con saldo'
+          : hasExpenses
+            ? 'Sin pago'
+            : 'Pendiente';
+
+    // =========================================================
+    // PASOS DE FOTOS
+    // =========================================================
+
+    const firstPhoto =
+      this.photos[0];
+
+    const reconciledPhoto =
+      reconciledPhotos[0];
 
     const photoStepLabel =
-      this.photos.length > 1 ? 'Fotos subidas' : 'Foto subida';
+      this.photos.length > 1
+        ? 'Fotos subidas'
+        : 'Foto subida';
 
     const reconciledStepLabel =
-      reconciledPhotosCount > 1 ? 'Fotos conciliadas' : 'Foto conciliada';
+      reconciledPhotosCount > 1
+        ? 'Fotos conciliadas'
+        : 'Foto conciliada';
 
     const reconciledStepDate =
       reconciledPhotosCount > 1
         ? `${reconciledPhotosCount} fotos`
         : hasReconciledPhoto
-          ? reconciledPhoto?.reconciledAt ?? 'Conciliada'
+          ? reconciledPhoto
+            ?.reconciledAt ??
+          'Conciliada'
           : 'Pendiente';
 
+    // =========================================================
+    // PASO DE GASTOS
+    // =========================================================
+
     const expenseStepLabel =
-      reconciledPhotosCount > 1 ? 'Gastos registrados' : 'Gasto registrado';
+      reconciledPhotosCount > 1
+        ? 'Gastos registrados'
+        : 'Gasto registrado';
 
     const expenseStepDate =
-      hasExpenses && reconciledPhotosCount > 1
+      hasExpenses &&
+        reconciledPhotosCount > 1
         ? `${photosWithExpenseCount} de ${reconciledPhotosCount}`
         : hasExpenses
           ? 'Registrado'
           : 'Pendiente';
 
+    // =========================================================
+    // FLUJO
+    // =========================================================
+
     return [
+      // ---------------------------------------------------------
+      // 1. CREACIÓN
+      // ---------------------------------------------------------
       {
         label: 'O.C. creada',
-        date: this.formatDateTime(detail.created_at),
+
+        date:
+          this.formatDateTime(
+            detail.created_at,
+          ),
+
         icon: 'description',
+
         status: 'done',
       },
+
+      // ---------------------------------------------------------
+      // 2. AUTORIZACIÓN
+      // ---------------------------------------------------------
       {
         label:
-          detail.status === 'in_review'
+          detail.status ===
+            'in_review'
             ? 'Pendiente de autorización'
-            : detail.status === 'not_authorized'
+            : detail.status ===
+              'not_authorized'
               ? 'O.C. no autorizada'
-              : detail.status === 'cancelled'
+              : detail.status ===
+                'cancelled'
                 ? 'Autorización bloqueada'
                 : 'O.C. autorizada',
-        date: detail.authorized_at
-          ? this.formatDateTime(detail.authorized_at)
-          : 'Pendiente',
+
+        date:
+          detail.authorized_at
+            ? this.formatDateTime(
+              detail.authorized_at,
+            )
+            : 'Pendiente',
+
         icon:
-          detail.status === 'not_authorized'
+          detail.status ===
+            'not_authorized'
             ? 'block'
-            : detail.status === 'cancelled'
+            : detail.status ===
+              'cancelled'
               ? 'lock'
               : 'verified',
-        status: isAuthorized
-          ? 'done'
-          : isInReview
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
+
+        status:
+          isAuthorized
+            ? 'done'
+            : isInReview
+              ? 'current'
+              : isRejected ||
+                isCancelled
+                ? 'blocked'
+                : 'pending',
       },
+
+      // ---------------------------------------------------------
+      // 3. FOTO SUBIDA
+      // ---------------------------------------------------------
       {
-        label: photoStepLabel,
+        label:
+          photoStepLabel,
+
         date:
           this.photos.length > 1
             ? `${this.photos.length} fotos`
-            : firstPhoto?.uploadedAt ?? 'Pendiente',
-        icon: 'photo_camera',
-        status: hasPhotos
-          ? 'done'
-          : isAuthorized
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: reconciledStepLabel,
-        date: reconciledStepDate,
-        icon: 'fact_check',
-        status: hasReconciledPhoto
-          ? 'done'
-          : hasPhotos
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: expenseStepLabel,
-        date: expenseStepDate,
-        icon: 'receipt_long',
-        status: allReconciledPhotosHaveExpense
-          ? 'done'
-          : hasExpenses || hasReconciledPhoto
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: paymentStepLabel,
-        date: paymentStepDate,
-        icon: hasFullPayment ? 'paid' : 'payments',
-        status: hasFullPayment
-          ? 'done'
-          : hasExpenses
-            ? 'current'
-            : isRejected || isCancelled
-              ? 'blocked'
-              : 'pending',
-      },
-      {
-        label: isClosed ? 'O.C. cerrada' : 'Cierre de O.C.',
-        date: isClosed
-          ? this.formatDateTime(detail.closed_at)
-          : canReachCloseStep
-            ? 'Lista para cerrar'
-            : 'Pendiente',
-        icon: isClosed ? 'task_alt' : 'lock_clock',
-        status: isClosed
-          ? 'done'
-          : isRejected || isCancelled
-            ? 'blocked'
-            : canReachCloseStep
+            : firstPhoto
+              ?.uploadedAt ??
+            'Pendiente',
+
+        icon:
+          'photo_camera',
+
+        status:
+          hasPhotos
+            ? 'done'
+            : isAuthorized
               ? 'current'
-              : 'pending',
+              : isRejected ||
+                isCancelled
+                ? 'blocked'
+                : 'pending',
+      },
+
+      // ---------------------------------------------------------
+      // 4. FOTO CONCILIADA
+      // ---------------------------------------------------------
+      {
+        label:
+          reconciledStepLabel,
+
+        date:
+          reconciledStepDate,
+
+        icon:
+          'fact_check',
+
+        status:
+          hasReconciledPhoto
+            ? 'done'
+            : hasPhotos
+              ? 'current'
+              : isRejected ||
+                isCancelled
+                ? 'blocked'
+                : 'pending',
+      },
+
+      // ---------------------------------------------------------
+      // 5. GASTO REGISTRADO
+      // ---------------------------------------------------------
+      {
+        label:
+          expenseStepLabel,
+
+        date:
+          expenseStepDate,
+
+        icon:
+          'receipt_long',
+
+        status:
+          allReconciledPhotosHaveExpense
+            ? 'done'
+            : hasExpenses ||
+              hasReconciledPhoto
+              ? 'current'
+              : isRejected ||
+                isCancelled
+                ? 'blocked'
+                : 'pending',
+      },
+
+      // ---------------------------------------------------------
+      // 6. PAGO
+      // ---------------------------------------------------------
+      {
+        label:
+          paymentStepLabel,
+
+        date:
+          paymentStepDate,
+
+        icon:
+          hasFullPayment
+            ? 'paid'
+            : 'payments',
+
+        status:
+          hasFullPayment
+            ? 'done'
+            : hasExpenses
+              ? 'current'
+              : isRejected ||
+                isCancelled
+                ? 'blocked'
+                : 'pending',
+      },
+
+      // ---------------------------------------------------------
+      // 7. CIERRE
+      //
+      // Tres escenarios:
+      //
+      // A) Ya fue cerrada manualmente:
+      //    O.C. cerrada ✅
+      //
+      // B) Se utilizó exactamente todo y ya está pagada:
+      //    Cierre no requerido ✅
+      //
+      // C) Quedó sobrante y ya está pagada:
+      //    Lista para cerrar 🟠
+      // ---------------------------------------------------------
+      {
+        label:
+          isClosed
+            ? 'O.C. cerrada'
+            : isFullyConsumed &&
+              hasFullPayment
+              ? 'Cierre no requerido'
+              : 'Cierre de O.C.',
+
+        date:
+          isClosed
+            ? this.formatDateTime(
+              detail.closed_at,
+            )
+            : isFullyConsumed &&
+              hasFullPayment
+              ? 'Monto utilizado completamente'
+              : canReachCloseStep
+                ? 'Lista para cerrar'
+                : 'Pendiente',
+
+        icon:
+          isClosed
+            ? 'task_alt'
+            : isFullyConsumed &&
+              hasFullPayment
+              ? 'check_circle'
+              : 'lock_clock',
+
+        status:
+          isClosed
+            ? 'done'
+            : isRejected ||
+              isCancelled
+              ? 'blocked'
+              : isFullyConsumed &&
+                hasFullPayment
+                ? 'done'
+                : canReachCloseStep
+                  ? 'current'
+                  : 'pending',
       },
     ];
   }
@@ -2115,46 +2401,104 @@ export class PurchaseOrderDetails implements OnInit {
     if (detail.status === 'in_review') return 'En revisión';
 
     const hasPhotos =
-      this.photos.length > 0 || Number(detail.ticket_photos_count ?? 0) > 0;
+      this.photos.length > 0 ||
+      Number(
+        detail.ticket_photos_count ?? 0,
+      ) > 0;
 
-    const reconciledPhotosCount = this.photos.filter(
-      (photo) => photo.status === 'reconciled',
-    ).length;
+    const reconciledPhotosCount =
+      this.photos.filter(
+        (photo) =>
+          photo.status === 'reconciled',
+      ).length;
 
-    const photosWithExpenseCount = this.photos.filter(
-      (photo) => photo.hasExpense,
-    ).length;
+    const photosWithExpenseCount =
+      this.photos.filter(
+        (photo) =>
+          photo.hasExpense,
+      ).length;
 
-    const hasReconciledPhoto = reconciledPhotosCount > 0;
+    const hasReconciledPhoto =
+      reconciledPhotosCount > 0;
 
     const hasExpenses =
-      this.expenses.length > 0 || Number(detail.expense_links_count ?? 0) > 0;
+      this.expenses.length > 0 ||
+      Number(
+        detail.expense_links_count ?? 0,
+      ) > 0;
 
-    if (detail.status === 'authorized' && !hasPhotos) {
+    const totalBalance =
+      this.expenses.reduce(
+        (total, expense) =>
+          total +
+          Number(
+            expense.balance ?? 0,
+          ),
+        0,
+      );
+
+    const isPaymentCompleted =
+      hasExpenses &&
+      totalBalance <= 0.01;
+
+    /*
+     * El pago completado tiene prioridad sobre
+     * "Gasto registrado".
+     *
+     * Esto alinea el resumen superior con el tracking
+     * real del backend:
+     *
+     * - O.C. pagada al 100% -> Pago completado.
+     * - Si quedó sobrante, posteriormente podrá cerrarse.
+     * - Si consumió exactamente lo solicitado, no requiere
+     *   cierre manual.
+     */
+    if (isPaymentCompleted) {
+      return 'Pago completado';
+    }
+
+    if (
+      detail.status === 'authorized' &&
+      !hasPhotos
+    ) {
       return 'Autorizada sin foto';
     }
 
-    if (hasPhotos && !hasReconciledPhoto) {
+    if (
+      hasPhotos &&
+      !hasReconciledPhoto
+    ) {
       return 'Foto pendiente de conciliar';
     }
 
-    if (hasReconciledPhoto && !hasExpenses) {
+    if (
+      hasReconciledPhoto &&
+      !hasExpenses
+    ) {
       return reconciledPhotosCount > 1
         ? 'Fotos conciliadas sin gasto'
         : 'Foto conciliada sin gasto';
     }
 
     if (hasExpenses) {
-      if (reconciledPhotosCount > 1) {
-        return photosWithExpenseCount >= reconciledPhotosCount
-          ? 'Gastos registrados'
-          : `Gastos ${photosWithExpenseCount} de ${reconciledPhotosCount}`;
+      if (
+        reconciledPhotosCount > 1
+      ) {
+        return (
+          photosWithExpenseCount >=
+          reconciledPhotosCount
+            ? 'Gastos registrados'
+            : `Gastos ${photosWithExpenseCount} de ${reconciledPhotosCount}`
+        );
       }
 
       return 'Gasto registrado';
     }
 
-    return detail.status_label || 'Sin avance';
+    return (
+      detail.status_label ||
+      'Sin avance'
+    );
   }
 
   private getPaymentStatusLabel(): string {
@@ -2214,12 +2558,22 @@ export class PurchaseOrderDetails implements OnInit {
   private getFlowVariant(
     detail: PurchaseOrderFlowDetailResponse,
   ): DetailStatusVariant {
+    if (
+      detail.status === 'closed'
+    ) {
+      return 'success';
+    }
+
+    if (
+      detail.status === 'authorized' &&
+      this.isPurchaseOrderPaymentCompleted()
+    ) {
+      return 'success';
+    }
+
     switch (detail.status) {
       case 'authorized':
         return 'info';
-
-      case 'closed':
-        return 'success';
 
       case 'in_review':
       case 'not_authorized':

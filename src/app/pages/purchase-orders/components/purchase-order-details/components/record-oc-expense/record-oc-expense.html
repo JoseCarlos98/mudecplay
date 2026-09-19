@@ -231,7 +231,7 @@
             </div>
 
             <app-autocomplete formControlName="product" label="Producto" placeholder="Buscar producto" [remote]="true"
-              catalogType="product">
+              catalogType="product" (optionSelected)="onProductSelected(i, $event)">
             </app-autocomplete>
 
             <app-input-field formControlName="concept" label="Concepto" type="text">
