@@ -1543,15 +1543,15 @@ export class ExpenseForm implements OnInit {
     this.bulkProjectSelected = project;
   }
 
+  
   /**
-   * Autollena Concepto con el nombre del Producto.
-   *
-   * Reglas:
-   * - Si Concepto está vacío, lo llena.
-   * - Si Concepto sigue siendo el último valor autollenado, lo actualiza
-   *   cuando cambia el Producto.
-   * - Si el usuario ya modificó Concepto, no lo sobrescribe.
-   */
+ * Autollena Concepto con el nombre del Producto.
+ *
+ * Regla:
+ * - Cada vez que se selecciona o cambia el Producto,
+ *   Concepto se reemplaza con el nombre del Producto.
+ * - Después el usuario puede editar Concepto manualmente.
+ */
 onProductSelected(
   index: number,
   product: Catalog,
@@ -1572,6 +1572,7 @@ onProductSelected(
   conceptCtrl.markAsDirty();
   conceptCtrl.updateValueAndValidity();
 }
+
 
   /**
    * Aplica un proyecto a los items directos seleccionados.

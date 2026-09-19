@@ -4,10 +4,10 @@ import { ConfirmModal } from '../ui/confirm-modal/confirm-modal';
 
 /** Mapa de tamaños global (fuera de la clase para usarlo en tipos) */
 export const DIALOG_SIZES = {
-  mini:   { width: '350px', maxWidth: '95vw' },
-  small:  { width: '650px', maxWidth: '95vw' },
+  mini: { width: '350px', maxWidth: '95vw' },
+  small: { width: '650px', maxWidth: '95vw' },
   medium: { width: '870px', maxWidth: '90vw' },
-  large:  { width: '80vw',  maxWidth: '1200px' },
+  large: { width: '80vw', maxWidth: '1200px' },
 } as const;
 
 export type DialogSize = keyof typeof DIALOG_SIZES; // 'mini' | 'small' | 'medium' | 'large'
@@ -50,6 +50,7 @@ export class DialogService {
     confirmText?: string;
     cancelText?: string;
     size?: DialogSize;
+    variant?: 'danger' | 'primary';
   }) {
     const sizeKey: DialogSize = options.size ?? 'small';
 
@@ -61,6 +62,7 @@ export class DialogService {
         message: options.message ?? '¿Estás seguro?',
         confirmText: options.confirmText ?? 'Sí',
         cancelText: options.cancelText ?? 'Cancelar',
+        variant: options.variant ?? 'danger',
       },
     });
 

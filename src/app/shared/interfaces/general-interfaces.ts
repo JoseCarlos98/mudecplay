@@ -19,10 +19,12 @@ export interface ApiSuccess {
 }
 
 export interface ConfirmModalAction {
-  title?: string
-  message: string
-  confirmText: string
-  cancelText: string
+  title?: string;
+  message: string;
+  confirmText: string;
+  cancelText: string;
+
+  variant?: 'danger' | 'primary';
 }
 
 export interface PresignResponse {

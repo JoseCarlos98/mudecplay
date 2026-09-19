@@ -15,3 +15,18 @@
         }
     }
 }
+
+.c-autocomplete {
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .autocomplete-info-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    line-height: 16px;
+  }
+}

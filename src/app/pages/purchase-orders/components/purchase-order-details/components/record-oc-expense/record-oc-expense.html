@@ -234,8 +234,16 @@
               catalogType="product" (optionSelected)="onProductSelected(i, $event)">
             </app-autocomplete>
 
-            <app-input-field formControlName="concept" label="Concepto" type="text">
-            </app-input-field>
+         <app-autocomplete
+  formControlName="concept"
+  label="Concepto"
+  placeholder="Escribe o busca un concepto"
+  [remote]="true"
+  catalogType="expenseConcept"
+  valueMode="name"
+  [showInfo]="true"
+  infoTooltip="Selecciona un concepto homologado de las sugerencias o escribe uno nuevo. Al elegir un producto, el concepto se llena automáticamente y puedes editarlo.">
+</app-autocomplete>
 
             <app-input-field formControlName="amount" label="Importe" type="money">
             </app-input-field>

@@ -1,7 +1,12 @@
 <div class="c-dialog">
-    <div class="c-dialog__header">
-        <div class="c-dialog__icon">
-            <mat-icon>warning_amber</mat-icon>
+    <div
+    class="c-dialog__header"
+    [class.c-dialog__header--primary]="data.variant === 'primary'"
+>
+        <div class="c-dialog__icon" [class.c-dialog__icon--primary]="data.variant === 'primary'">
+            <mat-icon>
+                {{ data.variant === 'primary' ? 'print' : 'warning_amber' }}
+            </mat-icon>
         </div>
         <div>
             @if (data.title) {
@@ -22,7 +27,8 @@
             {{ data.cancelText || 'Cancelar' }}
         </button>
 
-        <button (click)="onConfirm()" mat-flat-button type="button" form="form" class="btn-danger">
+        <button (click)="onConfirm()" mat-flat-button type="button" form="form"
+            [class.btn-danger]="data.variant !== 'primary'" [class.btn-primary]="data.variant === 'primary'">
             {{ data.confirmText || 'Eliminar' }}
         </button>
     </div>

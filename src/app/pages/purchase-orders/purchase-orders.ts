@@ -1777,65 +1777,37 @@ export class PurchaseOrders
       this.workstationPrinterService
         .getPrinterCode();
 
-    const printerLabel =
-      printerCode === 'JEFE_OFICINA_2'
-        ? 'Impresora 2'
-        : 'Impresora 1';
+    this.loadingTable.set(
+      true,
+    );
 
-    this.dialogService
-      .confirm({
-        title:
-          'Imprimir ticket',
+    this.purchaseOrdersService
+      .printPurchaseOrder(
+        row.id,
+        {
+          printer_code:
+            printerCode,
+        },
+      )
+      .subscribe({
+        next: () => {
+          this.loadingTable.set(
+            false,
+          );
 
-        message:
-          `La O.C. ${row.folio} se enviará a ${printerLabel}. ¿Deseas continuar?`,
+          this.loadPurchaseOrders();
+        },
 
-        confirmText:
-          'Sí, imprimir',
+        error: (error) => {
+          this.loadingTable.set(
+            false,
+          );
 
-        cancelText:
-          'Cancelar',
-
-        size:
-          'mini',
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.loadingTable.set(
-          true,
-        );
-
-        this.purchaseOrdersService
-          .printPurchaseOrder(
-            row.id,
-            {
-              printer_code:
-                printerCode,
-            },
-          )
-          .subscribe({
-            next: () => {
-              this.loadingTable.set(
-                false,
-              );
-
-              this.loadPurchaseOrders();
-            },
-
-            error: (error) => {
-              this.loadingTable.set(
-                false,
-              );
-
-              console.error(
-                'Error al imprimir ticket de O.C.:',
-                error,
-              );
-            },
-          });
+          console.error(
+            'Error al imprimir ticket de O.C.:',
+            error,
+          );
+        },
       });
   }
 
@@ -1947,111 +1919,115 @@ export class PurchaseOrders
   }
 
 
-  private reprintPurchaseOrder(
-    row: entity.PurchaseOrderResponseDto,
-  ): void {
-    if (
-      !row?.id ||
-      row.printing?.can_reprint !== true
-    ) {
-      return;
-    }
+private reprintPurchaseOrder(
+  row: entity.PurchaseOrderResponseDto,
+): void {
+  if (
+    !row?.id ||
+    row.printing?.can_reprint !== true
+  ) {
+    return;
+  }
 
-    const currentPrinterCode =
-      String(
-        row.printing?.printer_code ?? '',
-      )
-        .trim()
-        .toUpperCase();
+  const currentPrinterCode =
+    String(
+      row.printing?.printer_code ?? '',
+    )
+      .trim()
+      .toUpperCase();
 
-    let backupPrinterCode:
-      | 'JEFE_OFICINA'
-      | 'JEFE_OFICINA_2'
-      | null = null;
+  let backupPrinterCode:
+    | 'JEFE_OFICINA'
+    | 'JEFE_OFICINA_2'
+    | null = null;
 
-    if (
-      currentPrinterCode ===
-      'JEFE_OFICINA'
-    ) {
-      backupPrinterCode =
-        'JEFE_OFICINA_2';
-    } else if (
-      currentPrinterCode ===
+  if (
+    currentPrinterCode ===
+    'JEFE_OFICINA'
+  ) {
+    backupPrinterCode =
+      'JEFE_OFICINA_2';
+  } else if (
+    currentPrinterCode ===
+    'JEFE_OFICINA_2'
+  ) {
+    backupPrinterCode =
+      'JEFE_OFICINA';
+  }
+
+  if (!backupPrinterCode) {
+    console.error(
+      'No se pudo determinar la impresora de respaldo.',
+    );
+
+    return;
+  }
+
+  const backupPrinterLabel =
+    backupPrinterCode ===
       'JEFE_OFICINA_2'
-    ) {
-      backupPrinterCode =
-        'JEFE_OFICINA';
-    }
+      ? 'Impresora 2'
+      : 'Impresora 1';
 
-    if (!backupPrinterCode) {
-      console.error(
-        'No se pudo determinar la impresora de respaldo.',
+  this.dialogService
+    .confirm({
+      title:
+        'Enviar a impresora de respaldo',
+
+      message:
+        `La O.C. ${row.folio} se enviará a ${backupPrinterLabel}. ¿Deseas continuar?`,
+
+      confirmText:
+        'Sí, enviar',
+
+      cancelText:
+        'Cancelar',
+
+      size:
+        'mini',
+
+      variant:
+        'primary',
+    })
+    .subscribe((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+
+      this.loadingTable.set(
+        true,
       );
 
-      return;
-    }
-    const backupPrinterLabel =
-      backupPrinterCode ===
-        'JEFE_OFICINA_2'
-        ? 'Impresora 2'
-        : 'Impresora 1';
+      this.purchaseOrdersService
+        .reprintPurchaseOrder(
+          row.id,
+          {
+            printer_code:
+              backupPrinterCode,
+          },
+        )
+        .subscribe({
+          next: () => {
+            this.loadingTable.set(
+              false,
+            );
 
-    this.dialogService
-      .confirm({
-        title:
-          'Enviar a impresora de respaldo',
+            this.loadPurchaseOrders();
+          },
 
-        message:
-          `La O.C. ${row.folio} se enviará a ${backupPrinterLabel}. ¿Deseas continuar?`,
+          error: (error) => {
+            this.loadingTable.set(
+              false,
+            );
 
-        confirmText:
-          'Sí, enviar',
-
-        cancelText:
-          'Cancelar',
-
-        size:
-          'mini',
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.loadingTable.set(
-          true,
-        );
-
-        this.purchaseOrdersService
-          .reprintPurchaseOrder(
-            row.id,
-            {
-              printer_code:
-                backupPrinterCode,
-            },
-          )
-          .subscribe({
-            next: () => {
-              this.loadingTable.set(
-                false,
-              );
-
-              this.loadPurchaseOrders();
-            },
-
-            error: (error) => {
-              this.loadingTable.set(
-                false,
-              );
-
-              console.error(
-                'Error al enviar ticket a impresora de respaldo:',
-                error,
-              );
-            },
-          });
-      });
-  }
+            console.error(
+              'Error al enviar ticket a impresora de respaldo:',
+              error,
+            );
+          },
+        });
+    });
+}
 
   // =========================================================
   // VER DETALLE

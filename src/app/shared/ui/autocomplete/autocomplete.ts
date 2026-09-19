@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+
 import {
   Component,
   EventEmitter,
@@ -10,11 +11,13 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
+
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { ControlValueAccessor, NgControl } from '@angular/forms';
+
 import {
   Observable,
   of,
@@ -24,11 +27,13 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+
 import { MatIcon, MatIconModule } from '@angular/material/icon';
-import { CatalogsService } from '../../services/catalogs.service';
-import { Catalog } from '../../interfaces/general-interfaces';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
+
+import { CatalogsService } from '../../services/catalogs.service';
+import { Catalog } from '../../interfaces/general-interfaces';
 
 @Component({
   selector: 'app-autocomplete',
@@ -49,17 +54,50 @@ import { MatButtonModule } from '@angular/material/button';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Autocomplete implements ControlValueAccessor {
-  // servicios
-  private readonly catalogsService = inject(CatalogsService);
+  // ==========================
+  // Servicios
+  // ==========================
 
-  // importante para OnPush + CVA (para repintar cuando writeValue cambia displayValue)
-  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly catalogsService =
+    inject(CatalogsService);
 
-  // ====== Inputs de configuración ======
+  private readonly cdr =
+    inject(ChangeDetectorRef);
+
+  // ==========================
+  // Inputs de configuración
+  // ==========================
+
   @Input() label: string = 'Seleccionar';
+
   @Input() placeholder: string = 'Buscar';
+
   @Input() remote: boolean = false;
+
+  /**
+   * Valor que se manda al FormControl al seleccionar.
+   *
+   * id:
+   *   option.id
+   *
+   * name:
+   *   option.name
+   */
   @Input() valueMode: 'id' | 'name' = 'id';
+
+  /**
+   * Muestra un icono de información junto al label.
+   *
+   * Por defecto está apagado para no afectar
+   * los autocompletes existentes.
+   */
+  @Input() showInfo: boolean = false;
+
+  /**
+   * Texto mostrado en el tooltip del icono de información.
+   */
+  @Input() infoTooltip: string = '';
+
   @Input() catalogType:
     | 'supplier'
     | 'project'
@@ -68,260 +106,566 @@ export class Autocomplete implements ControlValueAccessor {
     | 'product'
     | 'purchaseOrderRequesterCandidate'
     | 'purchaseOrderAuthorizerCandidate'
-    | 'expenseConcept' = 'supplier';
+    | 'expenseConcept' =
+    'supplier';
 
   @Input() data: Catalog[] = [];
 
-  // cuando en editar ya tienes el nombre, lo muestras
+  /**
+   * Cuando en editar ya se conoce el nombre
+   * que se debe mostrar.
+   */
   @Input() initialDisplay: string = '';
 
-  // mensaje por defecto (solo si no hay formControlName)
-  @Input() errorMessage = 'Este campo es obligatorio';
+  /**
+   * Mensaje por defecto cuando no existe
+   * un mensaje específico en el FormControl.
+   */
+  @Input() errorMessage =
+    'Este campo es obligatorio';
 
-  // output por si el padre quiere el objeto completo
-  @Output() optionSelected = new EventEmitter<Catalog>();
+  // ==========================
+  // Outputs
+  // ==========================
 
-  // lista filtrada que ve el usuario
-  filtered$: Observable<Catalog[]> = of([]);
+  @Output()
+  optionSelected =
+    new EventEmitter<Catalog>();
 
-  // lo que el usuario va escribiendo
-  private input$ = new Subject<string>();
+  // ==========================
+  // Estado
+  // ==========================
 
-  // valor REAL del form (id o Catalog)
-  private innerValue: number | string | Catalog | null = null;
+  filtered$: Observable<Catalog[]> =
+    of([]);
 
-  // cache en memoria del componente
+  private input$ =
+    new Subject<string>();
+
+  private innerValue:
+    | number
+    | string
+    | Catalog
+    | null =
+    null;
+
   private optionsPool: Catalog[] = [];
 
-  // lo que se ve en el input
   displayValue: string = '';
 
   disabled: boolean = false;
 
+  // ==========================
   // CVA callbacks
-  private onChange: (val: any) => void = () => { };
-  private onTouched: () => void = () => { };
+  // ==========================
 
-  // para leer estado del form y mostrar errores
-  constructor(@Optional() @Self() private ngControl: NgControl) {
+  private onChange:
+    (val: any) => void =
+    () => {};
+
+  private onTouched:
+    () => void =
+    () => {};
+
+  // ==========================
+  // Constructor
+  // ==========================
+
+  constructor(
+    @Optional()
+    @Self()
+    private ngControl: NgControl,
+  ) {
     if (this.ngControl) {
       this.ngControl.valueAccessor = this;
     }
 
-    this.filtered$ = this.input$.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      switchMap((text) => {
-        const term = (text ?? '').trim();
+    this.filtered$ =
+      this.input$.pipe(
+        debounceTime(300),
 
-        // 1) si no escribió nada o escribió muy poquito -> mostrar últimos 5 del pool
-        if (term.length < 2) return of(this.getLastFromPool(5));
+        distinctUntilChanged(),
 
-        // 2) remoto con cache en pool
-        if (this.remote) {
-          const localMatches = this.filterFromPool(term);
+        switchMap((text) => {
+          const term =
+            (text ?? '').trim();
 
-          // si ya tengo algo parecido, lo muestro y no llamo
-          if (localMatches.length > 0) return of(localMatches);
+          /**
+           * Si todavía no escribió mínimo
+           * 2 caracteres mostramos últimos
+           * elementos del pool.
+           */
+          if (term.length < 2) {
+            return of(
+              this.getLastFromPool(5),
+            );
+          }
 
-          // si no tengo, voy al backend y lo guardo
-          return this.fetchRemote(term).pipe(
-            tap((results) => this.addToPool(results)),
+          /**
+           * Modo remoto.
+           */
+          if (this.remote) {
+            const localMatches =
+              this.filterFromPool(term);
+
+            /**
+             * Si ya tenemos coincidencias
+             * en memoria evitamos otra llamada.
+             */
+            if (
+              localMatches.length > 0
+            ) {
+              return of(localMatches);
+            }
+
+            /**
+             * Si no existe en el pool,
+             * consultamos backend.
+             */
+            return this
+              .fetchRemote(term)
+              .pipe(
+                tap((results) =>
+                  this.addToPool(
+                    results,
+                  ),
+                ),
+              );
+          }
+
+          /**
+           * Modo local.
+           */
+          return of(
+            this.filterLocal(term),
           );
-        }
-
-        // 3) modo local
-        return of(this.filterLocal(term));
-      }),
-    );
+        }),
+      );
   }
+
+  // ==========================
+  // Validaciones UI
+  // ==========================
 
   get showRequiredMark(): boolean {
-    const control = this.ngControl?.control;
-    if (!control || !control.validator) return false;
-    const res = control.validator({} as any);
-    return !!res?.['required'];
+    const control =
+      this.ngControl?.control;
+
+    if (
+      !control ||
+      !control.validator
+    ) {
+      return false;
+    }
+
+    const result =
+      control.validator(
+        {} as any,
+      );
+
+    return !!result?.['required'];
   }
 
-  // ======== CVA ========
-  writeValue(value: any) {
+  // ==========================
+  // ControlValueAccessor
+  // ==========================
+
+  writeValue(value: any): void {
     this.innerValue = value;
 
+    /**
+     * Cuando trabajamos con nombres,
+     * el valor del FormControl ya es texto.
+     */
     if (
       this.valueMode === 'name' &&
       typeof value === 'string'
     ) {
       this.displayValue = value;
+
       this.cdr.markForCheck();
+
       return;
     }
 
-    // 1) si viene objeto (Catalog)
-    if (value && typeof value === 'object') {
-      this.displayValue = value.name ?? '';
+    /**
+     * Si viene Catalog completo.
+     */
+    if (
+      value &&
+      typeof value === 'object'
+    ) {
+      this.displayValue =
+        value.name ?? '';
+
       this.cdr.markForCheck();
+
       return;
     }
 
-    // 2) si viene id (number|string) y hay data local
-    if ((typeof value === 'number' || typeof value === 'string') && this.data?.length) {
-      const found = this.data.find((d) => d.id === value);
-      this.displayValue = found ? found.name : '';
+    /**
+     * Si viene id y tenemos catálogo local.
+     */
+    if (
+      (
+        typeof value === 'number' ||
+        typeof value === 'string'
+      ) &&
+      this.data?.length
+    ) {
+      const found =
+        this.data.find(
+          (item) =>
+            item.id === value,
+        );
+
+      this.displayValue =
+        found
+          ? found.name
+          : '';
+
       this.cdr.markForCheck();
+
       return;
     }
 
-    // 3) si estás en remoto y te pasan el nombre inicial
+    /**
+     * En remoto podemos recibir
+     * el nombre inicial aparte.
+     */
     if (this.initialDisplay) {
-      this.displayValue = this.initialDisplay;
+      this.displayValue =
+        this.initialDisplay;
+
       this.cdr.markForCheck();
+
       return;
     }
 
     this.displayValue = '';
+
     this.cdr.markForCheck();
   }
 
-  registerOnChange(fn: any) {
+  registerOnChange(
+    fn: any,
+  ): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: any) {
+  registerOnTouched(
+    fn: any,
+  ): void {
     this.onTouched = fn;
   }
 
-  setDisabledState(isDisabled: boolean) {
-    this.disabled = isDisabled;
+  setDisabledState(
+    isDisabled: boolean,
+  ): void {
+    this.disabled =
+      isDisabled;
+
     this.cdr.markForCheck();
   }
 
-  // cuando escribe
-  onInputChange(term: string | Catalog) {
-    const text = typeof term === 'string' ? term : term?.name ?? '';
+  // ==========================
+  // Eventos UI
+  // ==========================
+
+  /**
+   * Cuando el usuario escribe.
+   *
+   * Esto permite texto libre,
+   * necesario para Concepto.
+   */
+  onInputChange(
+    term: string | Catalog,
+  ): void {
+    const text =
+      typeof term === 'string'
+        ? term
+        : term?.name ?? '';
+
     this.displayValue = text;
 
-    // ojo: si escribe, esto manda string al form (tu diseño actual)
-    this.onChange(typeof term === 'string' ? term : term?.id);
+    /**
+     * Al escribir libremente mandamos
+     * el texto al FormControl.
+     */
+    this.onChange(
+      typeof term === 'string'
+        ? term
+        : term?.id,
+    );
 
     this.input$.next(text);
-    this.cdr.markForCheck()
+
+    this.cdr.markForCheck();
   }
 
-  // cuando selecciona una opción
-  onOptionSelected(option: Catalog) {
+  /**
+   * Cuando el usuario selecciona
+   * una opción del autocomplete.
+   */
+  onOptionSelected(
+    option: Catalog,
+  ): void {
     const value =
       this.valueMode === 'name'
         ? option.name
         : option.id;
 
     this.innerValue = value;
-    this.displayValue = option.name;
+
+    this.displayValue =
+      option.name;
 
     this.onChange(value);
 
     this.onTouched();
-    this.optionSelected.emit(option);
+
+    this.optionSelected.emit(
+      option,
+    );
 
     this.cdr.markForCheck();
   }
 
-  onBlur() {
+  onBlur(): void {
     this.onTouched();
   }
 
-  clearInput() {
+  clearInput(): void {
     this.displayValue = '';
+
     this.innerValue = null;
 
-    // avisamos al form que ahora no hay nada
     this.onChange(null);
+
     this.onTouched();
 
-    // si quieres volver a mostrar la lista completa local
-    if (!this.remote && this.data?.length) this.input$.next('');
+    if (
+      !this.remote &&
+      this.data?.length
+    ) {
+      this.input$.next('');
+    }
 
     this.cdr.markForCheck();
   }
 
-  // para el mat-autocomplete
-  displayWith = (value: any): string => {
-    if (!value) return '';
+  // ==========================
+  // Display
+  // ==========================
 
-    if (typeof value === 'object') return value.name ?? '';
+  displayWith =
+    (value: any): string => {
+      if (!value) {
+        return '';
+      }
 
-    // id (number|string)
-    const found = this.data?.find((d) => d.id === value);
-    return found ? found.name : String(value);
-  };
+      if (
+        typeof value === 'object'
+      ) {
+        return value.name ?? '';
+      }
+
+      const found =
+        this.data?.find(
+          (item) =>
+            item.id === value,
+        );
+
+      return found
+        ? found.name
+        : String(value);
+    };
+
+  // ==========================
+  // Errores
+  // ==========================
 
   get hasError(): boolean {
-    const control = this.ngControl?.control;
-    return !!control && control.invalid && (control.touched || control.dirty);
+    const control =
+      this.ngControl?.control;
+
+    return (
+      !!control &&
+      control.invalid &&
+      (
+        control.touched ||
+        control.dirty
+      )
+    );
   }
 
-  get firstErrorMessage(): string {
-    const errors = this.ngControl?.control?.errors;
-    if (!errors) return '';
-    if (errors['required']) return 'Este campo es obligatorio';
+  get firstErrorMessage():
+    string {
+
+    const errors =
+      this.ngControl
+        ?.control
+        ?.errors;
+
+    if (!errors) {
+      return '';
+    }
+
+    if (errors['required']) {
+      return 'Este campo es obligatorio';
+    }
+
     return this.errorMessage;
   }
 
-  private fetchRemote(search: string): Observable<Catalog[]> {
-    console.log(search);
+  // ==========================
+  // Catálogos remotos
+  // ==========================
 
-    switch (this.catalogType) {
+  private fetchRemote(
+    search: string,
+  ): Observable<Catalog[]> {
+
+    switch (
+      this.catalogType
+    ) {
       case 'product':
-        return this.catalogsService.productsCatalog(search);
+        return this
+          .catalogsService
+          .productsCatalog(
+            search,
+          );
 
       case 'supplier':
-        return this.catalogsService.suppliersCatalog(search);
+        return this
+          .catalogsService
+          .suppliersCatalog(
+            search,
+          );
 
       case 'project':
-        return this.catalogsService.projectsCatalog(search);
+        return this
+          .catalogsService
+          .projectsCatalog(
+            search,
+          );
 
       case 'responsible':
-        return this.catalogsService.responsibleCatalog(search);
+        return this
+          .catalogsService
+          .responsibleCatalog(
+            search,
+          );
 
       case 'client':
-        return this.catalogsService.clientsCatalog(search);
+        return this
+          .catalogsService
+          .clientsCatalog(
+            search,
+          );
 
       case 'purchaseOrderRequesterCandidate':
-        return this.catalogsService.purchaseOrderRequesterCandidatesCatalog(search);
+        return this
+          .catalogsService
+          .purchaseOrderRequesterCandidatesCatalog(
+            search,
+          );
 
       case 'purchaseOrderAuthorizerCandidate':
-        return this.catalogsService.purchaseOrderAuthorizerCandidatesCatalog(search);
+        return this
+          .catalogsService
+          .purchaseOrderAuthorizerCandidatesCatalog(
+            search,
+          );
 
       case 'expenseConcept':
-        return this.catalogsService.expenseConceptsCatalog(search);
+        return this
+          .catalogsService
+          .expenseConceptsCatalog(
+            search,
+          );
 
       default:
         return of([]);
     }
   }
 
-  private filterLocal(term: string): Catalog[] {
-    if (!term) return this.data;
-    const lower = term.toLowerCase();
-    return this.data.filter((item) => item.name.toLowerCase().includes(lower));
-  }
+  // ==========================
+  // Helpers
+  // ==========================
 
-  private getLastFromPool(limit: number): Catalog[] {
-    return this.optionsPool.slice(-limit).reverse();
-  }
+  private filterLocal(
+    term: string,
+  ): Catalog[] {
 
-  private filterFromPool(term: string): Catalog[] {
-    const lower = term.toLowerCase();
-    return this.optionsPool.filter((opt) => opt.name.toLowerCase().includes(lower));
-  }
-
-  private addToPool(results: Catalog[]) {
-    for (const item of results) {
-      const exists = this.optionsPool.some((opt) => opt.id === item.id);
-      if (!exists) this.optionsPool.push(item);
+    if (!term) {
+      return this.data;
     }
 
-    if (this.optionsPool.length > 200) {
-      this.optionsPool.splice(0, this.optionsPool.length - 200);
+    const lower =
+      term.toLowerCase();
+
+    return this.data.filter(
+      (item) =>
+        item.name
+          .toLowerCase()
+          .includes(lower),
+    );
+  }
+
+  private getLastFromPool(
+    limit: number,
+  ): Catalog[] {
+
+    return this.optionsPool
+      .slice(-limit)
+      .reverse();
+  }
+
+  private filterFromPool(
+    term: string,
+  ): Catalog[] {
+
+    const lower =
+      term.toLowerCase();
+
+    return this.optionsPool.filter(
+      (option) =>
+        option.name
+          .toLowerCase()
+          .includes(lower),
+    );
+  }
+
+  private addToPool(
+    results: Catalog[],
+  ): void {
+
+    for (
+      const item of results
+    ) {
+      const exists =
+        this.optionsPool.some(
+          (option) =>
+            option.id === item.id,
+        );
+
+      if (!exists) {
+        this.optionsPool.push(
+          item,
+        );
+      }
+    }
+
+    if (
+      this.optionsPool.length >
+      200
+    ) {
+      this.optionsPool.splice(
+        0,
+        this.optionsPool.length -
+          200,
+      );
     }
   }
 }

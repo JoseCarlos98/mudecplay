@@ -34,6 +34,18 @@
     }
 }
 
+.c-dialog__header--primary {
+    border-bottom-color: rgba(33, 150, 243, 0.2);
+}
+
+.c-dialog__icon--primary {
+    background: rgba(33, 150, 243, 0.12);
+
+    mat-icon {
+        color: #2196f3;
+    }
+}
+
 .c-dialog__title {
     font-size: 1.05rem;
     letter-spacing: 0 !important;
