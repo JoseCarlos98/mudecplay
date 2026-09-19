@@ -1552,34 +1552,26 @@ export class ExpenseForm implements OnInit {
    *   cuando cambia el Producto.
    * - Si el usuario ya modificó Concepto, no lo sobrescribe.
    */
- onProductSelected(
+onProductSelected(
   index: number,
   product: Catalog,
 ): void {
-  const group =
-    this.itemsFA.at(index) as FormGroup;
-
+  const group = this.itemsFA.at(index) as FormGroup;
   if (!group) return;
 
-  const conceptCtrl =
-    group.get('concept');
-
+  const conceptCtrl = group.get('concept');
   if (!conceptCtrl) return;
 
-  const productName =
-    String(product?.name ?? '')
-      .trim()
-      .replace(/\s+/g, ' ');
+  const productName = String(product?.name ?? '')
+    .trim()
+    .replace(/\s+/g, ' ');
 
   if (!productName) return;
 
-  conceptCtrl.setValue(
-    productName,
-  );
-
+  conceptCtrl.setValue(productName);
   conceptCtrl.markAsDirty();
   conceptCtrl.updateValueAndValidity();
-} 
+}
 
   /**
    * Aplica un proyecto a los items directos seleccionados.

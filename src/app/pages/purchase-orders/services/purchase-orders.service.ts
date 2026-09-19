@@ -631,6 +631,20 @@ export class PurchaseOrdersService {
     );
   }
 
+  printPurchaseOrder(
+    id: number | string,
+    payload: entity.PrintPurchaseOrderDto,
+  ): Observable<
+    entity.PrintPurchaseOrderResponse
+  > {
+    return this.http.post<
+      entity.PrintPurchaseOrderResponse
+    >(
+      `${this.apiUrl}/${id}/print`,
+      payload,
+    );
+  }
+
   reprintPurchaseOrder(
     id: number | string,
     payload: entity.ReprintPurchaseOrderDto = {},

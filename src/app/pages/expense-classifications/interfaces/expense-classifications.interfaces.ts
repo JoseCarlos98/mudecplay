@@ -27,6 +27,21 @@ export interface ExpenseClassificationReference {
 
 
 // =========================================================
+// SUGERENCIAS DE CONCEPTOS HOMOLOGADOS
+// =========================================================
+
+export interface ExpenseConceptSuggestion {
+  mappingId: number;
+
+  conceptName: string;
+
+  normalizedConcept: string;
+
+  classification:
+    ExpenseClassificationReference;
+}
+
+// =========================================================
 // CATÁLOGO DE CLASIFICACIONES
 // =========================================================
 

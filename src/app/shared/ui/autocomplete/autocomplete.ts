@@ -59,6 +59,7 @@ export class Autocomplete implements ControlValueAccessor {
   @Input() label: string = 'Seleccionar';
   @Input() placeholder: string = 'Buscar';
   @Input() remote: boolean = false;
+  @Input() valueMode: 'id' | 'name' = 'id';
   @Input() catalogType:
     | 'supplier'
     | 'project'
@@ -66,7 +67,8 @@ export class Autocomplete implements ControlValueAccessor {
     | 'client'
     | 'product'
     | 'purchaseOrderRequesterCandidate'
-    | 'purchaseOrderAuthorizerCandidate' = 'supplier';
+    | 'purchaseOrderAuthorizerCandidate'
+    | 'expenseConcept' = 'supplier';
 
   @Input() data: Catalog[] = [];
 
@@ -145,6 +147,15 @@ export class Autocomplete implements ControlValueAccessor {
   writeValue(value: any) {
     this.innerValue = value;
 
+    if (
+      this.valueMode === 'name' &&
+      typeof value === 'string'
+    ) {
+      this.displayValue = value;
+      this.cdr.markForCheck();
+      return;
+    }
+
     // 1) si viene objeto (Catalog)
     if (value && typeof value === 'object') {
       this.displayValue = value.name ?? '';
@@ -198,10 +209,15 @@ export class Autocomplete implements ControlValueAccessor {
 
   // cuando selecciona una opción
   onOptionSelected(option: Catalog) {
-    this.innerValue = option.id;
+    const value =
+      this.valueMode === 'name'
+        ? option.name
+        : option.id;
+
+    this.innerValue = value;
     this.displayValue = option.name;
 
-    this.onChange(option.id);
+    this.onChange(value);
 
     this.onTouched();
     this.optionSelected.emit(option);
@@ -252,7 +268,7 @@ export class Autocomplete implements ControlValueAccessor {
 
   private fetchRemote(search: string): Observable<Catalog[]> {
     console.log(search);
-    
+
     switch (this.catalogType) {
       case 'product':
         return this.catalogsService.productsCatalog(search);
@@ -274,6 +290,9 @@ export class Autocomplete implements ControlValueAccessor {
 
       case 'purchaseOrderAuthorizerCandidate':
         return this.catalogsService.purchaseOrderAuthorizerCandidatesCatalog(search);
+
+      case 'expenseConcept':
+        return this.catalogsService.expenseConceptsCatalog(search);
 
       default:
         return of([]);

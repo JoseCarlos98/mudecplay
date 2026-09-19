@@ -1460,6 +1460,18 @@ export interface PurchaseOrderPrintingDto {
   created_at: string | null;
 }
 
+
+export interface PrintPurchaseOrderDto {
+  printer_code: string;
+}
+
+export interface PrintPurchaseOrderResponse {
+  purchase_order_id: number;
+  folio: string;
+  print_job_id: number;
+  status: PurchaseOrderPrintStatus;
+}
+
 export interface ReprintPurchaseOrderDto {
   printer_code?: string | null;
 }

@@ -56,17 +56,17 @@
   </div>
   }
 
-@if (!isLaborAuto && hasWarehouseItemsInForm) {
-<div class="c-form-alert c-form-alert--info">
-  <mat-icon class="c-form-alert__icon">info</mat-icon>
+  @if (!isLaborAuto && hasWarehouseItemsInForm) {
+  <div class="c-form-alert c-form-alert--info">
+    <mat-icon class="c-form-alert__icon">info</mat-icon>
 
-  <div class="c-form-alert__content">
-    <strong>Control de almacén:</strong>
-    los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
-    Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+    <div class="c-form-alert__content">
+      <strong>Control de almacén:</strong>
+      los conceptos marcados como <strong>Almacén</strong> no requieren proyecto al registrar.
+      Sus existencias se asignan después desde <strong>Almacén / Existencias</strong>.
+    </div>
   </div>
-</div>
-}
+  }
 
   @if (
   isWarehouseSafeExpense &&
@@ -298,8 +298,9 @@
 
               @if (!isLaborAuto) {
               <div>
-                <app-input-field formControlName="concept" label="Concepto" type="text">
-                </app-input-field>
+                <app-autocomplete formControlName="concept" label="Concepto" placeholder="Escribe o busca un concepto"
+                  [remote]="true" catalogType="expenseConcept" valueMode="name">
+                </app-autocomplete>
               </div>
               }
 
@@ -377,8 +378,9 @@
 
                 @if (!isLaborAuto) {
                 <div>
-                  <app-input-field formControlName="concept" label="Concepto" type="text">
-                  </app-input-field>
+                  <app-autocomplete formControlName="concept" label="Concepto" placeholder="Escribe o busca un concepto"
+                    [remote]="true" catalogType="expenseConcept" valueMode="name">
+                  </app-autocomplete>
                 </div>
                 }
 

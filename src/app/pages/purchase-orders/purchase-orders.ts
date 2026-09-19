@@ -553,6 +553,26 @@ export class PurchaseOrders
 
       {
         type:
+          'printPurchaseOrder',
+
+        icon:
+          'print',
+
+        tooltip:
+          () => 'Imprimir ticket',
+
+        visible:
+          (row) =>
+            row.printing?.status ===
+            'not_generated' &&
+            row.status !== 'cancelled',
+
+        disabled:
+          () => false,
+      },
+
+      {
+        type:
           'reprintPurchaseOrder',
 
         icon:
@@ -1683,6 +1703,14 @@ export class PurchaseOrders
 
         break;
 
+      case 'printPurchaseOrder':
+
+        this.printPurchaseOrder(
+          event.row,
+        );
+
+        break;
+
       case 'reprintPurchaseOrder':
 
         this.reprintPurchaseOrder(
@@ -1731,6 +1759,84 @@ export class PurchaseOrders
       default:
         break;
     }
+  }
+
+
+  private printPurchaseOrder(
+    row: entity.PurchaseOrderResponseDto,
+  ): void {
+    if (
+      !row?.id ||
+      row.printing?.status !== 'not_generated' ||
+      row.status === 'cancelled'
+    ) {
+      return;
+    }
+
+    const printerCode =
+      this.workstationPrinterService
+        .getPrinterCode();
+
+    const printerLabel =
+      printerCode === 'JEFE_OFICINA_2'
+        ? 'Impresora 2'
+        : 'Impresora 1';
+
+    this.dialogService
+      .confirm({
+        title:
+          'Imprimir ticket',
+
+        message:
+          `La O.C. ${row.folio} se enviará a ${printerLabel}. ¿Deseas continuar?`,
+
+        confirmText:
+          'Sí, imprimir',
+
+        cancelText:
+          'Cancelar',
+
+        size:
+          'mini',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.loadingTable.set(
+          true,
+        );
+
+        this.purchaseOrdersService
+          .printPurchaseOrder(
+            row.id,
+            {
+              printer_code:
+                printerCode,
+            },
+          )
+          .subscribe({
+            next: () => {
+              this.loadingTable.set(
+                false,
+              );
+
+              this.loadPurchaseOrders();
+            },
+
+            error: (error) => {
+              this.loadingTable.set(
+                false,
+              );
+
+              console.error(
+                'Error al imprimir ticket de O.C.:',
+                error,
+              );
+            },
+          });
+      });
   }
 
 

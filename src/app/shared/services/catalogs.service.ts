@@ -13,6 +13,27 @@ export interface MeasurementUnitCatalogResponse {
   display_name: string;
 }
 
+
+export interface ExpenseConceptSuggestionResponse {
+  mappingId: number;
+  conceptName: string;
+  normalizedConcept: string;
+
+  classification: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface ExpenseConceptCatalog extends Catalog {
+  normalizedConcept: string;
+
+  classification: {
+    id: number;
+    name: string;
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class CatalogsService {
   private apiUrl = `${environment.apiUrl}`;
@@ -35,6 +56,49 @@ export class CatalogsService {
 
     return this.http.get<Catalog[]>(url, { params });
   }
+
+  expenseConceptsCatalog(
+  searchTerm: string = '',
+): Observable<ExpenseConceptCatalog[]> {
+
+  const url =
+    `${this.apiUrl}/expense-classifications/concept-suggestions`;
+
+  let params =
+    new HttpParams();
+
+  if (searchTerm?.trim()) {
+    params = params.set(
+      'search',
+      searchTerm.trim(),
+    );
+  }
+
+  return this.http
+    .get<ExpenseConceptSuggestionResponse[]>(
+      url,
+      {
+        params,
+      },
+    )
+    .pipe(
+      map((rows) =>
+        rows.map((row) => ({
+          id:
+            row.mappingId,
+
+          name:
+            row.conceptName,
+
+          normalizedConcept:
+            row.normalizedConcept,
+
+          classification:
+            row.classification,
+        })),
+      ),
+    );
+}
 
   projectsCatalog(
     searchTerm: string = '',
