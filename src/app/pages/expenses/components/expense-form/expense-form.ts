@@ -952,6 +952,7 @@ export class ExpenseForm implements OnInit {
             discount_amount: (item as any).discount_amount ?? null,
             tax_amount: (item as any).tax_amount ?? null,
             withheld_amount: (item as any).withheld_amount ?? null,
+            concept: item.concept ?? null,
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
               : null,
@@ -1096,6 +1097,7 @@ export class ExpenseForm implements OnInit {
         discount_amount: (item as any).discount_amount ?? null,
         tax_amount: (item as any).tax_amount ?? null,
         withheld_amount: (item as any).withheld_amount ?? null,
+        concept: item.concept ?? null,
         project_id: null,
         product_id: item.product
           ? toCatalogAutoComplete(item.product.id, item.product.name)
@@ -1126,6 +1128,7 @@ export class ExpenseForm implements OnInit {
       }
 
       ctrl.get('product_id')?.disable();
+      ctrl.get('concept')?.disable();
       ctrl.get('amount')?.disable();
 
       ctrl.get('quantity')?.disable({ emitEvent: false });
@@ -1153,6 +1156,7 @@ export class ExpenseForm implements OnInit {
     this.itemsFA.controls.forEach((ctrl) => {
       const productCtrl = ctrl.get('product_id');
       const productDisplayCtrl = ctrl.get('product_display');
+      const conceptCtrl = ctrl.get('concept');
       const amountCtrl = ctrl.get('amount');
       const paymentAmountCtrl = ctrl.get('payment_amount');
       const paymentDateCtrl = ctrl.get('payment_date');
@@ -1167,6 +1171,7 @@ export class ExpenseForm implements OnInit {
       productCtrl?.disable({ emitEvent: false });
 
       productDisplayCtrl?.disable({ emitEvent: false });
+      conceptCtrl?.disable({ emitEvent: false });
 
       itemTypeCtrl?.disable({ emitEvent: false });
       quantityCtrl?.disable({ emitEvent: false });
@@ -1189,6 +1194,7 @@ export class ExpenseForm implements OnInit {
     this.itemsFA.controls.forEach((ctrl) => {
       ctrl.get('item_type')?.disable({ emitEvent: false });
       ctrl.get('product_id')?.disable({ emitEvent: false });
+      ctrl.get('concept')?.disable({ emitEvent: false });
       ctrl.get('project_id')?.disable({ emitEvent: false });
 
       ctrl.get('quantity')?.disable({ emitEvent: false });
@@ -1395,6 +1401,25 @@ export class ExpenseForm implements OnInit {
     const isZeroCostDiscount = this.isZeroCostXmlDiscountRaw(data ?? {});
     const amountMinValue = isZeroCostDiscount ? 0 : 0.01;
 
+    const explicitConcept =
+      String(data?.concept ?? '')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    const productName =
+      String(data?.product_id?.name ?? '')
+        .trim()
+        .replace(/\s+/g, ' ');
+
+    /*
+     * Para históricos/manuales sin Concepto:
+     * si ya existe Producto, usamos su nombre como valor inicial.
+     */
+    const initialConcept =
+      explicitConcept ||
+      productName ||
+      '';
+
     const group = this.fb.group({
       id: [data?.id ?? null],
 
@@ -1426,6 +1451,19 @@ export class ExpenseForm implements OnInit {
       payment_date: [isZeroCostDiscount ? null : defaultPaymentDate],
 
       project_id: this.fb.control<Catalog | null>(data?.project_id ?? null),
+
+      concept: this.fb.control<string>(
+        initialConcept,
+        {
+          validators:
+            this.isLaborAuto
+              ? [Validators.maxLength(255)]
+              : [
+                  Validators.required,
+                  Validators.maxLength(255),
+                ],
+        },
+      ),
 
       product_id: this.fb.control<Catalog | null>(data?.product_id ?? null, {
         validators: Validators.required,
@@ -1504,6 +1542,44 @@ export class ExpenseForm implements OnInit {
 
     this.bulkProjectSelected = project;
   }
+
+  /**
+   * Autollena Concepto con el nombre del Producto.
+   *
+   * Reglas:
+   * - Si Concepto está vacío, lo llena.
+   * - Si Concepto sigue siendo el último valor autollenado, lo actualiza
+   *   cuando cambia el Producto.
+   * - Si el usuario ya modificó Concepto, no lo sobrescribe.
+   */
+ onProductSelected(
+  index: number,
+  product: Catalog,
+): void {
+  const group =
+    this.itemsFA.at(index) as FormGroup;
+
+  if (!group) return;
+
+  const conceptCtrl =
+    group.get('concept');
+
+  if (!conceptCtrl) return;
+
+  const productName =
+    String(product?.name ?? '')
+      .trim()
+      .replace(/\s+/g, ' ');
+
+  if (!productName) return;
+
+  conceptCtrl.setValue(
+    productName,
+  );
+
+  conceptCtrl.markAsDirty();
+  conceptCtrl.updateValueAndValidity();
+} 
 
   /**
    * Aplica un proyecto a los items directos seleccionados.
@@ -1746,6 +1822,12 @@ export class ExpenseForm implements OnInit {
               ? null
               : toIdForm(item.project_id),
 
+          concept:
+            String(item.concept ?? '')
+              .trim()
+              .replace(/\s+/g, ' ') ||
+            null,
+
           product_id: toIdForm(item.product_id),
         };
       }),
@@ -1959,4 +2041,3 @@ export class ExpenseForm implements OnInit {
     paymentDateCtrl.updateValueAndValidity({ emitEvent: false });
   }
 }
-

@@ -291,10 +291,17 @@
                 </app-input-field>
                 } @else {
                 <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
-                  catalogType="product">
+                  catalogType="product" (optionSelected)="onProductSelected(i, $event)">
                 </app-autocomplete>
                 }
               </div>
+
+              @if (!isLaborAuto) {
+              <div>
+                <app-input-field formControlName="concept" label="Concepto" type="text">
+                </app-input-field>
+              </div>
+              }
 
               <div>
                 <app-input-field formControlName="quantity" label="Cantidad" type="number">
@@ -363,10 +370,17 @@
                   </app-input-field>
                   } @else {
                   <app-autocomplete class="w-100" formControlName="product_id" label="Producto" [remote]="true"
-                    catalogType="product">
+                    catalogType="product" (optionSelected)="onProductSelected(i, $event)">
                   </app-autocomplete>
                   }
                 </div>
+
+                @if (!isLaborAuto) {
+                <div>
+                  <app-input-field formControlName="concept" label="Concepto" type="text">
+                  </app-input-field>
+                </div>
+                }
 
                 <div class="discount_amount">
                   @if ((itemCtrl.get('discount_amount')?.value ?? 0) > 0) {

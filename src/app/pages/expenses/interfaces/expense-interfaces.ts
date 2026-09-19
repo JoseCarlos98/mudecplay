@@ -199,6 +199,8 @@ export interface CreateExpenseItem {
   id?: number | null;
   product_id?: number | null;
 
+  concept?: string | null;
+
   item_type?: ExpenseItemType;
 
   // Almacén
@@ -332,6 +334,8 @@ export interface UpdateExpenseSupplier {
 
 export interface ExpenseItemForm {
   amount: number | null;
+
+  concept: string | null;
 
   item_type: ExpenseItemType;
   quantity: number | null;
@@ -509,3 +513,4 @@ export interface WarehouseMovementResponseDto {
 export interface ReturnWarehouseMovementDto {
   notes?: string | null;
 }
+

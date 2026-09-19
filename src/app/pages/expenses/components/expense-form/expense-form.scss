@@ -257,9 +257,10 @@
 .direct-grid {
   display: grid;
   grid-template-columns:
-    minmax(320px, 1.45fr)
-    minmax(180px, 0.65fr)
-    minmax(320px, 1.15fr);
+    minmax(260px, 1.25fr)
+    minmax(260px, 1.25fr)
+    minmax(170px, 0.65fr)
+    minmax(280px, 1.1fr);
   gap: 1rem;
   align-items: start;
 }
@@ -334,9 +335,10 @@
 .warehouse-grid {
   display: grid;
   grid-template-columns:
-    minmax(250px, 1.55fr)
-    minmax(140px, 0.6fr)
-    minmax(140px, 0.6fr)
+    minmax(230px, 1.35fr)
+    minmax(230px, 1.35fr)
+    minmax(120px, 0.55fr)
+    minmax(130px, 0.55fr)
     minmax(145px, 0.6fr)
     minmax(145px, 0.6fr);
   gap: 1rem;
