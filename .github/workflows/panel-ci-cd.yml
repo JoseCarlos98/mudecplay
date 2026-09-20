@@ -42,3 +42,46 @@ jobs:
       - name: Verify AWS identity
         if: github.ref == 'refs/heads/main'
         run: aws sts get-caller-identity
+
+      - name: Validate production build
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          if [ ! -f "dist/mudecplay/browser/index.html" ]; then
+            echo "Production build was not found."
+            exit 1
+          fi
+
+          echo "Production build validated."
+
+      - name: Deploy to S3
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          aws s3 sync \
+            dist/mudecplay/browser \
+            s3://mudecplay-admin-prod \
+            --delete
+
+      - name: Invalidate CloudFront
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          INVALIDATION_ID=$(aws cloudfront create-invalidation \
+            --distribution-id E1WXTKUNKBLGKM \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)
+
+          if [ -z "$INVALIDATION_ID" ] || [ "$INVALIDATION_ID" = "None" ]; then
+            echo "Could not create CloudFront invalidation."
+            exit 1
+          fi
+
+          echo "Invalidation created: $INVALIDATION_ID"
+
+          aws cloudfront wait invalidation-completed \
+            --distribution-id E1WXTKUNKBLGKM \
+            --id "$INVALIDATION_ID"
+
+          echo "CloudFront invalidation completed."
