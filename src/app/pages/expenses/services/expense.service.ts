@@ -29,6 +29,13 @@ export class ExpenseService {
     if (filters) {
       params = setScalar(params, 'page', filters.page);
       params = setScalar(params, 'limit', filters.limit);
+
+      params = setScalar(
+        params,
+        'search',
+        filters.search?.trim(),
+      );
+
       params = setScalar(params, 'startDate', filters.startDate);
       params = setScalar(params, 'endDate', filters.endDate);
       params = setScalar(params, 'totalAmount', filters.totalAmount);
@@ -45,7 +52,11 @@ export class ExpenseService {
         filters.projectIds ?? [],
       );
 
-      params = setScalar(params, 'statusId', filters.status_id);
+      params = setScalar(
+        params,
+        'statusId',
+        filters.status_id,
+      );
 
       params = setScalar(
         params,
@@ -60,10 +71,9 @@ export class ExpenseService {
       );
     }
 
-    return this.http.get<PaginatedResponse<entity.ExpenseResponseDto>>(
-      url,
-      { params },
-    );
+    return this.http.get<
+      PaginatedResponse<entity.ExpenseResponseDto>
+    >(url, { params });
   }
 
 

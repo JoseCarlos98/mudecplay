@@ -64,7 +64,7 @@ const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actio
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
-  newRoles: ['MANO_OBRA_EMPLEADOS_EDITOR'],
+  newRoles: ['EMPLEADOS_EDITOR'],
 };
 
 @Component({

@@ -415,6 +415,7 @@ export class Expenses implements OnInit {
   filters: entity.FiltersExpenses = {
     page: 1,
     limit: 5,
+    search: null,
     totalAmount: null,
     warehouseAssignmentStatus: 'all',
   };
@@ -426,7 +427,7 @@ export class Expenses implements OnInit {
     totalAmount: this.fb.control<number | null>(null),
     suppliersIds: this.fb.control<any[]>([]),
     projectIds: this.fb.control<any[]>([]),
-    concept: this.fb.control<string>(''),
+    search: this.fb.control<string>(''),
     status_id: this.fb.control<string | number>(1),
     paymentStatus: this.fb.control<'paid' | 'unpaid' | null>(null),
     warehouseAssignmentStatus:
@@ -465,6 +466,7 @@ export class Expenses implements OnInit {
     return {
       page: ui.page,
       limit: ui.limit,
+      search: ui.search?.trim() || null,
       startDate: ui.dateRange?.startDate ?? null,
       endDate: ui.dateRange?.endDate ?? null,
       totalAmount: ui.totalAmount ?? null,
@@ -475,6 +477,7 @@ export class Expenses implements OnInit {
       warehouseAssignmentStatus: ui.warehouseAssignmentStatus ?? 'all',
     };
   }
+
   private mapExpenseRow(row: entity.ExpenseResponseDto): entity.ExpenseResponseDto {
     const mapped: entity.ExpenseResponseDto = {
       ...row,
@@ -506,13 +509,15 @@ export class Expenses implements OnInit {
     const value = this.formFilters.getRawValue();
 
     const uiState: entity.ExpensesUiFilters = {
+      search: value.search?.trim() ?? '',
       dateRange: value.dateRange ?? null,
       totalAmount: value.totalAmount ?? null,
       suppliersIds: value.suppliersIds ?? [],
       projectIds: value.projectIds ?? [],
       status_id: value.status_id ?? null,
       paymentStatus: value.paymentStatus ?? null,
-      warehouseAssignmentStatus: value.warehouseAssignmentStatus ?? 'all',
+      warehouseAssignmentStatus:
+        value.warehouseAssignmentStatus ?? 'all',
       page: 1,
       limit: this.filters.limit,
     };
@@ -721,6 +726,8 @@ export class Expenses implements OnInit {
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
+    const hasSearch = !!form.search?.trim();
+
     const hasDates = !!(
       form.dateRange?.startDate ||
       form.dateRange?.endDate
@@ -730,7 +737,6 @@ export class Expenses implements OnInit {
     const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
     const hasProjects = (form.projectIds?.length ?? 0) > 0;
     const hasStatus = form.status_id !== '';
-    const hasConcept = !!(form.concept && form.concept.trim() !== '');
     const hasPaymentStatus = !!form.paymentStatus;
 
     const hasWarehouseAssignment =
@@ -738,12 +744,12 @@ export class Expenses implements OnInit {
       form.warehouseAssignmentStatus !== 'all';
 
     return (
+      hasSearch ||
       hasDates ||
       hasTotalAmount ||
       hasSuppliers ||
       hasProjects ||
       hasStatus ||
-      hasConcept ||
       hasPaymentStatus ||
       hasWarehouseAssignment
     );
@@ -752,6 +758,7 @@ export class Expenses implements OnInit {
   clearAllAndSearch(): void {
     this.formFilters.reset(
       {
+        search: '',
         dateRange: null,
         totalAmount: null,
         suppliersIds: [],
@@ -759,7 +766,6 @@ export class Expenses implements OnInit {
         status_id: '',
         paymentStatus: null,
         warehouseAssignmentStatus: 'all',
-        concept: '',
       },
       { emitEvent: false },
     );
@@ -767,6 +773,7 @@ export class Expenses implements OnInit {
     this.filters = {
       page: 1,
       limit: this.filters.limit,
+      search: null,
       startDate: null,
       endDate: null,
       totalAmount: null,
@@ -809,6 +816,7 @@ export class Expenses implements OnInit {
 
     this.formFilters.patchValue(
       {
+        search: saved.search ?? '',
         dateRange: saved.dateRange ?? null,
         totalAmount: saved.totalAmount ?? null,
         suppliersIds: saved.suppliersIds ?? [],
@@ -823,6 +831,7 @@ export class Expenses implements OnInit {
 
     this.filters = this.buildBackendFiltersFromUi({
       ...saved,
+      search: saved.search ?? '',
       totalAmount: saved.totalAmount ?? null,
       warehouseAssignmentStatus:
         saved.warehouseAssignmentStatus ?? 'all',
@@ -838,6 +847,7 @@ export class Expenses implements OnInit {
       const value = this.formFilters.getRawValue();
 
       state = {
+        search: value.search?.trim() ?? '',
         dateRange: value.dateRange ?? null,
         totalAmount: value.totalAmount ?? null,
         suppliersIds: value.suppliersIds ?? [],

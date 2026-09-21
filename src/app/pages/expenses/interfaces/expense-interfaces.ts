@@ -48,6 +48,7 @@ export interface FiltersExpenses {
   totalAmount?: number | null;
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
+  search?: string | null;
   paymentStatus?: 'paid' | 'unpaid' | null;
   status_id?: number | string | null;
   warehouseAssignmentStatus?: WarehouseAssignmentStatusFilter | null;
@@ -362,6 +363,7 @@ export interface ExpensesUiFilters {
   dateRange: DateRangeValue | null;
   totalAmount: number | null;
   suppliersIds: any[];
+  search?: string | null;
   projectIds: any[];
   status_id: string | number | null;
   paymentStatus: 'paid' | 'unpaid' | null;
