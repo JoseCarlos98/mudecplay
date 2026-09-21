@@ -579,10 +579,18 @@ export class PurchaseOrders
           'print',
 
         tooltip:
-          (row) =>
-            row.printing?.last_error
+          (row) => {
+            if (
+              row.printing?.status ===
+              'printed'
+            ) {
+              return 'Reimprimir ticket';
+            }
+
+            return row.printing?.last_error
               ? `Enviar a impresora de respaldo. Error: ${row.printing.last_error}`
-              : 'Enviar a impresora de respaldo',
+              : 'Enviar a impresora de respaldo';
+          },
 
         visible:
           (row) =>
@@ -1919,115 +1927,152 @@ export class PurchaseOrders
   }
 
 
-private reprintPurchaseOrder(
-  row: entity.PurchaseOrderResponseDto,
-): void {
-  if (
-    !row?.id ||
-    row.printing?.can_reprint !== true
-  ) {
-    return;
-  }
+  private reprintPurchaseOrder(
+    row: entity.PurchaseOrderResponseDto,
+  ): void {
+    if (
+      !row?.id ||
+      row.printing?.can_reprint !== true
+    ) {
+      return;
+    }
 
-  const currentPrinterCode =
-    String(
-      row.printing?.printer_code ?? '',
-    )
-      .trim()
-      .toUpperCase();
+    const isPrinted =
+      row.printing?.status ===
+      'printed';
 
-  let backupPrinterCode:
-    | 'JEFE_OFICINA'
-    | 'JEFE_OFICINA_2'
-    | null = null;
+    let targetPrinterCode:
+      | 'JEFE_OFICINA'
+      | 'JEFE_OFICINA_2'
+      | null = null;
 
-  if (
-    currentPrinterCode ===
-    'JEFE_OFICINA'
-  ) {
-    backupPrinterCode =
-      'JEFE_OFICINA_2';
-  } else if (
-    currentPrinterCode ===
-    'JEFE_OFICINA_2'
-  ) {
-    backupPrinterCode =
-      'JEFE_OFICINA';
-  }
+    let targetPrinterLabel =
+      '';
 
-  if (!backupPrinterCode) {
-    console.error(
-      'No se pudo determinar la impresora de respaldo.',
-    );
+    let title =
+      '';
 
-    return;
-  }
+    let message =
+      '';
 
-  const backupPrinterLabel =
-    backupPrinterCode ===
-      'JEFE_OFICINA_2'
-      ? 'Impresora 2'
-      : 'Impresora 1';
+    if (isPrinted) {
+      targetPrinterCode =
+        this.workstationPrinterService
+          .getPrinterCode();
 
-  this.dialogService
-    .confirm({
-      title:
-        'Enviar a impresora de respaldo',
+      targetPrinterLabel =
+        targetPrinterCode ===
+          'JEFE_OFICINA_2'
+          ? 'Impresora 2'
+          : 'Impresora 1';
 
-      message:
-        `La O.C. ${row.folio} se enviará a ${backupPrinterLabel}. ¿Deseas continuar?`,
+      title =
+        'Reimprimir ticket';
 
-      confirmText:
-        'Sí, enviar',
+      message =
+        `La O.C. ${row.folio} se volverá a imprimir en ${targetPrinterLabel}. ¿Deseas continuar?`;
+    } else {
+      const currentPrinterCode =
+        String(
+          row.printing?.printer_code ?? '',
+        )
+          .trim()
+          .toUpperCase();
 
-      cancelText:
-        'Cancelar',
+      if (
+        currentPrinterCode ===
+        'JEFE_OFICINA'
+      ) {
+        targetPrinterCode =
+          'JEFE_OFICINA_2';
+      } else if (
+        currentPrinterCode ===
+        'JEFE_OFICINA_2'
+      ) {
+        targetPrinterCode =
+          'JEFE_OFICINA';
+      }
 
-      size:
-        'mini',
+      if (!targetPrinterCode) {
+        console.error(
+          'No se pudo determinar la impresora de respaldo.',
+        );
 
-      variant:
-        'primary',
-    })
-    .subscribe((confirmed) => {
-      if (!confirmed) {
         return;
       }
 
-      this.loadingTable.set(
-        true,
-      );
+      targetPrinterLabel =
+        targetPrinterCode ===
+          'JEFE_OFICINA_2'
+          ? 'Impresora 2'
+          : 'Impresora 1';
 
-      this.purchaseOrdersService
-        .reprintPurchaseOrder(
-          row.id,
-          {
-            printer_code:
-              backupPrinterCode,
-          },
-        )
-        .subscribe({
-          next: () => {
-            this.loadingTable.set(
-              false,
-            );
+      title =
+        'Enviar a impresora de respaldo';
 
-            this.loadPurchaseOrders();
-          },
+      message =
+        `La O.C. ${row.folio} se enviará a ${targetPrinterLabel}. ¿Deseas continuar?`;
+    }
 
-          error: (error) => {
-            this.loadingTable.set(
-              false,
-            );
+    this.dialogService
+      .confirm({
+        title,
 
-            console.error(
-              'Error al enviar ticket a impresora de respaldo:',
-              error,
-            );
-          },
-        });
-    });
-}
+        message,
+
+        confirmText:
+          isPrinted
+            ? 'Sí, reimprimir'
+            : 'Sí, enviar',
+
+        cancelText:
+          'Cancelar',
+
+        size:
+          'mini',
+
+        variant:
+          'primary',
+      })
+      .subscribe((confirmed) => {
+        if (!confirmed) {
+          return;
+        }
+
+        this.loadingTable.set(
+          true,
+        );
+
+        this.purchaseOrdersService
+          .reprintPurchaseOrder(
+            row.id,
+            {
+              printer_code:
+                targetPrinterCode,
+            },
+          )
+          .subscribe({
+            next: () => {
+              this.loadingTable.set(
+                false,
+              );
+
+              this.loadPurchaseOrders();
+            },
+
+            error: (error) => {
+              this.loadingTable.set(
+                false,
+              );
+
+              console.error(
+                'Error al reimprimir ticket de O.C.:',
+                error,
+              );
+            },
+          });
+      });
+  }
 
   // =========================================================
   // VER DETALLE
