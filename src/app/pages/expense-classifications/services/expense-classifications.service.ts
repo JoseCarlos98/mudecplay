@@ -103,34 +103,34 @@ export class ExpenseClassificationsService {
       payload,
     );
   }
-deactivateClassification(
-  classificationId: number,
-): Observable<
-  entity.ChangeExpenseReportClassificationStatusResponse
-> {
-
-  return this.http.patch<
+  deactivateClassification(
+    classificationId: number,
+  ): Observable<
     entity.ChangeExpenseReportClassificationStatusResponse
-  >(
-    `${this.apiUrl}/classifications/${classificationId}/deactivate`,
-    {},
-  );
-}
+  > {
+
+    return this.http.patch<
+      entity.ChangeExpenseReportClassificationStatusResponse
+    >(
+      `${this.apiUrl}/classifications/${classificationId}/deactivate`,
+      {},
+    );
+  }
 
 
-reactivateClassification(
-  classificationId: number,
-): Observable<
-  entity.ChangeExpenseReportClassificationStatusResponse
-> {
-
-  return this.http.patch<
+  reactivateClassification(
+    classificationId: number,
+  ): Observable<
     entity.ChangeExpenseReportClassificationStatusResponse
-  >(
-    `${this.apiUrl}/classifications/${classificationId}/reactivate`,
-    {},
-  );
-}
+  > {
+
+    return this.http.patch<
+      entity.ChangeExpenseReportClassificationStatusResponse
+    >(
+      `${this.apiUrl}/classifications/${classificationId}/reactivate`,
+      {},
+    );
+  }
 
 
   // =========================================================
@@ -143,12 +143,10 @@ reactivateClassification(
   ): Observable<
     entity.ExpenseClassificationPendingResponse
   > {
-
     let params =
       new HttpParams();
 
     if (filters) {
-
       params = setScalar(
         params,
         'search',
@@ -159,6 +157,14 @@ reactivateClassification(
         params,
         'sourceType',
         filters.sourceType,
+      );
+
+      params = setScalar(
+        params,
+        'all',
+        filters.all === true
+          ? 'true'
+          : undefined,
       );
 
       params = setScalar(

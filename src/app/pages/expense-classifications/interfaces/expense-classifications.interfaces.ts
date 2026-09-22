@@ -1,7 +1,3 @@
-// =========================================================
-// TIPOS BASE
-// =========================================================
-
 export type ExpenseClassificationSourceType =
   | 'concept'
   | 'product';
@@ -87,6 +83,8 @@ export interface ExpenseClassificationPendingFilters {
 
   sourceType?:
     ExpenseClassificationSourceType;
+
+  all?: boolean;
 
   page?: number;
 
@@ -386,3 +384,4 @@ export interface ChangeExpenseReportClassificationStatusResponse {
 
   classification: ExpenseReportClassification;
 }
+

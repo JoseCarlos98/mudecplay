@@ -1830,3 +1830,169 @@
       flex-end;
   }
 }
+
+/* =========================================================
+ * DESKTOP: HOMOLOGACIÓN OCUPA TODO EL ALTO DISPONIBLE
+ * Pendientes sin paginación + scroll interno
+ * ========================================================= */
+
+@media screen and (min-width: 1281px) {
+
+  :host {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  /* ---------------------------------------------------------
+   * Página completa:
+   * header/resumen/tabs arriba
+   * workspace ocupa todo lo restante
+   * --------------------------------------------------------- */
+
+  .expense-classifications {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-rows:
+      max-content
+      minmax(0, 1fr);
+
+    gap: 15px;
+  }
+
+  /*
+   * card-content normalmente ya trae margin-bottom.
+   * Aquí usamos gap del grid para no duplicar espacio.
+   */
+  .expense-classifications > .card-content {
+    margin-bottom: 0;
+  }
+
+  /* ---------------------------------------------------------
+   * Workspace Pendientes:
+   * izquierda + derecha ocupan todo el alto restante
+   * --------------------------------------------------------- */
+
+  .expense-classifications-workspace {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    align-items: stretch;
+
+    overflow: hidden;
+  }
+
+  /* ---------------------------------------------------------
+   * Los dos paneles del workspace tienen mismo alto
+   * --------------------------------------------------------- */
+
+  .expense-classifications-panel--pending,
+  .expense-classifications-panel--catalog {
+    height: 100%;
+    min-height: 0;
+
+    margin-bottom: 0;
+
+    overflow: hidden;
+  }
+
+  /* ---------------------------------------------------------
+   * PANEL IZQUIERDO
+   *
+   * 1. Header
+   * 2. Filtros
+   * 3. Acciones selección
+   * 4. Tabla = TODO EL ESPACIO SOBRANTE
+   * --------------------------------------------------------- */
+
+  .expense-classifications-panel--pending {
+    grid-template-rows:
+      max-content
+      max-content
+      max-content
+      minmax(0, 1fr);
+  }
+
+  /* ---------------------------------------------------------
+   * TABLA PENDIENTES
+   *
+   * Eliminamos el clamp anterior:
+   * clamp(300px, 38vh, 460px)
+   * --------------------------------------------------------- */
+
+  .expense-classifications-table-shell {
+    width: 100%;
+
+    height: 100%;
+    min-height: 0;
+
+    display: grid;
+
+    grid-template-rows:
+      minmax(0, 1fr);
+
+    overflow: hidden;
+  }
+
+  .expense-classifications-table-shell > app-data-table {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /* ---------------------------------------------------------
+   * PANEL DERECHO
+   *
+   * 1. Header
+   * 2. Toolbar
+   * 3. Clasificaciones = TODO EL ESPACIO SOBRANTE
+   * 4. Footer Homologar
+   * --------------------------------------------------------- */
+
+  .expense-classifications-panel--catalog {
+    grid-template-rows:
+      max-content
+      max-content
+      minmax(0, 1fr)
+      max-content;
+  }
+
+  /* ---------------------------------------------------------
+   * LISTADO DE CLASIFICACIONES
+   *
+   * Eliminamos el max-height anterior:
+   * clamp(300px, 45vh, 520px)
+   * --------------------------------------------------------- */
+
+  .classification-list {
+    height: 100%;
+    min-height: 0;
+    max-height: none;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    align-content: start;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ---------------------------------------------------------
+   * Footer siempre queda al fondo del panel derecho
+   * --------------------------------------------------------- */
+
+  .classification-assignment {
+    min-width: 0;
+  }
+}

@@ -533,14 +533,9 @@ export class ExpenseClassifications
       },
     };
   /*
-   * /pending ya viene paginado desde backend.
-   * pendingRows contiene únicamente la página actual.
+   * /pending se solicita con all=true.
+   * pendingRows contiene todos los resultados del filtro actual.
    */
-  pendingPageIndex =
-    0;
-
-  pendingPageSize =
-    10;
 
 
   get pendingVisibleRows():
@@ -559,9 +554,8 @@ export class ExpenseClassifications
 
 
   /*
-   * Conserva los objetos seleccionados aunque el usuario
-   * cambie de página. pendingRows solo contiene la página
-   * actual porque /pending ya está paginado en backend.
+   * Conserva los objetos seleccionados mientras el usuario
+   * filtra o trabaja con la lista completa de pendientes.
    */
   readonly selectedPendingItems =
     signal<
@@ -788,11 +782,8 @@ export class ExpenseClassifications
       pending:
         this.service
           .getPendingClassifications({
-            page:
-              1,
-
-            limit:
-              this.pendingPageSize,
+            all:
+              true,
           }),
 
 
@@ -1514,11 +1505,8 @@ export class ExpenseClassifications
 
 
   /*
-   * Por ahora agrega a la selección todos los registros
-   * de la página actualmente cargada.
-   *
-   * El modo "todos los resultados del filtro" se resolverá
-   * aparte en backend para no descargar todas las páginas.
+   * Agrega a la selección todos los registros
+   * actualmente cargados por el filtro.
    */
   selectAllPendingResults():
     void {
@@ -1606,46 +1594,6 @@ export class ExpenseClassifications
 
   // =========================================================
   // PENDIENTES:
-  // PAGINACIÓN BACKEND
-  // =========================================================
-
-  onPendingPageChange(
-    event:
-      PageEvent,
-  ): void {
-
-    this.pendingPageIndex =
-      event.pageIndex;
-
-    this.pendingPageSize =
-      event.pageSize;
-
-
-    const form =
-      this.pendingFilterForm
-        .getRawValue();
-
-
-    this.loadPending({
-      search:
-        form.search.trim(),
-
-      sourceType:
-        this.resolveSourceType(
-          form.sourceType,
-        ),
-
-      page:
-        event.pageIndex + 1,
-
-      limit:
-        event.pageSize,
-    });
-  }
-
-
-  // =========================================================
-  // PENDIENTES:
   // FILTROS
   // =========================================================
 
@@ -1700,13 +1648,8 @@ export class ExpenseClassifications
       .getPendingClassifications({
         ...filters,
 
-        page:
-          filters.page ??
-          1,
-
-        limit:
-          filters.limit ??
-          this.pendingPageSize,
+        all:
+          true,
       })
       .pipe(
         finalize(
@@ -1724,15 +1667,6 @@ export class ExpenseClassifications
 
           this.pendingResponse =
             response;
-
-          this.pendingPageIndex =
-            Math.max(
-              0,
-              response.meta.page - 1,
-            );
-
-          this.pendingPageSize =
-            response.meta.limit;
 
           this.setPendingItems(
             response.data,
@@ -2613,3 +2547,4 @@ export class ExpenseClassifications
     });
   }
 }
+
