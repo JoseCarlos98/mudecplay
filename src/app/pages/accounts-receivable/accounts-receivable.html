@@ -42,6 +42,7 @@
           formControlName="folio"
           label="Folio"
           type="text"
+            placeholder="Folio o serie"
           [isFilter]="true">
         </app-input-field>
 
@@ -53,12 +54,13 @@
         </app-input-select>
 
 
-        <app-input-field
-          formControlName="clientQuery"
-          label="Cliente / RFC"
-          type="text"
-          [isFilter]="true">
-        </app-input-field>
+<app-input-field
+  formControlName="clientQuery"
+  label="Cliente / RFC"
+  placeholder="Nombre o RFC del cliente"
+  type="text"
+  [isFilter]="true">
+</app-input-field>
 
 
         <app-input-select
