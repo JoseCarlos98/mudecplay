@@ -123,6 +123,8 @@ export class DailyAssistance implements OnInit {
 
   absenceEmployee: EmployeeCard | null = null;
 
+  correctingAbsence: AbsenceCard | null = null;
+
   cancellationReason = '';
   absenceReason = '';
 
@@ -377,6 +379,7 @@ export class DailyAssistance implements OnInit {
     this.editingAttendance = null;
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
+    this.correctingAbsence = null;
   }
 
   selectProject(projectId: number): void {
@@ -388,6 +391,7 @@ export class DailyAssistance implements OnInit {
     this.editingHours = Number(attendance.assigned_hours ?? 0);
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
+    this.correctingAbsence = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = attendance.project_id;
     this.cancellationReason = '';
@@ -399,6 +403,7 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = attendance;
     this.editingAttendance = null;
     this.absenceEmployee = null;
+    this.correctingAbsence = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
     this.cancellationReason = '';
@@ -414,11 +419,69 @@ export class DailyAssistance implements OnInit {
     this.absenceEmployee = employee;
     this.editingAttendance = null;
     this.cancellingAttendance = null;
+    this.correctingAbsence = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
     this.cancellationReason = '';
     this.absenceReason = 'No asistió';
     this.syncEmployeeSelection();
+  }
+
+  startCorrectAbsence(
+    attendance: AbsenceCard,
+  ): void {
+    if (this.isSaving) return;
+
+    this.correctingAbsence = attendance;
+
+    this.editingAttendance = null;
+    this.cancellingAttendance = null;
+    this.absenceEmployee = null;
+
+    this.selectedEmployeeIds.clear();
+    this.selectedProjectId = null;
+
+    this.cancellationReason = '';
+    this.absenceReason = '';
+
+    this.syncEmployeeSelection();
+  }
+
+  confirmCorrectAbsence(): void {
+    if (
+      !this.correctingAbsence ||
+      this.isSaving
+    ) {
+      return;
+    }
+
+    this.isSaving = true;
+
+    this.dailyAssistanceService
+      .restoreAbsence(
+        this.correctingAbsence.id,
+      )
+      .pipe(
+        finalize(() => {
+          this.isSaving = false;
+        }),
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe({
+        next: () => {
+          this.resetActionState();
+          this.reloadBoard();
+        },
+
+        error: (err) => {
+          console.error(
+            'Error corrigiendo falta:',
+            err,
+          );
+        },
+      });
   }
 
   clearActionPanel(): void {
@@ -817,6 +880,7 @@ export class DailyAssistance implements OnInit {
 
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
+    this.correctingAbsence = null;
 
     this.cancellationReason = '';
     this.absenceReason = '';

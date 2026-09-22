@@ -117,6 +117,16 @@ export class DailyAssistanceService {
     );
   }
 
+
+  restoreAbsence(
+    id: number,
+  ): Observable<entity.SuccessResponse> {
+    return this.http.patch<entity.SuccessResponse>(
+      `${this.apiUrl}/${id}/absence/restore`,
+      {},
+    );
+  }
+
   cancelAttendance(
     id: number,
     payload: entity.CancelEmployeeAttendance,

@@ -142,9 +142,29 @@ function getWarehouseAssignmentColumnPopover(
 }
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'cfdi_uuid_name', label: 'Tipo', type: 'chip', typeVariant: 'chip-neutral' },
-  { key: 'internal_folio', label: 'Folio' },
-  { key: 'date', label: 'Fecha', type: 'date' },
+  {
+    key: 'cfdi_uuid_name',
+    label: 'Tipo',
+    type: 'chip',
+    typeVariant: 'chip-neutral',
+  },
+  {
+    key: 'internal_folio',
+    label: 'Folio',
+  },
+  {
+    key: 'purchase_order_link',
+    label: 'O.C.',
+    type: 'relation',
+    path: 'folio',
+    fallback: 'Sin O.C.',
+    fallbackVariant: 'chip-neutral',
+  },
+  {
+    key: 'date',
+    label: 'Fecha',
+    type: 'date',
+  },
   {
     key: 'supplier',
     label: 'Proveedor',
@@ -153,7 +173,11 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
   },
-  { key: 'products', label: 'Productos', type: 'showItems' },
+  {
+    key: 'products',
+    label: 'Productos',
+    type: 'showItems',
+  },
   {
     key: 'warehouse_assignment_status_display',
     label: 'Asignación almacén',
@@ -162,9 +186,18 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     variantResolver: getWarehouseAssignmentColumnVariant,
     popoverContent: getWarehouseAssignmentColumnPopover,
   },
-  { key: 'total_amount', label: 'Monto', type: 'money', align: 'right' },
-  { key: 'remaining_amount', label: 'Saldo', type: 'money', align: 'right' },
-  // { key: 'is_archived', label: '¿Archivado?', type: 'booleanConfirm', align: 'center' },
+  {
+    key: 'total_amount',
+    label: 'Monto',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'remaining_amount',
+    label: 'Saldo',
+    type: 'money',
+    align: 'right',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
