@@ -69,6 +69,14 @@ export class Sidebar {
       route: '/reportes',
       roles: ['REPORTES_EMISOR'],
     },
+      {
+          name: 'Homologación de gastos',
+          icon: 'account_tree',
+          route: '/homologacion-gastos',
+          roles: [
+            'HOMOLOGACION_GASTOS_EDITOR',
+          ],
+        },
     {
       name: 'Tesorería',
       icon: 'account_balance_wallet',
@@ -204,6 +212,7 @@ export class Sidebar {
           route: '/ordenes-compra/fotos-sin-gasto',
           roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'],
         },
+        
       ],
     },
     {
@@ -252,14 +261,7 @@ export class Sidebar {
           route: '/productos',
           roles: ['PRODUCTOS_EDITOR'],
         },
-        {
-          name: 'Homologación de gastos',
-          icon: 'account_tree',
-          route: '/homologacion-gastos',
-          roles: [
-            'HOMOLOGACION_GASTOS_EDITOR',
-          ],
-        },
+      
         {
           name: 'Usuarios',
           icon: 'people',
