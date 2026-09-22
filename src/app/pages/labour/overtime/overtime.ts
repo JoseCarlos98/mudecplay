@@ -61,6 +61,7 @@ interface TableResponse<T> {
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
+  newRoles: ['HORAS_EXTRAS_EDITOR'],
 };
 
 @Component({
