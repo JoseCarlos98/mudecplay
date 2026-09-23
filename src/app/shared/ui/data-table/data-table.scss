@@ -85,141 +85,241 @@
   }
 
   /* ============================
- * Ordenamiento de columnas
- * ============================ */
-/* ============================
- * Ordenamiento de columnas
- * ============================ */
+   * Ordenamiento de columnas
+   * ============================ */
 
-.table-sort-header {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+  .table-header-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
 
-  white-space: nowrap;
-}
+    white-space: nowrap;
+  }
 
-.table-sort-header__main {
-  appearance: none;
+  /* ============================
+   * Información de sorting
+   * ============================ */
 
-  padding: 0;
-  margin: 0;
+  .table-sort-info-btn {
+    appearance: none;
 
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
 
-  color: inherit;
-  background: transparent;
+    padding: 0;
+    margin: 0 1px 0 0;
 
-  border: 0;
-  outline: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+// 
+    color: #94a3b8;
+    background: transparent;
 
-  font: inherit;
-  font-weight: inherit;
-  line-height: inherit;
+    border: 0;
+    border-radius: 999px;
 
-  white-space: nowrap;
-  cursor: pointer;
+    cursor: default;
 
-  transition:
-    color 0.18s ease;
-}
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
 
-.table-sort-header__main:hover {
-  color: var(--color-primary-strong);
-}
+    mat-icon {
+      width: 17px !important;
+      height: 17px !important;
 
-.table-sort-header__main:focus-visible {
-  color: var(--color-primary-strong);
+      margin: 0 !important;
 
-  outline: 2px solid rgba(39, 170, 225, 0.28);
-  outline-offset: 3px;
+      font-size: 17px !important;
+      line-height: 17px !important;
+    }
 
-  border-radius: 4px;
-}
+    &:hover {
+      color: var(--color-primary-strong);
+      background: rgba(39, 170, 225, 0.09);
+    }
 
-.table-sort-header--active
+    &:focus-visible {
+      color: var(--color-primary-strong);
+
+      outline: 2px solid rgba(39, 170, 225, 0.25);
+      outline-offset: 2px;
+    }
+  }
+
+  /* ============================
+   * Header sortable
+   * ============================ */
+
+  .table-sort-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    white-space: nowrap;
+  }
+
   .table-sort-header__main {
-  color: var(--color-primary-strong);
-}
+    appearance: none;
 
-.table-sort-header__label {
-  display: inline-flex;
-  align-items: center;
-}
+    padding: 0;
+    margin: 0;
 
-.table-sort-header__icon {
-  width: 18px !important;
-  height: 18px !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
 
-  margin: 0 !important;
+    color: inherit;
+    background: transparent;
 
-  color: #94a3b8;
+    border: 0;
+    outline: 0;
 
-  font-size: 18px !important;
-  line-height: 18px !important;
+    font: inherit;
+    font-weight: inherit;
+    line-height: inherit;
 
-  transition:
-    color 0.18s ease;
-}
+    white-space: nowrap;
+    cursor: pointer;
 
-.table-sort-header__main:hover
-  .table-sort-header__icon,
-.table-sort-header--active
+    transition:
+      color 0.18s ease;
+  }
+
+  .table-sort-header__main:hover {
+    color: var(--color-primary-strong);
+  }
+
+  .table-sort-header__main:focus-visible {
+    color: var(--color-primary-strong);
+
+    outline: 2px solid rgba(39, 170, 225, 0.28);
+    outline-offset: 3px;
+
+    border-radius: 4px;
+  }
+
+  .table-sort-header--active
+    .table-sort-header__main {
+    color: var(--color-primary-strong);
+  }
+
+  .table-sort-header__label {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ============================
+   * Flecha + prioridad
+   * ============================ */
+
+  .table-sort-header__indicator {
+    min-width: 18px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
   .table-sort-header__icon {
-  color: var(--color-primary-strong);
-}
+    width: 18px !important;
+    height: 18px !important;
 
-/* Limpiar orden */
+    margin: 0 !important;
 
-.table-sort-header__clear {
-  appearance: none;
+    color: #94a3b8;
 
-  width: 19px;
-  height: 19px;
+    font-size: 18px !important;
+    line-height: 18px !important;
 
-  min-width: 19px;
+    transition:
+      color 0.18s ease;
+  }
 
-  padding: 0;
-  margin: 0 0 0 1px;
+  .table-sort-header__main:hover
+    .table-sort-header__icon,
+  .table-sort-header--active
+    .table-sort-header__icon {
+    color: var(--color-primary-strong);
+  }
 
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  .table-sort-header__priority {
+    min-width: 16px;
+    height: 16px;
 
-  color: #94a3b8;
-  background: transparent;
+    padding: 0 4px;
 
-  border: 0;
-  border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-  cursor: pointer;
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
 
-  transition:
-    color 0.18s ease,
-    background 0.18s ease;
-}
+    border: 1px solid rgba(39, 170, 225, 0.22);
+    border-radius: 999px;
 
-.table-sort-header__clear mat-icon {
-  width: 14px !important;
-  height: 14px !important;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
 
-  margin: 0 !important;
+    cursor: help;
+  }
 
-  font-size: 14px !important;
-  line-height: 14px !important;
-}
+  /* ============================
+   * X para quitar criterio
+   * ============================ */
 
-.table-sort-header__clear:hover {
-  color: var(--color-primary-strong);
-  background: rgba(39, 170, 225, 0.1);
-}
+  .table-sort-header__clear {
+    appearance: none;
 
-.table-sort-header__clear:focus-visible {
-  outline: 2px solid rgba(39, 170, 225, 0.28);
-  outline-offset: 2px;
-}
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+    min-height: 19px;
+
+    padding: 0;
+    margin: 0 0 0 1px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #94a3b8;
+    background: transparent;
+
+    border: 0;
+    border-radius: 999px;
+
+    cursor: pointer;
+
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
+  }
+
+  .table-sort-header__clear mat-icon {
+    width: 14px !important;
+    height: 14px !important;
+
+    margin: 0 !important;
+
+    font-size: 14px !important;
+    line-height: 14px !important;
+  }
+
+  .table-sort-header__clear:hover {
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
+  }
+
+  .table-sort-header__clear:focus-visible {
+    outline: 2px solid rgba(39, 170, 225, 0.28);
+    outline-offset: 2px;
+  }
 
   td {
     padding: 8px 15px;
@@ -421,7 +521,11 @@
 
     pointer-events: none;
 
-    background: linear-gradient(to left, rgba(15, 23, 42, 0.08), transparent);
+    background: linear-gradient(
+      to left,
+      rgba(15, 23, 42, 0.08),
+      transparent
+    );
   }
 
   .c-actions-header {
@@ -782,8 +886,36 @@
 
 @media screen and (max-width: 875px) {
   .table-container {
+    .table-header-content {
+      gap: 5px;
+    }
+
+    .table-sort-info-btn {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+
+      mat-icon {
+        width: 15px !important;
+        height: 15px !important;
+
+        font-size: 15px !important;
+        line-height: 15px !important;
+      }
+    }
+
     .table-sort-header {
+      gap: 3px;
+    }
+
+    .table-sort-header__main {
       gap: 4px;
+    }
+
+    .table-sort-header__indicator {
+      min-width: 16px;
+      gap: 2px;
     }
 
     .table-sort-header__icon {
@@ -795,15 +927,27 @@
     }
 
     .table-sort-header__priority {
-      top: -7px;
-      right: -7px;
-
       min-width: 14px;
       height: 14px;
 
       padding: 0 3px;
 
       font-size: 8px;
+    }
+
+    .table-sort-header__clear {
+      width: 17px;
+      height: 17px;
+      min-width: 17px;
+      min-height: 17px;
+
+      mat-icon {
+        width: 13px !important;
+        height: 13px !important;
+
+        font-size: 13px !important;
+        line-height: 13px !important;
+      }
     }
 
     padding: 12px;

@@ -1,596 +1,1061 @@
 <div class="table-container">
   <div class="overflow-x-auto">
-    <table mat-table multiTemplateDataRows [dataSource]="dataSource" class="border-collapse">
+    <table
+      mat-table
+      multiTemplateDataRows
+      [dataSource]="dataSource"
+      class="border-collapse"
+    >
 
       <!-- Columna opcional para expandir -->
       <ng-container matColumnDef="expand">
-        <th mat-header-cell *matHeaderCellDef class="table-expand-column table-expand-header">
-
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          class="table-expand-column table-expand-header"
+        >
           <span class="table-visually-hidden">
             Detalle
           </span>
         </th>
 
-        <td mat-cell *matCellDef="let element" class="table-expand-column">
-
+        <td
+          mat-cell
+          *matCellDef="let element"
+          class="table-expand-column"
+        >
           @let expandButtonTooltip = getExpandTooltip(element);
 
-          <span class="table-expand-tooltip" [matTooltip]="expandButtonTooltip"
-            [matTooltipDisabled]="!expandButtonTooltip">
-
-            <button type="button" mat-icon-button class="table-expand-btn" [class.table-expand-btn--expanded]="
+          <span
+            class="table-expand-tooltip"
+            [matTooltip]="expandButtonTooltip"
+            [matTooltipDisabled]="!expandButtonTooltip"
+          >
+            <button
+              type="button"
+              mat-icon-button
+              class="table-expand-btn"
+              [class.table-expand-btn--expanded]="
                 isRowExpanded(element)
-              " [disabled]="!canExpandRow(element)" [attr.aria-expanded]="isRowExpanded(element)" [attr.aria-label]="
+              "
+              [disabled]="!canExpandRow(element)"
+              [attr.aria-expanded]="isRowExpanded(element)"
+              [attr.aria-label]="
                 expandButtonTooltip || 'Ver detalle'
-              " (click)="toggleRow(element, $event)">
-
-              <mat-icon>expand_more</mat-icon>
+              "
+              (click)="toggleRow(element, $event)"
+            >
+              <mat-icon>
+                expand_more
+              </mat-icon>
             </button>
           </span>
         </td>
       </ng-container>
 
       <!-- Columnas dinámicas -->
-      @for (col of columnsConfig; track col.key) {
-      <ng-container [matColumnDef]="col.key">
-        <th mat-header-cell *matHeaderCellDef class="text-left">
+      @for (
+        col of columnsConfig;
+        track col.key;
+        let isFirst = $first
+      ) {
+        <ng-container [matColumnDef]="col.key">
 
-@if (col.sortable) {
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="text-left"
+          >
+            <div class="table-header-content">
 
-  <div
-    class="table-sort-header"
-    [class.table-sort-header--active]="
-      isColumnSorted(col)
-    "
-  >
+              <!--
+                Ayuda global del ordenamiento.
+                Solo aparece una vez, al inicio de la primera columna,
+                y únicamente si la tabla tiene columnas ordenables.
+              -->
+              @if (
+                isFirst &&
+                hasSortableColumns()
+              ) {
+                <button
+                  type="button"
+                  class="table-sort-info-btn"
+                  [matTooltip]="getSortInfoTooltip()"
+                  matTooltipPosition="above"
+                  aria-label="Información sobre el ordenamiento"
+                  (click)="$event.stopPropagation()"
+                >
+                  <mat-icon>
+                    info_outline
+                  </mat-icon>
+                </button>
+              }
 
-    <button
-      type="button"
-      class="table-sort-header__main"
-      [matTooltip]="
-        getSortTooltip(col)
-      "
-      (click)="
-        onSortColumn(
-          col,
-          $event
-        )
-      "
-    >
+              @if (col.sortable) {
 
-      <span class="table-sort-header__label">
-        {{ col.label }}
-      </span>
+                <div
+                  class="table-sort-header"
+                  [class.table-sort-header--active]="
+                    isColumnSorted(col)
+                  "
+                >
 
-      <mat-icon
-        class="table-sort-header__icon"
-      >
-        {{ getSortIcon(col) }}
-      </mat-icon>
+                  <button
+                    type="button"
+                    class="table-sort-header__main"
+                    [matTooltip]="getSortTooltip(col)"
+                    (click)="
+                      onSortColumn(
+                        col,
+                        $event
+                      )
+                    "
+                  >
 
-    </button>
+                    <span class="table-sort-header__label">
+                      {{ col.label }}
+                    </span>
 
-    @if (isColumnSorted(col)) {
+                    <span class="table-sort-header__indicator">
 
-      <button
-        type="button"
-        class="table-sort-header__clear"
-        [attr.aria-label]="
-          'Quitar orden de ' + col.label
-        "
-        [matTooltip]="
-          'Quitar ordenamiento'
-        "
-        (click)="
-          clearSortColumn(
-            col,
-            $event
-          )
-        "
-      >
-        <mat-icon>
-          close
-        </mat-icon>
-      </button>
+                      <mat-icon
+                        class="table-sort-header__icon"
+                      >
+                        {{ getSortIcon(col) }}
+                      </mat-icon>
 
-    }
+                      @if (
+                        getSortPriority(col);
+                        as priority
+                      ) {
+                        <span
+                          class="table-sort-header__priority"
+                          [matTooltip]="
+                            'Prioridad ' + priority
+                          "
+                        >
+                          {{ priority }}
+                        </span>
+                      }
 
-  </div>
+                    </span>
+                  </button>
 
-} @else {
+                  @if (isColumnSorted(col)) {
 
-  {{ col.label }}
+                    <button
+                      type="button"
+                      class="table-sort-header__clear"
+                      [attr.aria-label]="
+                        'Quitar orden de ' + col.label
+                      "
+                      matTooltip="Quitar ordenamiento"
+                      (click)="
+                        clearSortColumn(
+                          col,
+                          $event
+                        )
+                      "
+                    >
+                      <mat-icon>
+                        close
+                      </mat-icon>
+                    </button>
 
-}
+                  }
 
-        </th>
+                </div>
 
-        <td mat-cell *matCellDef="let element" [class.text-right]="col.align === 'right'"
-          [class.text-center]="col.align === 'center'">
+              } @else {
 
-          @switch (col.type) {
+                <span>
+                  {{ col.label }}
+                </span>
 
-          <!-- RELATION -->
-          @case ('relation') {
-          @let rel = getRelationValue(
-          element[col.key],
-          col.path
-          );
+              }
 
-          @let relationVariant = getColumnVariant(
-          col,
-          element
-          );
+            </div>
+          </th>
 
-          @if (rel) {
-          @if (relationVariant) {
-          <span class="table-chip" [ngClass]="{
+          <td
+            mat-cell
+            *matCellDef="let element"
+            [class.text-right]="
+              col.align === 'right'
+            "
+            [class.text-center]="
+              col.align === 'center'
+            "
+          >
+
+            @switch (col.type) {
+
+              <!-- RELATION -->
+              @case ('relation') {
+
+                @let rel = getRelationValue(
+                  element[col.key],
+                  col.path
+                );
+
+                @let relationVariant =
+                  getColumnVariant(
+                    col,
+                    element
+                  );
+
+                @if (rel) {
+
+                  @if (relationVariant) {
+
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
                         'table-chip-success':
-                          relationVariant === 'chip-success',
-                        'table-chip-warning':
-                          relationVariant === 'chip-warning',
-                        'table-chip-neutral':
-                          relationVariant === 'chip-neutral',
-                        'table-chip-danger':
-                          relationVariant === 'chip-danger'
-                      }">
+                          relationVariant ===
+                          'chip-success',
 
-            {{ rel }}
-          </span>
-          } @else {
-          {{ rel }}
-          }
-          } @else {
-          @if (col.fallbackVariant) {
-          <span class="table-chip" [ngClass]="{
+                        'table-chip-warning':
+                          relationVariant ===
+                          'chip-warning',
+
+                        'table-chip-neutral':
+                          relationVariant ===
+                          'chip-neutral',
+
+                        'table-chip-danger':
+                          relationVariant ===
+                          'chip-danger'
+                      }"
+                    >
+                      {{ rel }}
+                    </span>
+
+                  } @else {
+
+                    {{ rel }}
+
+                  }
+
+                } @else {
+
+                  @if (col.fallbackVariant) {
+
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
                         'table-chip-success':
-                          col.fallbackVariant === 'chip-success',
+                          col.fallbackVariant ===
+                          'chip-success',
+
                         'table-chip-warning':
-                          col.fallbackVariant === 'chip-warning',
+                          col.fallbackVariant ===
+                          'chip-warning',
+
                         'table-chip-neutral':
-                          col.fallbackVariant === 'chip-neutral',
+                          col.fallbackVariant ===
+                          'chip-neutral',
+
                         'table-chip-danger':
-                          col.fallbackVariant === 'chip-danger'
-                      }">
+                          col.fallbackVariant ===
+                          'chip-danger'
+                      }"
+                    >
+                      {{
+                        getEmptyLabel(
+                          col.fallback
+                        )
+                      }}
+                    </span>
 
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
-          }
+                  } @else {
 
-          <!-- MONEY -->
-          @case ('money') {
-          <span class="money-cell" [class.empty-cell]="
-                    isEmptyValue(element[col.key])
-                  ">
+                    <span class="empty-cell">
+                      {{
+                        getEmptyLabel(
+                          col.fallback
+                        )
+                      }}
+                    </span>
 
-            {{
-            isEmptyValue(element[col.key])
-            ? getEmptyLabel(col.fallback)
-            : (
-            element[col.key]
-            | currency:'$':'symbol':'1.2-2'
-            )
-            }}
-          </span>
-          }
+                  }
 
-          <!-- DATE -->
-          @case ('date') {
-          <span [class.empty-cell]="
-                    isEmptyValue(element[col.key])
-                  ">
+                }
+              }
 
-            {{
-            isEmptyValue(element[col.key])
-            ? getEmptyLabel(col.fallback)
-            : (
-            element[col.key]
-            | date:'d MMM y':'es-MX'
-            )
-            }}
-          </span>
-          }
+              <!-- MONEY -->
+              @case ('money') {
 
-          <!-- SHOW ITEMS -->
-          @case ('showItems') {
-          <button type="button" class="btn-view-row" (click)="
-                    onRowAction('showItems', element)
-                  ">
+                <span
+                  class="money-cell"
+                  [class.empty-cell]="
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                  "
+                >
+                  {{
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                      ? getEmptyLabel(
+                          col.fallback
+                        )
+                      : (
+                          element[col.key]
+                          | currency:
+                            '$':
+                            'symbol':
+                            '1.2-2'
+                        )
+                  }}
+                </span>
+              }
 
-            <mat-icon>visibility</mat-icon>
-            <span>Ver</span>
-          </button>
-          }
+              <!-- DATE -->
+              @case ('date') {
 
-          <!-- PHONE -->
-          @case ('phone') {
-          <span class="phone-cell" [class.empty-cell]="
-                    isEmptyValue(element[col.key])
-                  ">
+                <span
+                  [class.empty-cell]="
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                  "
+                >
+                  {{
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                      ? getEmptyLabel(
+                          col.fallback
+                        )
+                      : (
+                          element[col.key]
+                          | date:
+                            'd MMM y':
+                            'es-MX'
+                        )
+                  }}
+                </span>
+              }
 
-            {{
-            isEmptyValue(element[col.key])
-            ? getEmptyLabel(col.fallback)
-            : formatPhoneCell(element[col.key])
-            }}
-          </span>
-          }
+              <!-- SHOW ITEMS -->
+              @case ('showItems') {
 
-          <!-- BOOLEAN CONFIRM -->
-          @case ('booleanConfirm') {
-          @if (
-          element[col.key] === true ||
-          element[col.key] === false
-          ) {
-          <span class="confirm-pill" [ngClass]="
+                <button
+                  type="button"
+                  class="btn-view-row"
+                  (click)="
+                    onRowAction(
+                      'showItems',
+                      element
+                    )
+                  "
+                >
+                  <mat-icon>
+                    visibility
+                  </mat-icon>
+
+                  <span>
+                    Ver
+                  </span>
+                </button>
+              }
+
+              <!-- PHONE -->
+              @case ('phone') {
+
+                <span
+                  class="phone-cell"
+                  [class.empty-cell]="
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                  "
+                >
+                  {{
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                      ? getEmptyLabel(
+                          col.fallback
+                        )
+                      : formatPhoneCell(
+                          element[col.key]
+                        )
+                  }}
+                </span>
+              }
+
+              <!-- BOOLEAN CONFIRM -->
+              @case ('booleanConfirm') {
+
+                @if (
+                  element[col.key] === true ||
+                  element[col.key] === false
+                ) {
+
+                  <span
+                    class="confirm-pill"
+                    [ngClass]="
                       element[col.key]
                         ? 'confirm-pill-yes'
                         : 'confirm-pill-no'
-                    ">
+                    "
+                  >
+                    <mat-icon
+                      class="confirm-pill-icon"
+                    >
+                      {{
+                        element[col.key]
+                          ? 'check_circle'
+                          : 'cancel'
+                      }}
+                    </mat-icon>
 
-            <mat-icon class="confirm-pill-icon">
-              {{
-              element[col.key]
-              ? 'check_circle'
-              : 'cancel'
-              }}
-            </mat-icon>
+                    <span
+                      class="confirm-pill-label"
+                    >
+                      {{
+                        element[col.key]
+                          ? 'Sí'
+                          : 'No'
+                      }}
+                    </span>
+                  </span>
 
-            <span class="confirm-pill-label">
-              {{ element[col.key] ? 'Sí' : 'No' }}
-            </span>
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
+                } @else {
 
-          <!-- CHIP -->
-          @case ('chip') {
-          @let chipVariant = getColumnVariant(
-          col,
-          element
-          );
+                  <span class="empty-cell">
+                    {{
+                      getEmptyLabel(
+                        col.fallback
+                      )
+                    }}
+                  </span>
 
-          @let chipPopover = getColumnPopover(
-          col,
-          element
-          );
+                }
+              }
 
-          @if (!isEmptyValue(element[col.key])) {
-          @if (chipPopover) {
-          <app-action-popover [title]="chipPopover.title" [message]="chipPopover.message ?? null"
-            [items]="chipPopover.items ?? []" [kind]="chipPopover.kind ?? 'info'">
+              <!-- CHIP -->
+              @case ('chip') {
 
-            <span popover-trigger class="cell-popover-trigger">
+                @let chipVariant =
+                  getColumnVariant(
+                    col,
+                    element
+                  );
 
-              <span class="table-chip" [ngClass]="{
+                @let chipPopover =
+                  getColumnPopover(
+                    col,
+                    element
+                  );
+
+                @if (
+                  !isEmptyValue(
+                    element[col.key]
+                  )
+                ) {
+
+                  @if (chipPopover) {
+
+                    <app-action-popover
+                      [title]="
+                        chipPopover.title
+                      "
+                      [message]="
+                        chipPopover.message ??
+                        null
+                      "
+                      [items]="
+                        chipPopover.items ??
+                        []
+                      "
+                      [kind]="
+                        chipPopover.kind ??
+                        'info'
+                      "
+                    >
+                      <span
+                        popover-trigger
+                        class="cell-popover-trigger"
+                      >
+                        <span
+                          class="table-chip"
+                          [ngClass]="{
                             'table-chip-success':
-                              chipVariant === 'chip-success',
+                              chipVariant ===
+                              'chip-success',
+
                             'table-chip-warning':
-                              chipVariant === 'chip-warning',
+                              chipVariant ===
+                              'chip-warning',
+
                             'table-chip-danger':
-                              chipVariant === 'chip-danger',
+                              chipVariant ===
+                              'chip-danger',
+
                             'table-chip-neutral':
                               !chipVariant ||
-                              chipVariant === 'chip-neutral'
-                          }">
+                              chipVariant ===
+                              'chip-neutral'
+                          }"
+                        >
+                          {{
+                            element[
+                              col.key
+                            ]
+                          }}
+                        </span>
+                      </span>
+                    </app-action-popover>
 
-                {{ element[col.key] }}
-              </span>
-            </span>
-          </app-action-popover>
-          } @else {
-          <span class="table-chip" [ngClass]="{
+                  } @else {
+
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
                         'table-chip-success':
-                          chipVariant === 'chip-success',
+                          chipVariant ===
+                          'chip-success',
+
                         'table-chip-warning':
-                          chipVariant === 'chip-warning',
+                          chipVariant ===
+                          'chip-warning',
+
                         'table-chip-danger':
-                          chipVariant === 'chip-danger',
+                          chipVariant ===
+                          'chip-danger',
+
                         'table-chip-neutral':
                           !chipVariant ||
-                          chipVariant === 'chip-neutral'
-                      }">
+                          chipVariant ===
+                          'chip-neutral'
+                      }"
+                    >
+                      {{
+                        element[
+                          col.key
+                        ]
+                      }}
+                    </span>
 
-            {{ element[col.key] }}
-          </span>
-          }
-          } @else {
-          @if (col.fallbackVariant) {
-          <span class="table-chip" [ngClass]="{
+                  }
+
+                } @else {
+
+                  @if (
+                    col.fallbackVariant
+                  ) {
+
+                    <span
+                      class="table-chip"
+                      [ngClass]="{
                         'table-chip-success':
-                          col.fallbackVariant === 'chip-success',
+                          col.fallbackVariant ===
+                          'chip-success',
+
                         'table-chip-warning':
-                          col.fallbackVariant === 'chip-warning',
+                          col.fallbackVariant ===
+                          'chip-warning',
+
                         'table-chip-neutral':
-                          col.fallbackVariant === 'chip-neutral',
+                          col.fallbackVariant ===
+                          'chip-neutral',
+
                         'table-chip-danger':
-                          col.fallbackVariant === 'chip-danger'
-                      }">
+                          col.fallbackVariant ===
+                          'chip-danger'
+                      }"
+                    >
+                      {{
+                        getEmptyLabel(
+                          col.fallback
+                        )
+                      }}
+                    </span>
 
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          } @else {
-          <span class="empty-cell">
-            {{ getEmptyLabel(col.fallback) }}
-          </span>
-          }
-          }
-          }
+                  } @else {
 
-          <!-- SELECT -->
-          @case ('select') {
+                    <span class="empty-cell">
+                      {{
+                        getEmptyLabel(
+                          col.fallback
+                        )
+                      }}
+                    </span>
 
-          <span class="table-select-tooltip" [matTooltip]="getSelectTooltip(col, element)"
-            [matTooltipDisabled]="!getSelectTooltip(col, element)">
+                  }
 
-            <button type="button" mat-icon-button class="table-select-btn" [class.table-select-btn--selected]="
-        isRowSelected(col, element)
-      " [disabled]="
-        isSelectDisabled(col, element)
-      " (click)="
-        onSelectColumn(col, element)
-      ">
+                }
+              }
 
-              <mat-icon>
-                {{
-                isRowSelected(col, element)
-                ? 'check_circle'
-                : 'radio_button_unchecked'
-                }}
-              </mat-icon>
+              <!-- SELECT -->
+              @case ('select') {
 
-            </button>
+                <span
+                  class="table-select-tooltip"
+                  [matTooltip]="
+                    getSelectTooltip(
+                      col,
+                      element
+                    )
+                  "
+                  [matTooltipDisabled]="
+                    !getSelectTooltip(
+                      col,
+                      element
+                    )
+                  "
+                >
+                  <button
+                    type="button"
+                    mat-icon-button
+                    class="table-select-btn"
+                    [class.table-select-btn--selected]="
+                      isRowSelected(
+                        col,
+                        element
+                      )
+                    "
+                    [disabled]="
+                      isSelectDisabled(
+                        col,
+                        element
+                      )
+                    "
+                    (click)="
+                      onSelectColumn(
+                        col,
+                        element
+                      )
+                    "
+                  >
+                    <mat-icon>
+                      {{
+                        isRowSelected(
+                          col,
+                          element
+                        )
+                          ? 'check_circle'
+                          : 'radio_button_unchecked'
+                      }}
+                    </mat-icon>
+                  </button>
+                </span>
+              }
 
-          </span>
+              <!-- DEFAULT -->
+              @default {
 
-          }
+                <span
+                  [class.empty-cell]="
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                  "
+                >
+                  {{
+                    isEmptyValue(
+                      element[col.key]
+                    )
+                      ? getEmptyLabel(
+                          col.fallback
+                        )
+                      : element[col.key]
+                  }}
+                </span>
+              }
+            }
 
-          <!-- DEFAULT -->
-          @default {
-          <span [class.empty-cell]="
-                    isEmptyValue(element[col.key])
-                  ">
-
-            {{
-            isEmptyValue(element[col.key])
-            ? getEmptyLabel(col.fallback)
-            : element[col.key]
-            }}
-          </span>
-          }
-          }
-        </td>
-      </ng-container>
+          </td>
+        </ng-container>
       }
 
       <!-- Columna de acciones -->
-      <ng-container matColumnDef="actions" [stickyEnd]="true">
+      <ng-container
+        matColumnDef="actions"
+        [stickyEnd]="true"
+      >
 
-        <th mat-header-cell *matHeaderCellDef class="text-center c-actions-header">
-
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          class="text-center c-actions-header"
+        >
           Acciones
         </th>
 
-        <td mat-cell *matCellDef="let element" class="c-actions-cells">
+        <td
+          mat-cell
+          *matCellDef="let element"
+          class="c-actions-cells"
+        >
 
           <div>
+
             <!-- EXTRA ACTIONS -->
-            @for (extra of extraActions; track extra.type) {
-            @if (
-            canShow(extra.roles) &&
-            isExtraActionVisible(extra, element)
+            @for (
+              extra of extraActions;
+              track extra.type
             ) {
-            @let popover = getExtraActionPopover(
-            extra,
-            element
-            );
 
-            @if (popover) {
-            <app-action-popover [title]="popover.title" [message]="popover.message ?? null"
-              [items]="popover.items ?? []" [kind]="popover.kind ?? 'warning'">
+              @if (
+                canShow(extra.roles) &&
+                isExtraActionVisible(
+                  extra,
+                  element
+                )
+              ) {
 
-              <span popover-trigger class="popover-action-trigger">
+                @let popover =
+                  getExtraActionPopover(
+                    extra,
+                    element
+                  );
 
-                <button type="button" mat-icon-button [class]="extra.buttonClass || ''" [class.is-action-disabled]="
+                @if (popover) {
+
+                  <app-action-popover
+                    [title]="
+                      popover.title
+                    "
+                    [message]="
+                      popover.message ??
+                      null
+                    "
+                    [items]="
+                      popover.items ??
+                      []
+                    "
+                    [kind]="
+                      popover.kind ??
+                      'warning'
+                    "
+                  >
+                    <span
+                      popover-trigger
+                      class="popover-action-trigger"
+                    >
+                      <button
+                        type="button"
+                        mat-icon-button
+                        [class]="
+                          extra.buttonClass ||
+                          ''
+                        "
+                        [class.is-action-disabled]="
                           isExtraActionDisabled(
                             extra,
                             element
                           )
-                        " [disabled]="
+                        "
+                        [disabled]="
                           isExtraActionDisabled(
                             extra,
                             element
                           )
-                        " (click)="
+                        "
+                        (click)="
                           onRowAction(
                             extra.type,
                             element
                           )
-                        ">
-
-                  <mat-icon [ngClass]="
+                        "
+                      >
+                        <mat-icon
+                          [ngClass]="
                             getExtraActionIconClass(
                               extra,
                               element
                             )
-                          ">
+                          "
+                        >
+                          {{ extra.icon }}
+                        </mat-icon>
+                      </button>
+                    </span>
+                  </app-action-popover>
 
-                    {{ extra.icon }}
-                  </mat-icon>
-                </button>
-              </span>
-            </app-action-popover>
-            } @else {
-            <span [matTooltip]="
+                } @else {
+
+                  <span
+                    [matTooltip]="
                       getExtraActionTooltip(
                         extra,
                         element
                       )
-                    " [matTooltipDisabled]="
+                    "
+                    [matTooltipDisabled]="
                       !getExtraActionTooltip(
                         extra,
                         element
                       )
-                    ">
-
-              <button type="button" mat-icon-button [class]="extra.buttonClass || ''" [class.is-action-disabled]="
+                    "
+                  >
+                    <button
+                      type="button"
+                      mat-icon-button
+                      [class]="
+                        extra.buttonClass ||
+                        ''
+                      "
+                      [class.is-action-disabled]="
                         isExtraActionDisabled(
                           extra,
                           element
                         )
-                      " [disabled]="
+                      "
+                      [disabled]="
                         isExtraActionDisabled(
                           extra,
                           element
                         )
-                      " (click)="
+                      "
+                      (click)="
                         onRowAction(
                           extra.type,
                           element
                         )
-                      ">
-
-                <mat-icon [ngClass]="
+                      "
+                    >
+                      <mat-icon
+                        [ngClass]="
                           getExtraActionIconClass(
                             extra,
                             element
                           )
-                        ">
+                        "
+                      >
+                        {{ extra.icon }}
+                      </mat-icon>
+                    </button>
+                  </span>
 
-                  {{ extra.icon }}
-                </mat-icon>
-              </button>
-            </span>
-            }
-            }
+                }
+              }
             }
 
             <!-- EDIT -->
             @if (
-            showEditEffective &&
-            canShow(editRolesEffective)
+              showEditEffective &&
+              canShow(
+                editRolesEffective
+              )
             ) {
-            <span [matTooltip]="editTooltip(element) || ''" [matTooltipDisabled]="
+
+              <span
+                [matTooltip]="
+                  editTooltip(element) ||
+                  ''
+                "
+                [matTooltipDisabled]="
                   !editTooltip(element)
-                ">
-
-              <button type="button" matTooltip="Editar" mat-icon-button class="edit-btn" [disabled]="!canEdit(element)"
-                (click)="
-                    onRowAction('edit', element)
-                  ">
-
-                <mat-icon>edit</mat-icon>
-              </button>
-            </span>
+                "
+              >
+                <button
+                  type="button"
+                  matTooltip="Editar"
+                  mat-icon-button
+                  class="edit-btn"
+                  [disabled]="
+                    !canEdit(element)
+                  "
+                  (click)="
+                    onRowAction(
+                      'edit',
+                      element
+                    )
+                  "
+                >
+                  <mat-icon>
+                    edit
+                  </mat-icon>
+                </button>
+              </span>
             }
 
             <!-- DELETE -->
             @if (
-            showDeleteEffective &&
-            canShow(deleteRolesEffective)
+              showDeleteEffective &&
+              canShow(
+                deleteRolesEffective
+              )
             ) {
-            <span [matTooltip]="
-                  deleteTooltip(element) || ''
-                " [matTooltipDisabled]="
+
+              <span
+                [matTooltip]="
+                  deleteTooltip(element) ||
+                  ''
+                "
+                [matTooltipDisabled]="
                   !deleteTooltip(element)
-                ">
-
-              <button type="button" matTooltip="Eliminar" mat-icon-button class="delete-btn"
-                [disabled]="!canDelete(element)" (click)="
-                    onRowAction('delete', element)
-                  ">
-
-                <mat-icon>delete</mat-icon>
-              </button>
-            </span>
+                "
+              >
+                <button
+                  type="button"
+                  matTooltip="Eliminar"
+                  mat-icon-button
+                  class="delete-btn"
+                  [disabled]="
+                    !canDelete(element)
+                  "
+                  (click)="
+                    onRowAction(
+                      'delete',
+                      element
+                    )
+                  "
+                >
+                  <mat-icon>
+                    delete
+                  </mat-icon>
+                </button>
+              </span>
             }
+
           </div>
         </td>
       </ng-container>
 
       <!-- Contenido reutilizable expandido -->
-      <ng-container matColumnDef="expandedDetail">
-        <td mat-cell *matCellDef="let element" class="table-expanded-cell" [attr.colspan]="renderedColumns.length">
+      <ng-container
+        matColumnDef="expandedDetail"
+      >
 
-          <div class="table-expanded-content" [class.table-expanded-content--open]="
+        <td
+          mat-cell
+          *matCellDef="let element"
+          class="table-expanded-cell"
+          [attr.colspan]="
+            renderedColumns.length
+          "
+        >
+          <div
+            class="table-expanded-content"
+            [class.table-expanded-content--open]="
               isRowExpanded(element)
-            " [attr.aria-hidden]="
+            "
+            [attr.aria-hidden]="
               !isRowExpanded(element)
-            ">
+            "
+          >
 
-            @if (isRowExpanded(element)) {
             @if (
-            expandedRowTemplate;
-            as detailTemplate
+              isRowExpanded(element)
             ) {
-            <ng-container *ngTemplateOutlet="
+
+              @if (
+                expandedRowTemplate;
+                as detailTemplate
+              ) {
+
+                <ng-container
+                  *ngTemplateOutlet="
                     detailTemplate;
                     context:
-                      getExpandedRowContext(element)
-                  ">
-            </ng-container>
-            } @else {
-            <div class="table-expanded-fallback">
-              No hay detalle configurado para esta fila.
-            </div>
+                      getExpandedRowContext(
+                        element
+                      )
+                  "
+                >
+                </ng-container>
+
+              } @else {
+
+                <div
+                  class="table-expanded-fallback"
+                >
+                  No hay detalle configurado
+                  para esta fila.
+                </div>
+
+              }
             }
-            }
+
           </div>
         </td>
       </ng-container>
 
       <!-- Estado vacío -->
-      <tr class="mat-row table-empty-row" *matNoDataRow>
-
-        <td class="mat-cell table-empty-cell" [attr.colspan]="renderedColumns.length">
-
-          <div class="table-empty-state">
-            <div class="table-empty-state__icon">
-              <mat-icon>table_rows</mat-icon>
+      <tr
+        class="mat-row table-empty-row"
+        *matNoDataRow
+      >
+        <td
+          class="mat-cell table-empty-cell"
+          [attr.colspan]="
+            renderedColumns.length
+          "
+        >
+          <div
+            class="table-empty-state"
+          >
+            <div
+              class="table-empty-state__icon"
+            >
+              <mat-icon>
+                table_rows
+              </mat-icon>
             </div>
 
-            <strong>No hay datos para mostrar.</strong>
+            <strong>
+              No hay datos para mostrar.
+            </strong>
 
             <p>
-              No encontramos registros que coincidan con los
-              filtros aplicados.
+              No encontramos registros que
+              coincidan con los filtros
+              aplicados.
             </p>
           </div>
         </td>
       </tr>
 
-      <tr mat-header-row *matHeaderRowDef="renderedColumns">
+      <tr
+        mat-header-row
+        *matHeaderRowDef="
+          renderedColumns
+        "
+      >
       </tr>
 
-      <tr mat-row *matRowDef="
+      <tr
+        mat-row
+        *matRowDef="
           let row;
           columns: renderedColumns;
           let dataIndex = dataIndex
-        " class="table-data-row transition-all duration-200" [class.table-data-row--even]="
+        "
+        class="
+          table-data-row
+          transition-all
+          duration-200
+        "
+        [class.table-data-row--even]="
           dataIndex % 2 === 1
-        " [class.table-data-row--odd]="
+        "
+        [class.table-data-row--odd]="
           dataIndex % 2 === 0
-        " [class.table-data-row--expanded]="
+        "
+        [class.table-data-row--expanded]="
           isRowExpanded(row)
-        ">
+        "
+      >
       </tr>
 
-      <tr mat-row *matRowDef="
+      <tr
+        mat-row
+        *matRowDef="
           let row;
           columns: ['expandedDetail'];
           when: detailRowPredicate
-        " class="table-expanded-row">
+        "
+        class="table-expanded-row"
+      >
       </tr>
+
     </table>
   </div>
 </div>
