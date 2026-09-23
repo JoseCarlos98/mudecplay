@@ -6,6 +6,18 @@ import {
 } from '../../../interfaces/treasury.interfaces';
 import { TreasuryAvailableInflowTableRow } from '../../treasury-accounts-receivable/treasury-accounts-receivable';
 
+
+export type TreasuryAccountsPayableSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface TreasuryAccountsPayableSortItem {
+  key: string;
+  direction:
+  TreasuryAccountsPayableSortDirection;
+}
+
+
 // =========================================================
 // REFERENCIAS BÁSICAS
 // =========================================================
@@ -79,24 +91,45 @@ export interface TreasuryAvailableOutflowFilters {
 
   search?: string;
 
+  sorts?: TreasuryAccountsPayableSortItem[];
+
   page: number;
   limit: number;
 }
 
+
 export interface TreasuryAvailableOutflowUiFilters {
-  dateRange: TreasuryAccountsPayableDateRange | null;
+  dateRange:
+  TreasuryAccountsPayableDateRange |
+  null;
 
   search: string;
   amount: number | null;
 
-  company_id: Catalog | number | string | null;
-  bank_id: Catalog | number | string | null;
-  bank_account_id: Catalog | number | string | null;
+  company_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  bank_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  bank_account_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  sorts:
+  TreasuryAccountsPayableSortItem[];
 
   page: number;
   limit: number;
 }
-
 // =========================================================
 // SALIDAS BANCARIAS DISPONIBLES
 // =========================================================
@@ -178,30 +211,58 @@ export type TreasuryPendingExpenseItemType =
 export interface TreasuryPendingExpenseItemFilters {
   supplier_id?: number | null;
   supplier_ids?: number[];
+
   project_id?: number | null;
 
   date_from?: string | null;
   date_to?: string | null;
 
-  item_type?: TreasuryPendingExpenseItemType | null;
+  item_type?:
+  TreasuryPendingExpenseItemType |
+  null;
+
   origin_type?: string | null;
+
   amount?: number | null;
+
   search?: string;
+
+  sorts?:
+  TreasuryAccountsPayableSortItem[];
 
   page: number;
   limit: number;
 }
 
+
 export interface TreasuryPendingExpenseItemUiFilters {
-  dateRange: TreasuryAccountsPayableDateRange | null;
+  dateRange:
+  TreasuryAccountsPayableDateRange |
+  null;
 
   search: string;
-  suppliersIds: Catalog[];
-  supplier_id?: Catalog | number | string | null;
-  project_id: Catalog | number | string | null;
 
-  // item_type: TreasuryPendingExpenseItemType | '';
-  amount: number | null;
+  suppliersIds:
+  Catalog[];
+
+  supplier_id?:
+  Catalog |
+  number |
+  string |
+  null;
+
+  project_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  amount:
+  number |
+  null;
+
+  sorts:
+  TreasuryAccountsPayableSortItem[];
 
   page: number;
   limit: number;
@@ -333,19 +394,37 @@ export interface TreasuryHistoricalPaymentFilters {
   | TreasuryHistoricalRegularizationType
   | null;
 
-  missing_payment_date?: boolean | null;
+  missing_payment_date?:
+  boolean |
+  null;
+
+  sorts?:
+  TreasuryAccountsPayableSortItem[];
 
   page: number;
   limit: number;
 }
 
+
 export interface TreasuryHistoricalPaymentUiFilters {
-  dateRange: TreasuryAccountsPayableDateRange | null;
+  dateRange:
+  TreasuryAccountsPayableDateRange |
+  null;
 
-  search: string;
+  search:
+  string;
 
-  supplier_id: Catalog | number | string | null;
-  project_id: Catalog | number | string | null;
+  supplier_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  project_id:
+  Catalog |
+  number |
+  string |
+  null;
 
   regularization_status:
   | TreasuryHistoricalRegularizationStatus
@@ -360,8 +439,14 @@ export interface TreasuryHistoricalPaymentUiFilters {
   | 'false'
   | '';
 
-  page: number;
-  limit: number;
+  sorts:
+  TreasuryAccountsPayableSortItem[];
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 
 // =========================================================

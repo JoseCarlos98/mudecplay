@@ -117,6 +117,25 @@ export class TreasuryAccountsPayableService {
         );
       }
 
+      if (
+        filters.sorts?.length
+      ) {
+
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
+      }
+
       if (filters.date_to?.trim()) {
         params = params.set(
           'date_to',
@@ -163,6 +182,25 @@ export class TreasuryAccountsPayableService {
           filters.limit,
         ),
       );
+
+      if (
+        filters.sorts?.length
+      ) {
+
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
+      }
 
       if (
         filters.search?.trim()
@@ -322,6 +360,25 @@ export class TreasuryAccountsPayableService {
           'date_from',
           filters.date_from.trim(),
         );
+      }
+
+      if (
+        filters.sorts?.length
+      ) {
+
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
       }
 
       if (filters.date_to?.trim()) {

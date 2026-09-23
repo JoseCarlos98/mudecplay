@@ -485,29 +485,25 @@
             accounts-payable-table-shell
           ">
 
-        <app-data-table [data]="availableOutflowRows" [columnsConfig]="availableOutflowColumns"
-          [displayedColumns]="availableOutflowDisplayedColumns" [extraActions]="outflowExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="
-              onOutflowTableAction(
-                $event
-              )
-            ">
+        <app-data-table
+          [data]="availableOutflowRows"
+          [columnsConfig]="availableOutflowColumns"
+          [displayedColumns]="availableOutflowDisplayedColumns"
+          [extraActions]="outflowExtraActions"
+          [sorts]="availableOutflowSorts"
+          [actionPermissions]="tableActionPermissions"
+          (sortChange)="onAvailableOutflowSortChange($event)"
+          (action)="onOutflowTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator [length]="
-              outflowsTableData.meta.total
-            " [pageSize]="
-              outflowFilters.limit
-            " [pageIndex]="
-              outflowFilters.page - 1
-            " [pageSizeOptions]="
-              [5, 10, 25, 50]
-            " (page)="
-              onAvailableOutflowPageChange(
-                $event
-              )
-            " showFirstLastButtons>
+        <mat-paginator
+          [length]="outflowsTableData.meta.total"
+          [pageSize]="outflowFilters.limit"
+          [pageIndex]="outflowFilters.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onAvailableOutflowPageChange($event)"
+          showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -765,11 +761,6 @@
       </nav>
 
 
-      <!-- ===============================================
-             EFECTIVO MASIVO
-             Persiste al cambiar entre las dos subvistas.
-             =============================================== -->
-
       @if (
       selectedCashCount() >
       0
@@ -798,7 +789,6 @@
             </strong>
 
             <span>
-
               {{
               selectedCashCurrentCount()
               }}
@@ -820,7 +810,6 @@
               'symbol':
               '1.2-2'
               }}
-
             </span>
 
           </div>
@@ -869,11 +858,6 @@
 
       }
 
-
-      <!-- =================================================
-             SUBVISTA:
-             CONCEPTOS ACTUALES
-             ================================================= -->
 
       @if (
       pendingWorkspaceView() ===
@@ -932,7 +916,6 @@
         </mat-icon>
 
         <span>
-
           Movimiento:
 
           <strong>
@@ -967,17 +950,12 @@
             '1.2-2'
             }}
           </strong>
-
         </span>
 
       </div>
 
       }
 
-
-      <!-- =============================================
-               FILTROS CONCEPTOS
-               ============================================= -->
 
       <form [formGroup]="pendingItemFilterForm">
 
@@ -990,38 +968,43 @@
           </app-input-date>
 
 
-          <app-input-field formControlName="search" label="Buscar"
-            placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto" type="text" [isFilter]="true">
-          </app-input-field>
-
-
-          <app-input-field formControlName="amount" label="Importe" placeholder="Monto del concepto" type="money"
+          <app-input-field
+            formControlName="search"
+            label="Buscar"
+            placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto"
+            type="text"
             [isFilter]="true">
           </app-input-field>
 
 
-          <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
-            catalogType="supplier" valueMode="objects">
+          <app-input-field
+            formControlName="amount"
+            label="Importe"
+            placeholder="Monto del concepto"
+            type="money"
+            [isFilter]="true">
+          </app-input-field>
+
+
+          <app-autocomplete-multiple
+            formControlName="suppliersIds"
+            label="Proveedores"
+            [remote]="true"
+            catalogType="supplier"
+            valueMode="objects">
           </app-autocomplete-multiple>
 
 
-          <app-btns-section type="search" [hasActiveFilters]="
-                  hasActivePendingItemFilters
-                " (action)="
-                  onPendingBtnsSectionAction(
-                    $event
-                  )
-                ">
+          <app-btns-section
+            type="search"
+            [hasActiveFilters]="hasActivePendingItemFilters"
+            (action)="onPendingBtnsSectionAction($event)">
           </app-btns-section>
 
         </div>
 
       </form>
 
-
-      <!-- =============================================
-               SELECCIONAR PÁGINA PARA EFECTIVO
-               ============================================= -->
 
       <div class="cash-page-action">
 
@@ -1043,47 +1026,34 @@
       </div>
 
 
-      <!-- =============================================
-               TABLA CONCEPTOS
-               ============================================= -->
-
       <div class="
               c-module-table
               accounts-payable-table-shell
             ">
 
-        <app-data-table [data]="pendingExpenseItemRows" [columnsConfig]="pendingExpenseItemColumns"
-          [displayedColumns]="pendingExpenseItemDisplayedColumns" [extraActions]="pendingItemExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="
-                onPendingItemTableAction(
-                  $event
-                )
-              ">
+        <app-data-table
+          [data]="pendingExpenseItemRows"
+          [columnsConfig]="pendingExpenseItemColumns"
+          [displayedColumns]="pendingExpenseItemDisplayedColumns"
+          [extraActions]="pendingItemExtraActions"
+          [sorts]="pendingExpenseItemSorts"
+          [actionPermissions]="tableActionPermissions"
+          (sortChange)="onPendingExpenseItemSortChange($event)"
+          (action)="onPendingItemTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator [length]="
-                pendingItemsTableData.meta.total
-              " [pageSize]="
-                pendingItemFilters.limit
-              " [pageIndex]="
-                pendingItemFilters.page - 1
-              " [pageSizeOptions]="
-                [5, 10, 25, 50]
-              " (page)="
-                onPendingExpenseItemPageChange(
-                  $event
-                )
-              " showFirstLastButtons>
+        <mat-paginator
+          [length]="pendingItemsTableData.meta.total"
+          [pageSize]="pendingItemFilters.limit"
+          [pageIndex]="pendingItemFilters.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPendingExpenseItemPageChange($event)"
+          showFirstLastButtons>
         </mat-paginator>
 
       </div>
 
-
-      <!-- =============================================
-               PAGO BANCARIO ACTUAL
-               NO SE CAMBIA SU FUNCIONAMIENTO
-               ============================================= -->
 
       <footer class="payment-preparation">
 
@@ -1163,11 +1133,11 @@
         </div>
 
 
-        <button type="button" class="btn-primary" [disabled]="
-                !canPreparePayment()
-              " (click)="
-                preparePayment()
-              ">
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="!canPreparePayment()"
+          (click)="preparePayment()">
 
           <mat-icon>
             payments
@@ -1179,15 +1149,7 @@
 
       </footer>
 
-      }
-
-
-      <!-- =================================================
-             SUBVISTA:
-             HISTÓRICOS POR REGULARIZAR
-             ================================================= -->
-
-      @else {
+      } @else {
 
       <div class="accounts-payable-panel__header">
 
@@ -1227,10 +1189,6 @@
       </div>
 
 
-      <!-- =============================================
-               FILTROS HISTÓRICOS
-               ============================================= -->
-
       <form [formGroup]="historicalFilterForm">
 
         <div class="
@@ -1246,28 +1204,23 @@
           </app-input-field>
 
 
-          <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
+          <app-input-select
+            formControlName="missing_payment_date"
+            label="Fecha registrada"
             [options]="missingPaymentDateOptions">
           </app-input-select>
 
 
-          <app-btns-section type="search" [hasActiveFilters]="
-                  hasActiveHistoricalFilters
-                " (action)="
-                  onHistoricalBtnsSectionAction(
-                    $event
-                  )
-                ">
+          <app-btns-section
+            type="search"
+            [hasActiveFilters]="hasActiveHistoricalFilters"
+            (action)="onHistoricalBtnsSectionAction($event)">
           </app-btns-section>
 
         </div>
 
       </form>
 
-
-      <!-- =============================================
-               SELECCIONAR PÁGINA HISTÓRICA
-               ============================================= -->
 
       <div class="cash-page-action">
 
@@ -1289,38 +1242,30 @@
       </div>
 
 
-      <!-- =============================================
-               TABLA HISTÓRICOS PENDIENTES
-               ============================================= -->
-
       <div class="
               c-module-table
               accounts-payable-table-shell
             ">
 
-        <app-data-table [data]="historicalPaymentRows" [columnsConfig]="historicalPendingPaymentColumns"
-          [displayedColumns]="historicalPendingDisplayedColumns" [extraActions]="historicalExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="
-                onHistoricalTableAction(
-                  $event
-                )
-              ">
+        <app-data-table
+          [data]="historicalPaymentRows"
+          [columnsConfig]="historicalPendingPaymentColumns"
+          [displayedColumns]="historicalPendingDisplayedColumns"
+          [extraActions]="historicalExtraActions"
+          [sorts]="historicalSorts"
+          [actionPermissions]="tableActionPermissions"
+          (sortChange)="onHistoricalSortChange($event)"
+          (action)="onHistoricalTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator [length]="
-                historicalTableData.meta.total
-              " [pageSize]="
-                historicalFilters.limit
-              " [pageIndex]="
-                historicalFilters.page - 1
-              " [pageSizeOptions]="
-                [5, 10, 25, 50]
-              " (page)="
-                onHistoricalPaymentPageChange(
-                  $event
-                )
-              " showFirstLastButtons>
+        <mat-paginator
+          [length]="historicalTableData.meta.total"
+          [pageSize]="historicalFilters.limit"
+          [pageIndex]="historicalFilters.page - 1"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onHistoricalPaymentPageChange($event)"
+          showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -1334,11 +1279,6 @@
   }
 
 
-  <!-- =====================================================
-       TABS HISTÓRICAS EXISTENTES
-       Se conservan.
-       ===================================================== -->
-
   @if (
   activeTab() ===
   'historical_pending' ||
@@ -1351,11 +1291,6 @@
         shadow-md
         accounts-payable-panel
       ">
-
-
-    <!-- ===============================================
-           ENCABEZADO
-           =============================================== -->
 
     <div class="accounts-payable-panel__header">
 
@@ -1376,8 +1311,7 @@
           activeTab() ===
           'historical_regularized'
           ? 'Consulta los pagos históricos que ya tienen identificada su forma de pago, empresa o movimiento bancario.'
-          : 'Los pagos ya fueron aplicados al gasto. Solo falta identificar su forma de pago, empresa o movimiento
-          bancario.'
+          : 'Los pagos ya fueron aplicados al gasto. Solo falta identificar su forma de pago, empresa o movimiento bancario.'
           }}
         </p>
 
@@ -1410,11 +1344,6 @@
     </div>
 
 
-    <!-- ===============================================
-           EFECTIVO MASIVO
-           Solo para históricos pendientes
-           =============================================== -->
-
     @if (
     activeTab() ===
     'historical_pending' &&
@@ -1445,7 +1374,6 @@
           </strong>
 
           <span>
-
             {{
             selectedCashCurrentCount()
             }}
@@ -1467,7 +1395,6 @@
             'symbol':
             '1.2-2'
             }}
-
           </span>
 
         </div>
@@ -1477,14 +1404,14 @@
 
       <div class="cash-bulk-selection__actions">
 
-        <button type="button" class="
-                accounts-payable-button
-                accounts-payable-button--success
-              " [disabled]="
-                !canBulkCash()
-              " (click)="
-                openBulkCashPayment()
-              ">
+        <button
+          type="button"
+          class="
+            accounts-payable-button
+            accounts-payable-button--success
+          "
+          [disabled]="!canBulkCash()"
+          (click)="openBulkCashPayment()">
 
           <mat-icon>
             payments
@@ -1495,12 +1422,13 @@
         </button>
 
 
-        <button type="button" class="
-                accounts-payable-button
-                accounts-payable-button--neutral
-              " (click)="
-                clearBulkCashSelection()
-              ">
+        <button
+          type="button"
+          class="
+            accounts-payable-button
+            accounts-payable-button--neutral
+          "
+          (click)="clearBulkCashSelection()">
 
           <mat-icon>
             close
@@ -1517,10 +1445,6 @@
     }
 
 
-    <!-- ===============================================
-           FILTROS HISTÓRICOS
-           =============================================== -->
-
     <form [formGroup]="historicalFilterForm">
 
       <div class="
@@ -1528,11 +1452,18 @@
             accounts-payable-filters
           ">
 
-        <app-input-date formControlName="dateRange" label="Fecha de pago" mode="range">
+        <app-input-date
+          formControlName="dateRange"
+          label="Fecha de pago"
+          mode="range">
         </app-input-date>
 
 
-        <app-input-field formControlName="search" label="Buscar pago" type="text" [isFilter]="true">
+        <app-input-field
+          formControlName="search"
+          label="Buscar pago"
+          type="text"
+          [isFilter]="true">
         </app-input-field>
 
 
@@ -1541,35 +1472,32 @@
         'historical_regularized'
         ) {
 
-        <app-input-select formControlName="regularization_type" label="Tipo" [options]="regularizationTypeOptions">
+        <app-input-select
+          formControlName="regularization_type"
+          label="Tipo"
+          [options]="regularizationTypeOptions">
         </app-input-select>
 
         }
 
 
-        <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
+        <app-input-select
+          formControlName="missing_payment_date"
+          label="Fecha registrada"
           [options]="missingPaymentDateOptions">
         </app-input-select>
 
 
-        <app-btns-section type="search" [hasActiveFilters]="
-              hasActiveHistoricalFilters
-            " (action)="
-              onHistoricalBtnsSectionAction(
-                $event
-              )
-            ">
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveHistoricalFilters"
+          (action)="onHistoricalBtnsSectionAction($event)">
         </app-btns-section>
 
       </div>
 
     </form>
 
-
-    <!-- ===============================================
-           SELECCIONAR PÁGINA
-           Solo en pendientes
-           =============================================== -->
 
     @if (
     activeTab() ===
@@ -1578,12 +1506,13 @@
 
     <div class="cash-page-action">
 
-      <button type="button" class="
-              accounts-payable-button
-              accounts-payable-button--info
-            " (click)="
-              selectHistoricalCashPage()
-            ">
+      <button
+        type="button"
+        class="
+          accounts-payable-button
+          accounts-payable-button--info
+        "
+        (click)="selectHistoricalCashPage()">
 
         <mat-icon>
           select_all
@@ -1598,46 +1527,38 @@
     }
 
 
-    <!-- ===============================================
-           TABLA
-           =============================================== -->
-
     <div class="
           c-module-table
           accounts-payable-table-shell
         ">
 
-      <app-data-table [data]="historicalPaymentRows" [columnsConfig]="
-            activeTab() ===
-              'historical_regularized'
-              ? historicalRegularizedPaymentColumns
-              : historicalPendingPaymentColumns
-          " [displayedColumns]="
-            activeTab() ===
-              'historical_regularized'
-              ? historicalRegularizedDisplayedColumns
-              : historicalPendingDisplayedColumns
-          " [extraActions]="historicalExtraActions" [actionPermissions]="tableActionPermissions" (action)="
-            onHistoricalTableAction(
-              $event
-            )
-          ">
+      <app-data-table
+        [data]="historicalPaymentRows"
+        [columnsConfig]="
+          activeTab() === 'historical_regularized'
+            ? historicalRegularizedPaymentColumns
+            : historicalPendingPaymentColumns
+        "
+        [displayedColumns]="
+          activeTab() === 'historical_regularized'
+            ? historicalRegularizedDisplayedColumns
+            : historicalPendingDisplayedColumns
+        "
+        [extraActions]="historicalExtraActions"
+        [sorts]="historicalSorts"
+        [actionPermissions]="tableActionPermissions"
+        (sortChange)="onHistoricalSortChange($event)"
+        (action)="onHistoricalTableAction($event)">
       </app-data-table>
 
 
-      <mat-paginator [length]="
-            historicalTableData.meta.total
-          " [pageSize]="
-            historicalFilters.limit
-          " [pageIndex]="
-            historicalFilters.page - 1
-          " [pageSizeOptions]="
-            [5, 10, 25, 50]
-          " (page)="
-            onHistoricalPaymentPageChange(
-              $event
-            )
-          " showFirstLastButtons>
+      <mat-paginator
+        [length]="historicalTableData.meta.total"
+        [pageSize]="historicalFilters.limit"
+        [pageIndex]="historicalFilters.page - 1"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onHistoricalPaymentPageChange($event)"
+        showFirstLastButtons>
       </mat-paginator>
 
     </div>
@@ -1649,5 +1570,8 @@
 </div>
 
 
-<app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por pagar...">
+<app-loading-overlay
+  [visible]="loadingPage()"
+  [fullscreen]="true"
+  text="Cargando cuentas por pagar...">
 </app-loading-overlay>

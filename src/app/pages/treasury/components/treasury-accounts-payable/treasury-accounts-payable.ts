@@ -41,6 +41,7 @@ import {
   ColumnVariant,
   DataTableActionEvent,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 
 import { InputField } from '../../../../shared/ui/input-field/input-field';
@@ -163,14 +164,6 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
     ) =>
       row.classification_selected === true,
 
-    /*
-     * Solo los movimientos completamente
-     * disponibles pueden reclasificarse.
-     *
-     * Los parcialmente conciliados permanecen
-     * visibles, pero no deben entrar a esta
-     * selección administrativa.
-     */
     selectDisabledResolver: (
       row:
         entity.TreasuryAvailableOutflowTableRow,
@@ -194,67 +187,103 @@ const AVAILABLE_OUTFLOW_COLUMNS: ColumnsConfig[] = [
         : 'Seleccionar para revisión';
     },
   },
+
   {
     key: 'movement_date',
     label: 'Fecha',
     type: 'date',
+    sortable: true,
+    sortKey: 'movement_date',
   },
+
   {
     key: 'amount',
     label: 'Monto original',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'amount',
   },
+
   {
     key: 'available_amount',
     label: 'Disponible',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'available_amount',
   },
+
   {
     key: 'description_display',
     label: 'Descripción',
+    sortable: true,
+    sortKey: 'description',
   },
+
   {
     key: 'classification_label',
     label: 'Clasificación',
     type: 'chip',
+    sortable: true,
+    sortKey: 'classification',
+
     variantResolver: (
-      row: entity.TreasuryAvailableOutflowTableRow,
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
     ) =>
       resolveAvailableOutflowClassificationVariant(
         row,
       ),
   },
+
   {
     key: 'classification_review_label',
     label: 'Revisión',
     type: 'chip',
+    sortable: true,
+    sortKey: 'classification_reviewed',
+
     variantResolver: (
-      row: entity.TreasuryAvailableOutflowTableRow,
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
     ) =>
       resolveAvailableOutflowReviewVariant(
         row,
       ),
   },
+
   {
     key: 'company_name',
     label: 'Empresa',
+    sortable: true,
+    sortKey: 'company',
   },
+
   {
     key: 'bank_name',
     label: 'Banco',
+    sortable: true,
+    sortKey: 'bank',
   },
+
   {
     key: 'bank_account_display',
     label: 'Cuenta',
+    sortable: true,
+    sortKey: 'bank_account',
   },
+
   {
     key: 'status_label',
     label: 'Estatus',
     type: 'chip',
+    sortable: true,
+    sortKey: 'status',
+
     variantResolver: (
-      row: entity.TreasuryAvailableOutflowTableRow,
+      row:
+        entity.TreasuryAvailableOutflowTableRow,
     ) =>
       resolveAvailableOutflowStatusVariant(
         row,
@@ -297,63 +326,100 @@ const PENDING_EXPENSE_ITEM_COLUMNS: ColumnsConfig[] = [
         ? 'Quitar de efectivo'
         : 'Seleccionar para pagar en efectivo',
   },
+
   {
     key: 'expense_date',
     label: 'Fecha',
     type: 'date',
+    sortable: true,
+    sortKey: 'expense_date',
   },
+
   {
     key: 'pending_amount',
     label: 'Pendiente',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'pending_amount',
   },
+
   {
     key: 'amount',
     label: 'Monto',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'amount',
   },
+
   {
     key: 'paid_amount',
     label: 'Pagado',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'paid_amount',
   },
+
   {
     key: 'internal_folio',
     label: 'Folio',
+    sortable: true,
+    sortKey: 'internal_folio',
   },
+
   {
     key: 'concept',
     label: 'Concepto',
+    sortable: true,
+    sortKey: 'concept',
   },
+
   {
     key: 'supplier_display_name',
     label: 'Proveedor',
+    sortable: true,
+    sortKey: 'supplier',
   },
-
 
   {
     key: 'project_name',
     label: 'Proyecto',
+    sortable: true,
+    sortKey: 'project',
   },
+
   {
     key: 'item_type_label',
     label: 'Tipo',
     type: 'chip',
+    sortable: true,
+    sortKey: 'item_type',
+
     variantResolver: (
-      row: entity.TreasuryPendingExpenseItemTableRow,
-    ) => resolveExpenseItemTypeVariant(row),
+      row:
+        entity.TreasuryPendingExpenseItemTableRow,
+    ) =>
+      resolveExpenseItemTypeVariant(
+        row,
+      ),
   },
 
   {
     key: 'payment_status_label',
     label: 'Estatus',
     type: 'chip',
+    sortable: true,
+    sortKey: 'payment_status',
+
     variantResolver: (
-      row: entity.TreasuryPendingExpenseItemTableRow,
-    ) => resolvePendingPaymentStatusVariant(row),
+      row:
+        entity.TreasuryPendingExpenseItemTableRow,
+    ) =>
+      resolvePendingPaymentStatusVariant(
+        row,
+      ),
   },
 ];
 
@@ -368,64 +434,92 @@ const PENDING_EXPENSE_ITEM_DISPLAYED_COLUMNS = [
 // COLUMNAS: HISTÓRICOS
 // =========================================================
 
-const HISTORICAL_PAYMENT_BASE_COLUMNS: ColumnsConfig[] = [
-  {
-    key: 'payment_date_display',
-    label: 'Fecha pago',
-  },
-  {
-    key: 'internal_folio',
-    label: 'Folio',
-  },
-  {
-    key: 'supplier_display_name',
-    label: 'Proveedor',
-  },
-  {
-    key: 'project_name',
-    label: 'Proyecto',
-  },
-  {
-    key: 'concept',
-    label: 'Concepto',
-  },
-  {
-    key: 'amount',
-    label: 'Importe',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'payment_method_label',
-    label: 'Método',
-    type: 'chip',
+const HISTORICAL_PAYMENT_BASE_COLUMNS:
+  ColumnsConfig[] = [
 
-    variantResolver: (
-      row:
-        entity.TreasuryHistoricalPaymentTableRow,
-    ) =>
-      resolveHistoricalPaymentMethodVariant(
-        row,
-      ),
-  },
-  {
-    key: 'company_name',
-    label: 'Empresa',
-  },
-  {
-    key: 'regularization_status_label',
-    label: 'Regularización',
-    type: 'chip',
+    {
+      key: 'payment_date_display',
+      label: 'Fecha pago',
+      sortable: true,
+      sortKey: 'payment_date',
+    },
 
-    variantResolver: (
-      row:
-        entity.TreasuryHistoricalPaymentTableRow,
-    ) =>
-      resolveRegularizationStatusVariant(
-        row,
-      ),
-  },
-];
+    {
+      key: 'internal_folio',
+      label: 'Folio',
+      sortable: true,
+      sortKey: 'internal_folio',
+    },
+
+    {
+      key: 'supplier_display_name',
+      label: 'Proveedor',
+      sortable: true,
+      sortKey: 'supplier',
+    },
+
+    {
+      key: 'project_name',
+      label: 'Proyecto',
+      sortable: true,
+      sortKey: 'project',
+    },
+
+    {
+      key: 'concept',
+      label: 'Concepto',
+      sortable: true,
+      sortKey: 'concept',
+    },
+
+    {
+      key: 'amount',
+      label: 'Importe',
+      type: 'money',
+      align: 'right',
+      sortable: true,
+      sortKey: 'amount',
+    },
+
+    {
+      key: 'payment_method_label',
+      label: 'Método',
+      type: 'chip',
+      sortable: true,
+      sortKey: 'payment_method',
+
+      variantResolver: (
+        row:
+          entity.TreasuryHistoricalPaymentTableRow,
+      ) =>
+        resolveHistoricalPaymentMethodVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'company_name',
+      label: 'Empresa',
+      sortable: true,
+      sortKey: 'company',
+    },
+
+    {
+      key: 'regularization_status_label',
+      label: 'Regularización',
+      type: 'chip',
+      sortable: true,
+      sortKey: 'regularization_status',
+
+      variantResolver: (
+        row:
+          entity.TreasuryHistoricalPaymentTableRow,
+      ) =>
+        resolveRegularizationStatusVariant(
+          row,
+        ),
+    },
+  ];
 
 const HISTORICAL_PENDING_PAYMENT_COLUMNS:
   ColumnsConfig[] = [
@@ -734,18 +828,33 @@ export class TreasuryAccountsPayable
   // FILTROS BACKEND
   // =========================================================
 
+  availableOutflowSorts:
+    entity.TreasuryAccountsPayableSortItem[] = [];
+
+  pendingExpenseItemSorts:
+    entity.TreasuryAccountsPayableSortItem[] = [];
+
+  historicalSorts:
+    entity.TreasuryAccountsPayableSortItem[] = [];
+
   outflowFilters:
     entity.TreasuryAvailableOutflowFilters = {
       page: 1,
       limit: 10,
+
       search: '',
       amount: null,
+
       company_id: null,
       bank_id: null,
       bank_account_id: null,
+
       date_from: null,
       date_to: null,
+
+      sorts: [],
     };
+
 
   pendingItemFilters:
     entity.TreasuryPendingExpenseItemFilters = {
@@ -763,22 +872,35 @@ export class TreasuryAccountsPayable
 
       date_from: null,
       date_to: null,
+
+      sorts: [],
     };
+
 
   historicalFilters:
     entity.TreasuryHistoricalPaymentFilters = {
       page: 1,
       limit: 10,
+
       search: '',
+
       supplier_id: null,
       project_id: null,
-      regularization_status: 'pending',
-      regularization_type: null,
-      missing_payment_date: null,
+
+      regularization_status:
+        'pending',
+
+      regularization_type:
+        null,
+
+      missing_payment_date:
+        null,
+
       date_from: null,
       date_to: null,
-    };
 
+      sorts: [],
+    };
   // =========================================================
   // FORMULARIOS UI
   // =========================================================
@@ -1941,6 +2063,9 @@ export class TreasuryAccountsPayable
       page: 1,
       limit:
         this.outflowFilters.limit,
+      sorts: [
+        ...this.availableOutflowSorts,
+      ],
     };
 
     this.outflowFilters =
@@ -1954,7 +2079,6 @@ export class TreasuryAccountsPayable
 
     this.loadAvailableOutflows();
   }
-
   clearAvailableOutflowFilters(): void {
     this.outflowFilterForm.reset(
       {
@@ -1970,18 +2094,29 @@ export class TreasuryAccountsPayable
       },
     );
 
+    this.availableOutflowSorts = [];
+
     this.outflowFilters = {
       page: 1,
+
       limit:
         this.outflowFilters.limit,
 
       amount: null,
+
       search: '',
+
       company_id: null,
+
       bank_id: null,
+
       bank_account_id: null,
+
       date_from: null,
+
       date_to: null,
+
+      sorts: [],
     };
 
     this.storage.removeItem(
@@ -2030,6 +2165,10 @@ export class TreasuryAccountsPayable
       date_to:
         ui.dateRange?.endDate ??
         null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -2065,8 +2204,8 @@ export class TreasuryAccountsPayable
       ) !== null ||
       this.getCatalogValue(
         value.bank_account_id,
-      ),
-
+      ) ||
+      this.availableOutflowSorts.length > 0
     );
   }
 
@@ -2097,6 +2236,9 @@ export class TreasuryAccountsPayable
       project_id:
         value.project_id ?? null,
 
+      sorts: [
+        ...this.pendingExpenseItemSorts,
+      ],
 
       page: 1,
       limit:
@@ -2130,6 +2272,8 @@ export class TreasuryAccountsPayable
       },
     );
 
+    this.pendingExpenseItemSorts = [];
+
     this.pendingItemFilters = {
       page: 1,
 
@@ -2137,16 +2281,22 @@ export class TreasuryAccountsPayable
         this.pendingItemFilters.limit,
 
       search: '',
+
       amount: null,
 
       supplier_ids: [],
+
       // supplier_id: null,
 
       project_id: null,
+
       // item_type: null,
 
       date_from: null,
+
       date_to: null,
+
+      sorts: [],
     };
 
     this.storage.removeItem(
@@ -2165,6 +2315,10 @@ export class TreasuryAccountsPayable
 
       limit:
         ui.limit,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
 
       search:
         ui.search?.trim() || '',
@@ -2215,6 +2369,7 @@ export class TreasuryAccountsPayable
   get hasActivePendingItemFilters(): boolean {
     const value =
       this.pendingItemFilterForm.getRawValue();
+
     const hasSuppliers =
       (value.suppliersIds?.length ?? 0) > 0;
 
@@ -2228,7 +2383,8 @@ export class TreasuryAccountsPayable
       hasSuppliers ||
       this.getCatalogValue(
         value.project_id,
-      ),
+      ) ||
+      this.pendingExpenseItemSorts.length > 0
     );
   }
 
@@ -2270,6 +2426,10 @@ export class TreasuryAccountsPayable
 
       limit:
         this.historicalFilters.limit,
+
+      sorts: [
+        ...this.historicalSorts,
+      ],
     };
 
     this.historicalFilters =
@@ -2306,6 +2466,7 @@ export class TreasuryAccountsPayable
           regularizationStatus,
 
         regularization_type: '',
+
         missing_payment_date: '',
       },
       {
@@ -2313,23 +2474,32 @@ export class TreasuryAccountsPayable
       },
     );
 
+    this.historicalSorts = [];
+
     this.historicalFilters = {
       page: 1,
-      limit: currentLimit,
+
+      limit:
+        currentLimit,
 
       search: '',
 
       supplier_id: null,
+
       project_id: null,
 
       regularization_status:
         regularizationStatus,
 
       regularization_type: null,
+
       missing_payment_date: null,
 
       date_from: null,
+
       date_to: null,
+
+      sorts: [],
     };
 
     /*
@@ -2392,6 +2562,10 @@ export class TreasuryAccountsPayable
       date_to:
         ui.dateRange?.endDate ??
         null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -2424,7 +2598,8 @@ export class TreasuryAccountsPayable
         value.project_id,
       ) ||
       value.regularization_type ||
-      value.missing_payment_date,
+      value.missing_payment_date ||
+      this.historicalSorts.length > 0
     );
   }
 
@@ -3546,12 +3721,19 @@ export class TreasuryAccountsPayable
         AVAILABLE_OUTFLOWS_FILTERS_KEY,
       );
 
-    if (!saved) return;
+    if (!saved) {
+      this.availableOutflowSorts = [];
+      return;
+    }
 
     const dateRange =
       this.normalizeDateRange(
         saved.dateRange,
       );
+
+    this.availableOutflowSorts = [
+      ...(saved.sorts ?? []),
+    ];
 
     this.outflowFilterForm.patchValue(
       {
@@ -3590,6 +3772,10 @@ export class TreasuryAccountsPayable
         limit:
           saved.limit ??
           this.outflowFilters.limit,
+
+        sorts: [
+          ...this.availableOutflowSorts,
+        ],
       });
   }
 
@@ -3601,12 +3787,19 @@ export class TreasuryAccountsPayable
         PENDING_EXPENSE_ITEMS_FILTERS_KEY,
       );
 
-    if (!saved) return;
+    if (!saved) {
+      this.pendingExpenseItemSorts = [];
+      return;
+    }
 
     const dateRange =
       this.normalizeDateRange(
         saved.dateRange,
       );
+
+    this.pendingExpenseItemSorts = [
+      ...(saved.sorts ?? []),
+    ];
 
     this.pendingItemFilterForm.patchValue(
       {
@@ -3641,101 +3834,109 @@ export class TreasuryAccountsPayable
         limit:
           saved.limit ??
           this.pendingItemFilters.limit,
+
+        sorts: [
+          ...this.pendingExpenseItemSorts,
+        ],
       });
   }
 
-  private restoreHistoricalFilters(
-    regularizationStatus:
-      entity.TreasuryHistoricalRegularizationStatus,
-  ): void {
-    const storageKey =
-      this.getHistoricalFiltersStorageKey(
-        regularizationStatus,
-      );
+private restoreHistoricalFilters(
+  regularizationStatus:
+    entity.TreasuryHistoricalRegularizationStatus,
+): void {
+  const storageKey =
+    this.getHistoricalFiltersStorageKey(
+      regularizationStatus,
+    );
 
-    const saved =
-      this.storage.getItem<
-        entity.TreasuryHistoricalPaymentUiFilters
-      >(
-        storageKey,
-      );
+  const saved =
+    this.storage.getItem<
+      entity.TreasuryHistoricalPaymentUiFilters
+    >(
+      storageKey,
+    );
 
-    const dateRange =
-      this.normalizeDateRange(
-        saved?.dateRange,
-      );
+  const dateRange =
+    this.normalizeDateRange(
+      saved?.dateRange,
+    );
 
-    const uiState:
-      entity.TreasuryHistoricalPaymentUiFilters = {
-      dateRange,
+  this.historicalSorts = [
+    ...(saved?.sorts ?? []),
+  ];
+
+  const uiState:
+    entity.TreasuryHistoricalPaymentUiFilters = {
+    dateRange,
+
+    search:
+      saved?.search ?? '',
+
+    supplier_id:
+      saved?.supplier_id ?? null,
+
+    project_id:
+      saved?.project_id ?? null,
+
+    /*
+     * La pestaña determina obligatoriamente
+     * el estado histórico.
+     */
+    regularization_status:
+      regularizationStatus,
+
+    regularization_type:
+      saved?.regularization_type ?? '',
+
+    missing_payment_date:
+      saved?.missing_payment_date ?? '',
+
+    sorts: [
+      ...this.historicalSorts,
+    ],
+
+    page:
+      saved?.page ?? 1,
+
+    limit:
+      saved?.limit ??
+      DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+  };
+
+  this.historicalFilterForm.reset(
+    {
+      dateRange:
+        uiState.dateRange,
 
       search:
-        saved?.search ?? '',
+        uiState.search,
 
       supplier_id:
-        saved?.supplier_id ?? null,
+        uiState.supplier_id,
 
       project_id:
-        saved?.project_id ?? null,
+        uiState.project_id,
 
-      /*
-       * Nunca se restaura el estado almacenado.
-       * La pestaña determina obligatoriamente el estado.
-       */
       regularization_status:
         regularizationStatus,
 
       regularization_type:
-        saved?.regularization_type ?? '',
+        uiState.regularization_type,
 
       missing_payment_date:
-        saved?.missing_payment_date ?? '',
+        uiState.missing_payment_date,
+    },
+    {
+      emitEvent: false,
+    },
+  );
 
-      page:
-        saved?.page ?? 1,
-
-      limit:
-        saved?.limit ??
-        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
-    };
-
-    /*
-     * Se usa reset para impedir que permanezcan valores
-     * pertenecientes a la pestaña anterior.
-     */
-    this.historicalFilterForm.reset(
-      {
-        dateRange:
-          uiState.dateRange,
-
-        search:
-          uiState.search,
-
-        supplier_id:
-          uiState.supplier_id,
-
-        project_id:
-          uiState.project_id,
-
-        regularization_status:
-          regularizationStatus,
-
-        regularization_type:
-          uiState.regularization_type,
-
-        missing_payment_date:
-          uiState.missing_payment_date,
-      },
-      {
-        emitEvent: false,
-      },
+  this.historicalFilters =
+    this.buildHistoricalBackendFiltersFromUi(
+      uiState,
     );
-
-    this.historicalFilters =
-      this.buildHistoricalBackendFiltersFromUi(
-        uiState,
-      );
-  }
+}
 
   private saveOutflowFiltersToStorage(
     state?: entity.TreasuryAvailableOutflowUiFilters,
@@ -3771,6 +3972,10 @@ export class TreasuryAccountsPayable
 
         limit:
           this.outflowFilters.limit,
+
+        sorts: [
+          ...this.availableOutflowSorts,
+        ],
       };
     }
 
@@ -3812,6 +4017,10 @@ export class TreasuryAccountsPayable
 
         limit:
           this.pendingItemFilters.limit,
+
+        sorts: [
+          ...this.pendingExpenseItemSorts,
+        ],
       };
     }
 
@@ -3861,6 +4070,10 @@ export class TreasuryAccountsPayable
 
         page:
           this.historicalFilters.page,
+
+        sorts: [
+          ...this.historicalSorts,
+        ],
 
         limit:
           this.historicalFilters.limit,
@@ -4824,5 +5037,81 @@ export class TreasuryAccountsPayable
           this.loadHistoricalPayments();
         },
       );
+  }
+
+
+  onAvailableOutflowSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.availableOutflowSorts = [
+      ...event.sorts,
+    ];
+
+    this.outflowFilters = {
+      ...this.outflowFilters,
+
+      page: 1,
+
+      sorts: [
+        ...this.availableOutflowSorts,
+      ],
+    };
+
+    this.saveOutflowFiltersToStorage();
+
+    this.loadAvailableOutflows();
+  }
+
+  onPendingExpenseItemSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.pendingExpenseItemSorts = [
+      ...event.sorts,
+    ];
+
+    this.pendingItemFilters = {
+      ...this.pendingItemFilters,
+
+      page: 1,
+
+      sorts: [
+        ...this.pendingExpenseItemSorts,
+      ],
+    };
+
+    this.savePendingItemFiltersToStorage();
+
+    this.loadPendingExpenseItems();
+  }
+
+  onHistoricalSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.historicalSorts = [
+      ...event.sorts,
+    ];
+
+    this.historicalFilters = {
+      ...this.historicalFilters,
+
+      page: 1,
+
+      sorts: [
+        ...this.historicalSorts,
+      ],
+    };
+
+    this.saveHistoricalFiltersToStorage(
+      undefined,
+      this.getHistoricalStatusForTab(),
+    );
+
+    this.loadHistoricalPayments();
   }
 }
