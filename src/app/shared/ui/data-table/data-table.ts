@@ -27,6 +27,9 @@ import {
 
 import type {
   ColumnVariant,
+  DataTableSortDirection,
+  DataTableSortEvent,
+  DataTableSortItem,
   TableActionPermissions,
 } from './interfaces/table-interfaces';
 
@@ -57,6 +60,8 @@ export class DataTable<T> implements OnChanges {
   @Input() columnsConfig: ColumnsConfig[] = [];
   @Input() data: T[] = [];
   @Input() emptyLabel = 'Sin dato';
+
+  @Input() sorts: DataTableSortItem[] = [];
 
   /** Reglas base */
   @Input() canEdit: (row: T) => boolean = () => true;
@@ -120,6 +125,9 @@ export class DataTable<T> implements OnChanges {
   @Output() rowExpansionChange =
     new EventEmitter<DataTableRowExpansionEvent<T>>();
 
+  @Output() sortChange =
+    new EventEmitter<DataTableSortEvent>();
+
   readonly dataSource = new MatTableDataSource<T>();
 
   readonly detailRowPredicate = (
@@ -150,6 +158,207 @@ export class DataTable<T> implements OnChanges {
     if (!this.expandable) {
       this.expandedRowKey = null;
     }
+  }
+
+  isSortableColumn(
+    col: ColumnsConfig,
+  ): boolean {
+    return col.sortable === true;
+  }
+
+  getSortKey(
+    col: ColumnsConfig,
+  ): string {
+    return col.sortKey || col.key;
+  }
+
+  getSortItem(
+    col: ColumnsConfig,
+  ): DataTableSortItem | null {
+
+    if (!this.isSortableColumn(col)) {
+      return null;
+    }
+
+    const sortKey =
+      this.getSortKey(col);
+
+    return (
+      this.sorts || []
+    ).find(
+      (sort) =>
+        sort.key === sortKey,
+    ) ?? null;
+  }
+
+  isColumnSorted(
+    col: ColumnsConfig,
+  ): boolean {
+    return !!this.getSortItem(col);
+  }
+
+  getSortPriority(
+    col: ColumnsConfig,
+  ): number | null {
+
+    if (!this.isSortableColumn(col)) {
+      return null;
+    }
+
+    const sortKey =
+      this.getSortKey(col);
+
+    const index =
+      (
+        this.sorts || []
+      ).findIndex(
+        (sort) =>
+          sort.key === sortKey,
+      );
+
+    return index >= 0
+      ? index + 1
+      : null;
+  }
+
+  getSortIcon(
+    col: ColumnsConfig,
+  ): string {
+
+    const sort =
+      this.getSortItem(col);
+
+    if (!sort) {
+      return 'unfold_more';
+    }
+
+    return sort.direction === 'asc'
+      ? 'arrow_upward'
+      : 'arrow_downward';
+  }
+
+  getSortTooltip(
+    col: ColumnsConfig,
+  ): string {
+
+    const sort =
+      this.getSortItem(col);
+
+    if (!sort) {
+      return `Ordenar ${col.label} ascendente`;
+    }
+
+    if (sort.direction === 'asc') {
+      return `Ordenar ${col.label} descendente`;
+    }
+
+    return `Quitar ordenamiento de ${col.label}`;
+  }
+
+  onSortColumn(
+    col: ColumnsConfig,
+    event?: Event,
+  ): void {
+
+    event?.stopPropagation();
+
+    if (!this.isSortableColumn(col)) {
+      return;
+    }
+
+    const sortKey =
+      this.getSortKey(col);
+
+    const currentSorts:
+      DataTableSortItem[] = [
+        ...(this.sorts || []),
+      ];
+
+    const currentIndex =
+      currentSorts.findIndex(
+        (sort) =>
+          sort.key === sortKey,
+      );
+
+    /*
+     * No está ordenada:
+     * se agrega al final como ASC.
+     */
+    if (currentIndex === -1) {
+
+      this.sortChange.emit({
+        sorts: [
+          ...currentSorts,
+          {
+            key: sortKey,
+            direction: 'asc',
+          },
+        ],
+      });
+
+      return;
+    }
+
+    const currentSort =
+      currentSorts[currentIndex];
+
+    /*
+     * Si ya está activa,
+     * únicamente alternamos ASC <-> DESC.
+     *
+     * La X será la responsable
+     * de eliminar el ordenamiento.
+     */
+    const nextDirection:
+      DataTableSortDirection =
+      currentSort.direction === 'asc'
+        ? 'desc'
+        : 'asc';
+
+    const nextSorts =
+      currentSorts.map(
+        (sort, index) =>
+          index === currentIndex
+            ? {
+              ...sort,
+              direction:
+                nextDirection,
+            }
+            : sort,
+      );
+
+    this.sortChange.emit({
+      sorts:
+        nextSorts,
+    });
+  }
+
+  clearSortColumn(
+    col: ColumnsConfig,
+    event?: Event,
+  ): void {
+
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    if (!this.isSortableColumn(col)) {
+      return;
+    }
+
+    const sortKey =
+      this.getSortKey(col);
+
+    const nextSorts =
+      (this.sorts || [])
+        .filter(
+          (sort) =>
+            sort.key !== sortKey,
+        );
+
+    this.sortChange.emit({
+      sorts:
+        nextSorts,
+    });
   }
 
   onRowAction(type: DataTableActionType, row: T): void {

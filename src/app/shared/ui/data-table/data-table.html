@@ -35,7 +35,74 @@
       <ng-container [matColumnDef]="col.key">
         <th mat-header-cell *matHeaderCellDef class="text-left">
 
-          {{ col.label }}
+@if (col.sortable) {
+
+  <div
+    class="table-sort-header"
+    [class.table-sort-header--active]="
+      isColumnSorted(col)
+    "
+  >
+
+    <button
+      type="button"
+      class="table-sort-header__main"
+      [matTooltip]="
+        getSortTooltip(col)
+      "
+      (click)="
+        onSortColumn(
+          col,
+          $event
+        )
+      "
+    >
+
+      <span class="table-sort-header__label">
+        {{ col.label }}
+      </span>
+
+      <mat-icon
+        class="table-sort-header__icon"
+      >
+        {{ getSortIcon(col) }}
+      </mat-icon>
+
+    </button>
+
+    @if (isColumnSorted(col)) {
+
+      <button
+        type="button"
+        class="table-sort-header__clear"
+        [attr.aria-label]="
+          'Quitar orden de ' + col.label
+        "
+        [matTooltip]="
+          'Quitar ordenamiento'
+        "
+        (click)="
+          clearSortColumn(
+            col,
+            $event
+          )
+        "
+      >
+        <mat-icon>
+          close
+        </mat-icon>
+      </button>
+
+    }
+
+  </div>
+
+} @else {
+
+  {{ col.label }}
+
+}
+
         </th>
 
         <td mat-cell *matCellDef="let element" [class.text-right]="col.align === 'right'"
