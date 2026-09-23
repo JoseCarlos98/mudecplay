@@ -175,7 +175,8 @@ export interface PurchaseOrderResponseDto {
   id: number;
 
   folio: string;
-
+  is_extra_work: boolean;
+  extra_work_name?: string;
   printing?: PurchaseOrderPrintingDto;
 
   project: PurchaseOrderProjectDto | null;
@@ -281,6 +282,7 @@ export interface PurchaseOrderResponseDto {
 
   printing_status_label?: string;
 }
+
 export interface PurchaseOrderFlowDetailResponse extends PurchaseOrderResponseDto {
   ticket_photos_count: number;
   expense_links_count: number;
@@ -331,6 +333,8 @@ export interface PurchaseOrderFilters {
 
   will_have_invoice?: boolean | null;
 
+  is_extra_work?: boolean | null;
+
   project_id?: number | null;
 
   ticket_filter?:
@@ -343,7 +347,6 @@ export interface PurchaseOrderFilters {
   | string
   | null;
 }
-
 
 export interface PurchaseOrderUiFilters {
   page: number;
@@ -376,6 +379,12 @@ export interface PurchaseOrderUiFilters {
   | ''
   | null;
 
+  is_extra_work?:
+  | 'true'
+  | 'false'
+  | ''
+  | null;
+
   projects?: Catalog[];
 }
 
@@ -383,13 +392,13 @@ export interface CreatePurchaseOrderDto {
   project_id?: number | null;
   destination_type: PurchaseOrderDestinationType;
   will_have_invoice: boolean;
+  is_extra_work?: boolean;
   concept: string;
   requested_amount: number;
   is_zero_amount_invoice?: boolean;
   zero_amount_reason?: string | null;
   requested_by_employee_id: number;
   notes?: string | null;
-
   printer_code?: string | null;
 }
 
@@ -397,6 +406,7 @@ export interface UpdatePurchaseOrderDto {
   project_id?: number | null;
   destination_type?: PurchaseOrderDestinationType;
   will_have_invoice?: boolean;
+  is_extra_work?: boolean;
   concept?: string;
   requested_amount?: number;
   is_zero_amount_invoice?: boolean;

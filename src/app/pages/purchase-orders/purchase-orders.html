@@ -29,6 +29,9 @@
         <app-input-select formControlName="will_have_invoice" label="Factura" [options]="invoiceOptions">
         </app-input-select>
 
+        <app-input-select formControlName="is_extra_work" label="Trabajo extra" [options]="extraWorkOptions">
+        </app-input-select>
+
         <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters" (action)="onBtnsSectionAction($event)">
         </app-btns-section>
 

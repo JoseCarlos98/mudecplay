@@ -138,6 +138,13 @@ const INVOICE_OPTIONS: Catalog[] = [
   },
 ];
 
+const EXTRA_WORK_OPTIONS: Catalog[] = [
+  {
+    id: 'true',
+    name: 'Sí',
+  },
+];
+
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
@@ -175,6 +182,17 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
     key: 'project_name',
     label: 'Proyecto',
+  },
+  {
+    key: 'extra_work_name',
+    label: 'Trabajo extra',
+    type: 'chip',
+    variantResolver: (
+      row: entity.PurchaseOrderResponseDto,
+    ) =>
+      row.is_extra_work
+        ? 'chip-warning'
+        : 'chip-neutral',
   },
   {
     key: 'concept',
@@ -378,6 +396,9 @@ export class PurchaseOrders
   readonly invoiceOptions =
     INVOICE_OPTIONS;
 
+  readonly extraWorkOptions =
+    EXTRA_WORK_OPTIONS;
+
 
   // =========================================================
   // LOADING
@@ -435,6 +456,8 @@ export class PurchaseOrders
 
       will_have_invoice: null,
 
+      is_extra_work: null,
+
       project_id: null,
     };
 
@@ -490,6 +513,15 @@ export class PurchaseOrders
         ),
 
       will_have_invoice:
+        this.fb.control<
+          'true'
+          | 'false'
+          | ''
+        >(
+          '',
+        ),
+
+      is_extra_work:
         this.fb.control<
           'true'
           | 'false'
@@ -724,195 +756,193 @@ export class PurchaseOrders
   // FILTROS ACTIVOS
   // =========================================================
 
-  get hasActiveFilters():
-    boolean {
+get hasActiveFilters():
+  boolean {
 
-    const form =
-      this.formFilters
-        .getRawValue();
+  const form =
+    this.formFilters
+      .getRawValue();
 
+  const hasSearch =
+    !!form.search?.trim();
 
-    const hasSearch =
-      !!form.search?.trim();
-
-
-    const hasDates =
-      !!(
-        form.dateRange?.startDate ||
-        form.dateRange?.endDate
-      );
-
-
-    const hasRequestedAmount =
-      form.requested_amount !== null;
-
-
-    const hasTrackingStatus =
-      !!this.getCatalogValue(
-        form.tracking_status ?? null,
-      );
-
-
-    const hasRelatedExpenseAmount =
-      form.related_expense_amount !== null;
-
-
-    const hasDestinationType =
-      !!form.destination_type;
-
-
-    const hasInvoice =
-      !!form.will_have_invoice;
-
-
-    return (
-      hasSearch ||
-      hasDates ||
-      hasRequestedAmount ||
-      hasRelatedExpenseAmount ||
-      hasTrackingStatus ||
-      hasDestinationType ||
-      hasInvoice
+  const hasDates =
+    !!(
+      form.dateRange?.startDate ||
+      form.dateRange?.endDate
     );
-  }
+
+  const hasRequestedAmount =
+    form.requested_amount !== null;
+
+  const hasTrackingStatus =
+    !!this.getCatalogValue(
+      form.tracking_status ?? null,
+    );
+
+  const hasRelatedExpenseAmount =
+    form.related_expense_amount !== null;
+
+  const hasDestinationType =
+    !!form.destination_type;
+
+  const hasInvoice =
+    !!form.will_have_invoice;
+
+  const hasExtraWork =
+    !!form.is_extra_work;
+
+  return (
+    hasSearch ||
+    hasDates ||
+    hasRequestedAmount ||
+    hasRelatedExpenseAmount ||
+    hasTrackingStatus ||
+    hasDestinationType ||
+    hasInvoice ||
+    hasExtraWork
+  );
+}
 
 
   // =========================================================
   // MAPEO FILTROS UI -> BACKEND
   // =========================================================
 
-  private buildBackendFiltersFromUi(
-    ui:
-      entity.PurchaseOrderUiFilters,
-  ):
-    entity.PurchaseOrderFilters {
+private buildBackendFiltersFromUi(
+  ui:
+    entity.PurchaseOrderUiFilters,
+):
+  entity.PurchaseOrderFilters {
 
-    const trackingStatus =
-      String(
-        ui.tracking_status ?? '',
-      ).trim();
+  const trackingStatus =
+    String(
+      ui.tracking_status ?? '',
+    ).trim();
 
+  const search =
+    String(
+      ui.search ?? '',
+    ).trim();
 
-    const search =
-      String(
-        ui.search ?? '',
-      ).trim();
+  return {
 
+    page:
+      ui.page,
 
-    return {
+    limit:
+      ui.limit,
 
-      page:
-        ui.page,
+    search:
+      search ||
+      null,
 
-      limit:
-        ui.limit,
+    startDate:
+      ui.dateRange
+        ?.startDate ??
+      null,
 
+    endDate:
+      ui.dateRange
+        ?.endDate ??
+      null,
 
-      search:
-        search ||
-        null,
+    requested_amount:
+      ui.requested_amount ??
+      null,
 
+    related_expense_amount:
+      ui.related_expense_amount ??
+      null,
 
-      startDate:
-        ui.dateRange
-          ?.startDate ??
-        null,
+    status:
+      null,
 
+    tracking_status:
+      trackingStatus ||
+      null,
 
-      endDate:
-        ui.dateRange
-          ?.endDate ??
-        null,
+    destination_type:
+      ui.destination_type ||
+      null,
 
+    will_have_invoice:
+      ui.will_have_invoice ===
+        'true'
+        ? true
+        : ui.will_have_invoice ===
+          'false'
+          ? false
+          : null,
 
-      requested_amount:
-        ui.requested_amount ??
-        null,
+    is_extra_work:
+      ui.is_extra_work ===
+        'true'
+        ? true
+        : ui.is_extra_work ===
+          'false'
+          ? false
+          : null,
 
-
-      related_expense_amount:
-        ui.related_expense_amount ??
-        null,
-
-
-      status:
-        null,
-
-
-      tracking_status:
-        trackingStatus ||
-        null,
-
-
-      destination_type:
-        ui.destination_type ||
-        null,
-
-
-      will_have_invoice:
-        ui.will_have_invoice ===
-          'true'
-          ? true
-          : ui.will_have_invoice ===
-            'false'
-            ? false
-            : null,
-
-
-      project_id:
-        null,
-    };
-  }
+    project_id:
+      null,
+  };
+}
 
 
   // =========================================================
   // MAPEO TABLA
   // =========================================================
 
-  private mapPurchaseOrderRow(
-    row:
-      entity.PurchaseOrderResponseDto,
-  ):
-    entity.PurchaseOrderResponseDto {
+private mapPurchaseOrderRow(
+  row:
+    entity.PurchaseOrderResponseDto,
+):
+  entity.PurchaseOrderResponseDto {
 
-    return {
-      ...row,
+  return {
+    ...row,
 
-      project_name:
-        row.project?.name ??
-        'Sin proyecto',
+    project_name:
+      row.project?.name ??
+      'Sin proyecto',
 
-      requested_by_display:
-        row.requested_by_employee?.name ??
-        row.requested_by_name ??
-        'Sin solicitante',
+    extra_work_name:
+      row.is_extra_work
+        ? 'Trabajo extra'
+        : 'Normal',
 
-      destination_name:
-        row.destination_type_label,
+    requested_by_display:
+      row.requested_by_employee?.name ??
+      row.requested_by_name ??
+      'Sin solicitante',
 
-      invoice_name:
-        row.will_have_invoice_label,
+    destination_name:
+      row.destination_type_label,
 
-      tracking_status_label:
-        row.tracking_status_label ??
-        row.status_label ??
-        'Sin seguimiento',
+    invoice_name:
+      row.will_have_invoice_label,
 
-      printing_status_label:
-        row.printing?.status_label ??
-        'Sin ticket',
+    tracking_status_label:
+      row.tracking_status_label ??
+      row.status_label ??
+      'Sin seguimiento',
 
-      created_at_date:
-        row.created_at,
+    printing_status_label:
+      row.printing?.status_label ??
+      'Sin ticket',
 
-      authorized_at_date:
-        row.authorized_at ??
-        null,
+    created_at_date:
+      row.created_at,
 
-      authorized_by_name:
-        row.authorized_by_name,
-    };
-  }
+    authorized_at_date:
+      row.authorized_at ??
+      null,
+
+    authorized_by_name:
+      row.authorized_by_name,
+  };
+}
 
 
   // =========================================================
@@ -1374,163 +1404,158 @@ export class PurchaseOrders
   // BUSCAR
   // =========================================================
 
-  searchWithFilters(): void {
+searchWithFilters(): void {
 
-    const value =
-      this.formFilters
-        .getRawValue();
+  const value =
+    this.formFilters
+      .getRawValue();
 
+  const uiState:
+    entity.PurchaseOrderUiFilters = {
 
-    const uiState:
-      entity.PurchaseOrderUiFilters = {
+    search:
+      value.search?.trim() ||
+      null,
 
-      search:
-        value.search?.trim() ||
-        null,
+    dateRange:
+      value.dateRange ??
+      null,
 
+    requested_amount:
+      value.requested_amount ??
+      null,
 
-      dateRange:
-        value.dateRange ??
-        null,
+    related_expense_amount:
+      value.related_expense_amount ??
+      null,
 
+    tracking_status:
+      (
+        this.getCatalogValue(
+          value.tracking_status ??
+          null,
+        ) as string
+      ) || '',
 
-      requested_amount:
-        value.requested_amount ??
-        null,
+    destination_type:
+      value.destination_type ||
+      '',
 
+    will_have_invoice:
+      value.will_have_invoice ||
+      '',
 
-      related_expense_amount:
-        value.related_expense_amount ??
-        null,
+    is_extra_work:
+      value.is_extra_work ||
+      '',
 
+    page:
+      1,
 
-      tracking_status:
-        (
-          this.getCatalogValue(
-            value.tracking_status ??
-            null,
-          ) as string
-        ) || '',
+    limit:
+      this.filters.limit,
+  };
 
-
-      destination_type:
-        value.destination_type ||
-        '',
-
-
-      will_have_invoice:
-        value.will_have_invoice ||
-        '',
-
-
-      page:
-        1,
-
-
-      limit:
-        this.filters.limit,
-    };
-
-
-    this.filters =
-      this.buildBackendFiltersFromUi(
-        uiState,
-      );
-
-
-    this.saveFiltersToStorage(
+  this.filters =
+    this.buildBackendFiltersFromUi(
       uiState,
     );
 
+  this.saveFiltersToStorage(
+    uiState,
+  );
 
-    this.loadPurchaseOrders();
-  }
+  this.loadPurchaseOrders();
+}
 
 
   // =========================================================
   // LIMPIAR FILTROS
   // =========================================================
 
-  clearAllAndSearch(): void {
+clearAllAndSearch(): void {
 
-    this.formFilters.reset(
-      {
-
-        search:
-          null,
-
-        dateRange:
-          null,
-
-        requested_amount:
-          null,
-
-        tracking_status:
-          null,
-
-        destination_type:
-          '',
-
-        will_have_invoice:
-          '',
-
-        related_expense_amount:
-          null,
-      },
-      {
-        emitEvent:
-          false,
-      },
-    );
-
-
-    this.filters = {
-
-      page:
-        1,
-
-      limit:
-        this.filters.limit,
-
-      startDate:
-        null,
-
-      endDate:
-        null,
+  this.formFilters.reset(
+    {
 
       search:
         null,
 
-      requested_amount:
+      dateRange:
         null,
 
-      status:
+      requested_amount:
         null,
 
       tracking_status:
         null,
 
       destination_type:
-        null,
+        '',
 
       will_have_invoice:
-        null,
+        '',
 
-      project_id:
-        null,
+      is_extra_work:
+        '',
 
       related_expense_amount:
         null,
-    };
+    },
+    {
+      emitEvent:
+        false,
+    },
+  );
 
+  this.filters = {
 
-    this.storage.removeItem(
-      PURCHASE_ORDERS_FILTERS_KEY,
-    );
+    page:
+      1,
 
+    limit:
+      this.filters.limit,
 
-    this.loadPurchaseOrders();
-  }
+    startDate:
+      null,
+
+    endDate:
+      null,
+
+    search:
+      null,
+
+    requested_amount:
+      null,
+
+    status:
+      null,
+
+    tracking_status:
+      null,
+
+    destination_type:
+      null,
+
+    will_have_invoice:
+      null,
+
+    is_extra_work:
+      null,
+
+    project_id:
+      null,
+
+    related_expense_amount:
+      null,
+  };
+
+  this.storage.removeItem(
+    PURCHASE_ORDERS_FILTERS_KEY,
+  );
+
+  this.loadPurchaseOrders();
+}
 
 
   // =========================================================
@@ -2288,186 +2313,171 @@ export class PurchaseOrders
   // RESTAURAR FILTROS
   // =========================================================
 
-  private restoreFiltersFromStorage():
-    void {
+private restoreFiltersFromStorage():
+  void {
 
-    const saved =
-      this.storage.getItem<
-        entity.PurchaseOrderUiFilters
-      >(
-        PURCHASE_ORDERS_FILTERS_KEY,
-      );
-
-
-    if (!saved) {
-
-      this.loadPurchaseOrders();
-
-      return;
-    }
-
-
-    this.formFilters.patchValue(
-      {
-
-        search:
-          saved.search ??
-          null,
-
-
-        dateRange:
-          saved.dateRange ??
-          null,
-
-
-        requested_amount:
-          saved.requested_amount ??
-          null,
-
-
-        related_expense_amount:
-          saved.related_expense_amount ??
-          null,
-
-
-        tracking_status:
-          saved.tracking_status ??
-          null,
-
-
-        destination_type:
-          saved.destination_type ??
-          '',
-
-
-        will_have_invoice:
-          saved.will_have_invoice ??
-          '',
-      },
-      {
-        emitEvent:
-          false,
-      },
+  const saved =
+    this.storage.getItem<
+      entity.PurchaseOrderUiFilters
+    >(
+      PURCHASE_ORDERS_FILTERS_KEY,
     );
 
-
-    this.filters =
-      this.buildBackendFiltersFromUi({
-        ...saved,
-
-
-        search:
-          saved.search ??
-          null,
-
-
-        dateRange:
-          saved.dateRange ??
-          null,
-
-
-        requested_amount:
-          saved.requested_amount ??
-          null,
-
-
-        related_expense_amount:
-          saved.related_expense_amount ??
-          null,
-
-
-        tracking_status:
-          saved.tracking_status ??
-          '',
-
-
-        page:
-          saved.page ??
-          1,
-
-
-        limit:
-          saved.limit ??
-          this.filters.limit,
-      });
-
+  if (!saved) {
 
     this.loadPurchaseOrders();
+
+    return;
   }
+
+  this.formFilters.patchValue(
+    {
+
+      search:
+        saved.search ??
+        null,
+
+      dateRange:
+        saved.dateRange ??
+        null,
+
+      requested_amount:
+        saved.requested_amount ??
+        null,
+
+      related_expense_amount:
+        saved.related_expense_amount ??
+        null,
+
+      tracking_status:
+        saved.tracking_status ??
+        null,
+
+      destination_type:
+        saved.destination_type ??
+        '',
+
+      will_have_invoice:
+        saved.will_have_invoice ??
+        '',
+
+      is_extra_work:
+        saved.is_extra_work ??
+        '',
+    },
+    {
+      emitEvent:
+        false,
+    },
+  );
+
+  this.filters =
+    this.buildBackendFiltersFromUi({
+      ...saved,
+
+      search:
+        saved.search ??
+        null,
+
+      dateRange:
+        saved.dateRange ??
+        null,
+
+      requested_amount:
+        saved.requested_amount ??
+        null,
+
+      related_expense_amount:
+        saved.related_expense_amount ??
+        null,
+
+      tracking_status:
+        saved.tracking_status ??
+        '',
+
+      is_extra_work:
+        saved.is_extra_work ??
+        '',
+
+      page:
+        saved.page ??
+        1,
+
+      limit:
+        saved.limit ??
+        this.filters.limit,
+    });
+
+  this.loadPurchaseOrders();
+}
 
 
   // =========================================================
   // GUARDAR FILTROS
   // =========================================================
 
-  private saveFiltersToStorage(
-    state?:
-      entity.PurchaseOrderUiFilters,
-  ): void {
+private saveFiltersToStorage(
+  state?:
+    entity.PurchaseOrderUiFilters,
+): void {
 
-    if (!state) {
+  if (!state) {
 
-      const value =
-        this.formFilters
-          .getRawValue();
+    const value =
+      this.formFilters
+        .getRawValue();
 
+    state = {
 
-      state = {
+      search:
+        value.search?.trim() ||
+        null,
 
-        search:
-          value.search?.trim() ||
-          null,
+      dateRange:
+        value.dateRange ??
+        null,
 
+      related_expense_amount:
+        value.related_expense_amount ??
+        null,
 
-        dateRange:
-          value.dateRange ??
-          null,
+      requested_amount:
+        value.requested_amount ??
+        null,
 
+      tracking_status:
+        (
+          this.getCatalogValue(
+            value.tracking_status ??
+            null,
+          ) as string
+        ) || '',
 
-        related_expense_amount:
-          value.related_expense_amount ??
-          null,
+      destination_type:
+        value.destination_type ||
+        '',
 
+      will_have_invoice:
+        value.will_have_invoice ||
+        '',
 
-        requested_amount:
-          value.requested_amount ??
-          null,
+      is_extra_work:
+        value.is_extra_work ||
+        '',
 
+      page:
+        this.filters.page,
 
-        tracking_status:
-          (
-            this.getCatalogValue(
-              value.tracking_status ??
-              null,
-            ) as string
-          ) || '',
-
-
-        destination_type:
-          value.destination_type ||
-          '',
-
-
-        will_have_invoice:
-          value.will_have_invoice ||
-          '',
-
-
-        page:
-          this.filters.page,
-
-
-        limit:
-          this.filters.limit,
-      };
-    }
-
-
-    this.storage.setItem(
-      PURCHASE_ORDERS_FILTERS_KEY,
-      state,
-    );
+      limit:
+        this.filters.limit,
+    };
   }
+
+  this.storage.setItem(
+    PURCHASE_ORDERS_FILTERS_KEY,
+    state,
+  );
+}
 
 
   // =========================================================

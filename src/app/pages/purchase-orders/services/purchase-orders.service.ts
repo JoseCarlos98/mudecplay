@@ -97,6 +97,12 @@ export class PurchaseOrdersService {
         filters.will_have_invoice,
       );
 
+      params = setScalar(
+        params,
+        'is_extra_work',
+        filters.is_extra_work,
+      );
+
 
       params = setScalar(
         params,
