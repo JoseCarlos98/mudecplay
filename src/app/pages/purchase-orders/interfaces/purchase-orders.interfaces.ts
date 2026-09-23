@@ -48,6 +48,13 @@ export type PurchaseOrderHistoryTagVariant =
   | 'neutral'
   | 'primary';
 
+export type PurchaseOrderSortDirection = 'asc' | 'desc';
+
+export interface PurchaseOrderSortItem {
+  key: string;
+  direction: PurchaseOrderSortDirection;
+}
+
 export interface PurchaseOrderUserDto {
   id: number;
   name: string;
@@ -321,6 +328,7 @@ export interface PurchaseOrderFilters {
   endDate?: string | null;
 
   requested_amount?: number | null;
+  sorts?: PurchaseOrderSortItem[];
   related_expense_amount?: number | null;
 
   search?: string | null;
@@ -358,6 +366,8 @@ export interface PurchaseOrderUiFilters {
   requested_amount:
   number | null;
 
+  sorts: PurchaseOrderSortItem[];
+  
   related_expense_amount:
   number | null;
 

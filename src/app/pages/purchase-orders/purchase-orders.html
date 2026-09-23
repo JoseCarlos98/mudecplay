@@ -59,15 +59,23 @@
 
   @if (purchaseOrdersTableData?.data) {
   <div class="c-module-table">
-    <app-data-table [data]="purchaseOrdersTableData.data" [columnsConfig]="columnsConfig"
-      [displayedColumns]="displayedColumns" [extraActions]="extraActions" [actionPermissions]="{
-          showEdit: false,
-          showDelete: false
-        }" [expandable]="true" [expandedRowTemplate]="purchaseOrderDetailTemplate"
-      expandTooltip="Ver información relacionada" (action)="onTableAction($event)" (rowExpansionChange)="
-          onPurchaseOrderExpansionChange($event)
-        ">
-    </app-data-table>
+<app-data-table
+  [data]="purchaseOrdersTableData.data"
+  [columnsConfig]="columnsConfig"
+  [displayedColumns]="displayedColumns"
+  [extraActions]="extraActions"
+  [sorts]="sorts"
+  [actionPermissions]="{
+    showEdit: false,
+    showDelete: false
+  }"
+  [expandable]="true"
+  [expandedRowTemplate]="purchaseOrderDetailTemplate"
+  expandTooltip="Ver información relacionada"
+  (sortChange)="onSortChange($event)"
+  (action)="onTableAction($event)"
+  (rowExpansionChange)="onPurchaseOrderExpansionChange($event)">
+</app-data-table>
 
 
     <ng-template #purchaseOrderDetailTemplate let-row="row">

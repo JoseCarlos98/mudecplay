@@ -18,107 +18,43 @@ export class PurchaseOrdersService {
 
   getPurchaseOrders(
     filters?: entity.PurchaseOrderFilters,
-  ): Observable<
-    entity.PurchaseOrdersPaginatedResponse
-  > {
-
-    let params =
-      new HttpParams();
-
+  ): Observable<entity.PurchaseOrdersPaginatedResponse> {
+    let params = new HttpParams();
 
     if (filters) {
-
-      params = setScalar(
-        params,
-        'page',
-        filters.page,
-      );
-
-
-      params = setScalar(
-        params,
-        'limit',
-        filters.limit,
-      );
-
-
-      params = setScalar(
-        params,
-        'search',
-        filters.search,
-      );
-
-
-      params = setScalar(
-        params,
-        'startDate',
-        filters.startDate,
-      );
-
-
-      params = setScalar(
-        params,
-        'endDate',
-        filters.endDate,
-      );
-
-
-      params = setScalar(
-        params,
-        'requested_amount',
-        filters.requested_amount,
-      );
-
-
+      params = setScalar(params, 'page', filters.page);
+      params = setScalar(params, 'limit', filters.limit);
+      params = setScalar(params, 'search', filters.search);
+      params = setScalar(params, 'startDate', filters.startDate);
+      params = setScalar(params, 'endDate', filters.endDate);
+      params = setScalar(params, 'requested_amount', filters.requested_amount);
       params = setScalar(
         params,
         'related_expense_amount',
         filters.related_expense_amount,
       );
-
-
-      params = setScalar(
-        params,
-        'tracking_status',
-        filters.tracking_status,
-      );
-
-
-      params = setScalar(
-        params,
-        'destination_type',
-        filters.destination_type,
-      );
-
-
+      params = setScalar(params, 'tracking_status', filters.tracking_status);
+      params = setScalar(params, 'destination_type', filters.destination_type);
       params = setScalar(
         params,
         'will_have_invoice',
         filters.will_have_invoice,
       );
+      params = setScalar(params, 'is_extra_work', filters.is_extra_work);
+      params = setScalar(params, 'project_id', filters.project_id);
 
-      params = setScalar(
-        params,
-        'is_extra_work',
-        filters.is_extra_work,
-      );
+      if (filters.sorts?.length) {
+        const sort = filters.sorts
+          .map((item) => `${item.key}:${item.direction}`)
+          .join(',');
 
-
-      params = setScalar(
-        params,
-        'project_id',
-        filters.project_id,
-      );
+        params = setScalar(params, 'sort', sort);
+      }
     }
 
-
-    return this.http.get<
-      entity.PurchaseOrdersPaginatedResponse
-    >(
+    return this.http.get<entity.PurchaseOrdersPaginatedResponse>(
       this.apiUrl,
-      {
-        params,
-      },
+      { params },
     );
   }
 
