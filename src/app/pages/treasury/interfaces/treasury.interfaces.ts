@@ -76,17 +76,45 @@ export interface TreasuryBankAccountTableRow extends TreasuryBankAccount {
 }
 
 export interface TreasuryBankAccountFilters {
-  company_id?: number | null;
-  bank_id?: number | null;
-  search?: string;
-  is_active?: boolean | null;
+  company_id?:
+  number | null;
+
+  bank_id?:
+  number | null;
+
+  search?:
+  string;
+
+  is_active?:
+  boolean | null;
+
+  sorts?:
+  TreasurySortItem[];
 }
 
 export interface TreasuryBankAccountUiFilters {
-  company_id: Catalog | number | string | null;
-  bank_id: Catalog | number | string | null;
-  search: string;
-  is_active: 'true' | 'false' | '';
+  company_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  bank_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+  search:
+  string;
+
+  is_active:
+  'true' |
+  'false' |
+  '';
+
+  sorts:
+  TreasurySortItem[];
 }
 
 export interface CreateTreasuryBankAccountPayload {
@@ -243,26 +271,26 @@ export interface TreasuryImportFileFilters {
 
 export interface TreasuryImportFileUiFilters {
   company_id:
-    | Catalog
-    | number
-    | string
-    | null;
+  | Catalog
+  | number
+  | string
+  | null;
 
   bank_account_id:
-    | Catalog
-    | number
-    | string
-    | null;
+  | Catalog
+  | number
+  | string
+  | null;
 
   bank_id:
-    | Catalog
-    | number
-    | string
-    | null;
+  | Catalog
+  | number
+  | string
+  | null;
 
   status:
-    | TreasuryImportFileStatus
-    | '';
+  | TreasuryImportFileStatus
+  | '';
 
   sorts: TreasurySortItem[];
 
@@ -353,22 +381,53 @@ export interface TreasuryBankMovementTableRow extends TreasuryBankMovement {
 }
 
 export interface TreasuryBankMovementFilters {
-  company_id?: number | null;
-  bank_account_id?: number | null;
-  bank_id?: number | null;
 
-  date_from?: string | null;
-  date_to?: string | null;
+  company_id?:
+  number | null;
 
-  movement_type?: TreasuryBankMovementType | string | null;
-  status?: TreasuryBankMovementStatus | string | null;
+  bank_account_id?:
+  number | null;
 
-  classifications?: string[] | null;
+  bank_id?:
+  number | null;
 
-  search?: string;
 
-  page: number;
-  limit: number;
+  date_from?:
+  string | null;
+
+  date_to?:
+  string | null;
+
+
+  movement_type?:
+  TreasuryBankMovementType |
+  string |
+  null;
+
+  status?:
+  TreasuryBankMovementStatus |
+  string |
+  null;
+
+
+  classifications?:
+  string[] |
+  null;
+
+
+  search?:
+  string;
+
+
+  sorts?:
+  TreasurySortItem[];
+
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 
 export interface TreasuryBankMovementDateRange {
@@ -377,21 +436,57 @@ export interface TreasuryBankMovementDateRange {
 }
 
 export interface TreasuryBankMovementUiFilters {
-  dateRange: TreasuryBankMovementDateRange | null;
 
-  company_id: Catalog | number | string | null;
-  bank_account_id: Catalog | number | string | null;
-  bank_id: Catalog | number | string | null;
+  dateRange:
+  TreasuryBankMovementDateRange |
+  null;
 
-  movement_type: TreasuryBankMovementType | '';
-  status: TreasuryBankMovementStatus | '';
 
-  classifications: string[];
+  company_id:
+  Catalog |
+  number |
+  string |
+  null;
 
-  search: string;
+  bank_account_id:
+  Catalog |
+  number |
+  string |
+  null;
 
-  page: number;
-  limit: number;
+  bank_id:
+  Catalog |
+  number |
+  string |
+  null;
+
+
+  movement_type:
+  TreasuryBankMovementType |
+  '';
+
+  status:
+  TreasuryBankMovementStatus |
+  '';
+
+
+  classifications:
+  string[];
+
+
+  search:
+  string;
+
+
+  sorts:
+  TreasurySortItem[];
+
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 
 export type TreasuryBankMovementsPaginatedResponse =

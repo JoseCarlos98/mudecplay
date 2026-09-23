@@ -21,6 +21,7 @@ import {
   DataTableActionEvent,
   DataTableActionPopover,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
@@ -51,26 +52,76 @@ const ACTIVE_STATUS_OPTIONS: Catalog[] = [
   { id: 'false', name: 'Inactivas' },
 ];
 
-const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'company_name', label: 'Empresa' },
-  { key: 'bank_name', label: 'Banco' },
-  { key: 'account_identifier', label: 'Cuenta / Identificador' },
-  { key: 'alias_display', label: 'Alias' },
-  {
-    key: 'currency',
-    label: 'Moneda',
-    type: 'chip',
-    typeVariant: 'chip-neutral',
-  },
-  {
-    key: 'is_active_label',
-    label: 'Estatus',
-    type: 'chip',
-    variantResolver: (row: entity.TreasuryBankAccountTableRow) =>
-      resolveBankAccountStatusVariant(row),
-  },
-  { key: 'created_at_date', label: 'Fecha de alta', type: 'date' },
-];
+const COLUMNS_CONFIG:
+  ColumnsConfig[] = [
+    {
+      key: 'company_name',
+      label: 'Empresa',
+
+      sortable: true,
+      sortKey: 'company',
+    },
+
+    {
+      key: 'bank_name',
+      label: 'Banco',
+
+      sortable: true,
+      sortKey: 'bank',
+    },
+
+    {
+      key: 'account_identifier',
+      label: 'Cuenta / Identificador',
+
+      sortable: true,
+      sortKey: 'account_identifier',
+    },
+
+    {
+      key: 'alias_display',
+      label: 'Alias',
+
+      sortable: true,
+      sortKey: 'alias',
+    },
+
+    {
+      key: 'currency',
+      label: 'Moneda',
+      type: 'chip',
+      typeVariant: 'chip-neutral',
+
+      sortable: true,
+      sortKey: 'currency',
+    },
+
+    {
+      key: 'is_active_label',
+      label: 'Estatus',
+      type: 'chip',
+
+      sortable: true,
+      sortKey: 'status',
+
+      variantResolver: (
+        row:
+          entity.TreasuryBankAccountTableRow,
+      ) =>
+        resolveBankAccountStatusVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'created_at_date',
+      label: 'Fecha de alta',
+      type: 'date',
+
+      sortable: true,
+      sortKey: 'created_at',
+    },
+  ];
 
 function resolveBankAccountStatusVariant(
   row: entity.TreasuryBankAccountTableRow,
@@ -140,6 +191,8 @@ export class TreasuryBankAccounts implements OnInit {
   readonly activeStatusOptions = ACTIVE_STATUS_OPTIONS;
 
   readonly loadingTable = signal(false);
+  sorts:
+    entity.TreasurySortItem[] = [];
 
   companyOptions: Catalog[] = [];
   bankOptions: Catalog[] = [];
@@ -148,12 +201,22 @@ export class TreasuryBankAccounts implements OnInit {
   // ESTADO / DATA
   // =========================================================
 
-  filters: entity.TreasuryBankAccountFilters = {
-    company_id: null,
-    bank_id: null,
-    search: '',
-    is_active: null,
-  };
+  filters:
+    entity.TreasuryBankAccountFilters = {
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      search:
+        '',
+
+      is_active:
+        null,
+
+      sorts: [],
+    };
 
   treasuryBankAccountsTableData: entity.TreasuryBankAccountTableRow[] = [];
 
@@ -208,15 +271,42 @@ export class TreasuryBankAccounts implements OnInit {
   // GETTERS UI
   // =========================================================
 
-  get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
+  get hasActiveFilters():
+    boolean {
 
-    const hasSearch = !!form.search?.trim();
-    const hasCompany = !!this.getCatalogValue(form.company_id ?? null);
-    const hasBank = !!this.getCatalogValue(form.bank_id ?? null);
-    const hasStatus = !!form.is_active;
+    const form =
+      this.formFilters
+        .getRawValue();
 
-    return hasSearch || hasCompany || hasBank || hasStatus;
+    const hasSearch =
+      !!form.search
+        ?.trim();
+
+    const hasCompany =
+      !!this.getCatalogValue(
+        form.company_id ??
+        null,
+      );
+
+    const hasBank =
+      !!this.getCatalogValue(
+        form.bank_id ??
+        null,
+      );
+
+    const hasStatus =
+      !!form.is_active;
+
+    const hasSorts =
+      this.sorts.length > 0;
+
+    return (
+      hasSearch ||
+      hasCompany ||
+      hasBank ||
+      hasStatus ||
+      hasSorts
+    );
   }
 
   // =========================================================
@@ -249,43 +339,124 @@ export class TreasuryBankAccounts implements OnInit {
   }
 
   // =========================================================
-  // FILTROS + BÚSQUEDA
+  // ORDENAMIENTO
   // =========================================================
 
-  searchWithFilters(): void {
-    const value = this.formFilters.getRawValue();
+  onSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
 
-    const uiState: entity.TreasuryBankAccountUiFilters = {
-      search: value.search?.trim() || '',
-      company_id: value.company_id ?? null,
-      bank_id: value.bank_id ?? null,
-      is_active: value.is_active || '',
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+    this.filters = {
+      ...this.filters,
+
+      sorts: [
+        ...this.sorts,
+      ],
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
-    this.saveFiltersToStorage(uiState);
+    this.saveFiltersToStorage();
+
     this.loadBankAccounts();
   }
 
-  clearAllAndSearch(): void {
-    this.formFilters.reset(
-      {
-        search: '',
-        company_id: null,
-        bank_id: null,
-        is_active: '',
-      },
-      { emitEvent: false },
-    );
+  // =========================================================
+  // FILTROS + BÚSQUEDA
+  // =========================================================
 
-    this.filters = {
-      company_id: null,
-      bank_id: null,
-      search: '',
-      is_active: null,
+  searchWithFilters():
+    void {
+
+    const value =
+      this.formFilters
+        .getRawValue();
+
+    const uiState:
+      entity.TreasuryBankAccountUiFilters = {
+
+      search:
+        value.search
+          ?.trim() ||
+        '',
+
+      company_id:
+        value.company_id ??
+        null,
+
+      bank_id:
+        value.bank_id ??
+        null,
+
+      is_active:
+        value.is_active ||
+        '',
+
+      sorts: [
+        ...this.sorts,
+      ],
     };
 
-    this.storage.removeItem(TREASURY_BANK_ACCOUNTS_FILTERS_KEY);
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveFiltersToStorage(
+      uiState,
+    );
+
+    this.loadBankAccounts();
+  }
+
+  clearAllAndSearch():
+    void {
+
+    this.formFilters.reset(
+      {
+        search:
+          '',
+
+        company_id:
+          null,
+
+        bank_id:
+          null,
+
+        is_active:
+          '',
+      },
+      {
+        emitEvent:
+          false,
+      },
+    );
+
+    this.sorts = [];
+
+    this.filters = {
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      search:
+        '',
+
+      is_active:
+        null,
+
+      sorts: [],
+    };
+
+    this.storage.removeItem(
+      TREASURY_BANK_ACCOUNTS_FILTERS_KEY,
+    );
+
     this.loadBankAccounts();
   }
 
@@ -310,21 +481,44 @@ export class TreasuryBankAccounts implements OnInit {
   }
 
   private buildBackendFiltersFromUi(
-    ui: entity.TreasuryBankAccountUiFilters,
+    ui:
+      entity.TreasuryBankAccountUiFilters,
   ): entity.TreasuryBankAccountFilters {
-    const companyId = this.getNumberId(ui.company_id);
-    const bankId = this.getNumberId(ui.bank_id);
+
+    const companyId =
+      this.getNumberId(
+        ui.company_id,
+      );
+
+    const bankId =
+      this.getNumberId(
+        ui.bank_id,
+      );
 
     return {
-      search: ui.search?.trim() || '',
-      company_id: companyId,
-      bank_id: bankId,
+      search:
+        ui.search
+          ?.trim() ||
+        '',
+
+      company_id:
+        companyId,
+
+      bank_id:
+        bankId,
+
       is_active:
-        ui.is_active === 'true'
+        ui.is_active ===
+          'true'
           ? true
-          : ui.is_active === 'false'
+          : ui.is_active ===
+            'false'
             ? false
             : null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -587,51 +781,123 @@ export class TreasuryBankAccounts implements OnInit {
   // LOCAL STORAGE
   // =========================================================
 
-  private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.TreasuryBankAccountUiFilters>(
-      TREASURY_BANK_ACCOUNTS_FILTERS_KEY,
-    );
+  private restoreFiltersFromStorage():
+    void {
+
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryBankAccountUiFilters
+      >(
+        TREASURY_BANK_ACCOUNTS_FILTERS_KEY,
+      );
 
     if (!saved) {
+
+      this.sorts = [];
+
       this.loadBankAccounts();
+
       return;
     }
 
+
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
+
+
     this.formFilters.patchValue(
       {
-        search: saved.search ?? '',
-        company_id: saved.company_id ?? null,
-        bank_id: saved.bank_id ?? null,
-        is_active: saved.is_active ?? '',
+        search:
+          saved.search ??
+          '',
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        is_active:
+          saved.is_active ??
+          '',
       },
-      { emitEvent: false },
+      {
+        emitEvent:
+          false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi({
-      search: saved.search ?? '',
-      company_id: saved.company_id ?? null,
-      bank_id: saved.bank_id ?? null,
-      is_active: saved.is_active ?? '',
-    });
+
+    this.filters =
+      this.buildBackendFiltersFromUi({
+        search:
+          saved.search ??
+          '',
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        is_active:
+          saved.is_active ??
+          '',
+
+        sorts: [
+          ...(saved.sorts ?? []),
+        ],
+      });
+
 
     this.loadBankAccounts();
   }
 
   private saveFiltersToStorage(
-    state?: entity.TreasuryBankAccountUiFilters,
+    state?:
+      entity.TreasuryBankAccountUiFilters,
   ): void {
+
     if (!state) {
-      const value = this.formFilters.getRawValue();
+
+      const value =
+        this.formFilters
+          .getRawValue();
 
       state = {
-        search: value.search?.trim() || '',
-        company_id: value.company_id ?? null,
-        bank_id: value.bank_id ?? null,
-        is_active: value.is_active || '',
+        search:
+          value.search
+            ?.trim() ||
+          '',
+
+        company_id:
+          value.company_id ??
+          null,
+
+        bank_id:
+          value.bank_id ??
+          null,
+
+        is_active:
+          value.is_active ||
+          '',
+
+        sorts: [
+          ...this.sorts,
+        ],
       };
     }
 
-    this.storage.setItem(TREASURY_BANK_ACCOUNTS_FILTERS_KEY, state);
+
+    this.storage.setItem(
+      TREASURY_BANK_ACCOUNTS_FILTERS_KEY,
+      state,
+    );
   }
 
   private deactivateBankAccount(

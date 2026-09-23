@@ -78,10 +78,12 @@
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns"
         [extraActions]="bankMovementExtraActions"
+        [sorts]="sorts"
         [actionPermissions]="{
           showEdit: false,
           showDelete: false
         }"
+        (sortChange)="onSortChange($event)"
         (action)="onBankMovementTableAction($event)">
       </app-data-table>
 

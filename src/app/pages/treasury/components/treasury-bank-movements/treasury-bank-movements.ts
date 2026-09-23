@@ -21,6 +21,7 @@ import {
   ColumnVariant,
   DataTableActionEvent,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../../../shared/ui/input-field/input-field';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
@@ -75,47 +76,122 @@ const MOVEMENT_STATUS_OPTIONS: Catalog[] = [
   { id: 'cancelled', name: 'Cancelado' },
 ];
 
-const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'movement_date', label: 'Fecha', type: 'date' },
-  { key: 'movement_time', label: 'Hora' },
-  {
-    key: 'movement_type_label',
-    label: 'Tipo',
-    type: 'chip',
-    variantResolver: (row: entity.TreasuryBankMovementTableRow) =>
-      resolveMovementTypeVariant(row),
-  },
-  { key: 'company_name', label: 'Empresa' },
-  { key: 'bank_name', label: 'Banco' },
-  { key: 'bank_account_display', label: 'Cuenta' },
-  { key: 'description_original', label: 'Descripción' },
-  {
-    key: 'classification_label',
-    label: 'Clasificación',
-    type: 'chip',
-    typeVariant: 'chip-neutral',
-  },
-  {
-    key: 'amount',
-    label: 'Monto',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'available_amount',
-    label: 'Disponible',
-    type: 'money',
-    align: 'right',
-  },
-  {
-    key: 'status_label',
-    label: 'Estatus',
-    type: 'chip',
-    variantResolver: (row: entity.TreasuryBankMovementTableRow) =>
-      resolveMovementStatusVariant(row),
-  },
-];
+const COLUMNS_CONFIG:
+  ColumnsConfig[] = [
 
+    {
+      key: 'movement_date',
+      label: 'Fecha',
+      type: 'date',
+
+      sortable: true,
+      sortKey: 'movement_date',
+    },
+
+    {
+      key: 'movement_time',
+      label: 'Hora',
+
+      sortable: true,
+      sortKey: 'movement_time',
+    },
+
+    {
+      key: 'movement_type_label',
+      label: 'Tipo',
+      type: 'chip',
+
+      sortable: true,
+      sortKey: 'movement_type',
+
+      variantResolver: (
+        row:
+          entity.TreasuryBankMovementTableRow,
+      ) =>
+        resolveMovementTypeVariant(
+          row,
+        ),
+    },
+
+    {
+      key: 'company_name',
+      label: 'Empresa',
+
+      sortable: true,
+      sortKey: 'company',
+    },
+
+    {
+      key: 'bank_name',
+      label: 'Banco',
+
+      sortable: true,
+      sortKey: 'bank',
+    },
+
+    {
+      key: 'bank_account_display',
+      label: 'Cuenta',
+
+      sortable: true,
+      sortKey: 'bank_account',
+    },
+
+    {
+      key: 'description_original',
+      label: 'Descripción',
+
+      sortable: true,
+      sortKey: 'description',
+    },
+
+    {
+      key: 'classification_label',
+      label: 'Clasificación',
+      type: 'chip',
+      typeVariant: 'chip-neutral',
+
+      sortable: true,
+      sortKey: 'classification',
+    },
+
+    {
+      key: 'amount',
+      label: 'Monto',
+      type: 'money',
+      align: 'right',
+
+      sortable: true,
+      sortKey: 'amount',
+    },
+
+    {
+      key: 'available_amount',
+      label: 'Disponible',
+      type: 'money',
+      align: 'right',
+
+      sortable: true,
+      sortKey: 'available_amount',
+    },
+
+    {
+      key: 'status_label',
+      label: 'Estatus',
+      type: 'chip',
+
+      sortable: true,
+      sortKey: 'status',
+
+      variantResolver: (
+        row:
+          entity.TreasuryBankMovementTableRow,
+      ) =>
+        resolveMovementStatusVariant(
+          row,
+        ),
+    },
+  ];
 const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map(
     (column) => column.key,
@@ -210,6 +286,8 @@ export class TreasuryBankMovements implements OnInit {
 
   readonly loadingTable = signal(false);
   readonly loadingCatalogs = signal(false);
+  sorts:
+    entity.TreasurySortItem[] = [];
 
   companyOptions: Catalog[] = [];
   bankOptions: Catalog[] = [];
@@ -220,19 +298,44 @@ export class TreasuryBankMovements implements OnInit {
   // ESTADO / DATA
   // =========================================================
 
-  filters: entity.TreasuryBankMovementFilters = {
-    page: 1,
-    limit: 10,
-    search: '',
-    company_id: null,
-    bank_id: null,
-    bank_account_id: null,
-    date_from: null,
-    date_to: null,
-    classifications: null,
-    movement_type: null,
-    status: null,
-  };
+  filters:
+    entity.TreasuryBankMovementFilters = {
+
+      page:
+        1,
+
+      limit:
+        10,
+
+      search:
+        '',
+
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      bank_account_id:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+
+      classifications:
+        null,
+
+      movement_type:
+        null,
+
+      status:
+        null,
+
+      sorts: [],
+    };
 
   bankMovementsTableData!: entity.TreasuryBankMovementsTablePaginatedResponse;
 
@@ -261,24 +364,64 @@ export class TreasuryBankMovements implements OnInit {
   // GETTERS UI
   // =========================================================
 
-  get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
+  get hasActiveFilters():
+    boolean {
 
-    const hasDates = !!(
-      form.dateRange?.startDate ||
-      form.dateRange?.endDate
-    );
+    const form =
+      this.formFilters
+        .getRawValue();
 
-    const hasSearch = !!form.search?.trim();
-    const hasCompany = !!this.getCatalogValue(form.company_id ?? null);
-    const hasBank = !!this.getCatalogValue(form.bank_id ?? null);
-    const hasBankAccount = !!this.getCatalogValue(
-      form.bank_account_id ?? null,
-    );
-    const hasMovementType = !!form.movement_type;
-    const hasStatus = !!form.status;
+
+    const hasDates =
+      !!(
+        form.dateRange?.startDate ||
+        form.dateRange?.endDate
+      );
+
+
+    const hasSearch =
+      !!form.search
+        ?.trim();
+
+
+    const hasCompany =
+      !!this.getCatalogValue(
+        form.company_id ??
+        null,
+      );
+
+
+    const hasBank =
+      !!this.getCatalogValue(
+        form.bank_id ??
+        null,
+      );
+
+
+    const hasBankAccount =
+      !!this.getCatalogValue(
+        form.bank_account_id ??
+        null,
+      );
+
+
+    const hasMovementType =
+      !!form.movement_type;
+
+
+    const hasStatus =
+      !!form.status;
+
+
     const hasClassifications =
-      !!form.classifications?.length;
+      !!form.classifications
+        ?.length;
+
+
+    const hasSorts =
+      this.sorts.length > 0;
+
+
     return (
       hasDates ||
       hasSearch ||
@@ -287,7 +430,8 @@ export class TreasuryBankMovements implements OnInit {
       hasBankAccount ||
       hasMovementType ||
       hasStatus ||
-      hasClassifications
+      hasClassifications ||
+      hasSorts
     );
   }
 
@@ -323,60 +467,193 @@ export class TreasuryBankMovements implements OnInit {
   // FILTROS + BÚSQUEDA
   // =========================================================
 
-  searchWithFilters(): void {
-    const value = this.formFilters.getRawValue();
+  searchWithFilters():
+    void {
 
-    const uiState: entity.TreasuryBankMovementUiFilters = {
-      dateRange: value.dateRange ?? null,
-      search: value.search?.trim() || '',
-      company_id: value.company_id ?? null,
-      bank_id: value.bank_id ?? null,
-      bank_account_id: value.bank_account_id ?? null,
-      movement_type: value.movement_type || '',
-      status: value.status || '',
-      classifications: value.classifications ?? [],
-      page: 1,
-      limit: this.filters.limit,
+    const value =
+      this.formFilters
+        .getRawValue();
+
+
+    const uiState:
+      entity.TreasuryBankMovementUiFilters = {
+
+      dateRange:
+        value.dateRange ??
+        null,
+
+      search:
+        value.search
+          ?.trim() ||
+        '',
+
+      company_id:
+        value.company_id ??
+        null,
+
+      bank_id:
+        value.bank_id ??
+        null,
+
+      bank_account_id:
+        value.bank_account_id ??
+        null,
+
+      movement_type:
+        value.movement_type ||
+        '',
+
+      status:
+        value.status ||
+        '',
+
+      classifications:
+        value.classifications ??
+        [],
+
+      sorts: [
+        ...this.sorts,
+      ],
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
-    this.saveFiltersToStorage(uiState);
-    this.loadBankMovements();
-  }
 
-  clearAllAndSearch(): void {
-    this.formFilters.reset(
-      {
-        dateRange: null,
-        search: '',
-        company_id: null,
-        bank_id: null,
-        bank_account_id: null,
-        movement_type: '',
-        classifications: [],
-        status: '',
-      },
-      { emitEvent: false },
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+
+    this.saveFiltersToStorage(
+      uiState,
     );
 
-    this.filters = {
-      page: 1,
-      limit: this.filters.limit,
-      search: '',
-      company_id: null,
-      bank_id: null,
-      classifications: null,
-      bank_account_id: null,
-      date_from: null,
-      date_to: null,
-      movement_type: null,
-      status: null,
-    };
 
-    this.storage.removeItem(TREASURY_BANK_MOVEMENTS_FILTERS_KEY);
     this.loadBankMovements();
   }
 
+  // =========================================================
+  // ORDENAMIENTO
+  // =========================================================
+
+  onSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+
+    this.filters = {
+      ...this.filters,
+
+      page:
+        1,
+
+      sorts: [
+        ...this.sorts,
+      ],
+    };
+
+
+    this.saveFiltersToStorage();
+
+
+    this.loadBankMovements();
+  }
+
+  clearAllAndSearch():
+    void {
+
+    this.formFilters.reset(
+      {
+        dateRange:
+          null,
+
+        search:
+          '',
+
+        company_id:
+          null,
+
+        bank_id:
+          null,
+
+        bank_account_id:
+          null,
+
+        movement_type:
+          '',
+
+        classifications:
+          [],
+
+        status:
+          '',
+      },
+      {
+        emitEvent:
+          false,
+      },
+    );
+
+
+    this.sorts = [];
+
+
+    this.filters = {
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
+
+      search:
+        '',
+
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      classifications:
+        null,
+
+      bank_account_id:
+        null,
+
+      date_from:
+        null,
+
+      date_to:
+        null,
+
+      movement_type:
+        null,
+
+      status:
+        null,
+
+      sorts: [],
+    };
+
+
+    this.storage.removeItem(
+      TREASURY_BANK_MOVEMENTS_FILTERS_KEY,
+    );
+
+
+    this.loadBankMovements();
+  }
   loadBankMovements(): void {
     if (this.loadingTable()) return;
 
@@ -403,27 +680,70 @@ export class TreasuryBankMovements implements OnInit {
   }
 
   private buildBackendFiltersFromUi(
-    ui: entity.TreasuryBankMovementUiFilters,
+    ui:
+      entity.TreasuryBankMovementUiFilters,
   ): entity.TreasuryBankMovementFilters {
-    return {
-      page: ui.page,
-      limit: ui.limit,
-      search: ui.search?.trim() || '',
 
-      company_id: this.getNumberId(ui.company_id),
-      bank_id: this.getNumberId(ui.bank_id),
-      bank_account_id: this.getNumberId(ui.bank_account_id),
+    return {
+
+      page:
+        ui.page,
+
+      limit:
+        ui.limit,
+
+      search:
+        ui.search
+          ?.trim() ||
+        '',
+
+
+      company_id:
+        this.getNumberId(
+          ui.company_id,
+        ),
+
+      bank_id:
+        this.getNumberId(
+          ui.bank_id,
+        ),
+
+      bank_account_id:
+        this.getNumberId(
+          ui.bank_account_id,
+        ),
+
 
       classifications:
-        ui.classifications?.length
+        ui.classifications
+          ?.length
           ? ui.classifications
           : null,
 
-      date_from: ui.dateRange?.startDate ?? null,
-      date_to: ui.dateRange?.endDate ?? null,
 
-      movement_type: ui.movement_type || null,
-      status: ui.status || null,
+      date_from:
+        ui.dateRange
+          ?.startDate ??
+        null,
+
+      date_to:
+        ui.dateRange
+          ?.endDate ??
+        null,
+
+
+      movement_type:
+        ui.movement_type ||
+        null,
+
+      status:
+        ui.status ||
+        null,
+
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -493,70 +813,193 @@ export class TreasuryBankMovements implements OnInit {
   // LOCAL STORAGE
   // =========================================================
 
-  private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.TreasuryBankMovementUiFilters>(
-      TREASURY_BANK_MOVEMENTS_FILTERS_KEY,
-    );
+  private restoreFiltersFromStorage():
+    void {
+
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryBankMovementUiFilters
+      >(
+        TREASURY_BANK_MOVEMENTS_FILTERS_KEY,
+      );
+
 
     if (!saved) {
+
+      this.sorts = [];
+
       this.loadBankMovements();
+
       return;
     }
 
-    const normalizedDateRange = this.normalizeDateRange(saved.dateRange);
+
+    const normalizedDateRange =
+      this.normalizeDateRange(
+        saved.dateRange,
+      );
+
+
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
+
 
     this.formFilters.patchValue(
       {
-        dateRange: normalizedDateRange,
-        search: saved.search ?? '',
-        company_id: saved.company_id ?? null,
-        bank_id: saved.bank_id ?? null,
-        classifications: saved.classifications ?? [],
-        bank_account_id: saved.bank_account_id ?? null,
-        movement_type: saved.movement_type ?? '',
-        status: saved.status ?? '',
+        dateRange:
+          normalizedDateRange,
+
+        search:
+          saved.search ??
+          '',
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        classifications:
+          saved.classifications ??
+          [],
+
+        bank_account_id:
+          saved.bank_account_id ??
+          null,
+
+        movement_type:
+          saved.movement_type ??
+          '',
+
+        status:
+          saved.status ??
+          '',
       },
-      { emitEvent: false },
+      {
+        emitEvent:
+          false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi({
-      ...saved,
-      dateRange: normalizedDateRange,
-      search: saved.search ?? '',
-      company_id: saved.company_id ?? null,
-      bank_id: saved.bank_id ?? null,
-      bank_account_id: saved.bank_account_id ?? null,
-      classifications: saved.classifications ?? [],
-      movement_type: saved.movement_type ?? '',
-      status: saved.status ?? '',
-      page: saved.page ?? 1,
-      limit: saved.limit ?? this.filters.limit,
-    });
+
+    this.filters =
+      this.buildBackendFiltersFromUi({
+        ...saved,
+
+        dateRange:
+          normalizedDateRange,
+
+        search:
+          saved.search ??
+          '',
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        bank_account_id:
+          saved.bank_account_id ??
+          null,
+
+        classifications:
+          saved.classifications ??
+          [],
+
+        movement_type:
+          saved.movement_type ??
+          '',
+
+        status:
+          saved.status ??
+          '',
+
+        sorts: [
+          ...(saved.sorts ?? []),
+        ],
+
+        page:
+          saved.page ??
+          1,
+
+        limit:
+          saved.limit ??
+          this.filters.limit,
+      });
+
 
     this.loadBankMovements();
   }
-
   private saveFiltersToStorage(
-    state?: entity.TreasuryBankMovementUiFilters,
+    state?:
+      entity.TreasuryBankMovementUiFilters,
   ): void {
+
     if (!state) {
-      const value = this.formFilters.getRawValue();
+
+      const value =
+        this.formFilters
+          .getRawValue();
+
 
       state = {
-        dateRange: value.dateRange ?? null,
-        search: value.search?.trim() || '',
-        company_id: value.company_id ?? null,
-        classifications: value.classifications ?? [],
-        bank_id: value.bank_id ?? null,
-        bank_account_id: value.bank_account_id ?? null,
-        movement_type: value.movement_type || '',
-        status: value.status || '',
-        page: this.filters.page,
-        limit: this.filters.limit,
+
+        dateRange:
+          value.dateRange ??
+          null,
+
+        search:
+          value.search
+            ?.trim() ||
+          '',
+
+        company_id:
+          value.company_id ??
+          null,
+
+        classifications:
+          value.classifications ??
+          [],
+
+        bank_id:
+          value.bank_id ??
+          null,
+
+        bank_account_id:
+          value.bank_account_id ??
+          null,
+
+        movement_type:
+          value.movement_type ||
+          '',
+
+        status:
+          value.status ||
+          '',
+
+        sorts: [
+          ...this.sorts,
+        ],
+
+        page:
+          this.filters.page,
+
+        limit:
+          this.filters.limit,
       };
     }
 
-    this.storage.setItem(TREASURY_BANK_MOVEMENTS_FILTERS_KEY, state);
+
+    this.storage.setItem(
+      TREASURY_BANK_MOVEMENTS_FILTERS_KEY,
+      state,
+    );
   }
 
   // =========================================================
