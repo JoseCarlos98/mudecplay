@@ -11,6 +11,7 @@ import {
   DataTableActionEvent,
   DataTableActionPopover,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../../shared/ui/data-table/interfaces/table-interfaces';
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
@@ -23,10 +24,10 @@ import {
 import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
 import { LocalStorageService } from '../../../shared/services/local-storage.service';
 import { DialogService } from '../../../shared/services/dialog.service';
+import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 
 import * as entity from './interfaces/attendance-tardiness.interfaces';
 import { AttendanceTardinessService } from './services/attendance-tardiness.service';
-import { PaginatedResponse } from '../../../shared/interfaces/general-interfaces';
 import {
   MarkAttendanceModalData,
   MarkAttendanceModalResult,
@@ -42,32 +43,68 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 };
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'employee_name', label: 'Empleado' },
+  {
+    key: 'employee_name',
+    label: 'Empleado',
+    sortable: true,
+    sortKey: 'employee_name',
+  },
   {
     key: 'area_name',
     label: 'Área',
     type: 'chip',
     fallback: 'Sin dato',
+    sortable: true,
+    sortKey: 'area',
   },
-  { key: 'work_date', label: 'Fecha asistencia', type: 'date' },
-  { key: 'arrival_time', label: 'Hora llegada' },
+  {
+    key: 'work_date',
+    label: 'Fecha asistencia',
+    type: 'date',
+    sortable: true,
+    sortKey: 'work_date',
+  },
+  {
+    key: 'arrival_time',
+    label: 'Hora llegada',
+    sortable: true,
+    sortKey: 'arrival_time',
+  },
   {
     key: 'arrival_status_label',
     label: 'Estatus llegada',
     type: 'chip',
     typeVariant: 'chip-neutral',
+    sortable: true,
+    sortKey: 'arrival_status',
   },
-  { key: 'tardiness_minutes', label: 'Min. retardo', align: 'center' },
+  {
+    key: 'tardiness_minutes',
+    label: 'Min. retardo',
+    align: 'center',
+    sortable: true,
+    sortKey: 'tardiness_minutes',
+  },
   {
     key: 'tardiness_discount',
     label: 'Descuento',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'tardiness_discount',
   },
-  { key: 'tardiness_reason', label: 'Motivo retardo' },
+  {
+    key: 'tardiness_reason',
+    label: 'Motivo retardo',
+    sortable: true,
+    sortKey: 'tardiness_reason',
+  },
 ];
 
-const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
+const DISPLAYED_COLUMNS: string[] = [
+  ...COLUMNS_CONFIG.map((c) => c.key),
+  'actions',
+];
 
 const STATUS_OPTIONS: SelectCatalogOption[] = [
   { id: 'pending', name: 'Pendiente' },
@@ -106,8 +143,27 @@ export class AttendanceTardiness implements OnInit {
 
   readonly loadingTable = signal(false);
   readonly savingArrival = signal(false);
-
   areaOptions: SelectCatalogOption[] = [];
+  sorts: entity.AttendanceTardinessSortItem[] = [];
+
+  filters: entity.AttendanceTardinessUiFilters = {
+    workDate: this.getTodayApiDate(),
+    employeeName: '',
+    employeeAreaId: null,
+    status: null,
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
+
+  attendanceTableData!: PaginatedResponse<entity.AttendanceTardinessRow>;
+
+  formFilters = this.fb.group({
+    workDate: this.fb.control<string | null>(this.getTodayApiDate()),
+    employeeName: this.fb.control<string>(''),
+    employeeAreaId: this.fb.control<number | null>(null),
+    status: this.fb.control<entity.AttendanceArrivalStatus | null>(null),
+  });
 
   private canMarkArrival(row: entity.AttendanceTardinessRow): boolean {
     return row.arrival_status === 'pending';
@@ -128,9 +184,7 @@ export class AttendanceTardiness implements OnInit {
   getMarkArrivalPopover = (
     row: entity.AttendanceTardinessRow,
   ): DataTableActionPopover | null => {
-    if (this.canMarkArrival(row)) {
-      return null;
-    }
+    if (this.canMarkArrival(row)) return null;
 
     return {
       title: 'No disponible',
@@ -143,9 +197,7 @@ export class AttendanceTardiness implements OnInit {
   getEditArrivalPopover = (
     row: entity.AttendanceTardinessRow,
   ): DataTableActionPopover | null => {
-    if (this.canEditArrival(row)) {
-      return null;
-    }
+    if (this.canEditArrival(row)) return null;
 
     return {
       title: 'No disponible',
@@ -176,24 +228,6 @@ export class AttendanceTardiness implements OnInit {
     },
   ];
 
-  filters: entity.AttendanceTardinessUiFilters = {
-    workDate: this.getTodayApiDate(),
-    employeeName: '',
-    employeeAreaId: null,
-    status: null,
-    page: 1,
-    limit: 5,
-  };
-
-  attendanceTableData!: PaginatedResponse<entity.AttendanceTardinessRow>;
-
-  formFilters = this.fb.group({
-    workDate: this.fb.control<string | null>(this.getTodayApiDate()),
-    employeeName: this.fb.control<string>(''),
-    employeeAreaId: this.fb.control<number | null>(null),
-    status: this.fb.control<entity.AttendanceArrivalStatus | null>(null),
-  });
-
   ngOnInit(): void {
     this.loadEmployeeAreasCatalog();
     this.restoreFiltersFromStorage();
@@ -223,6 +257,8 @@ export class AttendanceTardiness implements OnInit {
 
       // pending | on_time | tardy
       arrival_status: ui.status ?? null,
+
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
@@ -256,10 +292,24 @@ export class AttendanceTardiness implements OnInit {
       status: value.status ?? null,
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = uiState;
     this.saveFiltersToStorage(uiState);
+    this.loadAttendanceTardiness();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage(this.filters);
     this.loadAttendanceTardiness();
   }
 
@@ -326,7 +376,9 @@ export class AttendanceTardiness implements OnInit {
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<entity.AttendanceTardinessRow>): void {
+  onTableAction(
+    ev: DataTableActionEvent<entity.AttendanceTardinessRow>,
+  ): void {
     switch (ev.type) {
       case 'markArrival':
         this.openAttendanceModal(ev.row, 'mark');
@@ -404,10 +456,12 @@ export class AttendanceTardiness implements OnInit {
     const form = this.formFilters.getRawValue();
 
     const hasEmployeeName = !!form.employeeName?.trim();
-    const hasArea = form.employeeAreaId !== null && form.employeeAreaId !== undefined;
+    const hasArea =
+      form.employeeAreaId !== null && form.employeeAreaId !== undefined;
     const hasStatus = !!form.status;
+    const hasSort = this.sorts.length > 0;
 
-    return hasEmployeeName || hasArea || hasStatus;
+    return hasEmployeeName || hasArea || hasStatus || hasSort;
   }
 
   clearAllAndSearch(): void {
@@ -423,6 +477,8 @@ export class AttendanceTardiness implements OnInit {
       { emitEvent: false },
     );
 
+    this.sorts = [];
+
     this.filters = {
       workDate: today,
       employeeName: '',
@@ -430,6 +486,7 @@ export class AttendanceTardiness implements OnInit {
       status: null,
       page: 1,
       limit: this.filters.limit,
+      sorts: [],
     };
 
     this.storage.removeItem(ATTENDANCE_TARDINESS_FILTERS_KEY);
@@ -445,6 +502,8 @@ export class AttendanceTardiness implements OnInit {
     );
 
     if (!saved) {
+      this.sorts = [];
+
       this.formFilters.patchValue(
         {
           workDate: today,
@@ -462,6 +521,7 @@ export class AttendanceTardiness implements OnInit {
         status: null,
         page: 1,
         limit: this.filters.limit,
+        sorts: [],
       };
 
       this.saveFiltersToStorage(this.filters);
@@ -469,12 +529,14 @@ export class AttendanceTardiness implements OnInit {
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
     this.formFilters.patchValue(
       {
         workDate: saved.workDate ?? today,
-        employeeName: saved.employeeName,
-        employeeAreaId: saved.employeeAreaId,
-        status: saved.status,
+        employeeName: saved.employeeName ?? '',
+        employeeAreaId: saved.employeeAreaId ?? null,
+        status: saved.status ?? null,
       },
       { emitEvent: false },
     );
@@ -482,12 +544,15 @@ export class AttendanceTardiness implements OnInit {
     this.filters = {
       ...saved,
       workDate: saved.workDate ?? today,
+      sorts: [...this.sorts],
     };
 
     this.loadAttendanceTardiness();
   }
 
-  private saveFiltersToStorage(state?: entity.AttendanceTardinessUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.AttendanceTardinessUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -498,6 +563,7 @@ export class AttendanceTardiness implements OnInit {
         status: value.status ?? null,
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 

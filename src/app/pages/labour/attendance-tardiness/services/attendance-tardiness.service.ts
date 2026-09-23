@@ -39,7 +39,10 @@ export class AttendanceTardinessService {
       }
 
       if (filters.employee_area_id != null) {
-        params = params.set('employee_area_id', String(filters.employee_area_id));
+        params = params.set(
+          'employee_area_id',
+          String(filters.employee_area_id),
+        );
       }
 
       if (filters.arrival_status) {
@@ -49,12 +52,19 @@ export class AttendanceTardinessService {
       if (filters.status) {
         params = params.set('status', filters.status);
       }
+
+      if (filters.sorts?.length) {
+        const sort = filters.sorts
+          .map((item) => `${item.key}:${item.direction}`)
+          .join(',');
+
+        params = params.set('sort', sort);
+      }
     }
 
-    return this.http.get<PaginatedResponse<entity.EmployeeAttendanceResponseDto>>(
-      this.apiUrl,
-      { params },
-    );
+    return this.http.get<
+      PaginatedResponse<entity.EmployeeAttendanceResponseDto>
+    >(this.apiUrl, { params });
   }
 
   upsertArrival(

@@ -31,13 +31,46 @@ export interface EmployeeRow extends EmployeeResponseDto {
   area_label: string;
 }
 
+
+export type EmployeeSortDirection =
+  | 'asc'
+  | 'desc';
+
+
+export interface EmployeeSortItem {
+  key:
+    string;
+
+  direction:
+    EmployeeSortDirection;
+}
+
 export interface FiltersEmployees {
-  page: number;
-  limit: number;
-  full_name: string | null;
-  curp: string | null;
-  employee_area_id: number | null;
-  employment_status: EmployeeStatus | null;
+
+  page:
+    number;
+
+  limit:
+    number;
+
+  full_name:
+    string |
+    null;
+
+  curp:
+    string |
+    null;
+
+  employee_area_id:
+    number |
+    null;
+
+  employment_status:
+    EmployeeStatus |
+    null;
+
+  sorts?:
+    EmployeeSortItem[];
 }
 
 export interface CreateEmployee {

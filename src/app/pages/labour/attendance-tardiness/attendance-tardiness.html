@@ -50,7 +50,9 @@
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns"
         [extraActions]="extraActions"
+        [sorts]="sorts"
         [actionPermissions]="{ showEdit: false }"
+        (sortChange)="onSortChange($event)"
         (action)="onTableAction($event)">
       </app-data-table>
 

@@ -13,7 +13,7 @@ export class EmployeesService {
   private apiUrl = `${environment.apiUrl}/employees`;
   private employeeAreasApiUrl = `${environment.apiUrl}/employee-areas`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
   getEmployees(
     filters?: entity.FiltersEmployees,
@@ -28,6 +28,13 @@ export class EmployeesService {
       params = setScalar(params, 'curp', filters.curp?.trim());
       params = setScalar(params, 'employee_area_id', filters.employee_area_id);
       params = setScalar(params, 'employment_status', filters.employment_status);
+      if (filters.sorts?.length) {
+        const sort = filters.sorts
+          .map((item) => `${item.key}:${item.direction}`)
+          .join(',');
+
+        params = setScalar(params, 'sort', sort);
+      }
     }
 
     return this.http.get<PaginatedResponse<entity.EmployeeResponseDto>>(url, { params });
