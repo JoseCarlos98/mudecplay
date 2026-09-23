@@ -131,6 +131,23 @@ export class TreasuryService {
       if (filters.status) {
         params = params.set('status', String(filters.status));
       }
+
+      if (filters.sorts?.length) {
+
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
+      }
     }
 
     return this.http.get<

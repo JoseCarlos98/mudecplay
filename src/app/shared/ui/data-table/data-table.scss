@@ -84,6 +84,243 @@
     white-space: nowrap;
   }
 
+  /* ============================
+   * Ordenamiento de columnas
+   * ============================ */
+
+  .table-header-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    white-space: nowrap;
+  }
+
+  /* ============================
+   * Información de sorting
+   * ============================ */
+
+  .table-sort-info-btn {
+    appearance: none;
+
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+
+    padding: 0;
+    margin: 0 1px 0 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+// 
+    color: #94a3b8;
+    background: transparent;
+
+    border: 0;
+    border-radius: 999px;
+
+    cursor: default;
+
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
+
+    mat-icon {
+      width: 17px !important;
+      height: 17px !important;
+
+      margin: 0 !important;
+
+      font-size: 17px !important;
+      line-height: 17px !important;
+    }
+
+    &:hover {
+      color: var(--color-primary-strong);
+      background: rgba(39, 170, 225, 0.09);
+    }
+
+    &:focus-visible {
+      color: var(--color-primary-strong);
+
+      outline: 2px solid rgba(39, 170, 225, 0.25);
+      outline-offset: 2px;
+    }
+  }
+
+  /* ============================
+   * Header sortable
+   * ============================ */
+
+  .table-sort-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+
+    white-space: nowrap;
+  }
+
+  .table-sort-header__main {
+    appearance: none;
+
+    padding: 0;
+    margin: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    color: inherit;
+    background: transparent;
+
+    border: 0;
+    outline: 0;
+
+    font: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition:
+      color 0.18s ease;
+  }
+
+  .table-sort-header__main:hover {
+    color: var(--color-primary-strong);
+  }
+
+  .table-sort-header__main:focus-visible {
+    color: var(--color-primary-strong);
+
+    outline: 2px solid rgba(39, 170, 225, 0.28);
+    outline-offset: 3px;
+
+    border-radius: 4px;
+  }
+
+  .table-sort-header--active
+    .table-sort-header__main {
+    color: var(--color-primary-strong);
+  }
+
+  .table-sort-header__label {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* ============================
+   * Flecha + prioridad
+   * ============================ */
+
+  .table-sort-header__indicator {
+    min-width: 18px;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .table-sort-header__icon {
+    width: 18px !important;
+    height: 18px !important;
+
+    margin: 0 !important;
+
+    color: #94a3b8;
+
+    font-size: 18px !important;
+    line-height: 18px !important;
+
+    transition:
+      color 0.18s ease;
+  }
+
+  .table-sort-header__main:hover
+    .table-sort-header__icon,
+  .table-sort-header--active
+    .table-sort-header__icon {
+    color: var(--color-primary-strong);
+  }
+
+  .table-sort-header__priority {
+    min-width: 16px;
+    height: 16px;
+
+    padding: 0 4px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
+
+    border: 1px solid rgba(39, 170, 225, 0.22);
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+
+    cursor: help;
+  }
+
+  /* ============================
+   * X para quitar criterio
+   * ============================ */
+
+  .table-sort-header__clear {
+    appearance: none;
+
+    width: 19px;
+    height: 19px;
+    min-width: 19px;
+    min-height: 19px;
+
+    padding: 0;
+    margin: 0 0 0 1px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    color: #94a3b8;
+    background: transparent;
+
+    border: 0;
+    border-radius: 999px;
+
+    cursor: pointer;
+
+    transition:
+      color 0.18s ease,
+      background 0.18s ease;
+  }
+
+  .table-sort-header__clear mat-icon {
+    width: 14px !important;
+    height: 14px !important;
+
+    margin: 0 !important;
+
+    font-size: 14px !important;
+    line-height: 14px !important;
+  }
+
+  .table-sort-header__clear:hover {
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.1);
+  }
+
+  .table-sort-header__clear:focus-visible {
+    outline: 2px solid rgba(39, 170, 225, 0.28);
+    outline-offset: 2px;
+  }
+
   td {
     padding: 8px 15px;
 
@@ -229,12 +466,11 @@
 
     padding: 14px 16px 16px;
 
-    background:
-      linear-gradient(
-        180deg,
-        rgba(237, 247, 255, 0.95) 0%,
-        rgba(248, 251, 253, 0.98) 100%
-      );
+    background: linear-gradient(
+      180deg,
+      rgba(237, 247, 255, 0.95) 0%,
+      rgba(248, 251, 253, 0.98) 100%
+    );
 
     border-bottom: 1px solid rgba(39, 170, 225, 0.18);
     box-shadow: inset 0 1px 0 rgba(39, 170, 225, 0.08);
@@ -285,12 +521,11 @@
 
     pointer-events: none;
 
-    background:
-      linear-gradient(
-        to left,
-        rgba(15, 23, 42, 0.08),
-        transparent
-      );
+    background: linear-gradient(
+      to left,
+      rgba(15, 23, 42, 0.08),
+      transparent
+    );
   }
 
   .c-actions-header {
@@ -651,6 +886,70 @@
 
 @media screen and (max-width: 875px) {
   .table-container {
+    .table-header-content {
+      gap: 5px;
+    }
+
+    .table-sort-info-btn {
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
+      min-height: 18px;
+
+      mat-icon {
+        width: 15px !important;
+        height: 15px !important;
+
+        font-size: 15px !important;
+        line-height: 15px !important;
+      }
+    }
+
+    .table-sort-header {
+      gap: 3px;
+    }
+
+    .table-sort-header__main {
+      gap: 4px;
+    }
+
+    .table-sort-header__indicator {
+      min-width: 16px;
+      gap: 2px;
+    }
+
+    .table-sort-header__icon {
+      width: 16px !important;
+      height: 16px !important;
+
+      font-size: 16px !important;
+      line-height: 16px !important;
+    }
+
+    .table-sort-header__priority {
+      min-width: 14px;
+      height: 14px;
+
+      padding: 0 3px;
+
+      font-size: 8px;
+    }
+
+    .table-sort-header__clear {
+      width: 17px;
+      height: 17px;
+      min-width: 17px;
+      min-height: 17px;
+
+      mat-icon {
+        width: 13px !important;
+        height: 13px !important;
+
+        font-size: 13px !important;
+        line-height: 13px !important;
+      }
+    }
+
     padding: 12px;
     padding-top: 0;
     padding-bottom: 0 !important;

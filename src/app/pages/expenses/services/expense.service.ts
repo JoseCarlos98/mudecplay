@@ -22,59 +22,110 @@ export class ExpenseService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getExpenses(filters?: entity.FiltersExpenses) {
-    const url = `${this.apiUrl}`;
-    let params = new HttpParams();
+getExpenses(
+  filters?: entity.FiltersExpenses,
+) {
+  const url =
+    `${this.apiUrl}`;
 
-    if (filters) {
-      params = setScalar(params, 'page', filters.page);
-      params = setScalar(params, 'limit', filters.limit);
+  let params =
+    new HttpParams();
+
+  if (filters) {
+    params = setScalar(
+      params,
+      'page',
+      filters.page,
+    );
+
+    params = setScalar(
+      params,
+      'limit',
+      filters.limit,
+    );
+
+    params = setScalar(
+      params,
+      'search',
+      filters.search?.trim(),
+    );
+
+    params = setScalar(
+      params,
+      'startDate',
+      filters.startDate,
+    );
+
+    params = setScalar(
+      params,
+      'endDate',
+      filters.endDate,
+    );
+
+    params = setScalar(
+      params,
+      'totalAmount',
+      filters.totalAmount,
+    );
+
+    params = appendArray(
+      params,
+      'suppliersIds',
+      filters.suppliersIds ?? [],
+    );
+
+    params = appendArray(
+      params,
+      'projectIds',
+      filters.projectIds ?? [],
+    );
+
+    params = setScalar(
+      params,
+      'statusId',
+      filters.status_id,
+    );
+
+    params = setScalar(
+      params,
+      'paymentStatus',
+      filters.paymentStatus?.trim(),
+    );
+
+    params = setScalar(
+      params,
+      'warehouseAssignmentStatus',
+      filters.warehouseAssignmentStatus,
+    );
+
+    if (filters.sorts?.length) {
+      const sort =
+        filters.sorts
+          .map(
+            (item) =>
+              `${item.key}:${item.direction}`,
+          )
+          .join(',');
 
       params = setScalar(
         params,
-        'search',
-        filters.search?.trim(),
-      );
-
-      params = setScalar(params, 'startDate', filters.startDate);
-      params = setScalar(params, 'endDate', filters.endDate);
-      params = setScalar(params, 'totalAmount', filters.totalAmount);
-
-      params = appendArray(
-        params,
-        'suppliersIds',
-        filters.suppliersIds ?? [],
-      );
-
-      params = appendArray(
-        params,
-        'projectIds',
-        filters.projectIds ?? [],
-      );
-
-      params = setScalar(
-        params,
-        'statusId',
-        filters.status_id,
-      );
-
-      params = setScalar(
-        params,
-        'paymentStatus',
-        filters.paymentStatus?.trim(),
-      );
-
-      params = setScalar(
-        params,
-        'warehouseAssignmentStatus',
-        filters.warehouseAssignmentStatus,
+        'sort',
+        sort,
       );
     }
-
-    return this.http.get<
-      PaginatedResponse<entity.ExpenseResponseDto>
-    >(url, { params });
   }
+
+  return this.http.get<
+    PaginatedResponse<
+      entity.ExpenseResponseDto
+    >
+  >(
+    url,
+    {
+      params,
+    },
+  );
+}
 
 
   getById(id: number): Observable<entity.ExpenseDetail> {

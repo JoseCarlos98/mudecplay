@@ -219,21 +219,52 @@ export interface TreasuryImportFileTableRow extends TreasuryImportFile {
   error_message_display: string | null;
 }
 
+export type TreasurySortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface TreasurySortItem {
+  key: string;
+  direction: TreasurySortDirection;
+}
+
+
 export interface TreasuryImportFileFilters {
   company_id?: number | null;
   bank_account_id?: number | null;
   bank_id?: number | null;
   status?: TreasuryImportFileStatus | string | null;
 
+  sorts?: TreasurySortItem[];
+
   page: number;
   limit: number;
 }
 
 export interface TreasuryImportFileUiFilters {
-  company_id: Catalog | number | string | null;
-  bank_account_id: Catalog | number | string | null;
-  bank_id: Catalog | number | string | null;
-  status: TreasuryImportFileStatus | '';
+  company_id:
+    | Catalog
+    | number
+    | string
+    | null;
+
+  bank_account_id:
+    | Catalog
+    | number
+    | string
+    | null;
+
+  bank_id:
+    | Catalog
+    | number
+    | string
+    | null;
+
+  status:
+    | TreasuryImportFileStatus
+    | '';
+
+  sorts: TreasurySortItem[];
 
   page: number;
   limit: number;

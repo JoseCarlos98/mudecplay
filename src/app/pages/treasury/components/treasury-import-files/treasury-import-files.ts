@@ -14,6 +14,7 @@ import { DataTable } from '../../../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   ColumnVariant,
+  DataTableSortEvent,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputSelect } from '../../../../shared/ui/input-select/input-select';
 import { BtnsSection } from '../../../../shared/ui/btns-section/btns-section';
@@ -44,23 +45,66 @@ const IMPORT_STATUS_OPTIONS: Catalog[] = [
 ];
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'created_at_date', label: 'Fecha', type: 'date' },
-  { key: 'company_name', label: 'Empresa' },
-  { key: 'bank_name', label: 'Banco' },
-  { key: 'bank_account_display', label: 'Cuenta' },
-  { key: 'original_file_name', label: 'Archivo' },
-  { key: 'parser_label', label: 'Parser' },
+  {
+    key: 'created_at_date',
+    label: 'Fecha',
+    type: 'date',
+    sortable: true,
+    sortKey: 'created_at',
+  },
+  {
+    key: 'company_name',
+    label: 'Empresa',
+    sortable: true,
+    sortKey: 'company',
+  },
+  {
+    key: 'bank_name',
+    label: 'Banco',
+    sortable: true,
+    sortKey: 'bank',
+  },
+  {
+    key: 'bank_account_display',
+    label: 'Cuenta',
+  },
+  {
+    key: 'original_file_name',
+    label: 'Archivo',
+  },
+  {
+    key: 'parser_label',
+    label: 'Parser',
+  },
   {
     key: 'status_label',
     label: 'Estatus',
     type: 'chip',
-    variantResolver: (row: entity.TreasuryImportFileTableRow) =>
+    sortable: true,
+    sortKey: 'status',
+    variantResolver: (
+      row: entity.TreasuryImportFileTableRow,
+    ) =>
       resolveImportStatusVariant(row),
   },
-  { key: 'total_rows', label: 'Total' },
-  { key: 'inserted_rows', label: 'Insertadas' },
-  { key: 'duplicate_rows', label: 'Duplicadas' },
-  { key: 'error_rows', label: 'Errores' },
+  {
+    key: 'total_rows',
+    label: 'Total',
+    sortable: true,
+    sortKey: 'total_rows',
+  },
+  {
+    key: 'inserted_rows',
+    label: 'Insertadas',
+  },
+  {
+    key: 'duplicate_rows',
+    label: 'Duplicadas',
+  },
+  {
+    key: 'error_rows',
+    label: 'Errores',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = COLUMNS_CONFIG.map((column) => column.key);
@@ -129,6 +173,7 @@ export class TreasuryImportFiles implements OnInit {
 
   readonly loadingTable = signal(false);
   readonly loadingCatalogs = signal(false);
+  sorts: entity.TreasurySortItem[] = [];
 
   companyOptions: Catalog[] = [];
   bankOptions: Catalog[] = [];
@@ -145,6 +190,7 @@ export class TreasuryImportFiles implements OnInit {
     bank_id: null,
     bank_account_id: null,
     status: null,
+    sorts: [],
   };
 
   importFilesTableData!: entity.TreasuryImportFilesPaginatedResponse;
@@ -212,46 +258,106 @@ export class TreasuryImportFiles implements OnInit {
   // =========================================================
 
   searchWithFilters(): void {
-    const value = this.formFilters.getRawValue();
 
-    const uiState: entity.TreasuryImportFileUiFilters = {
-      company_id: value.company_id ?? null,
-      bank_id: value.bank_id ?? null,
-      bank_account_id: value.bank_account_id ?? null,
-      status: value.status || '',
-      page: 1,
-      limit: this.filters.limit,
+    const value =
+      this.formFilters
+        .getRawValue();
+
+    const uiState:
+      entity.TreasuryImportFileUiFilters = {
+
+      company_id:
+        value.company_id ??
+        null,
+
+      bank_id:
+        value.bank_id ??
+        null,
+
+      bank_account_id:
+        value.bank_account_id ??
+        null,
+
+      status:
+        value.status ||
+        '',
+
+      sorts: [
+        ...this.sorts,
+      ],
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
-    this.saveFiltersToStorage(uiState);
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveFiltersToStorage(
+      uiState,
+    );
+
     this.loadImportFiles();
   }
 
   clearAllAndSearch(): void {
+
     this.formFilters.reset(
       {
-        company_id: null,
-        bank_id: null,
-        bank_account_id: null,
-        status: '',
+        company_id:
+          null,
+
+        bank_id:
+          null,
+
+        bank_account_id:
+          null,
+
+        status:
+          '',
       },
-      { emitEvent: false },
+      {
+        emitEvent:
+          false,
+      },
     );
 
+    this.sorts = [];
+
     this.filters = {
-      page: 1,
-      limit: this.filters.limit,
-      company_id: null,
-      bank_id: null,
-      bank_account_id: null,
-      status: null,
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
+
+      company_id:
+        null,
+
+      bank_id:
+        null,
+
+      bank_account_id:
+        null,
+
+      status:
+        null,
+
+      sorts: [],
     };
 
-    this.storage.removeItem(TREASURY_IMPORT_FILES_FILTERS_KEY);
+    this.storage.removeItem(
+      TREASURY_IMPORT_FILES_FILTERS_KEY,
+    );
+
     this.loadImportFiles();
   }
-
   loadImportFiles(): void {
     if (this.loadingTable()) return;
 
@@ -278,17 +384,41 @@ export class TreasuryImportFiles implements OnInit {
   }
 
   private buildBackendFiltersFromUi(
-    ui: entity.TreasuryImportFileUiFilters,
-  ): entity.TreasuryImportFileFilters {
+    ui:
+      entity.TreasuryImportFileUiFilters,
+  ):
+    entity.TreasuryImportFileFilters {
+
     return {
-      page: ui.page,
-      limit: ui.limit,
 
-      company_id: this.getNumberId(ui.company_id),
-      bank_id: this.getNumberId(ui.bank_id),
-      bank_account_id: this.getNumberId(ui.bank_account_id),
+      page:
+        ui.page,
 
-      status: ui.status || null,
+      limit:
+        ui.limit,
+
+      company_id:
+        this.getNumberId(
+          ui.company_id,
+        ),
+
+      bank_id:
+        this.getNumberId(
+          ui.bank_id,
+        ),
+
+      bank_account_id:
+        this.getNumberId(
+          ui.bank_account_id,
+        ),
+
+      status:
+        ui.status ||
+        null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -307,9 +437,8 @@ export class TreasuryImportFiles implements OnInit {
 
       created_at_date: row.created_at ?? null,
 
-      rows_summary: `${row.inserted_rows ?? 0} insertadas / ${
-        row.duplicate_rows ?? 0
-      } duplicadas / ${row.error_rows ?? 0} errores`,
+      rows_summary: `${row.inserted_rows ?? 0} insertadas / ${row.duplicate_rows ?? 0
+        } duplicadas / ${row.error_rows ?? 0} errores`,
 
       uploaded_by_display:
         row.uploaded_by_user?.name ??
@@ -329,6 +458,33 @@ export class TreasuryImportFiles implements OnInit {
     this.filters.limit = event.pageSize;
 
     this.saveFiltersToStorage();
+    this.loadImportFiles();
+  }
+
+  // =========================================================
+  // ORDENAMIENTO
+  // =========================================================
+
+  onSortChange(
+    event: DataTableSortEvent,
+  ): void {
+
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+    this.filters = {
+      ...this.filters,
+
+      page: 1,
+
+      sorts: [
+        ...this.sorts,
+      ],
+    };
+
+    this.saveFiltersToStorage();
+
     this.loadImportFiles();
   }
 
@@ -355,55 +511,134 @@ export class TreasuryImportFiles implements OnInit {
   // LOCAL STORAGE
   // =========================================================
 
-  private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.TreasuryImportFileUiFilters>(
-      TREASURY_IMPORT_FILES_FILTERS_KEY,
-    );
+  private restoreFiltersFromStorage():
+    void {
+
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryImportFileUiFilters
+      >(
+        TREASURY_IMPORT_FILES_FILTERS_KEY,
+      );
 
     if (!saved) {
+
+      this.sorts = [];
+
       this.loadImportFiles();
+
       return;
     }
 
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
+
     this.formFilters.patchValue(
       {
-        company_id: saved.company_id ?? null,
-        bank_id: saved.bank_id ?? null,
-        bank_account_id: saved.bank_account_id ?? null,
-        status: saved.status ?? '',
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        bank_account_id:
+          saved.bank_account_id ??
+          null,
+
+        status:
+          saved.status ??
+          '',
       },
-      { emitEvent: false },
+      {
+        emitEvent:
+          false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi({
-      company_id: saved.company_id ?? null,
-      bank_id: saved.bank_id ?? null,
-      bank_account_id: saved.bank_account_id ?? null,
-      status: saved.status ?? '',
-      page: saved.page ?? 1,
-      limit: saved.limit ?? this.filters.limit,
-    });
+    this.filters =
+      this.buildBackendFiltersFromUi({
+
+        company_id:
+          saved.company_id ??
+          null,
+
+        bank_id:
+          saved.bank_id ??
+          null,
+
+        bank_account_id:
+          saved.bank_account_id ??
+          null,
+
+        status:
+          saved.status ??
+          '',
+
+        sorts: [
+          ...(saved.sorts ?? []),
+        ],
+
+        page:
+          saved.page ??
+          1,
+
+        limit:
+          saved.limit ??
+          this.filters.limit,
+      });
 
     this.loadImportFiles();
   }
 
   private saveFiltersToStorage(
-    state?: entity.TreasuryImportFileUiFilters,
+    state?:
+      entity.TreasuryImportFileUiFilters,
   ): void {
+
     if (!state) {
-      const value = this.formFilters.getRawValue();
+
+      const value =
+        this.formFilters
+          .getRawValue();
 
       state = {
-        company_id: value.company_id ?? null,
-        bank_id: value.bank_id ?? null,
-        bank_account_id: value.bank_account_id ?? null,
-        status: value.status || '',
-        page: this.filters.page,
-        limit: this.filters.limit,
+
+        company_id:
+          value.company_id ??
+          null,
+
+        bank_id:
+          value.bank_id ??
+          null,
+
+        bank_account_id:
+          value.bank_account_id ??
+          null,
+
+        status:
+          value.status ||
+          '',
+
+        sorts: [
+          ...this.sorts,
+        ],
+
+        page:
+          this.filters.page,
+
+        limit:
+          this.filters.limit,
       };
     }
 
-    this.storage.setItem(TREASURY_IMPORT_FILES_FILTERS_KEY, state);
+    this.storage.setItem(
+      TREASURY_IMPORT_FILES_FILTERS_KEY,
+      state,
+    );
   }
 
   // =========================================================

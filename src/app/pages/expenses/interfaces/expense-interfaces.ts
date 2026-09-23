@@ -5,6 +5,15 @@ import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
  *  TIPOS BASE
  * ===================================================== */
 
+export type ExpenseSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface ExpenseSortItem {
+  key: string;
+  direction: ExpenseSortDirection;
+}
+
 export type ExpensePaymentStatus =
   | 'unpaid'
   | 'partial'
@@ -45,13 +54,30 @@ export type WarehouseAssignmentStatusFilter =
 export interface FiltersExpenses {
   startDate?: string | null;
   endDate?: string | null;
+
   totalAmount?: number | null;
+
   suppliersIds?: number[] | null;
   projectIds?: number[] | null;
+
   search?: string | null;
-  paymentStatus?: 'paid' | 'unpaid' | null;
-  status_id?: number | string | null;
-  warehouseAssignmentStatus?: WarehouseAssignmentStatusFilter | null;
+
+  paymentStatus?:
+  | 'paid'
+  | 'unpaid'
+  | null;
+
+  status_id?:
+  | number
+  | string
+  | null;
+
+  warehouseAssignmentStatus?:
+  | WarehouseAssignmentStatusFilter
+  | null;
+
+  sorts?: ExpenseSortItem[];
+
   limit: number;
   page: number;
 }
@@ -360,16 +386,41 @@ export interface ExpenseItemForm {
  * ===================================================== */
 
 export interface ExpensesUiFilters {
-  dateRange: DateRangeValue | null;
-  totalAmount: number | null;
-  suppliersIds: any[];
-  search?: string | null;
-  projectIds: any[];
-  status_id: string | number | null;
-  paymentStatus: 'paid' | 'unpaid' | null;
-  warehouseAssignmentStatus: WarehouseAssignmentStatusFilter | null;
-  page: number;
-  limit: number;
+  dateRange:
+  DateRangeValue | null;
+
+  totalAmount:
+  number | null;
+
+  suppliersIds:
+  any[];
+
+  search?:
+  string | null;
+
+  projectIds:
+  any[];
+
+  status_id:
+  string | number | null;
+
+  paymentStatus:
+  | 'paid'
+  | 'unpaid'
+  | null;
+
+  warehouseAssignmentStatus:
+  | WarehouseAssignmentStatusFilter
+  | null;
+
+  sorts:
+  ExpenseSortItem[];
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 /* =====================================================
  *  XML PREVIEW

@@ -42,15 +42,18 @@
 
   @if (importFilesTableData?.data) {
     <div class="c-module-table">
-      <app-data-table
-        [data]="importFilesTableData.data"
-        [columnsConfig]="columnsConfig"
-        [displayedColumns]="displayedColumns"
-        [actionPermissions]="{
-          showEdit: false,
-          showDelete: false
-        }">
-      </app-data-table>
+  <app-data-table
+  [data]="importFilesTableData.data"
+  [columnsConfig]="columnsConfig"
+  [displayedColumns]="displayedColumns"
+  [sorts]="sorts"
+  (sortChange)="onSortChange($event)"
+  [actionPermissions]="{
+    showEdit: false,
+    showDelete: false
+  }"
+>
+</app-data-table>
 
       <mat-paginator
         [length]="importFilesTableData.meta.total"

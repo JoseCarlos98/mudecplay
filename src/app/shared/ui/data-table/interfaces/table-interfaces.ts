@@ -3,6 +3,18 @@ import { RoleCode } from '../../../../auth/interfaces/auth.interface';
 export type DataTableActionType = 'edit' | 'delete' | 'showItems' | string;
 export type ActionPopoverKind = 'warning' | 'info' | 'success' | 'error';
 export type DataTableRowKey = string | number;
+export type DataTableSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface DataTableSortItem {
+  key: string;
+  direction: DataTableSortDirection;
+}
+
+export interface DataTableSortEvent {
+  sorts: DataTableSortItem[];
+}
 
 export interface DataTableActionEvent<T> {
   type: DataTableActionType;
@@ -54,6 +66,9 @@ export interface ColumnsConfig {
   typeVariant?: ColumnVariant;
   fallbackVariant?: ColumnVariant;
   fallback?: string;
+
+  sortable?: boolean;
+  sortKey?: string;
 
   variantResolver?: (row: any) => ColumnVariant | null;
   popoverContent?: (row: any) => DataTableActionPopover | null;

@@ -24,6 +24,7 @@ import {
   DataTableActionEvent,
   DataTableActionPopover,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { DateRangeValue, InputDate } from '../../shared/ui/input-date/input-date';
@@ -140,7 +141,6 @@ function getWarehouseAssignmentColumnPopover(
     kind: getWarehouseAssignmentPopoverKind(row),
   };
 }
-
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
     key: 'cfdi_uuid_name',
@@ -151,6 +151,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
     key: 'internal_folio',
     label: 'Folio',
+    sortable: true,
+    sortKey: 'internal_folio',
   },
   {
     key: 'purchase_order_link',
@@ -159,11 +161,15 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     path: 'folio',
     fallback: 'Sin O.C.',
     fallbackVariant: 'chip-neutral',
+    sortable: true,
+    sortKey: 'purchase_order',
   },
   {
     key: 'date',
     label: 'Fecha',
     type: 'date',
+    sortable: true,
+    sortKey: 'date',
   },
   {
     key: 'supplier',
@@ -172,6 +178,8 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     path: 'company_name',
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
+    sortable: true,
+    sortKey: 'supplier',
   },
   {
     key: 'products',
@@ -191,12 +199,16 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Monto',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'total_amount',
   },
   {
     key: 'remaining_amount',
     label: 'Saldo',
     type: 'money',
     align: 'right',
+    sortable: true,
+    sortKey: 'remaining_amount',
   },
 ];
 
@@ -268,6 +280,8 @@ export class Expenses implements OnInit {
   readonly downloadingReceipt = signal(false);
   readonly downloadingReceiptExpenseId = signal<number | null>(null);
 
+  sorts:
+    entity.ExpenseSortItem[] = [];
   // ==========================
   //  ACCIONES BASE
   // ==========================
@@ -451,6 +465,7 @@ export class Expenses implements OnInit {
     search: null,
     totalAmount: null,
     warehouseAssignmentStatus: 'all',
+    sorts: [],
   };
 
   expensesTableData!: PaginatedResponse<entity.ExpenseResponseDto>;
@@ -499,15 +514,46 @@ export class Expenses implements OnInit {
     return {
       page: ui.page,
       limit: ui.limit,
-      search: ui.search?.trim() || null,
-      startDate: ui.dateRange?.startDate ?? null,
-      endDate: ui.dateRange?.endDate ?? null,
-      totalAmount: ui.totalAmount ?? null,
-      suppliersIds: (ui.suppliersIds ?? []).map((s: any) => s.id),
-      projectIds: (ui.projectIds ?? []).map((p: any) => p.id),
-      status_id: ui.status_id ?? null,
-      paymentStatus: ui.paymentStatus ?? null,
-      warehouseAssignmentStatus: ui.warehouseAssignmentStatus ?? 'all',
+
+      search:
+        ui.search?.trim() ||
+        null,
+
+      startDate:
+        ui.dateRange?.startDate ??
+        null,
+
+      endDate:
+        ui.dateRange?.endDate ??
+        null,
+
+      totalAmount:
+        ui.totalAmount ??
+        null,
+
+      suppliersIds:
+        (ui.suppliersIds ?? [])
+          .map((s: any) => s.id),
+
+      projectIds:
+        (ui.projectIds ?? [])
+          .map((p: any) => p.id),
+
+      status_id:
+        ui.status_id ??
+        null,
+
+      paymentStatus:
+        ui.paymentStatus ??
+        null,
+
+      warehouseAssignmentStatus:
+        ui.warehouseAssignmentStatus ??
+        'all',
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -539,24 +585,64 @@ export class Expenses implements OnInit {
   //  FILTROS + BÚSQUEDA
   // ==========================
   searchWithFilters(): void {
-    const value = this.formFilters.getRawValue();
+    const value =
+      this.formFilters.getRawValue();
 
-    const uiState: entity.ExpensesUiFilters = {
-      search: value.search?.trim() ?? '',
-      dateRange: value.dateRange ?? null,
-      totalAmount: value.totalAmount ?? null,
-      suppliersIds: value.suppliersIds ?? [],
-      projectIds: value.projectIds ?? [],
-      status_id: value.status_id ?? null,
-      paymentStatus: value.paymentStatus ?? null,
+    const uiState:
+      entity.ExpensesUiFilters = {
+
+      search:
+        value.search?.trim() ??
+        '',
+
+      dateRange:
+        value.dateRange ??
+        null,
+
+      totalAmount:
+        value.totalAmount ??
+        null,
+
+      suppliersIds:
+        value.suppliersIds ??
+        [],
+
+      projectIds:
+        value.projectIds ??
+        [],
+
+      status_id:
+        value.status_id ??
+        null,
+
+      paymentStatus:
+        value.paymentStatus ??
+        null,
+
       warehouseAssignmentStatus:
-        value.warehouseAssignmentStatus ?? 'all',
-      page: 1,
-      limit: this.filters.limit,
+        value.warehouseAssignmentStatus ??
+        'all',
+
+      sorts: [
+        ...this.sorts,
+      ],
+
+      page:
+        1,
+
+      limit:
+        this.filters.limit,
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
-    this.saveFiltersToStorage(uiState);
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveFiltersToStorage(
+      uiState,
+    );
+
     this.loadExpenses();
   }
 
@@ -591,6 +677,31 @@ export class Expenses implements OnInit {
     this.filters.limit = event.pageSize;
 
     this.saveFiltersToStorage();
+    this.loadExpenses();
+  }
+
+  // ==========================
+  //  ORDENAMIENTO
+  // ==========================
+  onSortChange(
+    event: DataTableSortEvent,
+  ): void {
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+    this.filters = {
+      ...this.filters,
+
+      page: 1,
+
+      sorts: [
+        ...this.sorts,
+      ],
+    };
+
+    this.saveFiltersToStorage();
+
     this.loadExpenses();
   }
 
@@ -757,24 +868,39 @@ export class Expenses implements OnInit {
   //  ESTADO DE FILTROS (UI)
   // ==========================
   get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
+    const form =
+      this.formFilters.getRawValue();
 
-    const hasSearch = !!form.search?.trim();
+    const hasSearch =
+      !!form.search?.trim();
 
-    const hasDates = !!(
-      form.dateRange?.startDate ||
-      form.dateRange?.endDate
-    );
+    const hasDates =
+      !!(
+        form.dateRange?.startDate ||
+        form.dateRange?.endDate
+      );
 
-    const hasTotalAmount = form.totalAmount !== null;
-    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-    const hasProjects = (form.projectIds?.length ?? 0) > 0;
-    const hasStatus = form.status_id !== '';
-    const hasPaymentStatus = !!form.paymentStatus;
+    const hasTotalAmount =
+      form.totalAmount !== null;
+
+    const hasSuppliers =
+      (form.suppliersIds?.length ?? 0) > 0;
+
+    const hasProjects =
+      (form.projectIds?.length ?? 0) > 0;
+
+    const hasStatus =
+      form.status_id !== '';
+
+    const hasPaymentStatus =
+      !!form.paymentStatus;
 
     const hasWarehouseAssignment =
       !!form.warehouseAssignmentStatus &&
       form.warehouseAssignmentStatus !== 'all';
+
+    const hasSorts =
+      this.sorts.length > 0;
 
     return (
       hasSearch ||
@@ -784,7 +910,8 @@ export class Expenses implements OnInit {
       hasProjects ||
       hasStatus ||
       hasPaymentStatus ||
-      hasWarehouseAssignment
+      hasWarehouseAssignment ||
+      hasSorts
     );
   }
 
@@ -800,24 +927,40 @@ export class Expenses implements OnInit {
         paymentStatus: null,
         warehouseAssignmentStatus: 'all',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
+
+    this.sorts = [];
 
     this.filters = {
       page: 1,
       limit: this.filters.limit,
+
       search: null,
       startDate: null,
       endDate: null,
+
       totalAmount: null,
+
       paymentStatus: null,
+
       suppliersIds: [],
       projectIds: [],
+
       status_id: null,
-      warehouseAssignmentStatus: 'all',
+
+      warehouseAssignmentStatus:
+        'all',
+
+      sorts: [],
     };
 
-    this.storage.removeItem(EXPENSES_FILTERS_KEY);
+    this.storage.removeItem(
+      EXPENSES_FILTERS_KEY,
+    );
+
     this.loadExpenses();
   }
 
@@ -838,37 +981,91 @@ export class Expenses implements OnInit {
   // ==========================
   private restoreFiltersFromStorage(): void {
     const saved =
-      this.storage.getItem<entity.ExpensesUiFilters>(
+      this.storage.getItem<
+        entity.ExpensesUiFilters
+      >(
         EXPENSES_FILTERS_KEY,
       );
 
     if (!saved) {
+      this.sorts = [];
+
       this.searchWithFilters();
+
       return;
     }
 
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
+
     this.formFilters.patchValue(
       {
-        search: saved.search ?? '',
-        dateRange: saved.dateRange ?? null,
-        totalAmount: saved.totalAmount ?? null,
-        suppliersIds: saved.suppliersIds ?? [],
-        projectIds: saved.projectIds ?? [],
-        status_id: saved.status_id ?? 1,
-        paymentStatus: saved.paymentStatus ?? null,
+        search:
+          saved.search ??
+          '',
+
+        dateRange:
+          saved.dateRange ??
+          null,
+
+        totalAmount:
+          saved.totalAmount ??
+          null,
+
+        suppliersIds:
+          saved.suppliersIds ??
+          [],
+
+        projectIds:
+          saved.projectIds ??
+          [],
+
+        status_id:
+          saved.status_id ??
+          1,
+
+        paymentStatus:
+          saved.paymentStatus ??
+          null,
+
         warehouseAssignmentStatus:
-          saved.warehouseAssignmentStatus ?? 'all',
+          saved.warehouseAssignmentStatus ??
+          'all',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi({
-      ...saved,
-      search: saved.search ?? '',
-      totalAmount: saved.totalAmount ?? null,
-      warehouseAssignmentStatus:
-        saved.warehouseAssignmentStatus ?? 'all',
-    });
+    this.filters =
+      this.buildBackendFiltersFromUi({
+        ...saved,
+
+        search:
+          saved.search ??
+          '',
+
+        totalAmount:
+          saved.totalAmount ??
+          null,
+
+        warehouseAssignmentStatus:
+          saved.warehouseAssignmentStatus ??
+          'all',
+
+        sorts: [
+          ...(saved.sorts ?? []),
+        ],
+
+        page:
+          saved.page ??
+          1,
+
+        limit:
+          saved.limit ??
+          this.filters.limit,
+      });
 
     this.loadExpenses();
   }
@@ -877,24 +1074,58 @@ export class Expenses implements OnInit {
     state?: entity.ExpensesUiFilters,
   ): void {
     if (!state) {
-      const value = this.formFilters.getRawValue();
+      const value =
+        this.formFilters.getRawValue();
 
       state = {
-        search: value.search?.trim() ?? '',
-        dateRange: value.dateRange ?? null,
-        totalAmount: value.totalAmount ?? null,
-        suppliersIds: value.suppliersIds ?? [],
-        projectIds: value.projectIds ?? [],
-        status_id: value.status_id ?? null,
-        paymentStatus: value.paymentStatus ?? null,
+        search:
+          value.search?.trim() ??
+          '',
+
+        dateRange:
+          value.dateRange ??
+          null,
+
+        totalAmount:
+          value.totalAmount ??
+          null,
+
+        suppliersIds:
+          value.suppliersIds ??
+          [],
+
+        projectIds:
+          value.projectIds ??
+          [],
+
+        status_id:
+          value.status_id ??
+          null,
+
+        paymentStatus:
+          value.paymentStatus ??
+          null,
+
         warehouseAssignmentStatus:
-          value.warehouseAssignmentStatus ?? 'all',
-        page: this.filters.page,
-        limit: this.filters.limit,
+          value.warehouseAssignmentStatus ??
+          'all',
+
+        sorts: [
+          ...this.sorts,
+        ],
+
+        page:
+          this.filters.page,
+
+        limit:
+          this.filters.limit,
       };
     }
 
-    this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+    this.storage.setItem(
+      EXPENSES_FILTERS_KEY,
+      state,
+    );
   }
 
   private openArchiveExpenseModal(expense: entity.ExpenseResponseDto): void {

@@ -54,9 +54,9 @@
 
     <app-data-table [data]="expensesTableData.data" [columnsConfig]="columnsConfig"
       [displayedColumns]="displayedColumns" [extraActions]="extraActions" [canDelete]="canDeleteRow"
-      [deleteTooltip]="deleteTooltip" [actionPermissions]="{
-          editRoles: ['GASTOS_EDITOR']
-        }" (action)="onTableAction($event)">
+      [deleteTooltip]="deleteTooltip" [sorts]="sorts" [actionPermissions]="{
+    editRoles: ['GASTOS_EDITOR']
+  }" (sortChange)="onSortChange($event)" (action)="onTableAction($event)">
     </app-data-table>
 
     <mat-paginator [length]="expensesTableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
