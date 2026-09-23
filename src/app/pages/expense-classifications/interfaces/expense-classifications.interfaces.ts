@@ -11,6 +11,16 @@ export type ExpenseClassificationsTab =
   | 'pending'
   | 'homologated';
 
+export type ExpenseClassificationSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface ExpenseClassificationSortItem {
+  key: string;
+
+  direction:
+  ExpenseClassificationSortDirection;
+}
 
 // =========================================================
 // REFERENCIA SIMPLE DE CLASIFICACIÓN
@@ -34,7 +44,7 @@ export interface ExpenseConceptSuggestion {
   normalizedConcept: string;
 
   classification:
-    ExpenseClassificationReference;
+  ExpenseClassificationReference;
 }
 
 // =========================================================
@@ -60,7 +70,7 @@ export interface ExpenseReportClassificationFilters {
   search?: string;
 
   status?:
-    ExpenseClassificationStatusFilter;
+  ExpenseClassificationStatusFilter;
 }
 
 
@@ -77,14 +87,16 @@ export interface UpdateExpenseReportClassificationPayload {
 // =========================================================
 // PENDIENTES
 // =========================================================
-
 export interface ExpenseClassificationPendingFilters {
   search?: string;
 
   sourceType?:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   all?: boolean;
+
+  sorts?:
+  ExpenseClassificationSortItem[];
 
   page?: number;
 
@@ -94,7 +106,7 @@ export interface ExpenseClassificationPendingFilters {
 
 interface ExpenseClassificationPendingBase {
   sourceType:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   displayName: string;
 
@@ -132,10 +144,10 @@ export type ExpenseClassificationPendingItem =
 
 export interface ExpenseClassificationPendingResponse {
   data:
-    ExpenseClassificationPendingItem[];
+  ExpenseClassificationPendingItem[];
 
   meta:
-    ExpenseClassificationPaginationMeta;
+  ExpenseClassificationPaginationMeta;
 }
 // =========================================================
 // FILA UI: PENDIENTES
@@ -186,7 +198,7 @@ export interface BulkClassifyExpensePendingPayload {
   classificationId: number;
 
   items:
-    ExpenseClassificationSelection[];
+  ExpenseClassificationSelection[];
 }
 
 
@@ -194,7 +206,7 @@ export interface BulkClassifyExpensePendingResponse {
   success: boolean;
 
   classification:
-    ExpenseClassificationReference;
+  ExpenseClassificationReference;
 
   total: number;
 
@@ -210,7 +222,7 @@ export interface BulkClassifyExpensePendingResponse {
 
 export interface ExpenseClassificationMapping {
   sourceType:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   mappingId: number;
 
@@ -225,15 +237,15 @@ export interface ExpenseClassificationMapping {
   displayName: string;
 
   normalizedConcept:
-    string | null;
+  string | null;
 
   productId:
-    number | null;
+  number | null;
 
   isActive: boolean;
 
   classification:
-    ExpenseClassificationReference;
+  ExpenseClassificationReference;
 
   createdAt: string;
 
@@ -274,13 +286,16 @@ export interface ExpenseClassificationMappingFilters {
   search?: string;
 
   sourceType?:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   status?:
-    ExpenseClassificationStatusFilter;
+  ExpenseClassificationStatusFilter;
 
   classificationId?:
-    number | null;
+  number | null;
+
+  sorts?:
+  ExpenseClassificationSortItem[];
 
   page: number;
 
@@ -305,10 +320,10 @@ export interface ExpenseClassificationPaginationMeta {
 
 export interface ExpenseClassificationMappingsResponse {
   data:
-    ExpenseClassificationMapping[];
+  ExpenseClassificationMapping[];
 
   meta:
-    ExpenseClassificationPaginationMeta;
+  ExpenseClassificationPaginationMeta;
 }
 
 
@@ -318,7 +333,7 @@ export interface ExpenseClassificationMappingsResponse {
 
 export interface ReassignExpenseClassificationPayload {
   sourceType:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   mappingId: number;
 
@@ -332,7 +347,7 @@ export interface ReassignExpenseClassificationPayload {
 
 export interface ChangeExpenseClassificationMappingStatusPayload {
   sourceType:
-    ExpenseClassificationSourceType;
+  ExpenseClassificationSourceType;
 
   mappingId: number;
 }
@@ -349,16 +364,16 @@ export type ExpenseReportClassificationModalMode =
 
 export type ExpenseReportClassificationModalData =
   | {
-      mode: 'create';
+    mode: 'create';
 
-      classification?: never;
-    }
+    classification?: never;
+  }
   | {
-      mode: 'edit';
+    mode: 'edit';
 
-      classification:
-        ExpenseReportClassification;
-    };
+    classification:
+    ExpenseReportClassification;
+  };
 
 
 // =========================================================
@@ -367,7 +382,7 @@ export type ExpenseReportClassificationModalData =
 
 export interface ReassignExpenseClassificationModalData {
   mapping:
-    ExpenseClassificationMapping;
+  ExpenseClassificationMapping;
 
   /*
    * Solo pasaremos clasificaciones activas,
@@ -375,7 +390,7 @@ export interface ReassignExpenseClassificationModalData {
    * hacia una clasificación inactiva.
    */
   classifications:
-    ExpenseReportClassification[];
+  ExpenseReportClassification[];
 }
 
 

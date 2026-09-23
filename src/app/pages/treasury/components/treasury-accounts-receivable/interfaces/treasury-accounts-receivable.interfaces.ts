@@ -115,6 +115,9 @@ export interface TreasuryAvailableInflowFilters {
   search?:
   string | null;
 
+  sorts?:
+  TreasuryAccountsReceivableSortItem[];
+
   page:
   number;
 
@@ -213,6 +216,16 @@ export interface TreasuryAvailableInflowsSummary {
   number;
 }
 
+export type TreasuryAccountsReceivableSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface TreasuryAccountsReceivableSortItem {
+  key: string;
+  direction:
+  TreasuryAccountsReceivableSortDirection;
+}
+
 
 // =========================================================
 // ENTRADAS BANCARIAS DISPONIBLES:
@@ -252,8 +265,11 @@ export interface TreasuryPendingReceivableFilters {
   search?:
   string | null;
 
-   amount?:
-    number | null;
+  amount?:
+  number | null;
+
+  sorts?:
+  TreasuryAccountsReceivableSortItem[];
 
   page:
   number;
@@ -423,7 +439,6 @@ export type TreasuryPendingReceivableTableRow =
 
 
 export interface TreasuryAvailableInflowUiFilters {
-
   dateRange:
   TreasuryAccountsReceivableDateRange | null;
 
@@ -441,6 +456,36 @@ export interface TreasuryAvailableInflowUiFilters {
 
   bank_account_id:
   Catalog | number | string | null;
+
+  sorts?:
+  TreasuryAccountsReceivableSortItem[];
+
+  page:
+  number;
+
+  limit:
+  number;
+}
+
+
+export interface TreasuryPendingReceivableUiFilters {
+  dateRange:
+  TreasuryAccountsReceivableDateRange | null;
+
+  search:
+  string;
+
+  amount:
+  number | null;
+
+  project_id:
+  Catalog | number | string | null;
+
+  company_code:
+  string | null;
+
+  sorts?:
+  TreasuryAccountsReceivableSortItem[];
 
   page:
   number;

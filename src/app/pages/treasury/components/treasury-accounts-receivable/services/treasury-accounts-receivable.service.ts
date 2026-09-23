@@ -72,7 +72,6 @@ export class TreasuryAccountsReceivableService {
         filters.amount !== undefined &&
         filters.amount !== null
       ) {
-
         params =
           params.set(
             'amount',
@@ -82,11 +81,9 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
         filters.search?.trim()
       ) {
-
         params =
           params.set(
             'search',
@@ -94,14 +91,10 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
-        filters.company_id !==
-        undefined &&
-        filters.company_id !==
-        null
+        filters.company_id !== undefined &&
+        filters.company_id !== null
       ) {
-
         params =
           params.set(
             'company_id',
@@ -111,14 +104,10 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
-        filters.bank_id !==
-        undefined &&
-        filters.bank_id !==
-        null
+        filters.bank_id !== undefined &&
+        filters.bank_id !== null
       ) {
-
         params =
           params.set(
             'bank_id',
@@ -128,14 +117,10 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
-        filters.bank_account_id !==
-        undefined &&
-        filters.bank_account_id !==
-        null
+        filters.bank_account_id !== undefined &&
+        filters.bank_account_id !== null
       ) {
-
         params =
           params.set(
             'bank_account_id',
@@ -145,11 +130,9 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
         filters.date_from?.trim()
       ) {
-
         params =
           params.set(
             'date_from',
@@ -157,19 +140,34 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
-
       if (
         filters.date_to?.trim()
       ) {
-
         params =
           params.set(
             'date_to',
             filters.date_to.trim(),
           );
       }
-    }
 
+      if (
+        filters.sorts?.length
+      ) {
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
+      }
+    }
 
     return this.http.get<
       entity.TreasuryAvailableInflowsResponse
@@ -180,7 +178,6 @@ export class TreasuryAccountsReceivableService {
       },
     );
   }
-
 
   // =========================================================
   // CUENTAS POR COBRAR:
@@ -215,17 +212,9 @@ export class TreasuryAccountsReceivableService {
           ),
         );
 
-
-      if (
-        filters.search?.trim()
-      ) {
-
-        params =
-          params.set(
-            'search',
-            filters.search.trim(),
-          );
-      }
+      // ==========================
+      // IMPORTE
+      // ==========================
 
       if (
         filters.amount !== undefined &&
@@ -241,6 +230,24 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
+      // ==========================
+      // BÚSQUEDA
+      // ==========================
+
+      if (
+        filters.search?.trim()
+      ) {
+
+        params =
+          params.set(
+            'search',
+            filters.search.trim(),
+          );
+      }
+
+      // ==========================
+      // PROYECTO
+      // ==========================
 
       if (
         filters.project_id !==
@@ -258,6 +265,9 @@ export class TreasuryAccountsReceivableService {
           );
       }
 
+      // ==========================
+      // EMPRESA
+      // ==========================
 
       if (
         filters.company_code
@@ -267,10 +277,14 @@ export class TreasuryAccountsReceivableService {
         params =
           params.set(
             'company_code',
-            filters.company_code.trim(),
+            filters.company_code
+              .trim(),
           );
       }
 
+      // ==========================
+      // FECHA DESDE
+      // ==========================
 
       if (
         filters.date_from
@@ -280,10 +294,14 @@ export class TreasuryAccountsReceivableService {
         params =
           params.set(
             'date_from',
-            filters.date_from.trim(),
+            filters.date_from
+              .trim(),
           );
       }
 
+      // ==========================
+      // FECHA HASTA
+      // ==========================
 
       if (
         filters.date_to
@@ -293,11 +311,34 @@ export class TreasuryAccountsReceivableService {
         params =
           params.set(
             'date_to',
-            filters.date_to.trim(),
+            filters.date_to
+              .trim(),
+          );
+      }
+
+      // ==========================
+      // ORDENAMIENTO
+      // ==========================
+
+      if (
+        filters.sorts?.length
+      ) {
+
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
           );
       }
     }
-
 
     return this.http.get<
       entity.TreasuryPendingReceivablesResponse

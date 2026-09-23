@@ -380,12 +380,9 @@
         ">
 
         <app-data-table [data]="availableInflowRows" [columnsConfig]="availableInflowColumns"
-          [displayedColumns]="availableInflowDisplayedColumns" [extraActions]="inflowExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="
-            onInflowTableAction(
-              $event
-            )
-          ">
+          [displayedColumns]="availableInflowDisplayedColumns" [extraActions]="inflowExtraActions" [sorts]="inflowSorts"
+          [actionPermissions]="tableActionPermissions" (sortChange)="onAvailableInflowSortChange($event)"
+          (action)="onInflowTableAction($event)">
         </app-data-table>
 
 
@@ -750,11 +747,8 @@
 
         <app-data-table [data]="pendingReceivableRows" [columnsConfig]="pendingReceivableColumns"
           [displayedColumns]="pendingReceivableDisplayedColumns" [extraActions]="receivableExtraActions"
-          [actionPermissions]="tableActionPermissions" (action)="
-            onReceivableTableAction(
-              $event
-            )
-          ">
+          [sorts]="receivableSorts" [actionPermissions]="tableActionPermissions"
+          (sortChange)="onPendingReceivableSortChange($event)" (action)="onReceivableTableAction($event)">
         </app-data-table>
 
 

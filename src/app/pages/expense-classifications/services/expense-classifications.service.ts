@@ -143,10 +143,12 @@ export class ExpenseClassificationsService {
   ): Observable<
     entity.ExpenseClassificationPendingResponse
   > {
+
     let params =
       new HttpParams();
 
     if (filters) {
+
       params = setScalar(
         params,
         'search',
@@ -178,6 +180,24 @@ export class ExpenseClassificationsService {
         'limit',
         filters.limit,
       );
+
+      if (
+        filters.sorts?.length
+      ) {
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params = setScalar(
+          params,
+          'sort',
+          sort,
+        );
+      }
     }
 
     return this.http.get<
@@ -260,6 +280,24 @@ export class ExpenseClassificationsService {
       'limit',
       filters.limit,
     );
+
+    if (
+      filters.sorts?.length
+    ) {
+      const sort =
+        filters.sorts
+          .map(
+            (item) =>
+              `${item.key}:${item.direction}`,
+          )
+          .join(',');
+
+      params = setScalar(
+        params,
+        'sort',
+        sort,
+      );
+    }
 
     return this.http.get<
       entity.ExpenseClassificationMappingsResponse

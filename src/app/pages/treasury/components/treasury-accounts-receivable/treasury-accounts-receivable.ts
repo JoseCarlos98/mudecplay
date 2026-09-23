@@ -63,6 +63,7 @@ import {
   ColumnVariant,
   DataTableActionEvent,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../../../shared/ui/data-table/interfaces/table-interfaces';
 
 import {
@@ -269,7 +270,6 @@ function resolveMigrationVariant(
 
 const AVAILABLE_INFLOW_COLUMNS:
   ColumnsConfig[] = [
-
     {
       key: 'classification_selected',
       label: 'Elegir',
@@ -295,7 +295,6 @@ const AVAILABLE_INFLOW_COLUMNS:
         row:
           TreasuryAvailableInflowTableRow,
       ) => {
-
         if (
           row.status !== 'unmatched'
         ) {
@@ -314,12 +313,17 @@ const AVAILABLE_INFLOW_COLUMNS:
       key: 'movement_date',
       label: 'Fecha',
       type: 'date',
+      sortable: true,
+      sortKey: 'movement_date',
     },
+
     {
       key: 'amount',
       label: 'Monto original',
       type: 'money',
       align: 'right',
+      sortable: true,
+      sortKey: 'amount',
     },
 
     {
@@ -327,8 +331,9 @@ const AVAILABLE_INFLOW_COLUMNS:
       label: 'Disponible',
       type: 'money',
       align: 'right',
+      sortable: true,
+      sortKey: 'available_amount',
     },
-
 
     {
       key: 'description_display',
@@ -339,6 +344,9 @@ const AVAILABLE_INFLOW_COLUMNS:
       key: 'classification_label',
       label: 'Clasificación',
       type: 'chip',
+
+      sortable: true,
+      sortKey: 'classification',
 
       variantResolver: (
         row:
@@ -354,6 +362,9 @@ const AVAILABLE_INFLOW_COLUMNS:
       label: 'Revisión',
       type: 'chip',
 
+      sortable: true,
+      sortKey: 'classification_reviewed',
+
       variantResolver: (
         row:
           TreasuryAvailableInflowTableRow,
@@ -366,22 +377,31 @@ const AVAILABLE_INFLOW_COLUMNS:
     {
       key: 'company_name',
       label: 'Empresa',
+      sortable: true,
+      sortKey: 'company',
     },
 
     {
       key: 'bank_name',
       label: 'Banco',
+      sortable: true,
+      sortKey: 'bank',
     },
 
     {
       key: 'bank_account_display',
       label: 'Cuenta',
+      sortable: true,
+      sortKey: 'bank_account',
     },
 
     {
       key: 'status_label',
       label: 'Estatus',
       type: 'chip',
+
+      sortable: true,
+      sortKey: 'status',
 
       variantResolver: (
         row:
@@ -413,11 +433,12 @@ const AVAILABLE_INFLOW_DISPLAYED_COLUMNS =
 
 const PENDING_RECEIVABLE_COLUMNS:
   ColumnsConfig[] = [
-
     {
       key: 'issue_date',
       label: 'Fecha',
       type: 'date',
+      sortable: true,
+      sortKey: 'issue_date',
     },
 
     {
@@ -425,6 +446,8 @@ const PENDING_RECEIVABLE_COLUMNS:
       label: 'Pendiente',
       type: 'money',
       align: 'right',
+      sortable: true,
+      sortKey: 'pending_amount',
     },
 
     {
@@ -432,6 +455,8 @@ const PENDING_RECEIVABLE_COLUMNS:
       label: 'Total',
       type: 'money',
       align: 'right',
+      sortable: true,
+      sortKey: 'total',
     },
 
     {
@@ -439,33 +464,46 @@ const PENDING_RECEIVABLE_COLUMNS:
       label: 'Cobrado',
       type: 'money',
       align: 'right',
+      sortable: true,
+      sortKey: 'collected_amount',
     },
 
     {
       key: 'invoice_display',
       label: 'Factura',
+      sortable: true,
+      sortKey: 'invoice',
     },
 
     {
       key: 'receiver_name',
       label: 'Cliente',
+      sortable: true,
+      sortKey: 'receiver_name',
     },
 
     {
       key: 'project_name',
       label: 'Proyecto',
+      sortable: true,
+      sortKey: 'project',
     },
 
     {
       key: 'estimated_collection_date',
       label: 'Cobro estimado',
       type: 'date',
+      sortable: true,
+      sortKey: 'estimated_collection_date',
     },
 
     {
       key: 'status_label',
       label: 'Estatus',
       type: 'chip',
+
+      sortable: true,
+      sortKey: 'status',
 
       variantResolver: (
         row:
@@ -480,6 +518,9 @@ const PENDING_RECEIVABLE_COLUMNS:
       key: 'migration_label',
       label: 'Migración',
       type: 'chip',
+
+      sortable: true,
+      sortKey: 'requires_legacy_migration',
 
       variantResolver: (
         row:
@@ -654,65 +695,49 @@ export class TreasuryAccountsReceivable
       .isAdmin();
   }
 
+  inflowSorts:
+    entity.TreasuryAccountsReceivableSortItem[] = [];
+
+  receivableSorts:
+    entity.TreasuryAccountsReceivableSortItem[] = [];
+
   // =======================================================
   // FILTROS BACKEND
   // =======================================================
 
   inflowFilters:
     entity.TreasuryAvailableInflowFilters = {
+      page: 1,
+      limit: 10,
 
-      page:
-        1,
-
-      limit:
-        10,
-
-      search:
-        '',
-
+      search: '',
       amount: null,
 
-      company_id:
-        null,
+      company_id: null,
+      bank_id: null,
+      bank_account_id: null,
 
-      bank_id:
-        null,
+      date_from: null,
+      date_to: null,
 
-      bank_account_id:
-        null,
-
-      date_from:
-        null,
-
-      date_to:
-        null,
+      sorts: [],
     };
-
 
   receivableFilters:
     entity.TreasuryPendingReceivableFilters = {
+      page: 1,
+      limit: 10,
 
-      page:
-        1,
-
-      limit:
-        10,
-
-      search:
-        '',
+      search: '',
       amount: null,
 
-      project_id:
-        null,
+      project_id: null,
+      company_code: null,
 
-      company_code:
-        null,
+      date_from: null,
+      date_to: null,
 
-      date_from:
-        null,
-
-      date_to:
-        null,
+      sorts: [],
     };
 
 
@@ -1332,7 +1357,7 @@ export class TreasuryAccountsReceivable
     DataTableExtraAction<
       TreasuryPendingReceivableTableRow
     >[] = [
-     
+
 
       {
         type:
@@ -1414,7 +1439,7 @@ export class TreasuryAccountsReceivable
             ),
       },
 
-         {
+      {
         type:
           'receivableHistory',
 
@@ -1805,13 +1830,14 @@ export class TreasuryAccountsReceivable
         value.bank_account_id ??
         null,
 
-      page:
-        1,
+      sorts: [
+        ...this.inflowSorts,
+      ],
+
+      page: 1,
 
       limit:
-        this
-          .inflowFilters
-          .limit,
+        this.inflowFilters.limit,
     };
 
     this.inflowFilters =
@@ -1832,58 +1858,37 @@ export class TreasuryAccountsReceivable
 
     this.inflowFilterForm.reset(
       {
-        dateRange:
-          null,
-
-        search:
-          '',
-
+        dateRange: null,
+        search: '',
         amount: null,
-
-        company_id:
-          null,
-
-        bank_id:
-          null,
-
-        bank_account_id:
-          null,
+        company_id: null,
+        bank_id: null,
+        bank_account_id: null,
       },
       {
-        emitEvent:
-          false,
+        emitEvent: false,
       },
     );
 
-    this.inflowFilters = {
+    this.inflowSorts = [];
 
-      page:
-        1,
+    this.inflowFilters = {
+      page: 1,
 
       limit:
-        this
-          .inflowFilters
-          .limit,
+        this.inflowFilters.limit,
 
-      search:
-        '',
-
+      search: '',
       amount: null,
 
-      company_id:
-        null,
+      company_id: null,
+      bank_id: null,
+      bank_account_id: null,
 
-      bank_id:
-        null,
+      date_from: null,
+      date_to: null,
 
-      bank_account_id:
-        null,
-
-      date_from:
-        null,
-
-      date_to:
-        null,
+      sorts: [],
     };
 
     this.storage.removeItem(
@@ -1900,7 +1905,6 @@ export class TreasuryAccountsReceivable
   ): entity.TreasuryAvailableInflowFilters {
 
     return {
-
       page:
         ui.page,
 
@@ -1913,7 +1917,8 @@ export class TreasuryAccountsReceivable
         '',
 
       amount:
-        ui.amount ?? null,
+        ui.amount ??
+        null,
 
       company_id:
         this.getNumberId(
@@ -1939,6 +1944,10 @@ export class TreasuryAccountsReceivable
         ui.dateRange
           ?.endDate ??
         null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -1968,15 +1977,11 @@ export class TreasuryAccountsReceivable
         .getRawValue();
 
     return Boolean(
+      value.dateRange?.startDate ||
 
-      value.dateRange
-        ?.startDate ||
+      value.dateRange?.endDate ||
 
-      value.dateRange
-        ?.endDate ||
-
-      value.search
-        ?.trim() ||
+      value.search?.trim() ||
 
       this.normalizeAmountFilter(
         value.amount,
@@ -1992,7 +1997,9 @@ export class TreasuryAccountsReceivable
 
       this.getCatalogValue(
         value.bank_account_id,
-      )
+      ) ||
+
+      this.inflowSorts.length > 0
     );
   }
 
@@ -2033,13 +2040,14 @@ export class TreasuryAccountsReceivable
         value.company_code ??
         null,
 
-      page:
-        1,
+      sorts: [
+        ...this.receivableSorts,
+      ],
+
+      page: 1,
 
       limit:
-        this
-          .receivableFilters
-          .limit,
+        this.receivableFilters.limit,
     };
 
     this.receivableFilters =
@@ -2054,57 +2062,40 @@ export class TreasuryAccountsReceivable
     this.loadPendingReceivables();
   }
 
-
   clearPendingReceivableFilters():
     void {
 
     this.receivableFilterForm.reset(
       {
-        dateRange:
-          null,
-
-        search:
-          '',
+        dateRange: null,
+        search: '',
         amount: null,
-
-        project_id:
-          null,
-
-        company_code:
-          null,
+        project_id: null,
+        company_code: null,
       },
       {
-        emitEvent:
-          false,
+        emitEvent: false,
       },
     );
 
-    this.receivableFilters = {
+    this.receivableSorts = [];
 
-      page:
-        1,
+    this.receivableFilters = {
+      page: 1,
 
       limit:
-        this
-          .receivableFilters
-          .limit,
+        this.receivableFilters.limit,
 
-      search:
-        '',
-
+      search: '',
       amount: null,
 
-      project_id:
-        null,
+      project_id: null,
+      company_code: null,
 
-      company_code:
-        null,
+      date_from: null,
+      date_to: null,
 
-      date_from:
-        null,
-
-      date_to:
-        null,
+      sorts: [],
     };
 
     this.storage.removeItem(
@@ -2121,7 +2112,6 @@ export class TreasuryAccountsReceivable
   ): entity.TreasuryPendingReceivableFilters {
 
     return {
-
       page:
         ui.page,
 
@@ -2134,7 +2124,8 @@ export class TreasuryAccountsReceivable
         '',
 
       amount:
-        ui.amount ?? null,
+        ui.amount ??
+        null,
 
       project_id:
         this.getNumberId(
@@ -2154,9 +2145,69 @@ export class TreasuryAccountsReceivable
         ui.dateRange
           ?.endDate ??
         null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
+  // =======================================================
+  // ORDENAMIENTO: ENTRADAS BANCARIAS
+  // =======================================================
+
+  onAvailableInflowSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.inflowSorts = [
+      ...event.sorts,
+    ];
+
+    this.inflowFilters = {
+      ...this.inflowFilters,
+
+      page: 1,
+
+      sorts: [
+        ...this.inflowSorts,
+      ],
+    };
+
+    this.saveInflowFiltersToStorage();
+
+    this.loadAvailableInflows();
+  }
+
+
+  // =======================================================
+  // ORDENAMIENTO: CxC
+  // =======================================================
+
+  onPendingReceivableSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.receivableSorts = [
+      ...event.sorts,
+    ];
+
+    this.receivableFilters = {
+      ...this.receivableFilters,
+
+      page: 1,
+
+      sorts: [
+        ...this.receivableSorts,
+      ],
+    };
+
+    this.saveReceivableFiltersToStorage();
+
+    this.loadPendingReceivables();
+  }
 
   onPendingReceivablePageChange(
     event:
@@ -2183,25 +2234,23 @@ export class TreasuryAccountsReceivable
         .getRawValue();
 
     return Boolean(
+      value.dateRange?.startDate ||
 
-      value.dateRange
-        ?.startDate ||
-
-      value.dateRange
-        ?.endDate ||
+      value.dateRange?.endDate ||
 
       this.normalizeAmountFilter(
         value.amount,
       ) !== null ||
 
-      value.search
-        ?.trim() ||
+      value.search?.trim() ||
 
       this.getCatalogValue(
         value.project_id,
       ) ||
 
-      value.company_code
+      value.company_code ||
+
+      this.receivableSorts.length > 0
     );
   }
 
@@ -3035,42 +3084,45 @@ export class TreasuryAccountsReceivable
 
     if (savedInflows) {
 
+      this.inflowSorts = [
+        ...(savedInflows.sorts ?? []),
+      ];
+
       this.inflowFilterForm
         .patchValue(
           {
             dateRange:
-              savedInflows
-                .dateRange,
+              savedInflows.dateRange,
 
             search:
-              savedInflows
-                .search,
+              savedInflows.search,
 
             amount:
-              savedInflows.amount ?? null,
+              savedInflows.amount ??
+              null,
 
             company_id:
-              savedInflows
-                .company_id,
+              savedInflows.company_id,
 
             bank_id:
-              savedInflows
-                .bank_id,
+              savedInflows.bank_id,
 
             bank_account_id:
-              savedInflows
-                .bank_account_id,
+              savedInflows.bank_account_id,
           },
           {
-            emitEvent:
-              false,
+            emitEvent: false,
           },
         );
 
       this.inflowFilters =
-        this.buildInflowBackendFiltersFromUi(
-          savedInflows,
-        );
+        this.buildInflowBackendFiltersFromUi({
+          ...savedInflows,
+
+          sorts: [
+            ...(savedInflows.sorts ?? []),
+          ],
+        });
     }
 
 
@@ -3083,35 +3135,42 @@ export class TreasuryAccountsReceivable
 
     if (savedReceivables) {
 
+      this.receivableSorts = [
+        ...(savedReceivables.sorts ?? []),
+      ];
+
       this.receivableFilterForm
         .patchValue(
           {
             dateRange:
-              savedReceivables
-                .dateRange,
+              savedReceivables.dateRange,
 
             search:
-              savedReceivables
-                .search,
+              savedReceivables.search,
+
+            amount:
+              savedReceivables.amount ??
+              null,
 
             project_id:
-              savedReceivables
-                .project_id,
+              savedReceivables.project_id,
 
             company_code:
-              savedReceivables
-                .company_code,
+              savedReceivables.company_code,
           },
           {
-            emitEvent:
-              false,
+            emitEvent: false,
           },
         );
 
       this.receivableFilters =
-        this.buildReceivableBackendFiltersFromUi(
-          savedReceivables,
-        );
+        this.buildReceivableBackendFiltersFromUi({
+          ...savedReceivables,
+
+          sorts: [
+            ...(savedReceivables.sorts ?? []),
+          ],
+        });
     }
   }
 
@@ -3128,7 +3187,6 @@ export class TreasuryAccountsReceivable
           .getRawValue();
 
       state = {
-
         amount:
           this.normalizeAmountFilter(
             value.amount,
@@ -3154,15 +3212,15 @@ export class TreasuryAccountsReceivable
           value.bank_account_id ??
           null,
 
+        sorts: [
+          ...this.inflowSorts,
+        ],
+
         page:
-          this
-            .inflowFilters
-            .page,
+          this.inflowFilters.page,
 
         limit:
-          this
-            .inflowFilters
-            .limit,
+          this.inflowFilters.limit,
       };
     }
 
@@ -3171,7 +3229,6 @@ export class TreasuryAccountsReceivable
       state,
     );
   }
-
 
   private saveReceivableFiltersToStorage(
     state?:
@@ -3185,7 +3242,6 @@ export class TreasuryAccountsReceivable
           .getRawValue();
 
       state = {
-
         dateRange:
           value.dateRange ??
           null,
@@ -3207,15 +3263,15 @@ export class TreasuryAccountsReceivable
           value.company_code ??
           null,
 
+        sorts: [
+          ...this.receivableSorts,
+        ],
+
         page:
-          this
-            .receivableFilters
-            .page,
+          this.receivableFilters.page,
 
         limit:
-          this
-            .receivableFilters
-            .limit,
+          this.receivableFilters.limit,
       };
     }
 

@@ -25,20 +25,45 @@ export type AccountReceivableFinancialSource =
 // FILTROS
 // =========================================================
 
-export interface FiltersAccountsReceivable {
-  startDate?: string | null;
-  endDate?: string | null;
+export type AccountReceivableSortDirection =
+  | 'asc'
+  | 'desc';
 
-  folio?: string | null;
-  companyCode?: string | null;
-  clientQuery?: string | null;
+export interface AccountReceivableSortItem {
+  key: string;
+
+  direction:
+  AccountReceivableSortDirection;
+}
+
+export interface FiltersAccountsReceivable {
+  startDate?:
+  string | null;
+
+  endDate?:
+  string | null;
+
+  folio?:
+  string | null;
+
+  companyCode?:
+  string | null;
+
+  clientQuery?:
+  string | null;
 
   status?:
-    | AccountReceivableFinancialStatus
-    | null;
+  | AccountReceivableFinancialStatus
+  | null;
 
-  limit: number;
-  page: number;
+  sorts?:
+  AccountReceivableSortItem[];
+
+  limit:
+  number;
+
+  page:
+  number;
 }
 
 
@@ -89,7 +114,7 @@ export interface AccountReceivableResponseDto {
   issue_date: string;
 
   estimated_collection_date:
-    string | null;
+  string | null;
 
   subtotal: number;
   total: number;
@@ -105,20 +130,20 @@ export interface AccountReceivableResponseDto {
   pending_amount: number;
 
   status:
-    AccountReceivableFinancialStatus;
+  AccountReceivableFinancialStatus;
 
   financial_source:
-    AccountReceivableFinancialSource;
+  AccountReceivableFinancialSource;
 
   has_treasury_history: boolean;
 
   requires_legacy_migration: boolean;
 
   last_collection_date:
-    string | null;
+  string | null;
 
   fully_collected_date:
-    string | null;
+  string | null;
 
 
   // =====================================================
@@ -139,7 +164,7 @@ export interface AccountReceivableResponseDto {
   source_file_name: string | null;
 
   project:
-    AccountReceivableProject | null;
+  AccountReceivableProject | null;
 }
 
 
@@ -151,7 +176,7 @@ export interface AccountReceivableDetail
   extends AccountReceivableResponseDto {
 
   advances:
-    AccountReceivableAdvance[];
+  AccountReceivableAdvance[];
 }
 
 
@@ -192,7 +217,7 @@ export interface CreateAccountReceivable {
   issue_date: string;
 
   estimated_collection_date?:
-    string | null;
+  string | null;
 
   subtotal: number;
   total: number;
@@ -211,7 +236,7 @@ export interface CreateAccountReceivable {
 
 export interface UpdateAccountReceivable {
   estimated_collection_date?:
-    string | null;
+  string | null;
 
   project_id?: number | null;
 }
@@ -239,24 +264,31 @@ export interface CreateAccountReceivableAdvance {
 // =========================================================
 // FILTROS DE UI
 // =========================================================
-
 export interface AccountsReceivableUiFilters {
   dateRange:
-    DateRangeValue | null;
+  DateRangeValue | null;
 
-  folio: string;
+  folio:
+  string;
 
   companyCode:
-    string | null;
+  string | null;
 
-  clientQuery: string;
+  clientQuery:
+  string;
 
   status:
-    | AccountReceivableFinancialStatus
-    | null;
+  | AccountReceivableFinancialStatus
+  | null;
 
-  page: number;
-  limit: number;
+  sorts?:
+  AccountReceivableSortItem[];
+
+  page:
+  number;
+
+  limit:
+  number;
 }
 
 
@@ -306,13 +338,13 @@ export interface XmlAccountReceivableErrorDto {
 
 export interface XmlImportAccountReceivableResponseDto {
   drafts:
-    XmlAccountReceivableDraftDto[];
+  XmlAccountReceivableDraftDto[];
 
   duplicates:
-    XmlAccountReceivableDuplicateDto[];
+  XmlAccountReceivableDuplicateDto[];
 
   errors:
-    XmlAccountReceivableErrorDto[];
+  XmlAccountReceivableErrorDto[];
 }
 
 

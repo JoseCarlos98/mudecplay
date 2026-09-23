@@ -13,28 +13,67 @@ export type WarehouseMovementType =
   | 'return'
   | 'adjust';
 
+  export type WarehouseSortDirection =
+  | 'asc'
+  | 'desc';
+
+export interface WarehouseSortItem {
+  key: string;
+  direction: WarehouseSortDirection;
+}
+
 export interface WarehouseLotFilters {
   page: number;
   limit: number;
 
-  search?: string | null;     
-  productSearch?: string | null; 
-  supplierIds?: number[];
+  search?:
+    string |
+    null;
 
-  stockView?: WarehouseStockView | null;
-  status?: string | null;
+  productSearch?:
+    string |
+    null;
+
+  supplierIds?:
+    number[];
+
+  stockView?:
+    WarehouseStockView |
+    null;
+
+  status?:
+    string |
+    null;
+
+  sorts?:
+    WarehouseSortItem[];
 }
 
 export interface WarehouseLotUiFilters {
   page: number;
   limit: number;
 
-  search?: string | null;
-  productSearch?: string | null;
-  suppliersIds?: Catalog[];
+  search?:
+    string |
+    null;
 
-  stockView?: WarehouseStockView | null;
-  status?: string | null;
+  productSearch?:
+    string |
+    null;
+
+  suppliersIds?:
+    Catalog[];
+
+  stockView?:
+    WarehouseStockView |
+    null;
+
+  status?:
+    string |
+    null;
+
+  sorts:
+    WarehouseSortItem[];
 }
 
 export interface WarehouseLotResponseDto {

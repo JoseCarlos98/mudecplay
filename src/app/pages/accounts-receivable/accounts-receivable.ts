@@ -50,6 +50,7 @@ import {
   ColumnsConfig,
   ColumnVariant,
   DataTableActionEvent,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 
 import {
@@ -155,18 +156,31 @@ const COLUMNS_CONFIG:
       key: 'company_label',
       label: 'Empresa',
       type: 'chip',
+
       typeVariant:
         'chip-neutral',
+
+      sortable: true,
+      sortKey:
+        'company_code',
     },
 
     {
       key: 'invoice_display',
       label: 'Factura',
+
+      sortable: true,
+      sortKey:
+        'invoice',
     },
 
     {
       key: 'receiver_name',
       label: 'Cliente',
+
+      sortable: true,
+      sortKey:
+        'receiver_name',
     },
 
     {
@@ -179,18 +193,30 @@ const COLUMNS_CONFIG:
 
       fallbackVariant:
         'chip-warning',
+
+      sortable: true,
+      sortKey:
+        'project',
     },
 
     {
       key: 'issue_date',
       label: 'Fecha emisión',
       type: 'date',
+
+      sortable: true,
+      sortKey:
+        'issue_date',
     },
 
     {
       key: 'estimated_collection_date',
       label: 'Cobro estimado',
       type: 'date',
+
+      sortable: true,
+      sortKey:
+        'estimated_collection_date',
     },
 
     {
@@ -198,6 +224,10 @@ const COLUMNS_CONFIG:
       label: 'Total',
       type: 'money',
       align: 'right',
+
+      sortable: true,
+      sortKey:
+        'total',
     },
 
     {
@@ -205,6 +235,10 @@ const COLUMNS_CONFIG:
       label: 'Cobrado',
       type: 'money',
       align: 'right',
+
+      sortable: true,
+      sortKey:
+        'collected_amount',
     },
 
     {
@@ -212,12 +246,20 @@ const COLUMNS_CONFIG:
       label: 'Pendiente',
       type: 'money',
       align: 'right',
+
+      sortable: true,
+      sortKey:
+        'pending_amount',
     },
 
     {
       key: 'status_label',
       label: 'Estatus',
       type: 'chip',
+
+      sortable: true,
+      sortKey:
+        'status',
 
       variantResolver:
         (
@@ -233,6 +275,10 @@ const COLUMNS_CONFIG:
       key: 'last_collection_date',
       label: 'Último cobro',
       type: 'date',
+
+      sortable: true,
+      sortKey:
+        'last_collection_date',
     },
   ];
 
@@ -304,9 +350,9 @@ export class AccountsReceivable
   // =======================================================
 
   private readonly accountsReceivableService =
-      inject(
-        AccountsReceivableService,
-      );
+    inject(
+      AccountsReceivableService,
+    );
 
   private readonly dialogService =
     inject(
@@ -364,6 +410,9 @@ export class AccountsReceivable
   readonly loadingTable =
     signal(false);
 
+  sorts:
+    entity.AccountReceivableSortItem[] = [];
+
 
   // =======================================================
   // DATA
@@ -373,6 +422,7 @@ export class AccountsReceivable
     entity.FiltersAccountsReceivable = {
       page: 1,
       limit: 5,
+      sorts: [],
     };
 
   accountsReceivableTableData!:
@@ -475,6 +525,10 @@ export class AccountsReceivable
       status:
         ui.status ??
         null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
@@ -508,6 +562,10 @@ export class AccountsReceivable
         value.status ??
         null,
 
+      sorts: [
+        ...this.sorts,
+      ],
+
       page:
         1,
 
@@ -527,6 +585,35 @@ export class AccountsReceivable
     this.loadAccountsReceivable();
   }
 
+
+  // =======================================================
+  // ORDENAMIENTO
+  // =======================================================
+
+  onSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+    this.filters = {
+      ...this.filters,
+
+      page:
+        1,
+
+      sorts: [
+        ...this.sorts,
+      ],
+    };
+
+    this.saveFiltersToStorage();
+
+    this.loadAccountsReceivable();
+  }
 
   // =======================================================
   // ACCIONES TABLA
@@ -829,12 +916,16 @@ export class AccountsReceivable
         form.status,
       );
 
+    const hasSorts =
+      this.sorts.length > 0;
+
     return (
       hasDates ||
       hasFolio ||
       hasCompany ||
       hasClientQuery ||
-      hasStatus
+      hasStatus ||
+      hasSorts
     );
   }
 
@@ -864,6 +955,8 @@ export class AccountsReceivable
       },
     );
 
+    this.sorts = [];
+
     this.filters = {
       page:
         1,
@@ -888,6 +981,8 @@ export class AccountsReceivable
 
       status:
         null,
+
+      sorts: [],
     };
 
     this.storage.removeItem(
@@ -914,10 +1009,16 @@ export class AccountsReceivable
 
     if (!saved) {
 
+      this.sorts = [];
+
       this.searchWithFilters();
 
       return;
     }
+
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
 
     this.formFilters.patchValue(
       {
@@ -983,6 +1084,10 @@ export class AccountsReceivable
           value.status ??
           null,
 
+        sorts: [
+          ...this.sorts,
+        ],
+
         page:
           this.filters.page,
 
@@ -1009,7 +1114,7 @@ export class AccountsReceivable
 
     const input =
       event.target as
-        HTMLInputElement;
+      HTMLInputElement;
 
     if (
       !input.files ||
@@ -1134,7 +1239,7 @@ export class AccountsReceivable
 
                 if (
                   result.action ===
-                    'import' &&
+                  'import' &&
                   result.drafts
                     ?.length
                 ) {

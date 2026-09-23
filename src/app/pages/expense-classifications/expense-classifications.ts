@@ -49,6 +49,7 @@ import {
   ColumnVariant,
   DataTableActionEvent,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 
 import {
@@ -158,14 +159,24 @@ const PENDING_COLUMNS:
           ? 'Quitar de la selección'
           : 'Seleccionar para homologar',
     },
+
     {
       key: 'displayName',
       label: 'Nombre',
+
+      sortable: true,
+      sortKey:
+        'display_name',
     },
+
     {
       key: 'sourceTypeLabel',
       label: 'Tipo',
       type: 'chip',
+
+      sortable: true,
+      sortKey:
+        'source_type',
 
       variantResolver: (
         row:
@@ -175,15 +186,25 @@ const PENDING_COLUMNS:
           row.sourceType,
         ),
     },
+
     {
       key: 'itemCount',
       label: 'Usos',
       align: 'right',
+
+      sortable: true,
+      sortKey:
+        'item_count',
     },
+
     {
       key: 'purchaseCount',
       label: 'Compras',
       align: 'right',
+
+      sortable: true,
+      sortKey:
+        'purchase_count',
     },
   ];
 
@@ -204,11 +225,20 @@ const MAPPING_COLUMNS:
     {
       key: 'displayName',
       label: 'Concepto / Producto',
+
+      sortable: true,
+      sortKey:
+        'display_name',
     },
+
     {
       key: 'sourceTypeLabel',
       label: 'Tipo',
       type: 'chip',
+
+      sortable: true,
+      sortKey:
+        'source_type',
 
       variantResolver: (
         row:
@@ -218,18 +248,28 @@ const MAPPING_COLUMNS:
           row.sourceType,
         ),
     },
+
     {
       key: 'classificationName',
       label: 'Clasificación',
       type: 'chip',
 
+      sortable: true,
+      sortKey:
+        'classification',
+
       variantResolver: () =>
         'chip-neutral',
     },
+
     {
       key: 'statusLabel',
       label: 'Estado',
       type: 'chip',
+
+      sortable: true,
+      sortKey:
+        'status',
 
       variantResolver: (
         row:
@@ -322,6 +362,13 @@ export class ExpenseClassifications
   // =========================================================
   // UI
   // =========================================================
+  pendingSorts:
+    entity.ExpenseClassificationSortItem[] =
+    [];
+
+  mappingSorts:
+    entity.ExpenseClassificationSortItem[] =
+    [];
 
   readonly headerConfig =
     HEADER_CONFIG;
@@ -615,6 +662,8 @@ export class ExpenseClassifications
 
       classificationId:
         null,
+
+      sorts: [],
 
       page: 1,
 
@@ -1614,6 +1663,10 @@ export class ExpenseClassifications
         form.search.trim(),
 
       sourceType,
+
+      sorts: [
+        ...this.pendingSorts,
+      ],
     });
   }
 
@@ -1629,7 +1682,11 @@ export class ExpenseClassifications
           null,
       });
 
-    this.loadPending();
+    this.pendingSorts = [];
+
+    this.loadPending({
+      sorts: [],
+    });
   }
 
 
@@ -1738,7 +1795,6 @@ export class ExpenseClassifications
       });
   }
 
-
   // =========================================================
   // HOMOLOGADOS:
   // FILTROS
@@ -1772,12 +1828,16 @@ export class ExpenseClassifications
           form.classificationId,
         ),
 
-      page: 1,
+      sorts: [
+        ...this.mappingSorts,
+      ],
+
+      page:
+        1,
     };
 
     this.loadMappings();
   }
-
 
   clearMappingFilters():
     void {
@@ -1798,6 +1858,8 @@ export class ExpenseClassifications
           null,
       });
 
+    this.mappingSorts = [];
+
     this.mappingFilters = {
       search: '',
 
@@ -1810,7 +1872,10 @@ export class ExpenseClassifications
       classificationId:
         null,
 
-      page: 1,
+      sorts: [],
+
+      page:
+        1,
 
       limit:
         this.mappingFilters
@@ -2275,9 +2340,12 @@ export class ExpenseClassifications
 
     return Boolean(
       value.search.trim() ||
+
       this.resolveSourceType(
         value.sourceType,
-      ),
+      ) ||
+
+      this.pendingSorts.length > 0
     );
   }
 
@@ -2291,15 +2359,20 @@ export class ExpenseClassifications
 
     return Boolean(
       value.search.trim() ||
+
       this.resolveSourceType(
         value.sourceType,
       ) ||
+
       this.resolveStatus(
         value.status,
       ) !== 'active' ||
+
       toIdForm(
         value.classificationId,
-      ),
+      ) ||
+
+      this.mappingSorts.length > 0
     );
   }
 
@@ -2534,7 +2607,6 @@ export class ExpenseClassifications
       this.pendingFilterForm
         .getRawValue();
 
-
     this.loadPending({
       search:
         form.search
@@ -2544,7 +2616,72 @@ export class ExpenseClassifications
         this.resolveSourceType(
           form.sourceType,
         ),
+
+      sorts: [
+        ...this.pendingSorts,
+      ],
     });
+  }
+
+  // =========================================================
+  // PENDIENTES:
+  // ORDENAMIENTO
+  // =========================================================
+
+  onPendingSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.pendingSorts = [
+      ...event.sorts,
+    ];
+
+    const form =
+      this.pendingFilterForm
+        .getRawValue();
+
+    this.loadPending({
+      search:
+        form.search.trim(),
+
+      sourceType:
+        this.resolveSourceType(
+          form.sourceType,
+        ),
+
+      sorts: [
+        ...this.pendingSorts,
+      ],
+    });
+  }
+
+  // =========================================================
+  // HOMOLOGADOS:
+  // ORDENAMIENTO
+  // =========================================================
+
+  onMappingSortChange(
+    event:
+      DataTableSortEvent,
+  ): void {
+
+    this.mappingSorts = [
+      ...event.sorts,
+    ];
+
+    this.mappingFilters = {
+      ...this.mappingFilters,
+
+      page:
+        1,
+
+      sorts: [
+        ...this.mappingSorts,
+      ],
+    };
+
+    this.loadMappings();
   }
 }
 

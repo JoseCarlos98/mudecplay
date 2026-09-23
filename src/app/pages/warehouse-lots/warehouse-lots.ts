@@ -1,4 +1,4 @@
-  import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
@@ -20,6 +20,7 @@ import {
   ColumnsConfig,
   DataTableActionEvent,
   DataTableExtraAction,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
@@ -68,16 +69,70 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     label: 'Estado',
     type: 'chip',
     typeVariant: 'chip-neutral',
+    sortable: true,
+    sortKey: 'status',
   },
-  { key: 'product_name_snapshot', label: 'Producto' },
-  { key: 'expense_folio_snapshot', label: 'Folio gasto' },
-  { key: 'supplier_name_snapshot', label: 'Proveedor' },
-  { key: 'purchase_date_display', label: 'Compra' },
-  { key: 'original_quantity_text', label: 'Cantidad original', align: 'right' },
-  { key: 'available_quantity_text', label: 'Disponible', align: 'right' },
-  { key: 'used_quantity_text', label: 'Usado', align: 'right' },
-  { key: 'unit_cost', label: 'Costo unitario', type: 'money', align: 'right' },
-  { key: 'available_cost', label: 'Costo disponible', type: 'money', align: 'right' },
+  {
+    key: 'product_name_snapshot',
+    label: 'Producto',
+    sortable: true,
+    sortKey: 'product',
+  },
+  {
+    key: 'expense_folio_snapshot',
+    label: 'Folio gasto',
+    sortable: true,
+    sortKey: 'expense_folio',
+  },
+  {
+    key: 'supplier_name_snapshot',
+    label: 'Proveedor',
+    sortable: true,
+    sortKey: 'supplier',
+  },
+  {
+    key: 'purchase_date_display',
+    label: 'Compra',
+    sortable: true,
+    sortKey: 'purchase_date',
+  },
+  {
+    key: 'original_quantity_text',
+    label: 'Cantidad original',
+    align: 'right',
+    sortable: true,
+    sortKey: 'original_quantity',
+  },
+  {
+    key: 'available_quantity_text',
+    label: 'Disponible',
+    align: 'right',
+    sortable: true,
+    sortKey: 'available_quantity',
+  },
+  {
+    key: 'used_quantity_text',
+    label: 'Usado',
+    align: 'right',
+    sortable: true,
+    sortKey: 'used_quantity',
+  },
+  {
+    key: 'unit_cost',
+    label: 'Costo unitario',
+    type: 'money',
+    align: 'right',
+    sortable: true,
+    sortKey: 'unit_cost',
+  },
+  {
+    key: 'available_cost',
+    label: 'Costo disponible',
+    type: 'money',
+    align: 'right',
+    sortable: true,
+    sortKey: 'available_cost',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -142,6 +197,8 @@ export class WarehouseLots implements OnInit {
   readonly stockViewOptions = STOCK_VIEW_OPTIONS;
 
   readonly loadingTable = signal(false);
+  sorts:
+    entity.WarehouseSortItem[] = [];
 
   // ==========================
   //  ESTADO / DATA
@@ -149,11 +206,15 @@ export class WarehouseLots implements OnInit {
   filters: entity.WarehouseLotFilters = {
     page: 1,
     limit: 5,
+
     search: '',
     productSearch: '',
     supplierIds: [],
+
     stockView: 'available',
     status: null,
+
+    sorts: [],
   };
 
   warehouseLotsTableData!: PaginatedResponse<entity.WarehouseLotResponseDto>;
@@ -211,34 +272,58 @@ export class WarehouseLots implements OnInit {
     return {
       page: ui.page,
       limit: ui.limit,
-      search: ui.search?.trim() || '',
-      productSearch: ui.productSearch?.trim() || '',
-      supplierIds: (ui.suppliersIds ?? [])
-        .map((supplier: any) => Number(supplier.id))
-        .filter((id: number) => id > 0),
-      stockView: ui.stockView || 'available',
-      status: ui.status || null,
+
+      search:
+        ui.search?.trim() ||
+        '',
+
+      productSearch:
+        ui.productSearch?.trim() ||
+        '',
+
+      supplierIds:
+        (ui.suppliersIds ?? [])
+          .map(
+            (supplier: any) =>
+              Number(supplier.id),
+          )
+          .filter(
+            (id: number) =>
+              id > 0,
+          ),
+
+      stockView:
+        ui.stockView ||
+        'available',
+
+      status:
+        ui.status ||
+        null,
+
+      sorts: [
+        ...(ui.sorts ?? []),
+      ],
     };
   }
 
-private mapWarehouseLotRow(
-  row: entity.WarehouseLotResponseDto,
-): entity.WarehouseLotResponseDto {
-  return {
-    ...row,
-    status_name: this.getStatusLabel(row.status),
-    purchase_date_display: this.formatDateOnly(row.purchase_date),
-    original_quantity_text: this.formatQuantity(
-      row.original_quantity,
-      row.unit,
-    ),
-    available_quantity_text: this.formatQuantity(
-      row.available_quantity,
-      row.unit,
-    ),
-    used_quantity_text: this.formatQuantity(row.used_quantity, row.unit),
-  };
-}
+  private mapWarehouseLotRow(
+    row: entity.WarehouseLotResponseDto,
+  ): entity.WarehouseLotResponseDto {
+    return {
+      ...row,
+      status_name: this.getStatusLabel(row.status),
+      purchase_date_display: this.formatDateOnly(row.purchase_date),
+      original_quantity_text: this.formatQuantity(
+        row.original_quantity,
+        row.unit,
+      ),
+      available_quantity_text: this.formatQuantity(
+        row.available_quantity,
+        row.unit,
+      ),
+      used_quantity_text: this.formatQuantity(row.used_quantity, row.unit),
+    };
+  }
 
   private getStatusLabel(status: entity.WarehouseLotStatus): string {
     const option = STATUS_OPTIONS.find((s) => s.id === status);
@@ -255,25 +340,25 @@ private mapWarehouseLotRow(
   }
 
   private formatDateOnly(value: string | Date | null | undefined): string {
-  if (!value) return '-';
+    if (!value) return '-';
 
-  const raw = typeof value === 'string' ? value : value.toISOString();
-  const datePart = raw.substring(0, 10);
+    const raw = typeof value === 'string' ? value : value.toISOString();
+    const datePart = raw.substring(0, 10);
 
-  const [year, month, day] = datePart.split('-').map(Number);
+    const [year, month, day] = datePart.split('-').map(Number);
 
-  if (!year || !month || !day) return '-';
+    if (!year || !month || !day) return '-';
 
-  const localDate = new Date(year, month - 1, day);
+    const localDate = new Date(year, month - 1, day);
 
-  return new Intl.DateTimeFormat('es-MX', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-    .format(localDate)
-    .replace('.', '');
-}
+    return new Intl.DateTimeFormat('es-MX', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+      .format(localDate)
+      .replace('.', '');
+  }
 
   private canAssignLot(row: entity.WarehouseLotResponseDto): boolean {
     return (
@@ -298,20 +383,52 @@ private mapWarehouseLotRow(
   //  FILTROS + BÚSQUEDA
   // ==========================
   searchWithFilters(): void {
-    const value = this.formFilters.getRawValue();
+    const value =
+      this.formFilters
+        .getRawValue();
 
-    const uiState: entity.WarehouseLotUiFilters = {
-      search: value.search?.trim() || '',
-      productSearch: value.productSearch?.trim() || '',
-      suppliersIds: value.suppliersIds ?? [],
-      stockView: value.stockView || 'available',
-      status: value.status ?? null,
+    const uiState:
+      entity.WarehouseLotUiFilters = {
+
+      search:
+        value.search?.trim() ||
+        '',
+
+      productSearch:
+        value.productSearch?.trim() ||
+        '',
+
+      suppliersIds:
+        value.suppliersIds ??
+        [],
+
+      stockView:
+        value.stockView ||
+        'available',
+
+      status:
+        value.status ??
+        null,
+
+      sorts: [
+        ...this.sorts,
+      ],
+
       page: 1,
-      limit: this.filters.limit,
+
+      limit:
+        this.filters.limit,
     };
 
-    this.filters = this.buildBackendFiltersFromUi(uiState);
-    this.saveFiltersToStorage(uiState);
+    this.filters =
+      this.buildBackendFiltersFromUi(
+        uiState,
+      );
+
+    this.saveFiltersToStorage(
+      uiState,
+    );
+
     this.loadWarehouseLots();
   }
 
@@ -336,6 +453,33 @@ private mapWarehouseLotRow(
         },
         error: (err) => console.error('Error al cargar existencias:', err),
       });
+  }
+
+
+  // ==========================
+  //  ORDENAMIENTO
+  // ==========================
+
+  onSortChange(
+    event: DataTableSortEvent,
+  ): void {
+    this.sorts = [
+      ...event.sorts,
+    ];
+
+    this.filters = {
+      ...this.filters,
+
+      page: 1,
+
+      sorts: [
+        ...this.sorts,
+      ],
+    };
+
+    this.saveFiltersToStorage();
+
+    this.loadWarehouseLots();
   }
 
   // ==========================
@@ -439,22 +583,46 @@ private mapWarehouseLotRow(
   //  ESTADO DE FILTROS (UI)
   // ==========================
   get hasActiveFilters(): boolean {
-    const form = this.formFilters.getRawValue();
+    const form =
+      this.formFilters
+        .getRawValue();
 
-    const hasSearch = !!(form.search && form.search.trim() !== '');
-    const hasProductSearch = !!(
-      form.productSearch && form.productSearch.trim() !== ''
-    );
-    const hasSuppliers = (form.suppliersIds?.length ?? 0) > 0;
-    const hasStatus = !!form.status;
-    const hasNonDefaultStockView = form.stockView !== 'available';
+    const hasSearch =
+      !!(
+        form.search &&
+        form.search.trim() !== ''
+      );
+
+    const hasProductSearch =
+      !!(
+        form.productSearch &&
+        form.productSearch.trim() !== ''
+      );
+
+    const hasSuppliers =
+      (
+        form.suppliersIds
+          ?.length ??
+        0
+      ) > 0;
+
+    const hasStatus =
+      !!form.status;
+
+    const hasNonDefaultStockView =
+      form.stockView !==
+      'available';
+
+    const hasSorts =
+      this.sorts.length > 0;
 
     return (
       hasSearch ||
       hasProductSearch ||
       hasSuppliers ||
       hasStatus ||
-      hasNonDefaultStockView
+      hasNonDefaultStockView ||
+      hasSorts
     );
   }
 
@@ -467,72 +635,179 @@ private mapWarehouseLotRow(
         stockView: 'available',
         status: '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
+
+    this.sorts = [];
 
     this.filters = {
       page: 1,
-      limit: this.filters.limit,
+      limit:
+        this.filters.limit,
+
       search: '',
       productSearch: '',
+
       supplierIds: [],
-      stockView: 'available',
-      status: null,
+
+      stockView:
+        'available',
+
+      status:
+        null,
+
+      sorts: [],
     };
 
-    this.storage.removeItem(WAREHOUSE_FILTERS_KEY);
+    this.storage.removeItem(
+      WAREHOUSE_FILTERS_KEY,
+    );
+
     this.loadWarehouseLots();
   }
 
   // ==========================
   //  LOCAL STORAGE (FILTROS)
   // ==========================
-  private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.WarehouseLotUiFilters>(
-      WAREHOUSE_FILTERS_KEY,
-    );
+  private restoreFiltersFromStorage():
+    void {
+
+    const saved =
+      this.storage.getItem<
+        entity.WarehouseLotUiFilters
+      >(
+        WAREHOUSE_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
+
       this.searchWithFilters();
+
       return;
     }
 
+    this.sorts = [
+      ...(saved.sorts ?? []),
+    ];
+
     this.formFilters.patchValue(
       {
-        search: saved.search ?? '',
-        productSearch: saved.productSearch ?? '',
-        suppliersIds: saved.suppliersIds ?? [],
-        stockView: saved.stockView ?? 'available',
-        status: saved.status ?? '',
+        search:
+          saved.search ??
+          '',
+
+        productSearch:
+          saved.productSearch ??
+          '',
+
+        suppliersIds:
+          saved.suppliersIds ??
+          [],
+
+        stockView:
+          saved.stockView ??
+          'available',
+
+        status:
+          saved.status ??
+          '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi({
-      ...saved,
-      stockView: saved.stockView ?? 'available',
-      page: saved.page ?? 1,
-      limit: saved.limit ?? this.filters.limit,
-    });
+    this.filters =
+      this.buildBackendFiltersFromUi({
+        ...saved,
+
+        search:
+          saved.search ??
+          '',
+
+        productSearch:
+          saved.productSearch ??
+          '',
+
+        suppliersIds:
+          saved.suppliersIds ??
+          [],
+
+        stockView:
+          saved.stockView ??
+          'available',
+
+        status:
+          saved.status ??
+          null,
+
+        sorts: [
+          ...(saved.sorts ?? []),
+        ],
+
+        page:
+          saved.page ??
+          1,
+
+        limit:
+          saved.limit ??
+          this.filters.limit,
+      });
 
     this.loadWarehouseLots();
   }
 
-  private saveFiltersToStorage(state?: entity.WarehouseLotUiFilters): void {
+  private saveFiltersToStorage(
+    state?:
+      entity.WarehouseLotUiFilters,
+  ): void {
+
     if (!state) {
-      const value = this.formFilters.getRawValue();
+      const value =
+        this.formFilters
+          .getRawValue();
 
       state = {
-        search: value.search?.trim() || '',
-        productSearch: value.productSearch?.trim() || '',
-        suppliersIds: value.suppliersIds ?? [],
-        stockView: value.stockView || 'available',
-        status: value.status ?? null,
-        page: this.filters.page,
-        limit: this.filters.limit,
+        search:
+          value.search
+            ?.trim() ||
+          '',
+
+        productSearch:
+          value.productSearch
+            ?.trim() ||
+          '',
+
+        suppliersIds:
+          value.suppliersIds ??
+          [],
+
+        stockView:
+          value.stockView ||
+          'available',
+
+        status:
+          value.status ??
+          null,
+
+        sorts: [
+          ...this.sorts,
+        ],
+
+        page:
+          this.filters.page,
+
+        limit:
+          this.filters.limit,
       };
     }
 
-    this.storage.setItem(WAREHOUSE_FILTERS_KEY, state);
+    this.storage.setItem(
+      WAREHOUSE_FILTERS_KEY,
+      state,
+    );
   }
 }

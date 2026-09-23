@@ -18,39 +18,122 @@ export class WarehouseService {
   private readonly http = inject(HttpClient);
 
   getWarehouseLots(
-    filters?: entity.WarehouseLotFilters,
-  ): Observable<PaginatedResponse<entity.WarehouseLotResponseDto>> {
-    const url = `${this.apiUrl}/lots`;
-    let params = new HttpParams();
+    filters?:
+      entity.WarehouseLotFilters,
+  ): Observable<
+    PaginatedResponse<
+      entity.WarehouseLotResponseDto
+    >
+  > {
+    const url =
+      `${this.apiUrl}/lots`;
+
+    let params =
+      new HttpParams();
 
     if (filters) {
-      params = params.set('page', String(filters.page));
-      params = params.set('limit', String(filters.limit));
+      params =
+        params.set(
+          'page',
+          String(
+            filters.page,
+          ),
+        );
 
-      if (filters.search?.trim()) {
-        params = params.set('search', filters.search.trim());
+      params =
+        params.set(
+          'limit',
+          String(
+            filters.limit,
+          ),
+        );
+
+      if (
+        filters.search
+          ?.trim()
+      ) {
+        params =
+          params.set(
+            'search',
+            filters.search.trim(),
+          );
       }
 
-      if (filters.productSearch?.trim()) {
-        params = params.set('productSearch', filters.productSearch.trim());
+      if (
+        filters.productSearch
+          ?.trim()
+      ) {
+        params =
+          params.set(
+            'productSearch',
+            filters.productSearch
+              .trim(),
+          );
       }
 
-      if (filters.supplierIds?.length) {
-        params = params.set('supplierIds', filters.supplierIds.join(','));
+      if (
+        filters.supplierIds
+          ?.length
+      ) {
+        params =
+          params.set(
+            'supplierIds',
+            filters
+              .supplierIds
+              .join(','),
+          );
       }
 
-      if (filters.stockView) {
-        params = params.set('stockView', filters.stockView);
+      if (
+        filters.stockView
+      ) {
+        params =
+          params.set(
+            'stockView',
+            filters.stockView,
+          );
       }
 
-      if (filters.status) {
-        params = params.set('status', String(filters.status));
+      if (
+        filters.status
+      ) {
+        params =
+          params.set(
+            'status',
+            String(
+              filters.status,
+            ),
+          );
+      }
+
+      if (
+        filters.sorts?.length
+      ) {
+        const sort =
+          filters.sorts
+            .map(
+              (item) =>
+                `${item.key}:${item.direction}`,
+            )
+            .join(',');
+
+        params =
+          params.set(
+            'sort',
+            sort,
+          );
       }
     }
 
-    return this.http.get<PaginatedResponse<entity.WarehouseLotResponseDto>>(
+    return this.http.get<
+      PaginatedResponse<
+        entity.WarehouseLotResponseDto
+      >
+    >(
       url,
-      { params },
+      {
+        params,
+      },
     );
   }
 

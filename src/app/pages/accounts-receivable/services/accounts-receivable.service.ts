@@ -42,108 +42,136 @@ export class AccountsReceivableService {
   // LISTADO
   // =========================================================
 
-  getAccountsReceivable(
-    filters?:
-      entity.FiltersAccountsReceivable,
-  ): Observable<
+getAccountsReceivable(
+  filters?:
+    entity.FiltersAccountsReceivable,
+): Observable<
+  PaginatedResponse<
+    entity.AccountReceivableResponseDto
+  >
+> {
+
+  let params =
+    new HttpParams();
+
+  if (filters) {
+
+    if (
+      filters.page !==
+      undefined
+    ) {
+      params =
+        params.set(
+          'page',
+          String(
+            filters.page,
+          ),
+        );
+    }
+
+    if (
+      filters.limit !==
+      undefined
+    ) {
+      params =
+        params.set(
+          'limit',
+          String(
+            filters.limit,
+          ),
+        );
+    }
+
+    if (
+      filters.startDate
+    ) {
+      params =
+        params.set(
+          'startDate',
+          filters.startDate,
+        );
+    }
+
+    if (
+      filters.endDate
+    ) {
+      params =
+        params.set(
+          'endDate',
+          filters.endDate,
+        );
+    }
+
+    if (
+      filters.folio?.trim()
+    ) {
+      params =
+        params.set(
+          'folio',
+          filters.folio.trim(),
+        );
+    }
+
+    if (
+      filters.companyCode?.trim()
+    ) {
+      params =
+        params.set(
+          'companyCode',
+          filters.companyCode.trim(),
+        );
+    }
+
+    if (
+      filters.clientQuery?.trim()
+    ) {
+      params =
+        params.set(
+          'clientQuery',
+          filters.clientQuery.trim(),
+        );
+    }
+
+    if (
+      filters.status
+    ) {
+      params =
+        params.set(
+          'status',
+          filters.status,
+        );
+    }
+
+    if (
+      filters.sorts?.length
+    ) {
+      const sort =
+        filters.sorts
+          .map(
+            (item) =>
+              `${item.key}:${item.direction}`,
+          )
+          .join(',');
+
+      params =
+        params.set(
+          'sort',
+          sort,
+        );
+    }
+  }
+
+  return this.http.get<
     PaginatedResponse<
       entity.AccountReceivableResponseDto
     >
-  > {
-
-    let params =
-      new HttpParams();
-
-    if (filters) {
-
-      if (
-        filters.page !==
-        undefined
-      ) {
-        params =
-          params.set(
-            'page',
-            String(filters.page),
-          );
-      }
-
-      if (
-        filters.limit !==
-        undefined
-      ) {
-        params =
-          params.set(
-            'limit',
-            String(filters.limit),
-          );
-      }
-
-      if (filters.startDate) {
-        params =
-          params.set(
-            'startDate',
-            filters.startDate,
-          );
-      }
-
-      if (filters.endDate) {
-        params =
-          params.set(
-            'endDate',
-            filters.endDate,
-          );
-      }
-
-      if (
-        filters.folio?.trim()
-      ) {
-        params =
-          params.set(
-            'folio',
-            filters.folio.trim(),
-          );
-      }
-
-      if (
-        filters.companyCode?.trim()
-      ) {
-        params =
-          params.set(
-            'companyCode',
-            filters.companyCode.trim(),
-          );
-      }
-
-      if (
-        filters.clientQuery?.trim()
-      ) {
-        params =
-          params.set(
-            'clientQuery',
-            filters.clientQuery.trim(),
-          );
-      }
-
-      if (filters.status) {
-        params =
-          params.set(
-            'status',
-            filters.status,
-          );
-      }
-    }
-
-    return this.http.get<
-      PaginatedResponse<
-        entity.AccountReceivableResponseDto
-      >
-    >(
-      this.apiUrl,
-      {
-        params,
-      },
-    );
-  }
+  >(
+    this.apiUrl,
+    {
+      params,
+    },
+  );
+}
 
 
   // =========================================================
