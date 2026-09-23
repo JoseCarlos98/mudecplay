@@ -201,10 +201,10 @@ export class DataTable<T>
   expandTooltip:
     | string
     | (
-        (
-          row: T,
-        ) => string | null
-      )
+      (
+        row: T,
+      ) => string | null
+    )
     | null =
     null;
 
@@ -226,10 +226,10 @@ export class DataTable<T>
       const id =
         (
           row as
-            | {
-                id?: unknown;
-              }
-            | null
+          | {
+            id?: unknown;
+          }
+          | null
         )?.id;
 
       if (
@@ -298,10 +298,10 @@ export class DataTable<T>
 
     if (
       changes[
-        'displayedColumns'
+      'displayedColumns'
       ] ||
       changes[
-        'expandable'
+      'expandable'
       ]
     ) {
       this.updateRenderedColumns();
@@ -309,7 +309,7 @@ export class DataTable<T>
 
     if (
       changes[
-        'rowKeyResolver'
+      'rowKeyResolver'
       ] &&
       !changes[
         'rowKeyResolver'
@@ -373,8 +373,7 @@ export class DataTable<T>
 
     return (
       'Puedes ordenar por varias columnas. ' +
-      'El número indica la prioridad: ' +
-      '1 es el criterio principal y 2 el siguiente. ' +
+      'El número indica la prioridad: 1 se aplica primero, luego 2, 3, etc. ' +
       'Usa × para quitar un criterio.'
     );
   }
@@ -520,7 +519,7 @@ export class DataTable<T>
 
     return (
       sort.direction ===
-      'asc'
+        'asc'
         ? 'arrow_upward'
         : 'arrow_downward'
     );
@@ -545,15 +544,15 @@ export class DataTable<T>
 
     return (
       sort.direction ===
-      'asc'
+        'asc'
         ? (
-            `Ordenar ${col.label} ` +
-            'descendente'
-          )
+          `Ordenar ${col.label} ` +
+          'descendente'
+        )
         : (
-            `Ordenar ${col.label} ` +
-            'ascendente'
-          )
+          `Ordenar ${col.label} ` +
+          'ascendente'
+        )
     );
   }
 
@@ -636,13 +635,13 @@ export class DataTable<T>
 
     const currentSort =
       currentSorts[
-        currentIndex
+      currentIndex
       ];
 
     const nextDirection:
       DataTableSortDirection =
       currentSort.direction ===
-      'asc'
+        'asc'
         ? 'desc'
         : 'asc';
 
@@ -657,13 +656,13 @@ export class DataTable<T>
           index,
         ) =>
           index ===
-          currentIndex
+            currentIndex
             ? {
-                ...sort,
+              ...sort,
 
-                direction:
-                  nextDirection,
-              }
+              direction:
+                nextDirection,
+            }
             : sort,
       );
 
@@ -798,11 +797,11 @@ export class DataTable<T>
     return (
       this.expandable &&
       this.expandedRowKey !==
-        null &&
+      null &&
       this.expandedRowKey ===
-        this.getRowKey(
-          row,
-        )
+      this.getRowKey(
+        row,
+      )
     );
   }
 
@@ -813,8 +812,8 @@ export class DataTable<T>
 
     return this.canExpand
       ? this.canExpand(
-          row,
-        )
+        row,
+      )
       : true;
   }
 
@@ -829,7 +828,7 @@ export class DataTable<T>
 
       if (
         typeof
-          this.expandTooltip ===
+        this.expandTooltip ===
         'function'
       ) {
         return (
@@ -927,8 +926,8 @@ export class DataTable<T>
     return (
       action.visible
         ? action.visible(
-            row,
-          )
+          row,
+        )
         : true
     );
   }
@@ -944,8 +943,8 @@ export class DataTable<T>
     return (
       action.disabled
         ? action.disabled(
-            row,
-          )
+          row,
+        )
         : false
     );
   }
@@ -966,7 +965,7 @@ export class DataTable<T>
 
     if (
       typeof
-        action.tooltip ===
+      action.tooltip ===
       'function'
     ) {
       return (
@@ -1017,7 +1016,7 @@ export class DataTable<T>
 
     if (
       typeof
-        action.iconClass ===
+      action.iconClass ===
       'function'
     ) {
       return (
@@ -1050,8 +1049,8 @@ export class DataTable<T>
     const resolved =
       col.variantResolver
         ? col.variantResolver(
-            row,
-          )
+          row,
+        )
         : null;
 
     return (
@@ -1129,9 +1128,9 @@ export class DataTable<T>
 
     if (
       typeof value ===
-        'string' &&
+      'string' &&
       value.trim() ===
-        ''
+      ''
     ) {
       return true;
     }
@@ -1305,8 +1304,8 @@ export class DataTable<T>
     return (
       col.selectedResolver
         ? col.selectedResolver(
-            row,
-          )
+          row,
+        )
         : false
     );
   }
@@ -1323,9 +1322,9 @@ export class DataTable<T>
       col
         .selectDisabledResolver
         ? col
-            .selectDisabledResolver(
-              row,
-            )
+          .selectDisabledResolver(
+            row,
+          )
         : false
     );
   }
@@ -1346,7 +1345,7 @@ export class DataTable<T>
 
     if (
       typeof
-        col.selectTooltip ===
+      col.selectTooltip ===
       'function'
     ) {
       return (
@@ -1372,7 +1371,7 @@ export class DataTable<T>
 
     this.onRowAction(
       col.selectActionType ||
-        'select',
+      'select',
       row,
     );
   }
@@ -1393,17 +1392,17 @@ export class DataTable<T>
           column,
         ) =>
           column !==
-            'expand' &&
+          'expand' &&
           column !==
-            'expandedDetail',
+          'expandedDetail',
       );
 
     this.renderedColumns =
       this.expandable
         ? [
-            'expand',
-            ...baseColumns,
-          ]
+          'expand',
+          ...baseColumns,
+        ]
         : baseColumns;
   }
 
