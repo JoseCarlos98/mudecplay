@@ -33,75 +33,69 @@ export class ProjectService {
   // PROYECTOS
   // ======================================================
 
-  getProjects(
-    filters?: entity.FiltersProject,
-  ): Observable<PaginatedResponse<entity.ProjectResponseDto>> {
+getProjects(
+  filters?: entity.FiltersProject,
+): Observable<PaginatedResponse<entity.ProjectResponseDto>> {
+  const url = `${this.apiUrl}`;
+  let params = new HttpParams();
 
-    const url = `${this.apiUrl}`;
+  if (filters) {
+    params = setScalar(params, 'page', filters.page);
+    params = setScalar(params, 'limit', filters.limit);
 
-    let params = new HttpParams();
-
-    if (filters) {
-
-      params = setScalar(
-        params,
-        'page',
-        filters.page,
-      );
-
-      params = setScalar(
-        params,
-        'limit',
-        filters.limit,
-      );
-
-      params = appendArray(
-        params,
-        'clientsIds',
-        filters.clientsIds ?? [],
-      );
-
-      params = appendArray(
-        params,
-        'responsibleIds',
-        filters.responsibleIds ?? [],
-      );
-
-      params = setScalar(
-        params,
-        'name',
-        filters.name?.trim(),
-      );
-
-      params = setScalar(
-        params,
-        'phone',
-        filters.phone?.trim(),
-      );
-
-      params = setScalar(
-        params,
-        'email',
-        filters.email?.trim(),
-      );
-
-      params = setScalar(
-        params,
-        'statusProject',
-        filters.statusProject?.trim(),
-      );
-
-    }
-
-    return this.http.get<
-      PaginatedResponse<entity.ProjectResponseDto>
-    >(
-      url,
-      {
-        params,
-      },
+    params = appendArray(
+      params,
+      'clientsIds',
+      filters.clientsIds ?? [],
     );
+
+    params = appendArray(
+      params,
+      'responsibleIds',
+      filters.responsibleIds ?? [],
+    );
+
+    params = setScalar(
+      params,
+      'name',
+      filters.name?.trim(),
+    );
+
+    params = setScalar(
+      params,
+      'phone',
+      filters.phone?.trim(),
+    );
+
+    params = setScalar(
+      params,
+      'email',
+      filters.email?.trim(),
+    );
+
+    params = setScalar(
+      params,
+      'statusProject',
+      filters.statusProject?.trim(),
+    );
+
+    if (filters.sorts?.length) {
+      const sort = filters.sorts
+        .map((item) => `${item.key}:${item.direction}`)
+        .join(',');
+
+      params = setScalar(
+        params,
+        'sort',
+        sort,
+      );
+    }
   }
+
+  return this.http.get<
+    PaginatedResponse<entity.ProjectResponseDto>
+  >(url, { params });
+}
 
 
   create(

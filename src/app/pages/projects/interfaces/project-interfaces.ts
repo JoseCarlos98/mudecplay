@@ -1,6 +1,13 @@
 import { Area } from "../../suppliers/interfaces/supplier-interfaces";
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
 
+export type ProjectSortDirection = 'asc' | 'desc';
+
+export interface ProjectSortItem {
+  key: string;
+  direction: ProjectSortDirection;
+}
+
 export interface FiltersProject {
   name?: string | '';
   email?: string | '';
@@ -8,8 +15,11 @@ export interface FiltersProject {
   statusProject?: string | '';
   clientsIds?: number[] | null;
   responsibleIds?: number[] | null;
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: ProjectSortItem[];
 }
 
 export interface ProjectResponseDto {
@@ -73,10 +83,15 @@ export interface ProjectUiFilters {
   responsibleIds: number[];
   email: string;
   phone: string;
-  statusProject: string;
+
+  statusProject: 'open' | 'close' | null;
+
   name: string;
+
   page: number;
   limit: number;
+
+  sorts: ProjectSortItem[];
 }
 
 
