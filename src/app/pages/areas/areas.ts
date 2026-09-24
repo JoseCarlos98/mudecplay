@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -18,6 +18,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
@@ -35,13 +36,15 @@ import * as entity from './interfaces/area-interfaces';
 import { AreaModal } from './components/area-modal/area-modal';
 import { AreasService } from './services/areas.service';
 
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
 const AREA_FILTERS_KEY = 'mp_area_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -62,12 +65,14 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     BtnsSection,
     InputField,
     LoadingOverlay,
+
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     MatTableModule,
     MatButtonModule,
+
     FormsModule,
     ReactiveFormsModule,
   ],
@@ -83,10 +88,16 @@ export class Areas implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
-  filters: entity.FiltersArea = { page: 1, limit: 5 };
+  sorts: entity.AreaSortItem[] = [];
+
+  filters: entity.FiltersArea = {
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
+
   areasTableData!: PaginatedResponse<entity.AreaResponseDto>;
 
   formFilters = this.fb.group({
@@ -97,11 +108,14 @@ export class Areas implements OnInit {
     this.restoreFiltersFromStorage();
   }
 
-  private buildBackendFiltersFromUi(ui: entity.AreaUiFilters): entity.FiltersArea {
+  private buildBackendFiltersFromUi(
+    ui: entity.AreaUiFilters,
+  ): entity.FiltersArea {
     return {
       page: ui.page,
       limit: ui.limit,
       name: ui.name?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
@@ -112,10 +126,24 @@ export class Areas implements OnInit {
       name: value.name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadAreas();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
     this.loadAreas();
   }
 
@@ -131,7 +159,8 @@ export class Areas implements OnInit {
         next: (response: PaginatedResponse<entity.AreaResponseDto>) => {
           this.areasTableData = response;
         },
-        error: (err) => console.error('Error al cargar áreas:', err),
+        error: (err) =>
+          console.error('Error al cargar áreas:', err),
       });
   }
 
@@ -163,7 +192,9 @@ export class Areas implements OnInit {
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<entity.AreaResponseDto>): void {
+  onTableAction(
+    ev: DataTableActionEvent<entity.AreaResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.areaModal(ev.row);
@@ -188,14 +219,19 @@ export class Areas implements OnInit {
 
         this.areasService.remove(area.id).subscribe({
           next: () => this.loadAreas(),
-          error: (err) => console.error('Error al eliminar área:', err),
+          error: (err) =>
+            console.error('Error al eliminar área:', err),
         });
       });
   }
 
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
-    return !!form.name?.trim();
+
+    return !!(
+      form.name?.trim() ||
+      this.sorts.length > 0
+    );
   }
 
   clearAllAndSearch(): void {
@@ -203,13 +239,18 @@ export class Areas implements OnInit {
       {
         name: '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
+
+    this.sorts = [];
 
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
+      sorts: [],
     };
 
     this.storage.removeItem(AREA_FILTERS_KEY);
@@ -218,33 +259,56 @@ export class Areas implements OnInit {
 
   areaModal(area?: entity.AreaResponseDto): void {
     this.dialogService
-      .open(AreaModal, area ? area : null, 'mini')
+      .open(
+        AreaModal,
+        area ? area : null,
+        'mini',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadAreas();
+        if (result) {
+          this.loadAreas();
+        }
       });
   }
 
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.AreaUiFilters>(AREA_FILTERS_KEY);
+    const saved =
+      this.storage.getItem<entity.AreaUiFilters>(
+        AREA_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
     this.formFilters.patchValue(
       {
-        name: saved.name,
+        name: saved.name ?? '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi({
+      ...saved,
+      name: saved.name ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
+    });
+
     this.loadAreas();
   }
 
-  private saveFiltersToStorage(state?: entity.AreaUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.AreaUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -252,9 +316,13 @@ export class Areas implements OnInit {
         name: value.name?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(AREA_FILTERS_KEY, state);
+    this.storage.setItem(
+      AREA_FILTERS_KEY,
+      state,
+    );
   }
 }

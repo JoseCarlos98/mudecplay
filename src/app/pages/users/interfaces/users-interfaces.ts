@@ -1,19 +1,30 @@
-// users-interfaces.ts
+export type UserSortDirection = 'asc' | 'desc';
+
+export interface UserSortItem {
+  key: string;
+  direction: UserSortDirection;
+}
 
 export type RoleCode = 'ADMIN_GENERAL' | 'GASTOS_EDITOR'; // extiende cuando agregues más
 
 export interface FiltersUsers {
   page: number;
   limit: number;
-  name?: string; 
+
+  name?: string;
   email?: string;
+
+  sorts?: UserSortItem[];
 }
 
 export interface UsersUiFilters {
   name: string;
   email: string;
+
   page: number;
   limit: number;
+
+  sorts: UserSortItem[];
 }
 
 export interface UserResponseDto {

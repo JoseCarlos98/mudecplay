@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -18,7 +18,11 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableSortEvent,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { SearchMultiSelect } from '../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { InputDate } from '../../shared/ui/input-date/input-date';
 import { InputField } from '../../shared/ui/input-field/input-field';
@@ -32,20 +36,31 @@ import { CatalogsService } from '../../shared/services/catalogs.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
 
 // Interfaces
-import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import {
+  Catalog,
+  PaginatedResponse,
+} from '../../shared/interfaces/general-interfaces';
 import * as entity from '../clients/interfaces/clients-interfaces';
+
+// Modal y service
 import { ClientModal } from './components/client-modal/client-modal';
 import { ClientsService } from './services/clients.service';
-
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
 
 const EXPENSES_FILTERS_KEY = 'mp_clients_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
-  { key: 'company_name', label: 'Razón Social' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
+  {
+    key: 'company_name',
+    label: 'Razón Social',
+    sortable: true,
+    sortKey: 'company_name',
+  },
   {
     key: 'responsible',
     label: 'Responsable',
@@ -53,16 +68,41 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     path: 'name',
     fallback: 'No asignado',
     fallbackVariant: 'chip-warning',
+    sortable: true,
+    sortKey: 'responsible',
   },
-  { key: 'phone', label: 'Teléfono', type: 'phone' },
-  { key: 'email', label: 'Correo' },
-  { key: 'address', label: 'Ubicación' },
-  { key: 'days_credit', label: 'Crédito (días)' },
+  {
+    key: 'phone',
+    label: 'Teléfono',
+    type: 'phone',
+    sortable: true,
+    sortKey: 'phone',
+  },
+  {
+    key: 'email',
+    label: 'Correo',
+    sortable: true,
+    sortKey: 'email',
+  },
+  {
+    key: 'address',
+    label: 'Ubicación',
+    sortable: true,
+    sortKey: 'address',
+  },
+  {
+    key: 'days_credit',
+    label: 'Crédito (días)',
+    sortable: true,
+    sortKey: 'days_credit',
+  },
   {
     key: 'will_invoice',
     label: '¿Factura?',
     type: 'booleanConfirm',
     align: 'center',
+    sortable: true,
+    sortKey: 'will_invoice',
   },
 ];
 
@@ -73,7 +113,7 @@ const DISPLAYED_COLUMNS: string[] = [
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
-  // newRoles: ['ADMIN_GENERAL'], // por ahora solo admin crea clientes
+  // newRoles: ['ADMIN_GENERAL'],
 };
 
 @Component({
@@ -111,8 +151,9 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class Clients implements OnInit {
   // ==========================
-  //  INYECCIONES
+  // INYECCIONES
   // ==========================
+
   private readonly clientsService = inject(ClientsService);
   private readonly dialogService = inject(DialogService);
   private readonly catalogsService = inject(CatalogsService);
@@ -120,24 +161,29 @@ export class Clients implements OnInit {
   private readonly storage = inject(LocalStorageService);
 
   // ==========================
-  //  CONFIG UI
+  // CONFIG UI
   // ==========================
+
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
   catalogAreaSuppliers: Catalog[] = [];
+  sorts: entity.ClientSortItem[] = [];
 
   // ==========================
-  //  ESTADO / DATA
+  // ESTADO / DATA
   // ==========================
-  // Filtros que van al backend
-  filters: entity.FiltersClients = { page: 1, limit: 5 };
+
+  filters: entity.FiltersClients = {
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
+
   expensesTableData!: PaginatedResponse<entity.ClientsResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     responsibleIds: this.fb.control<number[]>([]),
     clientsIds: this.fb.control<number[]>([]),
@@ -148,29 +194,35 @@ export class Clients implements OnInit {
   });
 
   // ==========================
-  //  CICLO DE VIDA
+  // CICLO DE VIDA
   // ==========================
+
   ngOnInit(): void {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs();              // carga catálogos de selects
+    this.restoreFiltersFromStorage();
+    this.loadCatalogs();
   }
 
   // ==========================
-  //  CARGA DE CATÁLOGOS
+  // CATÁLOGOS
   // ==========================
+
   loadCatalogs(): void {
     this.catalogsService.areasSuppliersCatalog().subscribe({
       next: (response: Catalog[]) => {
         this.catalogAreaSuppliers = response;
       },
-      error: (err) => console.error('Error al cargar estados de gasto:', err),
+      error: (err) =>
+        console.error('Error al cargar estados de gasto:', err),
     });
   }
 
   // ==========================
-  //  HELPER: UI → FILTROS BACKEND
+  // UI -> FILTROS BACKEND
   // ==========================
-  private buildBackendFiltersFromUi(ui: entity.ClientsUiFilters): entity.FiltersClients {
+
+  private buildBackendFiltersFromUi(
+    ui: entity.ClientsUiFilters,
+  ): entity.FiltersClients {
     return {
       page: ui.page,
       limit: ui.limit,
@@ -178,12 +230,14 @@ export class Clients implements OnInit {
       name: ui.name?.trim() || '',
       email: ui.email?.trim() || '',
       phone: ui.phone?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
   // ==========================
-  //  FILTROS + BÚSQUEDA
+  // FILTROS + BÚSQUEDA
   // ==========================
+
   searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
@@ -194,12 +248,34 @@ export class Clients implements OnInit {
       name: value.name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
     this.loadClients();
   }
+
+  // ==========================
+  // SORTING
+  // ==========================
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
+    this.loadClients();
+  }
+
+  // ==========================
+  // CARGAR CLIENTES
+  // ==========================
 
   loadClients(): void {
     if (this.loadingTable()) return;
@@ -213,13 +289,15 @@ export class Clients implements OnInit {
         next: (response: PaginatedResponse<entity.ClientsResponseDto>) => {
           this.expensesTableData = response;
         },
-        error: (err) => console.error('Error al cargar clientes:', err),
+        error: (err) =>
+          console.error('Error al cargar clientes:', err),
       });
   }
 
   // ==========================
-  //  PAGINACIÓN
+  // PAGINACIÓN
   // ==========================
+
   onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
@@ -229,8 +307,9 @@ export class Clients implements OnInit {
   }
 
   // ==========================
-  //  ACCIONES HEADER
+  // HEADER
   // ==========================
+
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
@@ -243,8 +322,9 @@ export class Clients implements OnInit {
   }
 
   // ==========================
-  //  ACCIONES FOOTER-FILTROS
+  // BOTONES FILTROS
   // ==========================
+
   onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
@@ -258,9 +338,12 @@ export class Clients implements OnInit {
   }
 
   // ==========================
-  //  ACCIONES TABLA
+  // ACCIONES TABLA
   // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.ClientsResponseDto>): void {
+
+  onTableAction(
+    ev: DataTableActionEvent<entity.ClientsResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.supplierModal(ev.row);
@@ -272,10 +355,10 @@ export class Clients implements OnInit {
     }
   }
 
-  onDelete(supplier: entity.ClientsResponseDto): void {
+  onDelete(client: entity.ClientsResponseDto): void {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el cliente:\n"${supplier?.company_name?.trim()}"?`,
+        message: `¿Quieres eliminar el cliente:\n"${client?.company_name?.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
         size: 'mini',
@@ -283,26 +366,39 @@ export class Clients implements OnInit {
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
-        this.clientsService.remove(supplier.id).subscribe({
+        this.clientsService.remove(client.id).subscribe({
           next: () => this.loadClients(),
-          error: (err) => console.error('Error al eliminar cliente:', err),
+          error: (err) =>
+            console.error('Error al eliminar cliente:', err),
         });
       });
   }
 
   // ==========================
-  //  ESTADO DE FILTROS (UI)
+  // FILTROS ACTIVOS
   // ==========================
+
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
     const hasResponsible = (form.responsibleIds?.length ?? 0) > 0;
-    const hasName = (form.name?.trim() ?? '') !== '';
-    const hasEmail = (form.email?.trim() ?? '') !== '';
-    const hasPhone = (form.phone?.trim() ?? '') !== '';
+    const hasName = !!form.name?.trim();
+    const hasEmail = !!form.email?.trim();
+    const hasPhone = !!form.phone?.trim();
+    const hasSort = this.sorts.length > 0;
 
-    return hasResponsible || hasName || hasEmail || hasPhone;
+    return (
+      hasResponsible ||
+      hasName ||
+      hasEmail ||
+      hasPhone ||
+      hasSort
+    );
   }
+
+  // ==========================
+  // LIMPIAR
+  // ==========================
 
   clearAllAndSearch(): void {
     this.formFilters.reset(
@@ -317,6 +413,8 @@ export class Clients implements OnInit {
       { emitEvent: false },
     );
 
+    this.sorts = [];
+
     this.filters = {
       page: 1,
       limit: this.filters.limit,
@@ -324,6 +422,7 @@ export class Clients implements OnInit {
       name: '',
       email: '',
       phone: '',
+      sorts: [],
     };
 
     this.storage.removeItem(EXPENSES_FILTERS_KEY);
@@ -331,27 +430,41 @@ export class Clients implements OnInit {
   }
 
   // ==========================
-  //  MODAL DE ITEMS
+  // MODAL
   // ==========================
-  supplierModal(supplier?: entity.ClientsResponseDto): void {
+
+  supplierModal(client?: entity.ClientsResponseDto): void {
     this.dialogService
-      .open(ClientModal, supplier ? supplier : null, 'medium')
+      .open(
+        ClientModal,
+        client ? client : null,
+        'medium',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadClients();
+        if (result) {
+          this.loadClients();
+        }
       });
   }
 
   // ==========================
-  //  LOCAL STORAGE (FILTROS)
+  // LOCAL STORAGE
   // ==========================
+
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.ClientsUiFilters>(EXPENSES_FILTERS_KEY);
+    const saved =
+      this.storage.getItem<entity.ClientsUiFilters>(
+        EXPENSES_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
+
+    this.sorts = [...(saved.sorts ?? [])];
 
     const state: entity.ClientsUiFilters = {
       responsibleIds: saved.responsibleIds ?? [],
@@ -360,6 +473,7 @@ export class Clients implements OnInit {
       phone: saved.phone ?? '',
       page: saved.page ?? 1,
       limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.formFilters.patchValue(
@@ -376,7 +490,9 @@ export class Clients implements OnInit {
     this.loadClients();
   }
 
-  private saveFiltersToStorage(state?: entity.ClientsUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.ClientsUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -387,9 +503,13 @@ export class Clients implements OnInit {
         phone: value.phone?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+    this.storage.setItem(
+      EXPENSES_FILTERS_KEY,
+      state,
+    );
   }
 }

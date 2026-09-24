@@ -1,7 +1,16 @@
+export type AreaSortDirection = 'asc' | 'desc';
+
+export interface AreaSortItem {
+  key: string;
+  direction: AreaSortDirection;
+}
 export interface FiltersArea {
   name?: string | '';
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: AreaSortItem[];
 }
 
 export interface AreaResponseDto {
@@ -19,6 +28,9 @@ export interface PatchArea {
 
 export interface AreaUiFilters {
   name: string;
+
   page: number;
   limit: number;
+
+  sorts: AreaSortItem[];
 }

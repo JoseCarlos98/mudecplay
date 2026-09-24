@@ -30,6 +30,8 @@
         [data]="employeeAreasTableData.data"
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns"
+        [sorts]="sorts"
+        (sortChange)="onSortChange($event)"
         (action)="onTableAction($event)">
       </app-data-table>
 

@@ -1,5 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { finalize } from 'rxjs';
@@ -8,7 +8,11 @@ import { finalize } from 'rxjs';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableSortEvent,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
@@ -27,18 +31,47 @@ import { UserModal } from './components/user-modal/user-modal';
 const USERS_FILTERS_KEY = 'mp_users_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
-  { key: 'lastName', label: 'Apellido' },
-  { key: 'email', label: 'Correo' },
-  { key: 'roles', label: 'Roles', type: 'chip', typeVariant: 'chip-neutral' },
-  { key: 'isActive', label: 'Activo', type: 'booleanConfirm', align: 'center' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
+  {
+    key: 'lastName',
+    label: 'Apellido',
+    sortable: true,
+    sortKey: 'last_name',
+  },
+  {
+    key: 'email',
+    label: 'Correo',
+    sortable: true,
+    sortKey: 'email',
+  },
+  {
+    key: 'roles',
+    label: 'Roles',
+    type: 'chip',
+    typeVariant: 'chip-neutral',
+  },
+  {
+    key: 'isActive',
+    label: 'Activo',
+    type: 'booleanConfirm',
+    align: 'center',
+    sortable: true,
+    sortKey: 'is_active',
+  },
 ];
 
-const DISPLAYED_COLUMNS: string[] = [...COLUMNS_CONFIG.map((c) => c.key), 'actions'];
+const DISPLAYED_COLUMNS: string[] = [
+  ...COLUMNS_CONFIG.map((c) => c.key),
+  'actions',
+];
 
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
-  // ruta ya es ADMIN_GENERAL en routes, no hace falta newRoles
 };
 
 @Component({
@@ -68,10 +101,16 @@ export class Users implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
-  filters: entity.FiltersUsers = { page: 1, limit: 10 };
+  sorts: entity.UserSortItem[] = [];
+
+  filters: entity.FiltersUsers = {
+    page: 1,
+    limit: 10,
+    sorts: [],
+  };
+
   usersTableData!: PaginatedResponse<entity.UserResponseDto>;
 
   formFilters = this.fb.group({
@@ -79,7 +118,7 @@ export class Users implements OnInit {
     email: this.fb.control<string>(''),
   });
 
-  // evita borrarte a ti mismo
+  // Evita borrarte a ti mismo
   canDeleteRow = (row: entity.UserResponseDto) => {
     const meId = this.auth.currentUser()?.id;
     return row.id !== meId;
@@ -87,34 +126,54 @@ export class Users implements OnInit {
 
   deleteTooltip = (row: entity.UserResponseDto) => {
     const meId = this.auth.currentUser()?.id;
-    return row.id === meId ? 'No puedes eliminar tu propio usuario.' : null;
+
+    return row.id === meId
+      ? 'No puedes eliminar tu propio usuario.'
+      : null;
   };
 
   ngOnInit(): void {
     this.restoreFiltersFromStorage();
   }
 
-  private buildBackendFiltersFromUi(ui: entity.UsersUiFilters): entity.FiltersUsers {
+  private buildBackendFiltersFromUi(
+    ui: entity.UsersUiFilters,
+  ): entity.FiltersUsers {
     return {
       page: ui.page,
       limit: ui.limit,
       name: ui.name?.trim() || '',
       email: ui.email?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
   searchWithFilters(): void {
-    const v = this.formFilters.getRawValue();
+    const value = this.formFilters.getRawValue();
 
     const uiState: entity.UsersUiFilters = {
-      name: v.name?.trim() || '',
-      email: v.email?.trim() || '',
+      name: value.name?.trim() || '',
+      email: value.email?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadUsers();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
     this.loadUsers();
   }
 
@@ -127,8 +186,11 @@ export class Users implements OnInit {
       .getPaginated(this.filters)
       .pipe(finalize(() => this.loadingTable.set(false)))
       .subscribe({
-        next: (res) => (this.usersTableData = res),
-        error: (err) => console.error('Error al cargar usuarios:', err),
+        next: (res) => {
+          this.usersTableData = res;
+        },
+        error: (err) =>
+          console.error('Error al cargar usuarios:', err),
       });
   }
 
@@ -142,20 +204,31 @@ export class Users implements OnInit {
 
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
-    const hasEmail = !!(form.email?.trim() !== '');
-    const hasName = !!(form.name?.trim() !== '');
 
-    return hasEmail || hasName;
+    const hasEmail = !!form.email?.trim();
+    const hasName = !!form.name?.trim();
+    const hasSort = this.sorts.length > 0;
+
+    return hasEmail || hasName || hasSort;
   }
 
   clearAllAndSearch(): void {
-    this.formFilters.reset({ name: '', email: '' }, { emitEvent: false });
+    this.formFilters.reset(
+      {
+        name: '',
+        email: '',
+      },
+      { emitEvent: false },
+    );
+
+    this.sorts = [];
 
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
       email: '',
+      sorts: [],
     };
 
     this.storage.removeItem(USERS_FILTERS_KEY);
@@ -163,7 +236,9 @@ export class Users implements OnInit {
   }
 
   onHeaderAction(action: string): void {
-    if (action === 'new') this.openUserModal();
+    if (action === 'new') {
+      this.openUserModal();
+    }
   }
 
   onBtnsSectionAction(action: string): void {
@@ -178,7 +253,9 @@ export class Users implements OnInit {
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<entity.UserResponseDto>): void {
+  onTableAction(
+    ev: DataTableActionEvent<entity.UserResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.openUserModal(ev.row);
@@ -203,49 +280,81 @@ export class Users implements OnInit {
 
         this.usersService.remove(row.id).subscribe({
           next: () => this.loadUsers(),
-          error: (err) => console.error('Error al eliminar usuario:', err),
+          error: (err) =>
+            console.error('Error al eliminar usuario:', err),
         });
       });
   }
 
-  openUserModal(user?: entity.UserResponseDto | null): void {
+  openUserModal(
+    user?: entity.UserResponseDto | null,
+  ): void {
     this.dialogService
-      .open(UserModal, user ?? null, 'medium')
+      .open(
+        UserModal,
+        user ?? null,
+        'medium',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadUsers();
+        if (result) {
+          this.loadUsers();
+        }
       });
   }
 
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.UsersUiFilters>(USERS_FILTERS_KEY);
+    const saved =
+      this.storage.getItem<entity.UsersUiFilters>(
+        USERS_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
+    const state: entity.UsersUiFilters = {
+      name: saved.name ?? '',
+      email: saved.email ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
+    };
+
     this.formFilters.patchValue(
-      { name: saved.name, email: saved.email },
+      {
+        name: state.name,
+        email: state.email,
+      },
       { emitEvent: false },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi(state);
     this.loadUsers();
   }
 
-  private saveFiltersToStorage(state?: entity.UsersUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.UsersUiFilters,
+  ): void {
     if (!state) {
-      const v = this.formFilters.getRawValue();
+      const value = this.formFilters.getRawValue();
 
       state = {
-        name: v.name?.trim() || '',
-        email: v.email?.trim() || '',
+        name: value.name?.trim() || '',
+        email: value.email?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(USERS_FILTERS_KEY, state);
+    this.storage.setItem(
+      USERS_FILTERS_KEY,
+      state,
+    );
   }
 }

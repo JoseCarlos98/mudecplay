@@ -1,8 +1,18 @@
+export type ResponsibleSortDirection = 'asc' | 'desc';
+
+export interface ResponsibleSortItem {
+  key: string;
+  direction: ResponsibleSortDirection;
+}
+
 export interface FiltersResponsible {
   name?: string | '';
   phone?: string | '';
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: ResponsibleSortItem[];
 }
 
 export interface ResponsibleResponseDto {
@@ -47,6 +57,9 @@ export interface PatchResponsible {
 export interface ResponsibleUiFilters {
   phone: string;
   name: string;
+
   page: number;
   limit: number;
+
+  sorts: ResponsibleSortItem[];
 }

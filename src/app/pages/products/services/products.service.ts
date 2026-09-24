@@ -14,18 +14,30 @@ export class ProductsService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getProducts(filters?: entity.FiltersProducts) {
-    const url = `${this.apiUrl}`;
-    let params = new HttpParams();
+getProducts(
+  filters?: entity.FiltersProducts,
+): Observable<PaginatedResponse<entity.ProductResponseDto>> {
+  const url = `${this.apiUrl}`;
+  let params = new HttpParams();
 
-    if (filters) {
-      params = setScalar(params, 'page', filters.page);
-      params = setScalar(params, 'limit', filters.limit);
-      params = setScalar(params, 'name', filters.name?.trim());
+  if (filters) {
+    params = setScalar(params, 'page', filters.page);
+    params = setScalar(params, 'limit', filters.limit);
+    params = setScalar(params, 'name', filters.name?.trim());
+
+    if (filters.sorts?.length) {
+      const sort = filters.sorts
+        .map((item) => `${item.key}:${item.direction}`)
+        .join(',');
+
+      params = setScalar(params, 'sort', sort);
     }
-
-    return this.http.get<PaginatedResponse<entity.ProductResponseDto>>(url, { params });
   }
+
+  return this.http.get<
+    PaginatedResponse<entity.ProductResponseDto>
+  >(url, { params });
+}
 
 
   create(formData: entity.CreateProduct): Observable<ApiSuccess> {

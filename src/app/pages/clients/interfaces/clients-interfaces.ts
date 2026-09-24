@@ -1,3 +1,10 @@
+export type ClientSortDirection = 'asc' | 'desc';
+
+export interface ClientSortItem {
+  key: string;
+  direction: ClientSortDirection;
+}
+
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
 
 export interface FiltersClients {
@@ -5,11 +12,12 @@ export interface FiltersClients {
   phone?: string | '';
   email?: string | '';
   responsibleIds?: number[] | null;
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: ClientSortItem[];
 }
-
-
 
 export interface ClientsResponseDto {
   id: number;
@@ -58,9 +66,13 @@ export interface PatchClients {
 
 export interface ClientsUiFilters {
   responsibleIds: number[];
+
   email: string;
   name: string;
   phone: string;
+
   page: number;
   limit: number;
+
+  sorts: ClientSortItem[];
 }

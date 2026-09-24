@@ -14,20 +14,31 @@ export class ResponsibleService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getResposible(filters?: entity.FiltersResponsible) {
-    const url = `${this.apiUrl}`;
-    let params = new HttpParams();
+getResposible(
+  filters?: entity.FiltersResponsible,
+): Observable<PaginatedResponse<entity.ResponsibleResponseDto>> {
+  const url = `${this.apiUrl}`;
+  let params = new HttpParams();
 
-    if (filters) {
-      params = setScalar(params, 'page', filters.page);
-      params = setScalar(params, 'limit', filters.limit);
-      params = setScalar(params, 'name', filters.name?.trim());
-      params = setScalar(params, 'phone', filters.phone?.trim());
+  if (filters) {
+    params = setScalar(params, 'page', filters.page);
+    params = setScalar(params, 'limit', filters.limit);
+    params = setScalar(params, 'name', filters.name?.trim());
+    params = setScalar(params, 'phone', filters.phone?.trim());
+
+    if (filters.sorts?.length) {
+      const sort = filters.sorts
+        .map((item) => `${item.key}:${item.direction}`)
+        .join(',');
+
+      params = setScalar(params, 'sort', sort);
     }
-
-    return this.http.get<PaginatedResponse<entity.ResponsibleResponseDto>>(url, { params });
   }
 
+  return this.http.get<
+    PaginatedResponse<entity.ResponsibleResponseDto>
+  >(url, { params });
+}
   // getById(id: number): Observable<entity.ProjectDetail> {
   //   const url = `${this.apiUrl}/${id}`;
 

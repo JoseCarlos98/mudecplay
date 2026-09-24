@@ -15,17 +15,28 @@ export class UsersService {
   constructor(private readonly http: HttpClient) {}
 
   // paginado con filtros SOLO name/email (más page/limit)
-  getPaginated(
-    filters: entity.FiltersUsers,
-  ): Observable<PaginatedResponse<entity.UserResponseDto>> {
-    let params = new HttpParams();
-    params = setScalar(params, 'page', filters.page);
-    params = setScalar(params, 'limit', filters.limit);
-    params = setScalar(params, 'name', filters.name?.trim());
-    params = setScalar(params, 'email', filters.email?.trim());
+getPaginated(
+  filters: entity.FiltersUsers,
+): Observable<PaginatedResponse<entity.UserResponseDto>> {
+  let params = new HttpParams();
 
-    return this.http.get<PaginatedResponse<entity.UserResponseDto>>(this.apiUrl, { params });
+  params = setScalar(params, 'page', filters.page);
+  params = setScalar(params, 'limit', filters.limit);
+  params = setScalar(params, 'name', filters.name?.trim());
+  params = setScalar(params, 'email', filters.email?.trim());
+
+  if (filters.sorts?.length) {
+    const sort = filters.sorts
+      .map((item) => `${item.key}:${item.direction}`)
+      .join(',');
+
+    params = setScalar(params, 'sort', sort);
   }
+
+  return this.http.get<
+    PaginatedResponse<entity.UserResponseDto>
+  >(this.apiUrl, { params });
+}
 
   create(payload: entity.CreateUserPayload): Observable<ApiSuccess> {
     return this.http.post<ApiSuccess>(this.apiUrl, payload);

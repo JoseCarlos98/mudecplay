@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -18,32 +18,49 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { ModuleHeader } from '../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../shared/ui/module-header/interfaces/module-header-interface';
 import { DataTable } from '../../shared/ui/data-table/data-table';
-import { ColumnsConfig, DataTableActionEvent } from '../../shared/ui/data-table/interfaces/table-interfaces';
+import {
+  ColumnsConfig,
+  DataTableActionEvent,
+  DataTableSortEvent,
+} from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
 import { LoadingOverlay } from '../../shared/ui/loading-overlay/loading-overlay';
 
 // Servicios
 import { DialogService } from '../../shared/services/dialog.service';
-import { CatalogsService } from '../../shared/services/catalogs.service';
 import { LocalStorageService } from '../../shared/services/local-storage.service';
 
 // Interfaces
-import { Catalog, PaginatedResponse } from '../../shared/interfaces/general-interfaces';
+import { PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as entity from '../responsible/interfaces/responsible-interfaces';
+
+// Modal y service
 import { ResponsibleModal } from './components/responsible-modal/responsible-modal';
 import { ResponsibleService } from './services/responsible.service';
 
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
-
-const EXPENSES_FILTERS_KEY = 'mp_supplier_filters_v1';
+const RESPONSIBLE_FILTERS_KEY = 'mp_responsible_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
-  { key: 'last_name', label: 'Apellido' },
-  { key: 'phone', label: 'Telefono', type: 'phone' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
+  {
+    key: 'last_name',
+    label: 'Apellido',
+    sortable: true,
+    sortKey: 'last_name',
+  },
+  {
+    key: 'phone',
+    label: 'Telefono',
+    type: 'phone',
+    sortable: true,
+    sortKey: 'phone',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -86,74 +103,47 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './responsible.scss',
 })
 export class Responsible implements OnInit {
-  // ==========================
-  //  INYECCIONES
-  // ==========================
   private readonly responsibleService = inject(ResponsibleService);
   private readonly dialogService = inject(DialogService);
-  private readonly catalogsService = inject(CatalogsService);
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
 
-  // ==========================
-  //  CONFIG UI
-  // ==========================
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
-  catalogAreaSuppliers: Catalog[] = [];
+  sorts: entity.ResponsibleSortItem[] = [];
 
-  // ==========================
-  //  ESTADO / DATA
-  // ==========================
-  // Filtros que van al backend
-  filters: entity.FiltersResponsible = { page: 1, limit: 5 };
+  filters: entity.FiltersResponsible = {
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
+
   expensesTableData!: PaginatedResponse<entity.ResponsibleResponseDto>;
 
-  // Form de filtros de la grilla (estado de la UI)
   formFilters = this.fb.group({
     phone: this.fb.control<string>(''),
     name: this.fb.control<string>(''),
   });
 
-  // ==========================
-  //  CICLO DE VIDA
-  // ==========================
   ngOnInit(): void {
-    this.restoreFiltersFromStorage(); // reconstruye filtros + carga tabla
-    this.loadCatalogs();              // carga catálogos de selects
+    this.restoreFiltersFromStorage();
   }
 
-  // ==========================
-  //  CARGA DE CATÁLOGOS
-  // ==========================
-  loadCatalogs(): void {
-    this.catalogsService.areasSuppliersCatalog().subscribe({
-      next: (response: Catalog[]) => {
-        this.catalogAreaSuppliers = response;
-      },
-      error: (err) => console.error('Error al cargar estados de gasto:', err),
-    });
-  }
-
-  // ==========================
-  //  HELPER: UI → FILTROS BACKEND
-  // ==========================
-  private buildBackendFiltersFromUi(ui: entity.ResponsibleUiFilters): entity.FiltersResponsible {
+  private buildBackendFiltersFromUi(
+    ui: entity.ResponsibleUiFilters,
+  ): entity.FiltersResponsible {
     return {
       page: ui.page,
       limit: ui.limit,
       name: ui.name?.trim() || '',
       phone: ui.phone?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
-  // ==========================
-  //  FILTROS + BÚSQUEDA
-  // ==========================
   searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
@@ -162,10 +152,24 @@ export class Responsible implements OnInit {
       phone: value.phone?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadClients();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
     this.loadClients();
   }
 
@@ -181,13 +185,11 @@ export class Responsible implements OnInit {
         next: (response: PaginatedResponse<entity.ResponsibleResponseDto>) => {
           this.expensesTableData = response;
         },
-        error: (err) => console.error('Error al cargar responsables:', err),
+        error: (err) =>
+          console.error('Error al cargar responsables:', err),
       });
   }
 
-  // ==========================
-  //  PAGINACIÓN
-  // ==========================
   onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
@@ -196,9 +198,6 @@ export class Responsible implements OnInit {
     this.loadClients();
   }
 
-  // ==========================
-  //  ACCIONES HEADER
-  // ==========================
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
@@ -210,9 +209,6 @@ export class Responsible implements OnInit {
     }
   }
 
-  // ==========================
-  //  ACCIONES FOOTER-FILTROS
-  // ==========================
   onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
@@ -225,10 +221,9 @@ export class Responsible implements OnInit {
     }
   }
 
-  // ==========================
-  //  ACCIONES TABLA
-  // ==========================
-  onTableAction(ev: DataTableActionEvent<entity.ResponsibleResponseDto>): void {
+  onTableAction(
+    ev: DataTableActionEvent<entity.ResponsibleResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.supplierModal(ev.row);
@@ -240,10 +235,10 @@ export class Responsible implements OnInit {
     }
   }
 
-  onDelete(supplier: entity.ResponsibleResponseDto): void {
+  onDelete(responsible: entity.ResponsibleResponseDto): void {
     this.dialogService
       .confirm({
-        message: `¿Quieres eliminar el responsable:\n"${supplier.name.trim()}"?`,
+        message: `¿Quieres eliminar el responsable:\n"${responsible.name.trim()}"?`,
         confirmText: 'Eliminar',
         cancelText: 'Cancelar',
         size: 'mini',
@@ -251,23 +246,22 @@ export class Responsible implements OnInit {
       .subscribe((confirmed) => {
         if (!confirmed) return;
 
-        this.responsibleService.remove(supplier.id).subscribe({
+        this.responsibleService.remove(responsible.id).subscribe({
           next: () => this.loadClients(),
-          error: (err) => console.error('Error al eliminar gasto:', err),
+          error: (err) =>
+            console.error('Error al eliminar responsable:', err),
         });
       });
   }
 
-  // ==========================
-  //  ESTADO DE FILTROS (UI)
-  // ==========================
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
 
-    const hasEmail = !!(form.name?.trim() !== '');
-    const hasPhone = !!(form.phone !== '');
+    const hasName = !!form.name?.trim();
+    const hasPhone = !!form.phone?.trim();
+    const hasSort = this.sorts.length > 0;
 
-    return hasEmail || hasPhone;
+    return hasName || hasPhone || hasSort;
   }
 
   clearAllAndSearch(): void {
@@ -279,52 +273,74 @@ export class Responsible implements OnInit {
       { emitEvent: false },
     );
 
+    this.sorts = [];
+
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
       phone: '',
+      sorts: [],
     };
 
-    this.storage.removeItem(EXPENSES_FILTERS_KEY);
+    this.storage.removeItem(RESPONSIBLE_FILTERS_KEY);
     this.loadClients();
   }
 
-  // ==========================
-  //  MODAL DE ITEMS
-  // ==========================
-  supplierModal(supplier?: entity.ResponsibleResponseDto): void {
+  supplierModal(
+    responsible?: entity.ResponsibleResponseDto,
+  ): void {
     this.dialogService
-      .open(ResponsibleModal, supplier ? supplier : null, 'medium')
+      .open(
+        ResponsibleModal,
+        responsible ? responsible : null,
+        'medium',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadClients();
+        if (result) {
+          this.loadClients();
+        }
       });
   }
 
-  // ==========================
-  //  LOCAL STORAGE (FILTROS)
-  // ==========================
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.ResponsibleUiFilters>(EXPENSES_FILTERS_KEY);
+    const saved =
+      this.storage.getItem<entity.ResponsibleUiFilters>(
+        RESPONSIBLE_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
+    const state: entity.ResponsibleUiFilters = {
+      name: saved.name ?? '',
+      phone: saved.phone ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
+    };
+
     this.formFilters.patchValue(
       {
-        name: saved.name,
-        phone: saved.phone,
+        name: state.name,
+        phone: state.phone,
       },
       { emitEvent: false },
     );
 
+    this.filters = this.buildBackendFiltersFromUi(state);
     this.loadClients();
   }
 
-  private saveFiltersToStorage(state?: entity.ResponsibleUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.ResponsibleUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -333,9 +349,13 @@ export class Responsible implements OnInit {
         phone: value.phone?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(EXPENSES_FILTERS_KEY, state);
+    this.storage.setItem(
+      RESPONSIBLE_FILTERS_KEY,
+      state,
+    );
   }
 }

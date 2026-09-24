@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -18,6 +18,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
@@ -35,13 +36,15 @@ import * as entity from './interfaces/employee-area-interfaces';
 import { EmployeeAreaModal } from './components/employee-area-modal/employee-area-modal';
 import { EmployeeAreasService } from './services/employee-areas.service';
 
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
 const EMPLOYEE_AREA_FILTERS_KEY = 'mp_employee_area_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -62,12 +65,14 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     BtnsSection,
     InputField,
     LoadingOverlay,
+
     MatPaginatorModule,
     MatFormFieldModule,
     MatInputModule,
     MatIconModule,
     MatTableModule,
     MatButtonModule,
+
     FormsModule,
     ReactiveFormsModule,
   ],
@@ -83,10 +88,16 @@ export class EmployeeAreas implements OnInit {
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
-  filters: entity.FiltersEmployeeArea = { page: 1, limit: 5 };
+  sorts: entity.EmployeeAreaSortItem[] = [];
+
+  filters: entity.FiltersEmployeeArea = {
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
+
   employeeAreasTableData!: PaginatedResponse<entity.EmployeeAreaResponseDto>;
 
   formFilters = this.fb.group({
@@ -104,6 +115,7 @@ export class EmployeeAreas implements OnInit {
       page: ui.page,
       limit: ui.limit,
       name: ui.name?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
@@ -114,10 +126,24 @@ export class EmployeeAreas implements OnInit {
       name: value.name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadEmployeeAreas();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
     this.loadEmployeeAreas();
   }
 
@@ -133,7 +159,8 @@ export class EmployeeAreas implements OnInit {
         next: (response: PaginatedResponse<entity.EmployeeAreaResponseDto>) => {
           this.employeeAreasTableData = response;
         },
-        error: (err) => console.error('Error al cargar áreas de empleado:', err),
+        error: (err) =>
+          console.error('Error al cargar áreas de empleado:', err),
       });
   }
 
@@ -165,7 +192,9 @@ export class EmployeeAreas implements OnInit {
     }
   }
 
-  onTableAction(ev: DataTableActionEvent<entity.EmployeeAreaResponseDto>): void {
+  onTableAction(
+    ev: DataTableActionEvent<entity.EmployeeAreaResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.employeeAreaModal(ev.row);
@@ -190,14 +219,19 @@ export class EmployeeAreas implements OnInit {
 
         this.employeeAreasService.remove(employeeArea.id).subscribe({
           next: () => this.loadEmployeeAreas(),
-          error: (err) => console.error('Error al eliminar área de empleado:', err),
+          error: (err) =>
+            console.error('Error al eliminar área de empleado:', err),
         });
       });
   }
 
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
-    return !!form.name?.trim();
+
+    return !!(
+      form.name?.trim() ||
+      this.sorts.length > 0
+    );
   }
 
   clearAllAndSearch(): void {
@@ -205,50 +239,78 @@ export class EmployeeAreas implements OnInit {
       {
         name: '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
+
+    this.sorts = [];
 
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
+      sorts: [],
     };
 
     this.storage.removeItem(EMPLOYEE_AREA_FILTERS_KEY);
     this.loadEmployeeAreas();
   }
 
-  employeeAreaModal(employeeArea?: entity.EmployeeAreaResponseDto): void {
+  employeeAreaModal(
+    employeeArea?: entity.EmployeeAreaResponseDto,
+  ): void {
     this.dialogService
-      .open(EmployeeAreaModal, employeeArea ? employeeArea : null, 'mini')
+      .open(
+        EmployeeAreaModal,
+        employeeArea ? employeeArea : null,
+        'mini',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadEmployeeAreas();
+        if (result) {
+          this.loadEmployeeAreas();
+        }
       });
   }
 
   private restoreFiltersFromStorage(): void {
-    const saved = this.storage.getItem<entity.EmployeeAreaUiFilters>(
-      EMPLOYEE_AREA_FILTERS_KEY,
-    );
+    const saved =
+      this.storage.getItem<entity.EmployeeAreaUiFilters>(
+        EMPLOYEE_AREA_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
     this.formFilters.patchValue(
       {
-        name: saved.name,
+        name: saved.name ?? '',
       },
-      { emitEvent: false },
+      {
+        emitEvent: false,
+      },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi({
+      ...saved,
+      name: saved.name ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
+    });
+
     this.loadEmployeeAreas();
   }
 
-  private saveFiltersToStorage(state?: entity.EmployeeAreaUiFilters): void {
+  private saveFiltersToStorage(
+    state?: entity.EmployeeAreaUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -256,9 +318,13 @@ export class EmployeeAreas implements OnInit {
         name: value.name?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(EMPLOYEE_AREA_FILTERS_KEY, state);
+    this.storage.setItem(
+      EMPLOYEE_AREA_FILTERS_KEY,
+      state,
+    );
   }
 }

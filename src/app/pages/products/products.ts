@@ -1,5 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 
@@ -21,6 +21,7 @@ import { DataTable } from '../../shared/ui/data-table/data-table';
 import {
   ColumnsConfig,
   DataTableActionEvent,
+  DataTableSortEvent,
 } from '../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputField } from '../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../shared/ui/btns-section/btns-section';
@@ -33,19 +34,32 @@ import { LocalStorageService } from '../../shared/services/local-storage.service
 // Interfaces
 import { PaginatedResponse } from '../../shared/interfaces/general-interfaces';
 import * as products from './interfaces/products-interfaces';
+
+// Modal y service
 import { ProductsService } from './services/products.service';
 import { ProductModal } from './components/product-modal/product-modal';
-
-// ==========================
-//  CONSTANTES DEL MÓDULO
-// ==========================
 
 const PRODUCTS_FILTERS_KEY = 'mp_products_filters_v1';
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
-  { key: 'name', label: 'Nombre' },
-  { key: 'clave_prod_serv', label: 'Clave SAT (prod/serv)' },
-  { key: 'no_identificacion', label: 'SKU / No. interno' },
+  {
+    key: 'name',
+    label: 'Nombre',
+    sortable: true,
+    sortKey: 'name',
+  },
+  {
+    key: 'clave_prod_serv',
+    label: 'Clave SAT (prod/serv)',
+    sortable: true,
+    sortKey: 'clave_prod_serv',
+  },
+  {
+    key: 'no_identificacion',
+    label: 'SKU / No. interno',
+    sortable: true,
+    sortKey: 'no_identificacion',
+  },
 ];
 
 const DISPLAYED_COLUMNS: string[] = [
@@ -88,27 +102,23 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   styleUrl: './products.scss',
 })
 export class Products implements OnInit {
-  // ==========================
-  //  INYECCIONES
-  // ==========================
   private readonly productsService = inject(ProductsService);
   private readonly dialogService = inject(DialogService);
   private readonly fb = inject(FormBuilder);
   private readonly storage = inject(LocalStorageService);
 
-  // ==========================
-  //  CONFIG UI
-  // ==========================
   readonly columnsConfig = COLUMNS_CONFIG;
   readonly displayedColumns = DISPLAYED_COLUMNS;
   readonly headerConfig = HEADER_CONFIG;
-
   readonly loadingTable = signal(false);
 
-  // ==========================
-  //  ESTADO / DATA
-  // ==========================
-  filters: products.FiltersProducts = { page: 1, limit: 5 };
+  sorts: products.ProductSortItem[] = [];
+
+  filters: products.FiltersProducts = {
+    page: 1,
+    limit: 5,
+    sorts: [],
+  };
 
   productsTableData!: PaginatedResponse<products.ProductResponseDto>;
 
@@ -116,16 +126,10 @@ export class Products implements OnInit {
     name: this.fb.control<string>(''),
   });
 
-  // ==========================
-  //  CICLO DE VIDA
-  // ==========================
   ngOnInit(): void {
     this.restoreFiltersFromStorage();
   }
 
-  // ==========================
-  //  HELPER: UI → FILTROS BACKEND
-  // ==========================
   private buildBackendFiltersFromUi(
     ui: products.ProductsUiFilters,
   ): products.FiltersProducts {
@@ -133,12 +137,10 @@ export class Products implements OnInit {
       page: ui.page,
       limit: ui.limit,
       name: ui.name?.trim() || '',
+      sorts: [...(ui.sorts ?? [])],
     };
   }
 
-  // ==========================
-  //  FILTROS + BÚSQUEDA
-  // ==========================
   searchWithFilters(): void {
     const value = this.formFilters.getRawValue();
 
@@ -146,10 +148,24 @@ export class Products implements OnInit {
       name: value.name?.trim() || '',
       page: 1,
       limit: this.filters.limit,
+      sorts: [...this.sorts],
     };
 
     this.filters = this.buildBackendFiltersFromUi(uiState);
     this.saveFiltersToStorage(uiState);
+    this.loadProducts();
+  }
+
+  onSortChange(event: DataTableSortEvent): void {
+    this.sorts = [...event.sorts];
+
+    this.filters = {
+      ...this.filters,
+      page: 1,
+      sorts: [...this.sorts],
+    };
+
+    this.saveFiltersToStorage();
     this.loadProducts();
   }
 
@@ -165,13 +181,11 @@ export class Products implements OnInit {
         next: (response: PaginatedResponse<products.ProductResponseDto>) => {
           this.productsTableData = response;
         },
-        error: (err) => console.error('Error al cargar productos:', err),
+        error: (err) =>
+          console.error('Error al cargar productos:', err),
       });
   }
 
-  // ==========================
-  //  PAGINACIÓN
-  // ==========================
   onPageChange(event: PageEvent): void {
     this.filters.page = event.pageIndex + 1;
     this.filters.limit = event.pageSize;
@@ -180,9 +194,6 @@ export class Products implements OnInit {
     this.loadProducts();
   }
 
-  // ==========================
-  //  ACCIONES HEADER
-  // ==========================
   onHeaderAction(action: string): void {
     switch (action) {
       case 'new':
@@ -190,14 +201,10 @@ export class Products implements OnInit {
         break;
 
       case 'upload':
-        // si luego quieres importar productos por archivo, aquí va
         break;
     }
   }
 
-  // ==========================
-  //  ACCIONES FOOTER-FILTROS
-  // ==========================
   onBtnsSectionAction(action: string): void {
     switch (action) {
       case 'search':
@@ -210,10 +217,9 @@ export class Products implements OnInit {
     }
   }
 
-  // ==========================
-  //  ACCIONES TABLA
-  // ==========================
-  onTableAction(ev: DataTableActionEvent<products.ProductResponseDto>): void {
+  onTableAction(
+    ev: DataTableActionEvent<products.ProductResponseDto>,
+  ): void {
     switch (ev.type) {
       case 'edit':
         this.productModal(ev.row);
@@ -237,18 +243,19 @@ export class Products implements OnInit {
 
         this.productsService.remove(product.id).subscribe({
           next: () => this.loadProducts(),
-          error: (err) => console.error('Error al eliminar producto:', err),
+          error: (err) =>
+            console.error('Error al eliminar producto:', err),
         });
       });
   }
 
-  // ==========================
-  //  ESTADO DE FILTROS (UI)
-  // ==========================
   get hasActiveFilters(): boolean {
     const form = this.formFilters.getRawValue();
-    const hasName = !!(form.name?.trim() !== '');
-    return hasName;
+
+    const hasName = !!form.name?.trim();
+    const hasSort = this.sorts.length > 0;
+
+    return hasName || hasSort;
   }
 
   clearAllAndSearch(): void {
@@ -259,52 +266,69 @@ export class Products implements OnInit {
       { emitEvent: false },
     );
 
+    this.sorts = [];
+
     this.filters = {
       page: 1,
       limit: this.filters.limit,
       name: '',
+      sorts: [],
     };
 
     this.storage.removeItem(PRODUCTS_FILTERS_KEY);
     this.loadProducts();
   }
 
-  // ==========================
-  //  MODAL DE PRODUCTO
-  // ==========================
   productModal(product?: products.ProductResponseDto): void {
     this.dialogService
-      .open(ProductModal, product ? product : null, 'medium')
+      .open(
+        ProductModal,
+        product ? product : null,
+        'medium',
+      )
       .afterClosed()
       .subscribe((result) => {
-        if (result) this.loadProducts();
+        if (result) {
+          this.loadProducts();
+        }
       });
   }
 
-  // ==========================
-  //  LOCAL STORAGE (FILTROS)
-  // ==========================
   private restoreFiltersFromStorage(): void {
     const saved =
-      this.storage.getItem<products.ProductsUiFilters>(PRODUCTS_FILTERS_KEY);
+      this.storage.getItem<products.ProductsUiFilters>(
+        PRODUCTS_FILTERS_KEY,
+      );
 
     if (!saved) {
+      this.sorts = [];
       this.searchWithFilters();
       return;
     }
 
+    this.sorts = [...(saved.sorts ?? [])];
+
+    const state: products.ProductsUiFilters = {
+      name: saved.name ?? '',
+      page: saved.page ?? 1,
+      limit: saved.limit ?? this.filters.limit,
+      sorts: [...this.sorts],
+    };
+
     this.formFilters.patchValue(
       {
-        name: saved.name,
+        name: state.name,
       },
       { emitEvent: false },
     );
 
-    this.filters = this.buildBackendFiltersFromUi(saved);
+    this.filters = this.buildBackendFiltersFromUi(state);
     this.loadProducts();
   }
 
-  private saveFiltersToStorage(state?: products.ProductsUiFilters): void {
+  private saveFiltersToStorage(
+    state?: products.ProductsUiFilters,
+  ): void {
     if (!state) {
       const value = this.formFilters.getRawValue();
 
@@ -312,9 +336,13 @@ export class Products implements OnInit {
         name: value.name?.trim() || '',
         page: this.filters.page,
         limit: this.filters.limit,
+        sorts: [...this.sorts],
       };
     }
 
-    this.storage.setItem(PRODUCTS_FILTERS_KEY, state);
+    this.storage.setItem(
+      PRODUCTS_FILTERS_KEY,
+      state,
+    );
   }
 }

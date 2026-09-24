@@ -13,9 +13,11 @@ import * as entity from '../interfaces/area-interfaces';
 export class AreasService {
   private apiUrl = `${environment.apiUrl}/areas`;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly http: HttpClient) { }
 
-  getAreas(filters?: entity.FiltersArea): Observable<PaginatedResponse<entity.AreaResponseDto>> {
+  getAreas(
+    filters?: entity.FiltersArea,
+  ): Observable<PaginatedResponse<entity.AreaResponseDto>> {
     const url = `${this.apiUrl}`;
     let params = new HttpParams();
 
@@ -23,9 +25,19 @@ export class AreasService {
       params = setScalar(params, 'page', filters.page);
       params = setScalar(params, 'limit', filters.limit);
       params = setScalar(params, 'name', filters.name?.trim());
+
+      if (filters.sorts?.length) {
+        const sort = filters.sorts
+          .map((item) => `${item.key}:${item.direction}`)
+          .join(',');
+
+        params = setScalar(params, 'sort', sort);
+      }
     }
 
-    return this.http.get<PaginatedResponse<entity.AreaResponseDto>>(url, { params });
+    return this.http.get<
+      PaginatedResponse<entity.AreaResponseDto>
+    >(url, { params });
   }
 
   create(formData: entity.CreateArea): Observable<ApiSuccess> {

@@ -1,7 +1,17 @@
+export type EmployeeAreaSortDirection = 'asc' | 'desc';
+
+export interface EmployeeAreaSortItem {
+  key: string;
+  direction: EmployeeAreaSortDirection;
+}
+
 export interface FiltersEmployeeArea {
   name?: string | '';
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: EmployeeAreaSortItem[];
 }
 
 export interface EmployeeAreaResponseDto {
@@ -19,6 +29,9 @@ export interface PatchEmployeeArea {
 
 export interface EmployeeAreaUiFilters {
   name: string;
+
   page: number;
   limit: number;
+
+  sorts: EmployeeAreaSortItem[];
 }
