@@ -14,21 +14,33 @@ export class SupplierService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getSuppliers(filters?: entity.FiltersSupplier) {
-    const url = `${this.apiUrl}`;
-    let params = new HttpParams();
+  getSuppliers(
+  filters?: entity.FiltersSupplier,
+): Observable<PaginatedResponse<entity.SupplierResponseDto>> {
+  const url = `${this.apiUrl}`;
+  let params = new HttpParams();
 
-    if (filters) {
-      params = setScalar(params, 'page', filters.page);
-      params = setScalar(params, 'limit', filters.limit);
-      params = appendArray(params, 'areasIds', filters.areasIds ?? []);
-      params = setScalar(params, 'email', filters.email?.trim());
-      params = setScalar(params, 'phone', filters.phone?.trim());
-      params = setScalar(params, 'company_name', filters.company_name?.trim());
+  if (filters) {
+    params = setScalar(params, 'page', filters.page);
+    params = setScalar(params, 'limit', filters.limit);
+    params = appendArray(params, 'areasIds', filters.areasIds ?? []);
+    params = setScalar(params, 'email', filters.email?.trim());
+    params = setScalar(params, 'phone', filters.phone?.trim());
+    params = setScalar(params, 'company_name', filters.company_name?.trim());
+
+    if (filters.sorts?.length) {
+      const sort = filters.sorts
+        .map((item) => `${item.key}:${item.direction}`)
+        .join(',');
+
+      params = setScalar(params, 'sort', sort);
     }
-
-    return this.http.get<PaginatedResponse<entity.SupplierResponseDto>>(url, { params });
   }
+
+  return this.http.get<
+    PaginatedResponse<entity.SupplierResponseDto>
+  >(url, { params });
+}
 
   getById(id: number): Observable<entity.SupplierDetail> {
     const url = `${this.apiUrl}/${id}`;

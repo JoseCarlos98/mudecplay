@@ -1,11 +1,21 @@
 
+export type SupplierSortDirection = 'asc' | 'desc';
+
+export interface SupplierSortItem {
+  key: string;
+  direction: SupplierSortDirection;
+}
+
 export interface FiltersSupplier {
   phone?: string | '';
   email?: string | '';
   company_name?: string | '';
   areasIds?: number[] | null;
-  limit: number;
+
   page: number;
+  limit: number;
+
+  sorts?: SupplierSortItem[];
 }
 
 
@@ -79,12 +89,14 @@ export interface SupplierDetail {
     name: string;
   };
 }
-
 export interface SupplierUiFilters {
   areasIds: number[];
   email: string;
   phone: string;
   company_name: string;
+
   page: number;
   limit: number;
+
+  sorts: SupplierSortItem[];
 }
