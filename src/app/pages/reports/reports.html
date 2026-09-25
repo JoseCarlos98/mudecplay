@@ -37,7 +37,7 @@
   [title]="'Reportes'"
 
   [description]="
-    'Genera el resumen financiero consolidado de un proyecto.'
+    'Consulta y genera los reportes financieros de los proyectos.'
   "
 
   [tabs]="tabs"
@@ -48,7 +48,28 @@
     onActiveTabChange($event)
   ">
 
-  <app-project-all-report>
-  </app-project-all-report>
+
+  <div
+    [hidden]="
+      activeSection() !==
+      'project_all'
+    ">
+
+    <app-project-all-report>
+    </app-project-all-report>
+
+  </div>
+
+
+  <div
+    [hidden]="
+      activeSection() !==
+      'project_classification'
+    ">
+
+    <app-project-classification-report>
+    </app-project-classification-report>
+
+  </div>
 
 </app-page-tabs>

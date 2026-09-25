@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+
 import {
   Component,
   signal,
@@ -13,9 +14,14 @@ import {
   ProjectAllReport,
 } from './components/project-all-report/project-all-report';
 
+import {
+  ProjectClassificationReport,
+} from './components/project-classification-report/project-classification-report';
+
 
 type ReportsSection =
-  'project_all';
+  | 'project_all'
+  | 'project_classification';
 
 
 @Component({
@@ -25,7 +31,9 @@ type ReportsSection =
   imports: [
     CommonModule,
     PageTabsComponent,
+
     ProjectAllReport,
+    ProjectClassificationReport,
   ],
 
   templateUrl: './reports.html',
@@ -39,15 +47,38 @@ export class Reports {
     );
 
 
-  readonly tabs: PageTab[] = [
-    {
-      id: 'project_all',
-      icon: 'assessment',
-      label: 'Reporte de proyecto',
-      description:
-        'Resumen financiero consolidado del proyecto',
-    },
-  ];
+  readonly tabs:
+    PageTab[] = [
+
+      {
+        id:
+          'project_all',
+
+        icon:
+          'assessment',
+
+        label:
+          'Reporte de proyecto',
+
+        description:
+          'Resumen financiero consolidado del proyecto',
+      },
+
+      {
+        id:
+          'project_classification',
+
+        icon:
+          'category',
+
+        label:
+          'Clasificación de gastos',
+
+        description:
+          'Gastos agrupados por clasificación homologada',
+      },
+
+    ];
 
 
   onActiveTabChange(
@@ -56,13 +87,16 @@ export class Reports {
 
     if (
       nextId !==
-      'project_all'
+        'project_all' &&
+      nextId !==
+        'project_classification'
     ) {
       return;
     }
 
+
     this.activeSection.set(
-      'project_all',
+      nextId,
     );
 
   }

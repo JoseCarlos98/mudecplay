@@ -1,0 +1,117 @@
+<section class="report-tab">
+
+  <header class="report-tab__header">
+
+    <h2 class="report-tab__title">
+      Clasificación de gastos
+    </h2>
+
+    <p class="report-tab__desc">
+      Selecciona un proyecto para consultar sus gastos agrupados por
+      clasificación homologada, incluyendo mano de obra, almacén,
+      órdenes de compra, conceptos sin clasificar y trabajos extra.
+    </p>
+
+  </header>
+
+
+  <form [formGroup]="formFilters">
+
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
+
+      <div class="md:col-span-2">
+
+        <app-autocomplete
+          formControlName="projectId"
+          label="Proyecto"
+          placeholder="Buscar proyecto"
+          [remote]="false"
+          [data]="projects">
+        </app-autocomplete>
+
+      </div>
+
+
+      <div class="md:col-span-1">
+
+        <app-btns-section
+          type="search"
+          [hasActiveSearch]="hasActiveSearch"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+
+      </div>
+
+
+      <div class="md:col-span-1 flex items-center justify-end">
+
+        <button
+          type="button"
+          class="btn-primary"
+          [disabled]="!hasActiveSearch || loadingPreview()"
+          (click)="downloadPdf()">
+
+          <mat-icon>
+            download
+          </mat-icon>
+
+          <span>
+            Descargar PDF
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </form>
+
+
+  @if (pdfUrl() || loadingPreview()) {
+
+    <div class="c-pdf-wrap">
+
+      @if (pdfUrl()) {
+
+        <iframe
+          class="c-pdf-viewer"
+          title="Reporte de gastos por clasificación"
+          [src]="pdfUrl()">
+        </iframe>
+
+      } @else {
+
+        <div class="c-pdf-placeholder">
+        </div>
+
+      }
+
+
+      <app-loading-overlay
+        [visible]="loadingPreview()"
+        text="Generando reporte...">
+      </app-loading-overlay>
+
+    </div>
+
+  }
+
+
+  @if (errorPreview()) {
+
+    <div class="c-preview-error">
+      {{ errorPreview() }}
+    </div>
+
+  }
+
+
+  <app-loading-overlay
+    [visible]="loadingProjects()"
+    [fullscreen]="false"
+    text="Cargando proyectos...">
+  </app-loading-overlay>
+
+</section>
