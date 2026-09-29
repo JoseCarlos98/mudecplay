@@ -12,12 +12,16 @@ import {
   Observable,
 } from 'rxjs';
 
-
-
 import * as entity
   from '../interfaces/expense-classifications.interfaces';
-import { environment } from '../../../../environments/environment';
-import { setScalar } from '../../../shared/helpers/general-helpers';
+
+import {
+  environment,
+} from '../../../../environments/environment';
+
+import {
+  setScalar,
+} from '../../../shared/helpers/general-helpers';
 
 
 @Injectable({
@@ -103,6 +107,8 @@ export class ExpenseClassificationsService {
       payload,
     );
   }
+
+
   deactivateClassification(
     classificationId: number,
   ): Observable<
@@ -128,6 +134,115 @@ export class ExpenseClassificationsService {
       entity.ChangeExpenseReportClassificationStatusResponse
     >(
       `${this.apiUrl}/classifications/${classificationId}/reactivate`,
+      {},
+    );
+  }
+
+
+  // =========================================================
+  // GRUPOS HOMOLOGADOS
+  // =========================================================
+
+  getGroups(
+    filters?:
+      entity.ExpenseReportGroupFilters,
+  ): Observable<
+    entity.ExpenseReportGroup[]
+  > {
+
+    let params =
+      new HttpParams();
+
+    if (filters) {
+
+      params = setScalar(
+        params,
+        'classificationId',
+        filters.classificationId,
+      );
+
+      params = setScalar(
+        params,
+        'search',
+        filters.search?.trim(),
+      );
+
+      params = setScalar(
+        params,
+        'status',
+        filters.status,
+      );
+    }
+
+    return this.http.get<
+      entity.ExpenseReportGroup[]
+    >(
+      `${this.apiUrl}/groups`,
+      {
+        params,
+      },
+    );
+  }
+
+
+  createGroup(
+    payload:
+      entity.CreateExpenseReportGroupPayload,
+  ): Observable<
+    entity.ExpenseReportGroup
+  > {
+
+    return this.http.post<
+      entity.ExpenseReportGroup
+    >(
+      `${this.apiUrl}/groups`,
+      payload,
+    );
+  }
+
+
+  updateGroup(
+    groupId: number,
+    payload:
+      entity.UpdateExpenseReportGroupPayload,
+  ): Observable<
+    entity.ExpenseReportGroup
+  > {
+
+    return this.http.patch<
+      entity.ExpenseReportGroup
+    >(
+      `${this.apiUrl}/groups/${groupId}`,
+      payload,
+    );
+  }
+
+
+  deactivateGroup(
+    groupId: number,
+  ): Observable<
+    entity.ExpenseReportGroup
+  > {
+
+    return this.http.patch<
+      entity.ExpenseReportGroup
+    >(
+      `${this.apiUrl}/groups/${groupId}/deactivate`,
+      {},
+    );
+  }
+
+
+  reactivateGroup(
+    groupId: number,
+  ): Observable<
+    entity.ExpenseReportGroup
+  > {
+
+    return this.http.patch<
+      entity.ExpenseReportGroup
+    >(
+      `${this.apiUrl}/groups/${groupId}/reactivate`,
       {},
     );
   }
@@ -184,6 +299,7 @@ export class ExpenseClassificationsService {
       if (
         filters.sorts?.length
       ) {
+
         const sort =
           filters.sorts
             .map(
@@ -284,6 +400,7 @@ export class ExpenseClassificationsService {
     if (
       filters.sorts?.length
     ) {
+
       const sort =
         filters.sorts
           .map(
@@ -321,6 +438,26 @@ export class ExpenseClassificationsService {
 
     return this.http.patch<unknown>(
       `${this.apiUrl}/mappings/reassign`,
+      payload,
+    );
+  }
+
+
+  // =========================================================
+  // ASIGNAR / QUITAR GRUPO HOMOLOGADO
+  // =========================================================
+
+  assignGroup(
+    payload:
+      entity.AssignExpenseReportGroupPayload,
+  ): Observable<
+    entity.AssignExpenseReportGroupResponse
+  > {
+
+    return this.http.patch<
+      entity.AssignExpenseReportGroupResponse
+    >(
+      `${this.apiUrl}/mappings/group`,
       payload,
     );
   }

@@ -306,7 +306,7 @@
               }
 
               <div>
-                <app-input-field formControlName="quantity" label="Cantidad" type="number">
+                <app-input-field formControlName="quantity" label="Cantidad" type="number" [numberDecimals]="4">
                 </app-input-field>
               </div>
 
@@ -379,16 +379,10 @@
 
                 @if (!isLaborAuto) {
                 <div>
-                 <app-autocomplete
-  formControlName="concept"
-  label="Concepto"
-  placeholder="Escribe o busca un concepto"
-  [remote]="true"
-  catalogType="expenseConcept"
-  valueMode="name"
-  [showInfo]="true"
-  infoTooltip="Selecciona un concepto homologado de las sugerencias o escribe uno nuevo. Al elegir un producto, el concepto se llena automáticamente y puedes editarlo.">
-</app-autocomplete>
+                  <app-autocomplete formControlName="concept" label="Concepto" placeholder="Escribe o busca un concepto"
+                    [remote]="true" catalogType="expenseConcept" valueMode="name" [showInfo]="true"
+                    infoTooltip="Selecciona un concepto homologado de las sugerencias o escribe uno nuevo. Al elegir un producto, el concepto se llena automáticamente y puedes editarlo.">
+                  </app-autocomplete>
                 </div>
                 }
 

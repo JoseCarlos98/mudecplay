@@ -31,6 +31,61 @@ export interface ExpenseClassificationReference {
   name: string;
 }
 
+// =========================================================
+// REFERENCIA SIMPLE DE GRUPO
+// =========================================================
+
+export interface ExpenseReportGroupReference {
+  id: number;
+
+  name: string;
+}
+
+
+// =========================================================
+// GRUPOS HOMOLOGADOS
+// =========================================================
+
+export interface ExpenseReportGroup {
+  id: number;
+
+  name: string;
+
+  normalizedName?: string;
+
+  isActive: boolean;
+
+  classification:
+  ExpenseClassificationReference;
+
+  createdAt?: string;
+
+  updatedAt?: string;
+}
+
+
+export interface ExpenseReportGroupFilters {
+  classificationId?:
+  number | null;
+
+  search?: string;
+
+  status?:
+  ExpenseClassificationStatusFilter;
+}
+
+
+export interface CreateExpenseReportGroupPayload {
+  classificationId: number;
+
+  name: string;
+}
+
+
+export interface UpdateExpenseReportGroupPayload {
+  name: string;
+}
+
 
 // =========================================================
 // SUGERENCIAS DE CONCEPTOS HOMOLOGADOS
@@ -234,6 +289,7 @@ export interface ExpenseClassificationMapping {
    */
   key: string;
 
+
   displayName: string;
 
   normalizedConcept:
@@ -246,6 +302,10 @@ export interface ExpenseClassificationMapping {
 
   classification:
   ExpenseClassificationReference;
+
+
+  group:
+  ExpenseReportGroupReference | null;
 
   createdAt: string;
 
@@ -273,6 +333,8 @@ export interface ExpenseClassificationMappingTableRow
   sourceTypeLabel: string;
 
   classificationName: string;
+
+  groupName: string;
 
   statusLabel: string;
 }
@@ -340,6 +402,42 @@ export interface ReassignExpenseClassificationPayload {
   classificationId: number;
 }
 
+// =========================================================
+// ASIGNAR / QUITAR GRUPO HOMOLOGADO
+// =========================================================
+
+export interface AssignExpenseReportGroupItem {
+  sourceType:
+    ExpenseClassificationSourceType;
+
+  mappingId: number;
+}
+
+
+export interface AssignExpenseReportGroupPayload {
+  groupId:
+    number | null;
+
+  items:
+    AssignExpenseReportGroupItem[];
+}
+
+
+export interface AssignExpenseReportGroupResponse {
+  success: boolean;
+
+  total: number;
+
+  group:
+    | {
+        id: number;
+
+        name: string;
+
+        classificationId: number;
+      }
+    | null;
+}
 
 // =========================================================
 // ACTIVAR / DESACTIVAR HOMOLOGACIÓN

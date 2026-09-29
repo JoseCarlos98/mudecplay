@@ -1,749 +1,1514 @@
 <div class="expense-classifications">
 
+
+
   <!-- =====================================================
+
        HEADER + RESUMEN + TABS
+
        ===================================================== -->
+
+
 
   <div class="card-content shadow-md">
 
+
+
     <app-module-header title="Homologación de conceptos de gasto" [config]="headerConfig">
+
     </app-module-header>
 
 
+
+
+
     <!-- ===================================================
+
          RESUMEN
+
          =================================================== -->
+
+
 
     <div class="expense-classifications-summary">
 
+
+
       <article class="expense-classifications-summary__card">
 
+
+
         <mat-icon>
+
           pending_actions
+
         </mat-icon>
+
+
 
         <div>
 
+
+
           <span>
+
             Pendientes por homologar
+
           </span>
 
+
+
           <strong>
+
             {{ pendingResponse.meta.total }}
+
           </strong>
 
+
+
           <small>
+
             Conceptos y productos históricos
+
           </small>
 
+
+
         </div>
+
+
 
       </article>
 
 
+
+
+
       <article class="expense-classifications-summary__card">
 
+
+
         <mat-icon>
+
           category
+
         </mat-icon>
+
+
 
         <div>
 
+
+
           <span>
+
             Clasificaciones activas
+
           </span>
 
+
+
           <strong>
+
             {{ activeClassifications.length }}
+
           </strong>
 
+
+
           <small>
+
             Disponibles para homologar
+
           </small>
+
+
 
         </div>
 
+
+
       </article>
 
-
       <article class="expense-classifications-summary__card">
-
-        <mat-icon>
-          checklist
-        </mat-icon>
+        <mat-icon>checklist</mat-icon>
 
         <div>
-
-          <span>
-            Seleccionados
-          </span>
+          <span>Seleccionados</span>
 
           <strong>
-            {{ selectedPendingCount() }}
+            {{ activeTab() === 'pending' ? selectedPendingCount() : selectedMappingCount() }}
           </strong>
 
           <small>
-            Pendientes seleccionados
+            {{
+            activeTab() === 'pending'
+            ? 'Pendientes seleccionados'
+            : 'Homologaciones seleccionadas'
+            }}
           </small>
-
         </div>
-
       </article>
+
+
+
 
 
       <article class="expense-classifications-summary__card">
 
+
+
         <mat-icon>
+
           account_tree
+
         </mat-icon>
+
+
 
         <div>
 
+
+
           <span>
+
             Homologados encontrados
+
           </span>
 
+
+
           <strong>
+
             {{ mappingsResponse.meta.total }}
+
           </strong>
 
+
+
           <small>
+
             Según filtros de homologados
+
           </small>
+
+
 
         </div>
 
+
+
       </article>
+
+
 
     </div>
 
 
+
+
+
     <!-- ===================================================
+
          TABS
+
          =================================================== -->
+
+
 
     <nav class="expense-classifications-tabs">
 
+
+
       <button type="button" class="expense-classifications-tab" [class.expense-classifications-tab--active]="
+
           activeTab() === 'pending'
+
         " (click)="setActiveTab('pending')">
 
+
+
         <mat-icon>
+
           pending_actions
+
         </mat-icon>
 
+
+
         <span class="expense-classifications-tab__label">
+
           Pendientes
+
         </span>
+
+
 
         <span class="expense-classifications-tab__count">
+
           {{ pendingResponse.meta.total }}
+
         </span>
 
+
+
       </button>
+
+
+
 
 
       <button type="button" class="expense-classifications-tab" [class.expense-classifications-tab--active]="
+
           activeTab() === 'homologated'
+
         " (click)="setActiveTab('homologated')">
 
+
+
         <mat-icon>
+
           task_alt
+
         </mat-icon>
 
+
+
         <span class="expense-classifications-tab__label">
+
           Homologados
+
         </span>
+
+
 
       </button>
 
+
+
     </nav>
+
+
 
   </div>
 
 
+
+
+
   <!-- =====================================================
+
        TAB: PENDIENTES
+
        ===================================================== -->
 
+
+
   @if (
+
   activeTab() === 'pending'
+
   ) {
+
+
 
   <div class="expense-classifications-workspace">
 
 
+
+
+
     <!-- ===================================================
+
            PANEL IZQUIERDO
+
            =================================================== -->
 
+
+
     <section class="
+
           card-content
+
           shadow-md
+
           expense-classifications-panel
+
           expense-classifications-panel--pending
+
         ">
+
+
 
       <div class="expense-classifications-panel__header">
 
+
+
         <div>
 
+
+
           <h2>
+
             Pendientes por homologar
+
           </h2>
 
+
+
           <p>
+
             Selecciona conceptos o productos históricos
+
             pendientes para asignarlos a una clasificación.
+
           </p>
 
+
+
         </div>
+
+
+
 
 
         <div class="expense-classifications-panel__amount">
 
+
+
           Disponibles
 
+
+
           <strong>
+
             {{ pendingResponse.meta.total }}
+
           </strong>
 
+
+
         </div>
+
+
 
       </div>
 
 
+
+
+
       <!-- ===============================================
+
              FILTROS
+
              =============================================== -->
+
+
 
       <form [formGroup]="pendingFilterForm" (ngSubmit)="applyPendingFilters()">
 
+
+
         <div class="
+
               c-filters
+
               expense-classifications-filters
+
             ">
+
+
 
           <app-input-field formControlName="search" label="Buscar" placeholder="Concepto o producto" type="text"
             [isFilter]="true">
+
           </app-input-field>
 
 
+
+
+
           <app-input-select formControlName="sourceType" label="Tipo" [options]="sourceTypeOptions">
+
           </app-input-select>
+
+
+
 
 
           <app-btns-section type="search" [hasActiveFilters]="hasActivePendingFilters"
             (action)="onPendingBtnsSectionAction($event)">
+
           </app-btns-section>
 
+
+
         </div>
+
+
 
       </form>
 
 
+
+
+
       <!-- ===============================================
+
              SELECCIÓN MASIVA
+
              =============================================== -->
 
+
+
       <div class="pending-selection-actions">
+
+
 
         <button type="button" class="btn-outline" [disabled]="pendingRows.length === 0"
           (click)="selectAllPendingResults()">
 
+
+
           <mat-icon>
+
             select_all
+
           </mat-icon>
+
+
 
           Seleccionar visibles
 
+
+
         </button>
+
+
+
 
 
         @if (
+
         selectedPendingCount() > 0
+
         ) {
 
+
+
         <button type="button" class="
+
                 btn
+
                 border-gray-400
+
                 text-gray-600
+
                 hover:bg-gray-100
+
                 transition-all
+
               " (click)="clearPendingSelection()">
 
+
+
           <mat-icon>
+
             close
+
           </mat-icon>
+
+
 
           Limpiar selección
 
+
+
         </button>
+
+
 
         }
 
 
+
+
+
         <span class="pending-selection-actions__count">
 
+
+
           {{
+
           selectedPendingCount()
+
           }}
+
+
 
           seleccionado{{
+
           selectedPendingCount() === 1
+
           ? ''
+
           : 's'
+
           }}
 
+
+
         </span>
+
+
 
       </div>
 
 
+
+
+
       <!-- ===============================================
+
              TABLA PENDIENTES
+
              SIN PAGINADOR
+
              =============================================== -->
 
+
+
       <div class="
+
             c-module-table
+
             expense-classifications-table-shell
+
           ">
+
+
 
         <app-data-table [data]="pendingVisibleRows" [columnsConfig]="pendingColumns"
           [displayedColumns]="pendingDisplayedColumns" [sorts]="pendingSorts"
           [actionPermissions]="tableActionPermissions" (sortChange)="onPendingSortChange($event)"
           (action)="onPendingTableAction($event)">
+
         </app-data-table>
 
+
+
       </div>
+
+
 
     </section>
 
 
+
+
+
     <!-- ===================================================
+
            PANEL DERECHO
+
            =================================================== -->
 
+
+
     <section class="
+
           card-content
+
           shadow-md
+
           expense-classifications-panel
+
           expense-classifications-panel--catalog
+
         ">
+
+
 
       <div class="expense-classifications-panel__header">
 
+
+
         <div>
 
+
+
           <h2>
+
             Clasificaciones
+
           </h2>
 
+
+
           <p>
+
             Selecciona la clasificación final
+
             para los conceptos elegidos.
+
           </p>
 
+
+
         </div>
+
+
+
 
 
         <button type="button" class="btn-primary" (click)="openCreateClassificationModal()">
 
+
+
           <mat-icon>
+
             add
+
           </mat-icon>
+
+
 
           Nueva
 
+
+
         </button>
+
+
 
       </div>
 
 
+
+
+
       <!-- ===============================================
+
              ESTADO + ACCIONES
+
              =============================================== -->
+
+
 
       <div class="classification-catalog-toolbar">
 
+
+
         <div class="classification-status-switch" role="group" aria-label="Estado de clasificaciones">
 
+
+
           <button type="button" class="classification-status-switch__button"
             [class.classification-status-switch__button--active]="
+
                 classificationStatusView() === 'active'
+
               " (click)="setClassificationStatusView('active')">
 
+
+
             <mat-icon>
+
               check_circle
+
             </mat-icon>
 
+
+
             <span>
+
               Activas
+
             </span>
 
+
+
             <small>
+
               {{ activeClassifications.length }}
+
             </small>
 
+
+
           </button>
+
+
+
 
 
           <button type="button" class="classification-status-switch__button"
             [class.classification-status-switch__button--active]="
+
                 classificationStatusView() === 'inactive'
+
               " (click)="setClassificationStatusView('inactive')">
 
+
+
             <mat-icon>
+
               block
+
             </mat-icon>
 
+
+
             <span>
+
               Inactivas
+
             </span>
 
+
+
             <small>
+
               {{ inactiveClassifications.length }}
+
             </small>
+
+
 
           </button>
 
+
+
         </div>
+
+
+
 
 
         <div class="classification-catalog-actions">
 
+
+
           <button type="button" class="btn-outline" [disabled]="!selectedClassificationId()"
             (click)="openEditSelectedClassificationModal()">
 
+
+
             <mat-icon>
+
               edit
+
             </mat-icon>
 
+
+
             Editar
+
+
 
           </button>
 
 
-          @if (
-          selectedClassification
-          ) {
+
+
 
           @if (
-          selectedClassificationIsActive
+
+          selectedClassification
+
           ) {
+
+
+
+          @if (
+
+          selectedClassificationIsActive
+
+          ) {
+
+
 
           <button type="button" class="btn-outline" [disabled]="loadingClassifications()"
             (click)="confirmDeactivateSelectedClassification()">
 
+
+
             <mat-icon>
+
               block
+
             </mat-icon>
+
+
 
             Desactivar
 
+
+
           </button>
 
+
+
           } @else {
+
+
 
           <button type="button" class="btn-outline" [disabled]="loadingClassifications()"
             (click)="confirmReactivateSelectedClassification()">
 
+
+
             <mat-icon>
+
               restart_alt
+
             </mat-icon>
+
+
 
             Reactivar
 
+
+
           </button>
 
-          }
+
 
           }
+
+
+
+          }
+
+
 
         </div>
+
+
 
       </div>
 
 
+
+
+
       <!-- ===============================================
+
              LISTADO DE CLASIFICACIONES
+
              =============================================== -->
+
+
 
       <div class="classification-list">
 
+
+
         @for (
+
         classification of visibleClassifications;
+
         track classification.id
+
         ) {
 
+
+
         <button type="button" class="classification-option" [class.classification-option--inactive]="
+
                 !classification.isActive
+
               " [class.classification-option--selected]="
+
                 selectedClassificationId() ===
+
                 classification.id
+
               " (click)="
+
                 selectedClassificationId.set(
+
                   classification.id
+
                 )
+
               ">
+
+
 
           <span class="classification-option__icon">
 
+
+
             <mat-icon>
+
               {{
+
               classification.isActive
+
               ? 'category'
+
               : 'block'
+
               }}
+
             </mat-icon>
 
+
+
           </span>
+
+
+
 
 
           <span class="classification-option__content">
 
+
+
             <strong>
+
               {{ classification.name }}
+
             </strong>
 
+
+
             <small>
+
               {{
+
               classification.isActive
+
               ? 'Clasificación de reporte'
+
               : 'Clasificación inactiva'
+
               }}
+
             </small>
+
+
 
           </span>
 
 
+
+
+
           @if (
+
           selectedClassificationId() ===
+
           classification.id
+
           ) {
 
+
+
           <mat-icon class="classification-option__selected">
+
             check_circle
+
           </mat-icon>
+
+
 
           }
 
+
+
         </button>
 
+
+
         }
+
+
+
 
 
         @if (
+
         visibleClassifications.length === 0
+
         ) {
+
+
 
         <div class="classification-list__empty">
 
+
+
           <mat-icon>
+
             {{
+
             classificationStatusView() === 'active'
+
             ? 'category'
+
             : 'block'
+
             }}
+
           </mat-icon>
 
+
+
           <strong>
+
             {{
+
             classificationStatusView() === 'active'
+
             ? 'No hay clasificaciones activas'
+
             : 'No hay clasificaciones inactivas'
+
             }}
+
           </strong>
 
+
+
           <p>
+
             {{
+
             classificationStatusView() === 'active'
+
             ? 'Crea una clasificación para comenzar a homologar conceptos.'
+
             : 'Las clasificaciones que desactives aparecerán aquí.'
+
             }}
+
           </p>
+
+
 
         </div>
 
+
+
         }
+
+
 
       </div>
 
 
+
+
+
       <!-- ===============================================
+
              ACCIÓN FINAL
+
              =============================================== -->
+
+
 
       <footer class="classification-assignment">
 
+
+
         <div>
 
+
+
           <span>
+
             Seleccionados
+
           </span>
 
+
+
           <strong>
+
             {{ selectedPendingCount() }}
+
           </strong>
 
+
+
         </div>
+
+
+
 
 
         <div>
 
+
+
           <span>
+
             Clasificación
+
           </span>
 
+
+
           <strong>
+
             {{ selectedClassificationName }}
+
           </strong>
 
+
+
         </div>
+
+
+
 
 
         <button type="button" class="btn-primary" [disabled]="
+
               selectedPendingCount() === 0 ||
+
               !selectedClassificationId() ||
+
               !selectedClassificationIsActive ||
+
               classifyingPending()
+
             " (click)="classifySelectedPending()">
 
+
+
           <mat-icon>
+
             link
+
           </mat-icon>
 
+
+
           {{
+
           classifyingPending()
+
           ? 'Homologando...'
+
           : 'Homologar'
+
           }}
+
+
 
         </button>
 
+
+
       </footer>
+
+
 
     </section>
 
+
+
   </div>
 
+
+
   }
+
+
+
 
 
   <!-- =====================================================
        TAB: HOMOLOGADOS
        ===================================================== -->
 
-  @if (
-  activeTab() === 'homologated'
-  ) {
+  @if (activeTab() === 'homologated') {
 
-  <section class="
-        card-content
-        shadow-md
-        expense-classifications-panel
-        expense-classifications-homologated
-      ">
+  <section class="card-content shadow-md expense-classifications-panel expense-classifications-homologated">
 
     <div class="expense-classifications-panel__header">
-
       <div>
-
-        <h2>
-          Homologados
-        </h2>
-
+        <h2>Homologados</h2>
         <p>
-          Consulta y corrige las homologaciones existentes.
+          Consulta, corrige y asigna el segundo nivel de homologación.
         </p>
-
       </div>
-
 
       <div class="expense-classifications-panel__amount">
-
         Total
-
-        <strong>
-          {{ mappingsResponse.meta.total }}
-        </strong>
-
+        <strong>{{ mappingsResponse.meta.total }}</strong>
       </div>
-
     </div>
-
 
     <!-- ===============================================
            FILTROS
            =============================================== -->
 
     <form [formGroup]="mappingFilterForm" (ngSubmit)="applyMappingFilters()">
-
-      <div class="
-            c-filters
-            expense-classifications-mapping-filters
-          ">
-
+      <div class="c-filters expense-classifications-mapping-filters">
         <app-input-field formControlName="search" label="Buscar" placeholder="Concepto o producto" type="text"
           [isFilter]="true">
         </app-input-field>
 
-
         <app-input-select formControlName="sourceType" label="Tipo" [options]="sourceTypeOptions">
         </app-input-select>
-
 
         <app-input-select formControlName="classificationId" label="Clasificación" [options]="classificationOptions">
         </app-input-select>
 
-
         <app-input-select formControlName="status" label="Estado" [options]="statusOptions">
         </app-input-select>
-
 
         <app-btns-section type="search" [hasActiveFilters]="hasActiveMappingFilters"
           (action)="onMappingBtnsSectionAction($event)">
         </app-btns-section>
-
       </div>
-
     </form>
 
+    <!-- ===============================================
+           SEGUNDO NIVEL: ASIGNACIÓN + CATÁLOGO DE GRUPOS
+           =============================================== -->
+
+    <div class="homologated-group-tools">
+
+      <section class="homologated-group-card homologated-group-card--assignment">
+        <div class="homologated-group-card__header">
+          <div>
+            <h3>Asignar grupo</h3>
+            <p>
+              Selecciona homologaciones activas de una misma clasificación.
+            </p>
+          </div>
+
+          <span class="homologated-group-card__badge">
+            {{ selectedMappingCount() }} seleccionada{{ selectedMappingCount() === 1 ? '' : 's' }}
+          </span>
+        </div>
+
+        <div class="mapping-selection-actions">
+          <button type="button" class="btn-outline" [disabled]="!canSelectVisibleMappings"
+            (click)="selectVisibleMappings()">
+            <mat-icon>select_all</mat-icon>
+            Seleccionar visibles
+          </button>
+
+          @if (selectedMappingCount() > 0) {
+          <button type="button" class="btn border-gray-400 text-gray-600 hover:bg-gray-100 transition-all"
+            (click)="clearMappingSelection()">
+            <mat-icon>close</mat-icon>
+            Limpiar selección
+          </button>
+          }
+        </div>
+
+        <div class="group-assignment-context">
+          <div>
+            <span>Clasificación actual</span>
+            <strong>{{ selectedMappingClassificationName }}</strong>
+          </div>
+
+          <div>
+            <span>Seleccionados</span>
+            <strong>{{ selectedMappingCount() }}</strong>
+          </div>
+        </div>
+
+        <form class="group-assignment-form" [formGroup]="groupAssignmentForm"
+          (ngSubmit)="assignSelectedMappingsToGroup()">
+
+          <app-input-select formControlName="groupId" label="Grupo homologado" [options]="activeGroupOptions">
+          </app-input-select>
+
+          <button type="submit" class="btn-primary" [disabled]="selectedMappingCount() === 0 || assigningGroup()">
+            <mat-icon>account_tree</mat-icon>
+            {{
+            assigningGroup()
+            ? 'Guardando...'
+            : selectedAssignmentGroupName === 'Sin asignar'
+            ? 'Quitar grupo'
+            : 'Asignar grupo'
+            }}
+          </button>
+        </form>
+
+        <small class="homologated-group-card__hint">
+          “Sin asignar” conserva la clasificación actual y deja el segundo nivel vacío.
+        </small>
+      </section>
+
+      <section class="homologated-group-card homologated-group-card--catalog">
+        <div class="homologated-group-card__header">
+          <div>
+            <h3>Gestión de grupos</h3>
+            <p>
+              Crea, edita, desactiva o reactiva grupos dentro de una clasificación.
+            </p>
+          </div>
+        </div>
+
+        <form class="group-catalog-context" [formGroup]="groupCatalogForm" (ngSubmit)="loadGroupCatalog()">
+
+          <app-input-select formControlName="classificationId" label="Clasificación" [options]="classificationOptions">
+          </app-input-select>
+
+          <button type="submit" class="btn-outline">
+            <mat-icon>refresh</mat-icon>
+            Cargar grupos
+          </button>
+        </form>
+
+        @if (groupManagerClassification) {
+
+        <div class="group-catalog-toolbar">
+          <div class="classification-status-switch" role="group" aria-label="Estado de grupos">
+
+            <button type="button" class="classification-status-switch__button"
+              [class.classification-status-switch__button--active]="groupStatusView() === 'active'"
+              (click)="setGroupStatusView('active')">
+              <mat-icon>check_circle</mat-icon>
+              <span>Activos</span>
+              <small>{{ activeGroupCount }}</small>
+            </button>
+
+            <button type="button" class="classification-status-switch__button"
+              [class.classification-status-switch__button--active]="groupStatusView() === 'inactive'"
+              (click)="setGroupStatusView('inactive')">
+              <mat-icon>block</mat-icon>
+              <span>Inactivos</span>
+              <small>{{ inactiveGroupCount }}</small>
+            </button>
+          </div>
+
+          <button type="button" class="btn-outline" (click)="clearGroupEditor()">
+            <mat-icon>add</mat-icon>
+            Nuevo
+          </button>
+        </div>
+
+        <div class="group-catalog-list">
+          @for (group of visibleGroups; track group.id) {
+          <button type="button" class="group-catalog-option" [class.group-catalog-option--inactive]="!group.isActive"
+            [class.group-catalog-option--selected]="selectedGroupId() === group.id" (click)="selectGroup(group)">
+
+            <span class="group-catalog-option__icon">
+              <mat-icon>{{ group.isActive ? 'account_tree' : 'block' }}</mat-icon>
+            </span>
+
+            <span class="group-catalog-option__content">
+              <strong>{{ group.name }}</strong>
+              <small>{{ group.isActive ? 'Grupo activo' : 'Grupo inactivo' }}</small>
+            </span>
+
+            @if (selectedGroupId() === group.id) {
+            <mat-icon class="group-catalog-option__selected">check_circle</mat-icon>
+            }
+          </button>
+          }
+
+          @if (visibleGroups.length === 0) {
+          <div class="group-catalog-list__empty">
+            <mat-icon>account_tree</mat-icon>
+            <strong>
+              {{ groupStatusView() === 'active' ? 'No hay grupos activos' : 'No hay grupos inactivos' }}
+            </strong>
+            <p>
+              {{
+              groupStatusView() === 'active'
+              ? 'Crea un grupo para comenzar a usar el segundo nivel.'
+              : 'Los grupos desactivados aparecerán aquí.'
+              }}
+            </p>
+          </div>
+          }
+        </div>
+
+        <div class="group-editor" [formGroup]="groupCatalogForm">
+          <app-input-field formControlName="name" label="Nombre del grupo" placeholder="Ej. GASOLINA" type="text">
+          </app-input-field>
+
+          <div class="group-editor__actions">
+            <button type="button" class="btn-primary" [disabled]="!hasGroupName || savingGroup()" (click)="saveGroup()">
+              <mat-icon>{{ selectedGroup ? 'save' : 'add' }}</mat-icon>
+              {{
+              savingGroup()
+              ? 'Guardando...'
+              : selectedGroup
+              ? 'Guardar cambios'
+              : 'Crear grupo'
+              }}
+            </button>
+
+            @if (selectedGroup) {
+            @if (selectedGroup.isActive) {
+            <button type="button" class="btn-outline" [disabled]="savingGroup()"
+              (click)="confirmDeactivateSelectedGroup()">
+              <mat-icon>block</mat-icon>
+              Desactivar
+            </button>
+            } @else {
+            <button type="button" class="btn-outline" [disabled]="savingGroup()"
+              (click)="confirmReactivateSelectedGroup()">
+              <mat-icon>restart_alt</mat-icon>
+              Reactivar
+            </button>
+            }
+            }
+          </div>
+        </div>
+
+        } @else {
+        <div class="group-catalog-list__empty group-catalog-list__empty--context">
+          <mat-icon>category</mat-icon>
+          <strong>Selecciona una clasificación</strong>
+          <p>
+            El catálogo de grupos siempre pertenece a una clasificación de primer nivel.
+          </p>
+        </div>
+        }
+      </section>
+
+    </div>
 
     <!-- ===============================================
            TABLA HOMOLOGADOS
            =============================================== -->
 
-    <div class="
-          c-module-table
-          expense-classifications-mapping-table-shell
-        ">
-
+    <div class="c-module-table expense-classifications-mapping-table-shell">
       <app-data-table [data]="mappingRows" [columnsConfig]="mappingColumns" [displayedColumns]="mappingDisplayedColumns"
         [extraActions]="mappingExtraActions" [sorts]="mappingSorts" [actionPermissions]="tableActionPermissions"
         (sortChange)="onMappingSortChange($event)" (action)="onMappingTableAction($event)">
       </app-data-table>
 
-
       <mat-paginator [length]="mappingsResponse.meta.total" [pageSize]="mappingFilters.limit"
         [pageIndex]="mappingFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]" (page)="onMappingPageChange($event)"
         showFirstLastButtons>
       </mat-paginator>
-
     </div>
 
   </section>
-
   }
 
 </div>
 
 
+
+
+
 <!-- =====================================================
+
      LOADING
+
      FUERA DEL GRID DE ALTURA
+
      ===================================================== -->
 
+
+
 <app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando homologaciones...">
+
 </app-loading-overlay>

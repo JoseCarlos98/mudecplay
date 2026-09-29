@@ -490,7 +490,7 @@
                   infoTooltip="Selecciona un concepto homologado de las sugerencias o escribe uno nuevo. Al elegir un producto, el concepto se llena automáticamente y puedes editarlo.">
                 </app-autocomplete>
 
-                <app-input-field formControlName="quantity" label="Cantidad" type="number" (input)="
+                <app-input-field formControlName="quantity" [numberDecimals]="4" label="Cantidad" type="number" (input)="
                       onQuantityOrPriceChange(
                         i
                       )
