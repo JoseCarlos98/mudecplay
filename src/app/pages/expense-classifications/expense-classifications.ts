@@ -380,9 +380,9 @@ export class ExpenseClassifications implements OnInit {
             ...this.groups
                 .filter((group) => group.isActive)
                 .map((group) => ({
-                id: String(group.id),
-                name: group.name,
-            })),
+                    id: String(group.id),
+                    name: group.name,
+                })),
         ];
     }
     get selectedAssignmentGroupName(): string {
@@ -474,12 +474,12 @@ export class ExpenseClassifications implements OnInit {
         forkJoin({
             classifications: this.service
                 .getClassifications({
-                status: 'all',
-            }),
+                    status: 'all',
+                }),
             pending: this.service
                 .getPendingClassifications({
-                all: true,
-            }),
+                    all: true,
+                }),
             /*
       
              * Solo necesitamos conocer el total inicial
@@ -497,57 +497,57 @@ export class ExpenseClassifications implements OnInit {
              */
             mappings: this.service
                 .getMappings({
-                ...this.mappingFilters,
-                page: 1,
-                limit: 1,
-            }),
+                    ...this.mappingFilters,
+                    page: 1,
+                    limit: 1,
+                }),
         })
             .pipe(finalize(() => {
-            this.loadingClassifications
-                .set(false);
-            this.loadingPending
-                .set(false);
-            this.loadingMappings
-                .set(false);
-        }))
+                this.loadingClassifications
+                    .set(false);
+                this.loadingPending
+                    .set(false);
+                this.loadingMappings
+                    .set(false);
+            }))
             .subscribe({
-            next: (response) => {
-                // =====================================================
-                // CLASIFICACIONES
-                // =====================================================
-                this.setClassifications(response.classifications);
-                // =====================================================
-                // PENDIENTES
-                // =====================================================
-                this.pendingResponse =
-                    response.pending;
-                this.setPendingItems(response.pending.data);
-                // =====================================================
-                // HOMOLOGADOS - SOLO META INICIAL
-                // =====================================================
-                /*
-      
-                 * No guardamos el único registro solicitado.
-      
-                 *
-      
-                 * Aquí únicamente necesitamos que el resumen superior
-      
-                 * conozca el total real.
-      
-                 *
-      
-                 * Cuando se abra la pestaña Homologados,
-      
-                 * loadMappings() traerá la página completa.
-      
-                 */
-                this.mappingsResponse = {
-                    data: [],
-                    meta: response.mappings.meta,
-                };
-            },
-        });
+                next: (response) => {
+                    // =====================================================
+                    // CLASIFICACIONES
+                    // =====================================================
+                    this.setClassifications(response.classifications);
+                    // =====================================================
+                    // PENDIENTES
+                    // =====================================================
+                    this.pendingResponse =
+                        response.pending;
+                    this.setPendingItems(response.pending.data);
+                    // =====================================================
+                    // HOMOLOGADOS - SOLO META INICIAL
+                    // =====================================================
+                    /*
+          
+                     * No guardamos el único registro solicitado.
+          
+                     *
+          
+                     * Aquí únicamente necesitamos que el resumen superior
+          
+                     * conozca el total real.
+          
+                     *
+          
+                     * Cuando se abra la pestaña Homologados,
+          
+                     * loadMappings() traerá la página completa.
+          
+                     */
+                    this.mappingsResponse = {
+                        data: [],
+                        meta: response.mappings.meta,
+                    };
+                },
+            });
     }
     // =========================================================
     // TABS
@@ -577,9 +577,9 @@ export class ExpenseClassifications implements OnInit {
             classifications
                 .filter((item) => item.isActive)
                 .map((item) => ({
-                id: String(item.id),
-                name: item.name,
-            }));
+                    id: String(item.id),
+                    name: item.name,
+                }));
     }
     // =========================================================
     // CLASIFICACIONES:
@@ -593,53 +593,53 @@ export class ExpenseClassifications implements OnInit {
             .open(ModalExpenseReportClassification, modalData, 'medium')
             .afterClosed()
             .subscribe((classification: entity.ExpenseReportClassification | null) => {
-            if (!classification?.id) {
-                return;
-            }
-            /*
-  
-             * Actualizamos únicamente el catálogo.
-  
-             *
-  
-             * NO recargamos pendientes para evitar
-  
-             * perder selección, búsqueda, página, etc.
-  
-             */
-            const classifications = this.classifications
-                .filter((item) => item.id !==
-                classification.id);
-            this.setClassifications([
-                ...classifications,
-                classification,
-            ]);
-            /*
-  
-             * La clasificación recién creada
-  
-             * queda seleccionada automáticamente.
-  
-             *
-  
-             * Esto permite:
-  
-             *
-  
-             * 1. seleccionar conceptos
-  
-             * 2. crear categoría
-  
-             * 3. regresar del modal
-  
-             * 4. homologar inmediatamente
-  
-             */
-            this.classificationStatusView
-                .set('active');
-            this.selectedClassificationId
-                .set(classification.id);
-        });
+                if (!classification?.id) {
+                    return;
+                }
+                /*
+      
+                 * Actualizamos únicamente el catálogo.
+      
+                 *
+      
+                 * NO recargamos pendientes para evitar
+      
+                 * perder selección, búsqueda, página, etc.
+      
+                 */
+                const classifications = this.classifications
+                    .filter((item) => item.id !==
+                        classification.id);
+                this.setClassifications([
+                    ...classifications,
+                    classification,
+                ]);
+                /*
+      
+                 * La clasificación recién creada
+      
+                 * queda seleccionada automáticamente.
+      
+                 *
+      
+                 * Esto permite:
+      
+                 *
+      
+                 * 1. seleccionar conceptos
+      
+                 * 2. crear categoría
+      
+                 * 3. regresar del modal
+      
+                 * 4. homologar inmediatamente
+      
+                 */
+                this.classificationStatusView
+                    .set('active');
+                this.selectedClassificationId
+                    .set(classification.id);
+            });
     }
     // =========================================================
     // CLASIFICACIONES:
@@ -663,25 +663,25 @@ export class ExpenseClassifications implements OnInit {
             .open(ModalExpenseReportClassification, modalData, 'medium')
             .afterClosed()
             .subscribe((updatedClassification: entity.ExpenseReportClassification | null) => {
-            if (!updatedClassification?.id) {
-                return;
-            }
-            this.setClassifications(this.classifications.map((item) => item.id ===
-                updatedClassification.id
-                ? updatedClassification
-                : item));
-            /*
-  
-             * Conservamos seleccionada la clasificación
-  
-             * editada para no interrumpir el flujo
-  
-             * de homologación que el usuario lleva.
-  
-             */
-            this.selectedClassificationId
-                .set(updatedClassification.id);
-        });
+                if (!updatedClassification?.id) {
+                    return;
+                }
+                this.setClassifications(this.classifications.map((item) => item.id ===
+                    updatedClassification.id
+                    ? updatedClassification
+                    : item));
+                /*
+      
+                 * Conservamos seleccionada la clasificación
+      
+                 * editada para no interrumpir el flujo
+      
+                 * de homologación que el usuario lleva.
+      
+                 */
+                this.selectedClassificationId
+                    .set(updatedClassification.id);
+            });
     }
     setClassificationStatusView(status: 'active' | 'inactive'): void {
         if (this.classificationStatusView() ===
@@ -702,19 +702,19 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Desactivar clasificación',
-            message: `¿Deseas desactivar "${classification.name}"? ` +
-                'Dejará de estar disponible para nuevas homologaciones. ' +
-                'Las homologaciones existentes no se eliminan.',
-            confirmText: 'Desactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Desactivar clasificación',
+                message: `¿Deseas desactivar "${classification.name}"? ` +
+                    'Dejará de estar disponible para nuevas homologaciones. ' +
+                    'Las homologaciones existentes no se eliminan.',
+                confirmText: 'Desactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.deactivateSelectedClassification(classification.id);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.deactivateSelectedClassification(classification.id);
+            });
     }
     private deactivateSelectedClassification(classificationId: number): void {
         this.loadingClassifications
@@ -722,20 +722,20 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .deactivateClassification(classificationId)
             .pipe(finalize(() => this.loadingClassifications
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: (response) => {
-                const updatedClassification = response.classification;
-                this.setClassifications(this.classifications.map((item) => item.id ===
-                    updatedClassification.id
-                    ? updatedClassification
-                    : item));
-                this.classificationStatusView
-                    .set('inactive');
-                this.selectedClassificationId
-                    .set(updatedClassification.id);
-            },
-        });
+                next: (response) => {
+                    const updatedClassification = response.classification;
+                    this.setClassifications(this.classifications.map((item) => item.id ===
+                        updatedClassification.id
+                        ? updatedClassification
+                        : item));
+                    this.classificationStatusView
+                        .set('inactive');
+                    this.selectedClassificationId
+                        .set(updatedClassification.id);
+                },
+            });
     }
     confirmReactivateSelectedClassification(): void {
         const classification = this.selectedClassification;
@@ -746,18 +746,18 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Reactivar clasificación',
-            message: `¿Deseas reactivar "${classification.name}"? ` +
-                'Volverá a estar disponible para nuevas homologaciones.',
-            confirmText: 'Reactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Reactivar clasificación',
+                message: `¿Deseas reactivar "${classification.name}"? ` +
+                    'Volverá a estar disponible para nuevas homologaciones.',
+                confirmText: 'Reactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.reactivateSelectedClassification(classification.id);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.reactivateSelectedClassification(classification.id);
+            });
     }
     private reactivateSelectedClassification(classificationId: number): void {
         this.loadingClassifications
@@ -765,20 +765,20 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .reactivateClassification(classificationId)
             .pipe(finalize(() => this.loadingClassifications
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: (response) => {
-                const updatedClassification = response.classification;
-                this.setClassifications(this.classifications.map((item) => item.id ===
-                    updatedClassification.id
-                    ? updatedClassification
-                    : item));
-                this.classificationStatusView
-                    .set('active');
-                this.selectedClassificationId
-                    .set(updatedClassification.id);
-            },
-        });
+                next: (response) => {
+                    const updatedClassification = response.classification;
+                    this.setClassifications(this.classifications.map((item) => item.id ===
+                        updatedClassification.id
+                        ? updatedClassification
+                        : item));
+                    this.classificationStatusView
+                        .set('active');
+                    this.selectedClassificationId
+                        .set(updatedClassification.id);
+                },
+            });
     }
     // =========================================================
     // PENDIENTES:
@@ -891,9 +891,9 @@ export class ExpenseClassifications implements OnInit {
     clearPendingFilters(): void {
         this.pendingFilterForm
             .reset({
-            search: '',
-            sourceType: null,
-        });
+                search: '',
+                sourceType: null,
+            });
         this.pendingSorts = [];
         this.loadPending({
             sorts: [],
@@ -904,18 +904,18 @@ export class ExpenseClassifications implements OnInit {
             .set(true);
         this.service
             .getPendingClassifications({
-            ...filters,
-            all: true,
-        })
+                ...filters,
+                all: true,
+            })
             .pipe(finalize(() => this.loadingPending
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: (response) => {
-                this.pendingResponse =
-                    response;
-                this.setPendingItems(response.data);
-            },
-        });
+                next: (response) => {
+                    this.pendingResponse =
+                        response;
+                    this.setPendingItems(response.data);
+                },
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -927,64 +927,97 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .getMappings(this.mappingFilters)
             .pipe(finalize(() => this.loadingMappings
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: (response) => {
-                this.mappingsResponse =
-                    response;
-                const selected = this.selectedMappingKeys();
-                this.mappingRows = response.data.map((item) => {
-                    const id = this.getMappingKey(item);
-                    return {
-                        ...item,
-                        id,
-                        sourceTypeLabel: item.sourceType === 'concept'
-                            ? 'Concepto'
-                            : 'Producto histórico',
-                        classificationName: item.classification.name,
-                        groupName: item.group?.name ?? 'Sin asignar',
-                        statusLabel: item.isActive ? 'Activo' : 'Inactivo',
-                        selected: selected.has(id),
-                    };
-                });
-            },
-        });
+                next: (response) => {
+                    this.mappingsResponse =
+                        response;
+                    const selected = this.selectedMappingKeys();
+                    this.mappingRows = response.data.map((item) => {
+                        const id = this.getMappingKey(item);
+                        return {
+                            ...item,
+                            id,
+                            sourceTypeLabel: item.sourceType === 'concept'
+                                ? 'Concepto'
+                                : 'Producto histórico',
+                            classificationName: item.classification.name,
+                            groupName: item.group?.name ?? 'Sin asignar',
+                            statusLabel: item.isActive ? 'Activo' : 'Inactivo',
+                            selected: selected.has(id),
+                        };
+                    });
+                },
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
     // FILTROS
     // =========================================================
     applyMappingFilters(): void {
-        const form = this.mappingFilterForm
-            .getRawValue();
+        const form =
+            this.mappingFilterForm
+                .getRawValue();
+
+        const rawClassificationId =
+            toIdForm(
+                form.classificationId,
+            );
+
+        const classificationId =
+            rawClassificationId !== null &&
+                rawClassificationId > 0
+                ? rawClassificationId
+                : null;
+
         this.mappingFilters = {
             ...this.mappingFilters,
-            search: form.search.trim(),
-            sourceType: this.resolveSourceType(form.sourceType),
-            status: this.resolveStatus(form.status),
-            classificationId: toIdForm(form.classificationId),
+
+            search:
+                form.search.trim(),
+
+            sourceType:
+                this.resolveSourceType(
+                    form.sourceType,
+                ),
+
+            status:
+                this.resolveStatus(
+                    form.status,
+                ),
+
+            classificationId,
+
             sorts: [
                 ...this.mappingSorts,
             ],
+
             page: 1,
         };
-        if (this.mappingFilters.classificationId &&
-            this.selectedMappingCount() === 0) {
-            this.setGroupManagementClassification(this.mappingFilters.classificationId);
+
+        if (
+            classificationId &&
+            this.selectedMappingCount() === 0
+        ) {
+            this.setGroupManagementClassification(
+                classificationId,
+            );
         }
+
         this.loadMappings();
     }
+
     clearMappingFilters(): void {
         this.mappingFilterForm
             .reset({
-            search: '',
-            sourceType: null,
-            status: {
-                id: 'active',
-                name: 'Activos',
-            },
-            classificationId: null,
-        });
+                search: '',
+                sourceType: null,
+                status: {
+                    id: 'active',
+                    name: 'Activos',
+                },
+                classificationId: null,
+            });
         this.mappingSorts = [];
         this.mappingFilters = {
             search: '',
@@ -1158,24 +1191,24 @@ export class ExpenseClassifications implements OnInit {
         this.loadingGroups.set(true);
         this.service
             .getGroups({
-            classificationId,
-            status: 'all',
-        })
+                classificationId,
+                status: 'all',
+            })
             .pipe(finalize(() => this.loadingGroups.set(false)))
             .subscribe({
-            next: (groups) => {
-                this.groups = groups;
-                this.loadedGroupsClassificationId = classificationId;
-                const selectedGroupId = this.selectedGroupId();
-                if (selectedGroupId !== null &&
-                    !groups.some((group) => group.id === selectedGroupId)) {
-                    this.clearGroupEditor();
-                }
-            },
-            error: (error: unknown) => {
-                console.error('Error cargando grupos homologados:', error);
-            },
-        });
+                next: (groups) => {
+                    this.groups = groups;
+                    this.loadedGroupsClassificationId = classificationId;
+                    const selectedGroupId = this.selectedGroupId();
+                    if (selectedGroupId !== null &&
+                        !groups.some((group) => group.id === selectedGroupId)) {
+                        this.clearGroupEditor();
+                    }
+                },
+                error: (error: unknown) => {
+                    console.error('Error cargando grupos homologados:', error);
+                },
+            });
     }
     setGroupStatusView(status: 'active' | 'inactive'): void {
         if (this.groupStatusView() === status) {
@@ -1209,14 +1242,14 @@ export class ExpenseClassifications implements OnInit {
         request$
             .pipe(finalize(() => this.savingGroup.set(false)))
             .subscribe({
-            next: () => {
-                this.clearGroupEditor();
-                this.loadGroups(classificationId);
-            },
-            error: (error: unknown) => {
-                console.error('Error guardando grupo homologado:', error);
-            },
-        });
+                next: () => {
+                    this.clearGroupEditor();
+                    this.loadGroups(classificationId);
+                },
+                error: (error: unknown) => {
+                    console.error('Error guardando grupo homologado:', error);
+                },
+            });
     }
     confirmDeactivateSelectedGroup(): void {
         const group = this.selectedGroup;
@@ -1225,18 +1258,18 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Desactivar grupo',
-            message: `¿Deseas desactivar "${group.name}"? ` +
-                'Solo será posible si no tiene homologaciones activas asignadas.',
-            confirmText: 'Desactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Desactivar grupo',
+                message: `¿Deseas desactivar "${group.name}"? ` +
+                    'Solo será posible si no tiene homologaciones activas asignadas.',
+                confirmText: 'Desactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.changeSelectedGroupStatus(group, false);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.changeSelectedGroupStatus(group, false);
+            });
     }
     confirmReactivateSelectedGroup(): void {
         const group = this.selectedGroup;
@@ -1245,17 +1278,17 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Reactivar grupo',
-            message: `¿Deseas reactivar "${group.name}"?`,
-            confirmText: 'Reactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Reactivar grupo',
+                message: `¿Deseas reactivar "${group.name}"?`,
+                confirmText: 'Reactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.changeSelectedGroupStatus(group, true);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.changeSelectedGroupStatus(group, true);
+            });
     }
     private changeSelectedGroupStatus(group: entity.ExpenseReportGroup, activate: boolean): void {
         const classificationId = group.classification.id;
@@ -1266,14 +1299,14 @@ export class ExpenseClassifications implements OnInit {
         request$
             .pipe(finalize(() => this.savingGroup.set(false)))
             .subscribe({
-            next: () => {
-                this.clearGroupEditor();
-                this.loadGroups(classificationId);
-            },
-            error: (error: unknown) => {
-                console.error('Error cambiando estado del grupo:', error);
-            },
-        });
+                next: () => {
+                    this.clearGroupEditor();
+                    this.loadGroups(classificationId);
+                },
+                error: (error: unknown) => {
+                    console.error('Error cambiando estado del grupo:', error);
+                },
+            });
     }
     assignSelectedMappingsToGroup(): void {
         if (this.assigningGroup()) {
@@ -1307,15 +1340,15 @@ export class ExpenseClassifications implements OnInit {
             .assignGroup(payload)
             .pipe(finalize(() => this.assigningGroup.set(false)))
             .subscribe({
-            next: () => {
-                this.clearMappingSelection();
-                this.loadMappings();
-                this.loadGroups(classificationId);
-            },
-            error: (error: unknown) => {
-                console.error('Error asignando grupo homologado:', error);
-            },
-        });
+                next: () => {
+                    this.clearMappingSelection();
+                    this.loadMappings();
+                    this.loadGroups(classificationId);
+                },
+                error: (error: unknown) => {
+                    console.error('Error asignando grupo homologado:', error);
+                },
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -1327,19 +1360,19 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Reactivar homologación',
-            message: `¿Deseas reactivar la homologación de "${mapping.displayName}"? ` +
-                `Volverá a clasificarse como "${mapping.classification.name}" ` +
-                `y dejará de aparecer entre los pendientes por homologar.`,
-            confirmText: 'Reactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Reactivar homologación',
+                message: `¿Deseas reactivar la homologación de "${mapping.displayName}"? ` +
+                    `Volverá a clasificarse como "${mapping.classification.name}" ` +
+                    `y dejará de aparecer entre los pendientes por homologar.`,
+                confirmText: 'Reactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.reactivateMapping(mapping);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.reactivateMapping(mapping);
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -1355,35 +1388,35 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .reactivateMapping(payload)
             .pipe(finalize(() => this.changingMappingStatus
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: () => {
-                this.removeMappingFromSelection(mapping);
-                /*
-      
-                 * Si estamos viendo Inactivos,
-      
-                 * la fila debe desaparecer porque
-      
-                 * acaba de volver a estar activa.
-      
-                 */
-                this.loadMappings();
-                /*
-      
-                 * El concepto/producto deja de ser
-      
-                 * pendiente porque recuperó su
-      
-                 * homologación anterior.
-      
-                 */
-                this.reloadCurrentPendingResults();
-            },
-            error: (error: unknown) => {
-                console.error('Error reactivando homologación:', error);
-            },
-        });
+                next: () => {
+                    this.removeMappingFromSelection(mapping);
+                    /*
+          
+                     * Si estamos viendo Inactivos,
+          
+                     * la fila debe desaparecer porque
+          
+                     * acaba de volver a estar activa.
+          
+                     */
+                    this.loadMappings();
+                    /*
+          
+                     * El concepto/producto deja de ser
+          
+                     * pendiente porque recuperó su
+          
+                     * homologación anterior.
+          
+                     */
+                    this.reloadCurrentPendingResults();
+                },
+                error: (error: unknown) => {
+                    console.error('Error reactivando homologación:', error);
+                },
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -1395,19 +1428,19 @@ export class ExpenseClassifications implements OnInit {
         }
         this.dialogService
             .confirm({
-            title: 'Desactivar homologación',
-            message: `¿Deseas desactivar la homologación de "${mapping.displayName}"? ` +
-                `Dejará de clasificarse como "${mapping.classification.name}" ` +
-                `y volverá a aparecer entre los pendientes por homologar.`,
-            confirmText: 'Desactivar',
-            cancelText: 'Cancelar',
-        })
+                title: 'Desactivar homologación',
+                message: `¿Deseas desactivar la homologación de "${mapping.displayName}"? ` +
+                    `Dejará de clasificarse como "${mapping.classification.name}" ` +
+                    `y volverá a aparecer entre los pendientes por homologar.`,
+                confirmText: 'Desactivar',
+                cancelText: 'Cancelar',
+            })
             .subscribe((confirmed: boolean) => {
-            if (!confirmed) {
-                return;
-            }
-            this.deactivateMapping(mapping);
-        });
+                if (!confirmed) {
+                    return;
+                }
+                this.deactivateMapping(mapping);
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -1423,37 +1456,37 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .deactivateMapping(payload)
             .pipe(finalize(() => this.changingMappingStatus
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: () => {
-                this.removeMappingFromSelection(mapping);
-                /*
-      
-                 * Si llegamos aquí, el PATCH respondió
-      
-                 * correctamente.
-      
-                 *
-      
-                 * Recargamos homologados porque la vista
-      
-                 * actual muestra únicamente activos.
-      
-                 */
-                this.loadMappings();
-                /*
-      
-                 * La homologación desactivada vuelve
-      
-                 * a quedar disponible en Pendientes.
-      
-                 */
-                this.reloadCurrentPendingResults();
-            },
-            error: (error: unknown) => {
-                console.error('Error desactivando homologación:', error);
-            },
-        });
+                next: () => {
+                    this.removeMappingFromSelection(mapping);
+                    /*
+          
+                     * Si llegamos aquí, el PATCH respondió
+          
+                     * correctamente.
+          
+                     *
+          
+                     * Recargamos homologados porque la vista
+          
+                     * actual muestra únicamente activos.
+          
+                     */
+                    this.loadMappings();
+                    /*
+          
+                     * La homologación desactivada vuelve
+          
+                     * a quedar disponible en Pendientes.
+          
+                     */
+                    this.reloadCurrentPendingResults();
+                },
+                error: (error: unknown) => {
+                    console.error('Error desactivando homologación:', error);
+                },
+            });
     }
     // =========================================================
     // HOMOLOGADOS:
@@ -1473,17 +1506,17 @@ export class ExpenseClassifications implements OnInit {
             .open(ModalReassignExpenseClassification, modalData, 'medium')
             .afterClosed()
             .subscribe((changed: boolean | null) => {
-            if (!changed) {
-                return;
-            }
-            this.removeMappingFromSelection(mapping);
-            /*
-             * Reconsultamos porque si hay filtros
-             * por clasificación, la fila podría
-             * incluso dejar de pertenecer a la vista.
-             */
-            this.loadMappings();
-        });
+                if (!changed) {
+                    return;
+                }
+                this.removeMappingFromSelection(mapping);
+                /*
+                 * Reconsultamos porque si hay filtros
+                 * por clasificación, la fila podría
+                 * incluso dejar de pertenecer a la vista.
+                 */
+                this.loadMappings();
+            });
     }
     private resolveSourceType(value: Catalog | string | null): entity.ExpenseClassificationSourceType | undefined {
         const raw = typeof value ===
@@ -1600,18 +1633,18 @@ export class ExpenseClassifications implements OnInit {
          */
         const items: entity.ExpenseClassificationSelection[] = selectedItems
             .map((item): entity.ExpenseClassificationSelection => {
-            if (item.sourceType ===
-                'concept') {
+                if (item.sourceType ===
+                    'concept') {
+                    return {
+                        sourceType: 'concept',
+                        conceptName: item.displayName,
+                    };
+                }
                 return {
-                    sourceType: 'concept',
-                    conceptName: item.displayName,
+                    sourceType: 'product',
+                    productId: item.productId,
                 };
-            }
-            return {
-                sourceType: 'product',
-                productId: item.productId,
-            };
-        });
+            });
         const payload: entity.BulkClassifyExpensePendingPayload = {
             classificationId,
             items,
@@ -1621,56 +1654,56 @@ export class ExpenseClassifications implements OnInit {
         this.service
             .classifyPending(payload)
             .pipe(finalize(() => this.classifyingPending
-            .set(false)))
+                .set(false)))
             .subscribe({
-            next: (response: entity.BulkClassifyExpensePendingResponse) => {
-                if (!response?.success) {
-                    return;
-                }
-                /*
-      
-                 * Ya fueron homologados.
-      
-                 * La selección anterior deja de tener sentido.
-      
-                 */
-                this.clearPendingSelection();
-                /*
-      
-                 * Importante:
-      
-                 *
-      
-                 * NO limpiamos selectedClassificationId.
-      
-                 *
-      
-                 * Así GASOLINA sigue seleccionada y el usuario
-      
-                 * puede continuar homologando otro grupo
-      
-                 * hacia la misma clasificación.
-      
-                 */
-                /*
-      
-                 * Volvemos a consultar pendientes
-      
-                 * respetando los filtros actualmente visibles.
-      
-                 *
-      
-                 * Los recién homologados deben desaparecer
-      
-                 * porque backend ya los considera clasificados.
-      
-                 */
-                this.reloadCurrentPendingResults();
-            },
-            error: (error: unknown) => {
-                console.error('Error homologando conceptos de gasto:', error);
-            },
-        });
+                next: (response: entity.BulkClassifyExpensePendingResponse) => {
+                    if (!response?.success) {
+                        return;
+                    }
+                    /*
+          
+                     * Ya fueron homologados.
+          
+                     * La selección anterior deja de tener sentido.
+          
+                     */
+                    this.clearPendingSelection();
+                    /*
+          
+                     * Importante:
+          
+                     *
+          
+                     * NO limpiamos selectedClassificationId.
+          
+                     *
+          
+                     * Así GASOLINA sigue seleccionada y el usuario
+          
+                     * puede continuar homologando otro grupo
+          
+                     * hacia la misma clasificación.
+          
+                     */
+                    /*
+          
+                     * Volvemos a consultar pendientes
+          
+                     * respetando los filtros actualmente visibles.
+          
+                     *
+          
+                     * Los recién homologados deben desaparecer
+          
+                     * porque backend ya los considera clasificados.
+          
+                     */
+                    this.reloadCurrentPendingResults();
+                },
+                error: (error: unknown) => {
+                    console.error('Error homologando conceptos de gasto:', error);
+                },
+            });
     }
     // =========================================================
     // PENDIENTES:

@@ -4498,3 +4498,427 @@
   }
 
 }
+
+
+/* =========================================================
+ * HOMOLOGADOS - FIX FINAL DE LAYOUT
+ * ========================================================= */
+
+/*
+ * Rompe únicamente para esta vista el comportamiento
+ * desktop antiguo de height: 100%.
+ *
+ * La página puede crecer, pero la tabla mantiene
+ * un área de trabajo controlada.
+ */
+:host {
+  height: auto !important;
+  min-height: 0;
+}
+
+.expense-classifications {
+  height: auto !important;
+  min-height: 0;
+
+  grid-template-rows: auto !important;
+}
+
+
+/* =========================================================
+ * CARD PRINCIPAL HOMOLOGADOS
+ * ========================================================= */
+
+.expense-classifications-homologated {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  /*
+   * La card mide exactamente lo que necesitan:
+   * header + filtros + grupos + tabla.
+   */
+  height: auto !important;
+
+  /*
+   * Solo conserva un mínimo razonable cuando hay
+   * poco contenido.
+   */
+  min-height: calc(100dvh - 300px) !important;
+
+  /*
+   * Importante:
+   * la card NO debe cortar tabla ni paginator.
+   */
+  overflow: visible !important;
+
+  /*
+   * Como expense-classifications-panel es grid,
+   * hacemos explícitas sus filas naturales.
+   */
+  grid-template-rows:
+    max-content
+    max-content
+    max-content
+    max-content;
+
+  align-content: start;
+
+  padding-bottom: 15px;
+}
+
+
+/* =========================================================
+ * FILTROS
+ * ========================================================= */
+
+.expense-classifications-homologated > form {
+  width: 100%;
+  min-width: 0;
+
+  height: auto !important;
+  min-height: 0;
+}
+
+
+/* =========================================================
+ * ASIGNAR GRUPO + GESTIÓN DE GRUPOS
+ * ========================================================= */
+
+.homologated-group-tools {
+  width: 100%;
+  min-width: 0;
+
+  display: grid;
+
+  grid-template-columns:
+    minmax(0, 0.9fr)
+    minmax(0, 1.1fr);
+
+  gap: 0.8rem;
+
+  /*
+   * Los dos cards mantienen el mismo alto visual.
+   */
+  align-items: stretch;
+}
+
+.homologated-group-card {
+  min-width: 0;
+  height: 100%;
+}
+
+
+/* =========================================================
+ * TABLA + PAGINADOR
+ *
+ * Este bloque completo pertenece a la card.
+ * ========================================================= */
+
+.expense-classifications-mapping-table-shell {
+  position: relative;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  /*
+   * Altura total:
+   * incluye tabla + paginator.
+   *
+   * Ya no dejamos que el shell crezca indefinidamente.
+   */
+  height: clamp(600px, 40dvh, 450px) !important;
+
+  min-height: 340px;
+  max-height: 450px;
+
+  display: grid;
+
+  /*
+   * Fila 1 = tabla
+   * Fila 2 = paginator
+   */
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto;
+
+  /*
+   * Todo queda contenido dentro del bloque blanco.
+   */
+  overflow: hidden !important;
+
+  background: #fff;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+ * APP DATA TABLE
+ * ========================================================= */
+
+.expense-classifications-mapping-table-shell > app-data-table {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  height: 100%;
+
+  /*
+   * El host de app-data-table no debe salirse
+   * del área que le da el grid.
+   */
+  overflow: hidden;
+}
+
+
+/* =========================================================
+ * SCROLL INTERNO DE LA TABLA
+ * ========================================================= */
+
+:host ::ng-deep
+  .expense-classifications-mapping-table-shell
+  app-data-table
+  .table-container {
+
+  width: 100%;
+
+  /*
+   * Ocupa solamente la primera fila del grid.
+   */
+  height: 100% !important;
+
+  min-height: 0 !important;
+  max-height: 100% !important;
+
+  /*
+   * Scroll dentro de las filas.
+   */
+  overflow-y: auto !important;
+  overflow-x: auto !important;
+
+  -webkit-overflow-scrolling: touch;
+
+  box-sizing: border-box;
+}
+
+
+/*
+ * Evita inconsistencias de ancho en la tabla.
+ */
+:host ::ng-deep
+  .expense-classifications-mapping-table-shell
+  app-data-table
+  table {
+
+  width: 100% !important;
+}
+
+
+/* =========================================================
+ * PAGINADOR
+ * ========================================================= */
+
+.expense-classifications-mapping-table-shell > mat-paginator {
+  /*
+   * Mata cualquier comportamiento absolute heredado.
+   */
+  position: static !important;
+
+  right: auto !important;
+  bottom: auto !important;
+
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+  margin: 0 !important;
+
+  z-index: 2;
+
+  background: #fff;
+
+  /*
+   * Nunca se encoge.
+   */
+  flex: 0 0 auto;
+
+  align-self: stretch;
+
+  border-top: 1px solid rgba(35, 31, 32, 0.08);
+}
+
+
+/* =========================================================
+ * SCROLLBAR
+ * ========================================================= */
+
+:host ::ng-deep
+  .expense-classifications-mapping-table-shell
+  app-data-table
+  .table-container::-webkit-scrollbar {
+
+  width: 7px;
+  height: 7px;
+}
+
+:host ::ng-deep
+  .expense-classifications-mapping-table-shell
+  app-data-table
+  .table-container::-webkit-scrollbar-thumb {
+
+  border-radius: 999px;
+
+  background: rgba(
+    148,
+    163,
+    184,
+    0.55
+  );
+}
+
+:host ::ng-deep
+  .expense-classifications-mapping-table-shell
+  app-data-table
+  .table-container::-webkit-scrollbar-track {
+
+  background: rgba(
+    226,
+    232,
+    240,
+    0.45
+  );
+}
+
+
+/* =========================================================
+ * <= 1100px
+ * ========================================================= */
+
+@media screen and (max-width: 1100px) {
+
+  /*
+   * Los dos paneles de grupos pasan a vertical.
+   */
+  .homologated-group-tools {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+}
+
+
+/* =========================================================
+ * <= 990px
+ * ========================================================= */
+
+@media screen and (max-width: 990px) {
+
+  .expense-classifications-mapping-filters {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    app-btns-section {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+
+/* =========================================================
+ * <= 768px
+ * ========================================================= */
+
+@media screen and (max-width: 768px) {
+
+  .expense-classifications-homologated {
+    min-height: 0 !important;
+
+    grid-template-rows:
+      max-content
+      max-content
+      max-content
+      max-content;
+  }
+
+
+  /*
+   * Un poquito más compacto en tablet/mobile.
+   */
+  .expense-classifications-mapping-table-shell {
+    height: 400px !important;
+
+    min-height: 400px;
+    max-height: 400px;
+  }
+
+
+  .group-assignment-form,
+  .group-catalog-context,
+  .group-editor {
+
+    grid-template-columns:
+      minmax(0, 1fr);
+
+
+    .btn-primary,
+    .btn-outline {
+      width: 100%;
+    }
+  }
+
+
+  .group-assignment-context {
+    grid-template-columns:
+      minmax(0, 1fr);
+  }
+
+
+  .mapping-selection-actions {
+    align-items: stretch;
+
+    button {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+
+/* =========================================================
+ * <= 520px
+ * ========================================================= */
+
+@media screen and (max-width: 520px) {
+
+  .expense-classifications-mapping-filters {
+    grid-template-columns:
+      minmax(0, 1fr);
+
+    app-btns-section {
+      grid-column: auto;
+    }
+  }
+
+
+  .expense-classifications-mapping-table-shell {
+    height: 360px !important;
+
+    min-height: 360px;
+    max-height: 360px;
+  }
+
+
+  .expense-classifications-panel__header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+
+  .expense-classifications-panel__amount {
+    width: fit-content;
+  }
+}

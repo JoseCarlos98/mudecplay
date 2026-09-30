@@ -493,40 +493,120 @@
    * Acciones sticky
    * ============================ */
 
-  .c-actions-header,
-  .c-actions-cells {
-    position: sticky !important;
-    right: 0 !important;
-    z-index: 4;
+/* ============================
+ * Acciones sticky
+ * ============================ */
 
-    min-width: 132px;
+.c-actions-header,
+.c-actions-cells {
+  position: sticky !important;
+  right: 0 !important;
 
-    background: #ffffff;
-    border-left: 1px solid rgba(35, 31, 32, 0.08);
-    box-shadow: -8px 0 12px rgba(15, 23, 42, 0.06);
+  /*
+   * Ancho REAL de la columna.
+   * width + min + max evita que Material
+   * calcule un ancho distinto entre header y rows.
+   */
+  width: 132px;
+  min-width: 132px;
+  max-width: 132px;
+
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border-left: 1px solid rgba(35, 31, 32, 0.08);
+
+  /*
+   * Sombra más corta:
+   * separa visualmente sin invadir Estado.
+   */
+  box-shadow: -4px 0 7px rgba(15, 23, 42, 0.045);
+
+  white-space: nowrap;
+}
+
+.c-actions-header {
+  /*
+   * Header sticky de la tabla ya usa z-index.
+   * Actions debe quedar por encima.
+   */
+  z-index: 7 !important;
+
+  text-align: center;
+}
+
+.c-actions-cells {
+  z-index: 4 !important;
+
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+
+  .popover-action-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  > div {
+    /*
+     * Antes:
+     * width: max-content;
+     * min-width: 100%;
+     *
+     * Eso podía hacer crecer internamente
+     * el contenido más que la celda sticky.
+     */
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
 
     white-space: nowrap;
   }
 
-  .c-actions-header::before,
-  .c-actions-cells::before {
-    content: '';
+  button {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
 
-    position: absolute;
-    top: 0;
-    left: -14px;
+    flex: 0 0 36px;
 
-    width: 14px;
-    height: 100%;
+    padding: 0 !important;
 
-    pointer-events: none;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
-    background: linear-gradient(
-      to left,
-      rgba(15, 23, 42, 0.08),
-      transparent
-    );
+    color: #555;
+
+    transition: all 0.25s ease;
+
+    mat-icon {
+      margin: 0 !important;
+
+      width: 21px;
+      height: 21px;
+
+      font-size: 21px;
+      line-height: 21px;
+    }
   }
+}
+
+
+/*
+ * Ya no necesitamos extender una capa
+ * 14px encima de la columna anterior.
+ */
+.c-actions-header::before,
+.c-actions-cells::before {
+  display: none;
+}
 
   .c-actions-header {
     z-index: 7;
