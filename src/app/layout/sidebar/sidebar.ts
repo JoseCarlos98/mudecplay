@@ -64,6 +64,12 @@ export class Sidebar {
       roles: ['CUENTAS_POR_COBRAR_EDITOR'],
     },
     {
+      name: 'Monitor',
+      icon: 'monitoring',
+      route: '/monitor',
+      roles: ['REPORTES_EMISOR'],
+    },
+    {
       name: 'Reportes',
       icon: 'bar_chart',
       route: '/reportes',
