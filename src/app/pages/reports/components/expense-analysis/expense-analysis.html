@@ -90,23 +90,43 @@
 
           <!-- PROYECTO -->
 
+          <!-- PROYECTO -->
+
           <app-autocomplete formControlName="projectId" label="Proyecto" placeholder="Buscar proyecto" [remote]="true"
-            catalogType="project" (optionSelected)="onAutocompleteSelected()">
+            catalogType="project" (optionSelected)="
+            onAutocompleteSelected(
+              'projectId',
+              $event
+            )
+          ">
           </app-autocomplete>
 
 
           <!-- PROVEEDOR -->
 
+          <!-- PROVEEDOR -->
+
           <app-autocomplete formControlName="supplierId" label="Proveedor" placeholder="Buscar proveedor"
-            [remote]="true" catalogType="supplier" (optionSelected)="onAutocompleteSelected()">
+            [remote]="true" catalogType="supplier" (optionSelected)="
+              onAutocompleteSelected(
+                'supplierId',
+                $event
+              )
+            ">
           </app-autocomplete>
 
 
           <!-- PRODUCTO -->
-          <app-autocomplete formControlName="productId" label="Producto" placeholder="Buscar producto" [remote]="true"
-            catalogType="product" (optionSelected)="onAutocompleteSelected()">
-          </app-autocomplete>
+          <!-- PRODUCTO -->
 
+          <app-autocomplete formControlName="productId" label="Producto" placeholder="Buscar producto" [remote]="true"
+            catalogType="product" (optionSelected)="
+              onAutocompleteSelected(
+                'productId',
+                $event
+              )
+            ">
+          </app-autocomplete>
 
 
           <!-- =====================================================

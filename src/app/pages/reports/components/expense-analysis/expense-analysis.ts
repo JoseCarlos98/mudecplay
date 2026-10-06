@@ -182,13 +182,13 @@ type ExpenseAnalysisDetailTableRow =
   entity.ExpenseAnalysisRow & {
 
     groupDisplayName:
-    string;
+      string;
 
     sourceDisplayName:
-    string;
+      string;
 
     extraDisplayName:
-    string;
+      string;
   };
 
 
@@ -263,18 +263,16 @@ const DETAIL_COLUMNS:
         ): ColumnVariant => {
 
           switch (
-          row.source
+            row.source
           ) {
 
             case 'purchase_order':
 
               return 'chip-warning';
 
-
             case 'labor':
 
               return 'chip-success';
-
 
             default:
 
@@ -390,23 +388,110 @@ type ExpenseAnalysisTab =
 interface BreakdownVisibleRow {
 
   node:
-  entity.ExpenseAnalysisBreakdownNode;
+    entity.ExpenseAnalysisBreakdownNode;
 
   depth:
-  number;
+    number;
 }
 
 
 interface ExpenseAnalysisGroupCatalogItem {
 
   id:
-  number;
+    number;
 
   name:
-  string;
+    string;
 
   classificationId:
-  number;
+    number;
+}
+
+
+const EXPENSE_ANALYSIS_STATE_KEY =
+  'mudecplay.reports.expense-analysis.state.v1';
+
+
+type ExpenseAnalysisAutocompleteControl =
+  | 'projectId'
+  | 'supplierId'
+  | 'productId';
+
+
+interface ExpenseAnalysisStoredFilters {
+
+  dateRange:
+    DateRangeValue | null;
+
+  projectId:
+    Catalog | null;
+
+  supplierId:
+    Catalog | null;
+
+  productId:
+    Catalog | null;
+
+  classificationId:
+    Catalog
+    | number
+    | string
+    | null;
+
+  classificationState:
+    entity.ExpenseAnalysisClassificationState
+    | '';
+
+  groupId:
+    Catalog
+    | number
+    | string
+    | null;
+
+  groupState:
+    entity.ExpenseAnalysisGroupState
+    | '';
+
+  registeredName:
+    string | null;
+
+  amountMin:
+    number
+    | string
+    | null;
+
+  amountMax:
+    number
+    | string
+    | null;
+
+  origin:
+    entity.ExpenseAnalysisOrigin
+    | '';
+
+  isExtraWork:
+    'true'
+    | 'false'
+    | '';
+
+  search:
+    string | null;
+}
+
+
+interface ExpenseAnalysisStoredState {
+
+  filters:
+    ExpenseAnalysisStoredFilters;
+
+  activeTab:
+    ExpenseAnalysisTab;
+
+  page:
+    number;
+
+  limit:
+    number;
 }
 
 
@@ -1000,15 +1085,16 @@ export class ExpenseAnalysis
   // INIT
   // ==========================================================
 
-  ngOnInit(): void {
+  ngOnInit():
+    void {
 
-    // --------------------------------------------------------
-    // Si cambia la clasificación, el grupo seleccionado
-    // anteriormente deja de ser confiable.
-    // --------------------------------------------------------
+    this.restoreState();
+
 
     this.filtersForm
-      .get('classificationId')
+      .get(
+        'classificationId',
+      )
       ?.valueChanges
       .pipe(
         takeUntilDestroyed(
@@ -1019,25 +1105,32 @@ export class ExpenseAnalysis
         () => {
 
           this.filtersForm
-            .get('groupId')
+            .get(
+              'groupId',
+            )
             ?.setValue(
               null,
               {
-                emitEvent: false,
+                emitEvent:
+                  false,
               },
             );
         },
       );
 
 
-    // --------------------------------------------------------
-    // FILTROS NORMALES
-    //
-    // Importante:
-    // Proyecto, proveedor y producto NO están aquí.
-    // Sus inputs cambian mientras el usuario escribe y no
-    // queremos recargar el reporte por cada letra.
-    // --------------------------------------------------------
+    this.watchAutocompleteControl(
+      'projectId',
+    );
+
+    this.watchAutocompleteControl(
+      'supplierId',
+    );
+
+    this.watchAutocompleteControl(
+      'productId',
+    );
+
 
     const regularFilterChanges$ =
       merge(
@@ -1075,9 +1168,12 @@ export class ExpenseAnalysis
             () => {
 
               const dateRange =
-                this.filtersForm.controls.dateRange.value;
+                this.filtersForm
+                  .controls
+                  .dateRange
+                  .value;
 
-              // Sin rango de fecha puede consultar normalmente.
+
               if (
                 !dateRange
               ) {
@@ -1085,18 +1181,19 @@ export class ExpenseAnalysis
                 return true;
               }
 
+
               const hasStart =
                 Boolean(
                   dateRange.startDate,
                 );
+
 
               const hasEnd =
                 Boolean(
                   dateRange.endDate,
                 );
 
-              // Si está seleccionando el rango,
-              // esperamos hasta tener ambas fechas.
+
               if (
                 hasStart !==
                 hasEnd
@@ -1104,6 +1201,7 @@ export class ExpenseAnalysis
 
                 return false;
               }
+
 
               return true;
             },
@@ -1115,60 +1213,19 @@ export class ExpenseAnalysis
               this.page.set(
                 1,
               );
+
+
+              this.saveState();
             },
           ),
         );
 
-
-    // --------------------------------------------------------
-    // LIMPIEZA DE AUTOCOMPLETES
-    //
-    // clearInput() del autocomplete manda null al FormControl.
-    // Es el único cambio del autocomplete que escuchamos aquí.
-    //
-    // Al escribir manda string -> se ignora.
-    // Al seleccionar -> se atiende mediante optionSelected.
-    // --------------------------------------------------------
-
-    const autocompleteClearChanges$ =
-      merge(
-
-        this.filtersForm.controls.projectId.valueChanges,
-
-        this.filtersForm.controls.supplierId.valueChanges,
-
-        this.filtersForm.controls.productId.valueChanges,
-
-      )
-        .pipe(
-
-          filter(
-            value =>
-              value === null,
-          ),
-
-          tap(
-            () => {
-
-              this.page.set(
-                1,
-              );
-            },
-          ),
-        );
-
-
-    // --------------------------------------------------------
-    // RECARGA DEL REPORTE
-    // --------------------------------------------------------
 
     merge(
       regularFilterChanges$,
-      autocompleteClearChanges$,
       this.reload$,
     )
       .pipe(
-
         takeUntilDestroyed(
           this.destroyRef,
         ),
@@ -1181,19 +1238,49 @@ export class ExpenseAnalysis
       );
 
 
+    this.loadClassificationCatalog();
+
     this.loadGroupCatalog();
 
     this.loadData();
   }
 
-  onAutocompleteSelected(): void {
 
-  this.page.set(
-    1,
-  );
+  // ==========================================================
+  // AUTOCOMPLETE
+  // ==========================================================
 
-  this.reload$.next();
-}
+  onAutocompleteSelected(
+    control:
+      ExpenseAnalysisAutocompleteControl,
+
+    option:
+      Catalog,
+  ):
+    void {
+
+    this.filtersForm
+      .controls[
+        control
+      ]
+      .setValue(
+        option,
+        {
+          emitEvent:
+            false,
+        },
+      );
+
+
+    this.page.set(
+      1,
+    );
+
+
+    this.saveState();
+
+    this.reload$.next();
+  }
 
 
   // ==========================================================
@@ -1260,6 +1347,9 @@ export class ExpenseAnalysis
     this.activeTab.set(
       tab,
     );
+
+
+    this.saveState();
   }
 
 
@@ -1326,6 +1416,16 @@ export class ExpenseAnalysis
     );
 
 
+    this.limit.set(
+      10,
+    );
+
+
+    this.activeTab.set(
+      'summary',
+    );
+
+
     this.breakdownSearch.set(
       '',
     );
@@ -1340,7 +1440,476 @@ export class ExpenseAnalysis
       );
 
 
+    this.removeStoredState();
+
     this.reload$.next();
+  }
+
+
+  // ==========================================================
+  // PERSISTENCIA
+  // ==========================================================
+
+  private watchAutocompleteControl(
+    control:
+      ExpenseAnalysisAutocompleteControl,
+  ):
+    void {
+
+    this.filtersForm
+      .controls[
+        control
+      ]
+      .valueChanges
+      .pipe(
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe(
+        value => {
+
+          /*
+           * Mientras el usuario escribe, Autocomplete manda
+           * texto al FormControl.
+           *
+           * Ese texto NO es todavía una selección válida y
+           * no debe recargar el reporte.
+           */
+          if (
+            typeof value ===
+            'string'
+          ) {
+
+            this.saveState();
+
+            return;
+          }
+
+
+          /*
+           * Cuando presiona la X del autocomplete,
+           * el componente manda null.
+           *
+           * Ahí sí quitamos el filtro y recargamos.
+           */
+          if (
+            value ===
+            null
+          ) {
+
+            this.page.set(
+              1,
+            );
+
+
+            this.saveState();
+
+            this.reload$.next();
+          }
+        },
+      );
+  }
+
+
+  private saveState():
+    void {
+
+    try {
+
+      const value =
+        this.filtersForm
+          .getRawValue();
+
+
+      const state:
+        ExpenseAnalysisStoredState = {
+
+        filters: {
+
+          dateRange:
+            value.dateRange ??
+            null,
+
+
+          /*
+           * Solo persistimos autocompletes cuando realmente
+           * contienen un Catalog seleccionado.
+           *
+           * Si contiene texto porque el usuario está escribiendo,
+           * se guarda null.
+           */
+          projectId:
+            this.getCatalogForStorage(
+              value.projectId,
+            ),
+
+          supplierId:
+            this.getCatalogForStorage(
+              value.supplierId,
+            ),
+
+          productId:
+            this.getCatalogForStorage(
+              value.productId,
+            ),
+
+
+          classificationId:
+            value.classificationId ??
+            null,
+
+
+          classificationState:
+            value.classificationState ??
+            '',
+
+
+          groupId:
+            value.groupId ??
+            null,
+
+
+          groupState:
+            value.groupState ??
+            '',
+
+
+          registeredName:
+            value.registeredName ??
+            null,
+
+
+          amountMin:
+            value.amountMin ??
+            null,
+
+
+          amountMax:
+            value.amountMax ??
+            null,
+
+
+          origin:
+            value.origin ??
+            '',
+
+
+          isExtraWork:
+            value.isExtraWork ??
+            '',
+
+
+          search:
+            value.search ??
+            null,
+        },
+
+
+        activeTab:
+          this.activeTab(),
+
+
+        page:
+          this.page(),
+
+
+        limit:
+          this.limit(),
+      };
+
+
+      localStorage.setItem(
+        EXPENSE_ANALYSIS_STATE_KEY,
+        JSON.stringify(
+          state,
+        ),
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        'No se pudo guardar el estado del análisis de gastos:',
+        error,
+      );
+    }
+  }
+
+
+  private restoreState():
+    void {
+
+    try {
+
+      const raw =
+        localStorage.getItem(
+          EXPENSE_ANALYSIS_STATE_KEY,
+        );
+
+
+      if (
+        !raw
+      ) {
+
+        return;
+      }
+
+
+      const state =
+        JSON.parse(
+          raw,
+        ) as
+          Partial<
+            ExpenseAnalysisStoredState
+          >;
+
+
+      if (
+        !state.filters
+      ) {
+
+        this.removeStoredState();
+
+        return;
+      }
+
+
+      const filters =
+        state.filters;
+
+
+      this.filtersForm.patchValue(
+        {
+
+          dateRange:
+            filters.dateRange ??
+            null,
+
+
+          projectId:
+            this.normalizeStoredCatalog(
+              filters.projectId,
+            ),
+
+
+          supplierId:
+            this.normalizeStoredCatalog(
+              filters.supplierId,
+            ),
+
+
+          productId:
+            this.normalizeStoredCatalog(
+              filters.productId,
+            ),
+
+
+          classificationId:
+            filters.classificationId ??
+            null,
+
+
+          classificationState:
+            filters.classificationState ??
+            '',
+
+
+          groupId:
+            filters.groupId ??
+            null,
+
+
+          groupState:
+            filters.groupState ??
+            '',
+
+
+          registeredName:
+            filters.registeredName ??
+            null,
+
+
+          amountMin:
+            filters.amountMin ??
+            null,
+
+
+          amountMax:
+            filters.amountMax ??
+            null,
+
+
+          origin:
+            filters.origin ??
+            '',
+
+
+          isExtraWork:
+            filters.isExtraWork ??
+            '',
+
+
+          search:
+            filters.search ??
+            null,
+        },
+        {
+          emitEvent:
+            false,
+        },
+      );
+
+
+      const restoredPage =
+        Number(
+          state.page ??
+          1,
+        );
+
+
+      const restoredLimit =
+        Number(
+          state.limit ??
+          10,
+        );
+
+
+      this.page.set(
+
+        Number.isInteger(
+          restoredPage,
+        ) &&
+        restoredPage >
+        0
+
+          ? restoredPage
+
+          : 1,
+      );
+
+
+      this.limit.set(
+
+        Number.isInteger(
+          restoredLimit,
+        ) &&
+        restoredLimit >
+        0
+
+          ? restoredLimit
+
+          : 10,
+      );
+
+
+      this.activeTab.set(
+
+        state.activeTab ===
+          'detail'
+
+          ? 'detail'
+
+          : 'summary',
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        'No se pudo restaurar el estado del análisis de gastos:',
+        error,
+      );
+
+
+      this.removeStoredState();
+    }
+  }
+
+
+  private removeStoredState():
+    void {
+
+    try {
+
+      localStorage.removeItem(
+        EXPENSE_ANALYSIS_STATE_KEY,
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        'No se pudo limpiar el estado del análisis de gastos:',
+        error,
+      );
+    }
+  }
+
+
+  private getCatalogForStorage(
+    value:
+      unknown,
+  ):
+    Catalog | null {
+
+    return this.normalizeStoredCatalog(
+      value,
+    );
+  }
+
+
+  private normalizeStoredCatalog(
+    value:
+      unknown,
+  ):
+    Catalog | null {
+
+    if (
+      !value ||
+      typeof value !==
+      'object'
+    ) {
+
+      return null;
+    }
+
+
+    const catalog =
+      value as
+        Partial<
+          Catalog
+        >;
+
+
+    const validId =
+      typeof catalog.id ===
+      'number' ||
+      typeof catalog.id ===
+      'string';
+
+
+    if (
+      !validId ||
+      typeof catalog.name !==
+      'string'
+    ) {
+
+      return null;
+    }
+
+
+    return {
+      id:
+        catalog.id as
+          string | number,
+
+      name:
+        catalog.name,
+    };
   }
 
 
@@ -1381,6 +1950,7 @@ export class ExpenseAnalysis
           },
         ),
 
+
         finalize(
           () => {
 
@@ -1389,6 +1959,7 @@ export class ExpenseAnalysis
             );
           },
         ),
+
 
         takeUntilDestroyed(
           this.destroyRef,
@@ -1529,10 +2100,14 @@ export class ExpenseAnalysis
       isExtraWork:
         value.isExtraWork ===
           'true'
+
           ? true
+
           : value.isExtraWork ===
             'false'
+
             ? false
+
             : undefined,
 
 
@@ -1572,6 +2147,8 @@ export class ExpenseAnalysis
       event.pageSize,
     );
 
+
+    this.saveState();
 
     this.reload$.next();
   }
@@ -1616,6 +2193,7 @@ export class ExpenseAnalysis
           },
         ),
 
+
         takeUntilDestroyed(
           this.destroyRef,
         ),
@@ -1654,7 +2232,6 @@ export class ExpenseAnalysis
 
 
             link.click();
-
 
             link.remove();
 
@@ -1844,7 +2421,7 @@ export class ExpenseAnalysis
     string {
 
     switch (
-    source
+      source
     ) {
 
       case 'direct':
@@ -2293,8 +2870,78 @@ export class ExpenseAnalysis
 
 
   // ==========================================================
-  // CATÁLOGO REAL DE SOBRENOMBRES
+  // CATÁLOGOS REALES
   // ==========================================================
+
+  private loadClassificationCatalog():
+    void {
+
+    this.expenseClassificationsService
+      .getClassifications({
+        status:
+          'active',
+      })
+      .pipe(
+
+        catchError(
+          (
+            error,
+          ) => {
+
+            console.error(
+              'Error cargando catálogo de clasificaciones:',
+              error,
+            );
+
+
+            return EMPTY;
+          },
+        ),
+
+
+        takeUntilDestroyed(
+          this.destroyRef,
+        ),
+      )
+      .subscribe(
+        (
+          classifications,
+        ) => {
+
+          this.classificationOptions.set(
+
+            classifications
+              .map(
+                (
+                  classification,
+                ) => ({
+
+                  id:
+                    classification.id,
+
+                  name:
+                    classification.name,
+                }),
+              )
+              .sort(
+                (
+                  a,
+                  b,
+                ) =>
+                  a.name.localeCompare(
+                    b.name,
+                    'es',
+                    {
+                      sensitivity:
+                        'base',
+                    },
+                  ),
+              ),
+          );
+        },
+      );
+  }
+
 
   private loadGroupCatalog():
     void {
@@ -2326,6 +2973,7 @@ export class ExpenseAnalysis
           },
         ),
 
+
         takeUntilDestroyed(
           this.destroyRef,
         ),
@@ -2346,10 +2994,8 @@ export class ExpenseAnalysis
                   id:
                     group.id,
 
-
                   name:
                     group.name,
-
 
                   classificationId:
                     group.classification.id,

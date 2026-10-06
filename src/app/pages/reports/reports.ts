@@ -1,6 +1,4 @@
-import {
-  CommonModule,
-} from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 import {
   Component,
@@ -31,6 +29,10 @@ type ReportsSection =
   | 'expense_analysis';
 
 
+const REPORTS_ACTIVE_SECTION_KEY =
+  'mudecplay.reports.active-section.v1';
+
+
 @Component({
   selector:
     'app-reports',
@@ -41,7 +43,6 @@ type ReportsSection =
   imports: [
     CommonModule,
     PageTabsComponent,
-
     ProjectAllReport,
     ProjectClassificationReport,
     ExpenseAnalysis,
@@ -55,15 +56,16 @@ type ReportsSection =
 })
 export class Reports {
 
-
   readonly activeSection =
     signal<ReportsSection>(
-      'project_all',
+      this.getInitialSection(),
     );
+
 
   readonly expenseAnalysisInitialized =
     signal(
-      false,
+      this.activeSection() ===
+      'expense_analysis',
     );
 
 
@@ -109,34 +111,120 @@ export class Reports {
           'Análisis de gastos',
 
         description:
-          'Consulta dinámica de gastos, saldos y compromisos',
+          'Análisis dinámico de gastos, pagos y compromisos',
       },
-
     ];
 
 
   onActiveTabChange(
-    nextId: string,
+    nextId:
+      string,
   ): void {
 
     if (
-      nextId !== 'project_all' &&
-      nextId !== 'project_classification' &&
-      nextId !== 'expense_analysis'
+      !this.isReportsSection(
+        nextId,
+      )
     ) {
+
       return;
     }
 
+
     if (
-      nextId === 'expense_analysis'
+      nextId ===
+      'expense_analysis'
     ) {
+
       this.expenseAnalysisInitialized.set(
         true,
       );
     }
 
+
     this.activeSection.set(
       nextId,
+    );
+
+
+    this.saveActiveSection(
+      nextId,
+    );
+  }
+
+
+  private getInitialSection():
+    ReportsSection {
+
+    try {
+
+      const saved =
+        localStorage.getItem(
+          REPORTS_ACTIVE_SECTION_KEY,
+        );
+
+
+      if (
+        saved &&
+        this.isReportsSection(
+          saved,
+        )
+      ) {
+
+        return saved;
+      }
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        'No se pudo restaurar la pestaña de reportes:',
+        error,
+      );
+    }
+
+
+    return 'project_all';
+  }
+
+
+  private saveActiveSection(
+    section:
+      ReportsSection,
+  ): void {
+
+    try {
+
+      localStorage.setItem(
+        REPORTS_ACTIVE_SECTION_KEY,
+        section,
+      );
+
+    } catch (
+      error
+    ) {
+
+      console.warn(
+        'No se pudo guardar la pestaña de reportes:',
+        error,
+      );
+    }
+  }
+
+
+  private isReportsSection(
+    value:
+      string,
+  ): value is ReportsSection {
+
+    return (
+      value ===
+        'project_all' ||
+      value ===
+        'project_classification' ||
+      value ===
+        'expense_analysis'
     );
   }
 }
