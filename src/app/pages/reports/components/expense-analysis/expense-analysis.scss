@@ -1,0 +1,1314 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+
+/* =========================================================
+ * ESTRUCTURA DEL TAB
+ * ========================================================= */
+
+.report-tab {
+  width: 100%;
+}
+
+
+.report-tab__header {
+  margin-bottom: 20px;
+}
+
+
+.report-tab__title {
+  margin: 0;
+
+  font-size: 20px;
+
+  font-weight: 600;
+}
+
+
+.report-tab__desc {
+  margin: 6px 0 0;
+
+  color: #6b7280;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+ * CONTENIDO DEL ANÁLISIS
+ * ========================================================= */
+
+.expense-analysis {
+  width: 100%;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 14px;
+}
+
+
+/* =========================================================
+ * HEADERS DE SECCIÓN
+ * ========================================================= */
+
+.expense-analysis-section-header,
+.expense-analysis-breakdown__header,
+.expense-analysis-detail__header {
+
+  display: flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+
+  h2 {
+    margin:
+      0;
+
+    color:
+      #111827;
+
+    font-size:
+      0.95rem;
+
+    font-weight:
+      700;
+  }
+
+
+  p {
+    margin:
+      3px 0 0;
+
+    color:
+      #64748b;
+
+    font-size:
+      0.76rem;
+
+    line-height:
+      1.35;
+  }
+}
+
+
+/* =========================================================
+ * FILTROS
+ * ========================================================= */
+
+.expense-analysis-filters {
+  margin-bottom:
+    0;
+}
+
+
+.expense-analysis-filter-actions {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    8px;
+
+  flex-wrap:
+    wrap;
+
+
+  button {
+
+    display:
+      inline-flex;
+
+    align-items:
+      center;
+
+    justify-content:
+      center;
+
+    gap:
+      6px;
+
+    white-space:
+      nowrap;
+
+
+    mat-icon {
+      width:
+        17px;
+
+      height:
+        17px;
+
+      font-size:
+        17px;
+    }
+  }
+}
+
+
+.expense-analysis-filter-grid {
+
+  margin-top:
+    14px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  column-gap:
+    16px;
+
+  row-gap:
+    8px;
+}
+
+
+.expense-analysis-extra-filters {
+
+  margin-top:
+    8px;
+
+  padding-top:
+    10px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  column-gap:
+    16px;
+
+  border-top:
+    1px solid
+    #e2e8f0;
+}
+
+
+/* =========================================================
+ * RANGO DE IMPORTE
+ * ========================================================= */
+
+.expense-analysis-amount-range {
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+}
+
+
+.expense-analysis-amount-range__label {
+
+  margin-bottom:
+    4px;
+
+  color:
+    var(
+      --color-primary,
+      #27aae1
+    );
+
+  font-size:
+    12px;
+
+  font-weight:
+    500;
+}
+
+
+.expense-analysis-amount-range__controls {
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    auto
+    minmax(
+      0,
+      1fr
+    );
+
+  align-items:
+    center;
+
+  gap:
+    7px;
+}
+
+
+.expense-analysis-amount-range__separator {
+
+  color:
+    #64748b;
+
+  font-size:
+    0.8rem;
+
+  font-weight:
+    600;
+}
+
+
+/* =========================================================
+ * AUTO REFRESH
+ * ========================================================= */
+
+.expense-analysis-auto-refresh {
+
+  margin-top:
+    8px;
+}
+
+
+/* =========================================================
+ * TOTALES
+ * ========================================================= */
+
+.expense-analysis-totals {
+
+  margin-bottom:
+    0;
+
+  padding-top:
+    12px;
+
+  padding-bottom:
+    12px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+}
+
+
+.expense-analysis-total {
+
+  min-width:
+    0;
+
+  padding:
+    2px 22px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
+
+  gap:
+    3px;
+
+  border-right:
+    1px solid
+    rgba(
+      39,
+      170,
+      225,
+      0.28
+    );
+
+
+  &:first-child {
+    padding-left:
+      4px;
+  }
+
+
+  &:last-child {
+    border-right:
+      0;
+  }
+
+
+  span {
+
+    color:
+      #64748b;
+
+    font-size:
+      0.76rem;
+
+    font-weight:
+      500;
+  }
+
+
+  strong {
+
+    color:
+      #111827;
+
+    font-size:
+      clamp(
+        1rem,
+        1.4vw,
+        1.25rem
+      );
+
+    font-weight:
+      700;
+
+    line-height:
+      1.15;
+
+    overflow-wrap:
+      anywhere;
+  }
+}
+
+
+/* =========================================================
+ * RESULTADOS
+ * ========================================================= */
+
+.expense-analysis-results {
+
+  margin-bottom:
+    0;
+
+  padding-top:
+    0;
+}
+
+
+/* =========================================================
+ * TABS
+ * ========================================================= */
+
+.expense-analysis-tabs {
+
+  margin:
+    0 -15px;
+
+  padding:
+    0 15px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    8px;
+
+  border-bottom:
+    1px solid
+    #e2e8f0;
+}
+
+
+.expense-analysis-tab {
+
+  position:
+    relative;
+
+  min-height:
+    42px;
+
+  padding:
+    0 14px;
+
+  color:
+    #475569;
+
+  font-family:
+    inherit;
+
+  font-size:
+    0.82rem;
+
+  font-weight:
+    600;
+
+  background:
+    transparent;
+
+  border:
+    0;
+
+  cursor:
+    pointer;
+
+
+  &::after {
+
+    content:
+      '';
+
+    position:
+      absolute;
+
+    left:
+      0;
+
+    right:
+      0;
+
+    bottom:
+      -1px;
+
+    height:
+      2px;
+
+    background:
+      transparent;
+  }
+
+
+  &:hover {
+
+    color:
+      var(
+        --color-primary,
+        #27aae1
+      );
+  }
+}
+
+
+.expense-analysis-tab--active {
+
+  color:
+    #1488b8;
+
+
+  &::after {
+
+    background:
+      #27aae1;
+  }
+}
+
+
+/* =========================================================
+ * DESGLOSE
+ * ========================================================= */
+
+.expense-analysis-breakdown {
+
+  padding-top:
+    14px;
+}
+
+
+.expense-analysis-breakdown__tools {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    flex-end;
+
+  gap:
+    12px;
+}
+
+
+.expense-analysis-count {
+
+  flex:
+    0 0 auto;
+
+  padding:
+    5px 10px;
+
+  color:
+    #1688b6;
+
+  font-size:
+    0.72rem;
+
+  font-weight:
+    700;
+
+  background:
+    #eef9fd;
+
+  border:
+    1px solid
+    rgba(
+      39,
+      170,
+      225,
+      0.12
+    );
+
+  border-radius:
+    999px;
+
+  white-space:
+    nowrap;
+}
+
+
+/* =========================================================
+ * BUSCADOR LOCAL
+ * ========================================================= */
+
+.expense-analysis-local-search {
+
+  width:
+    min(
+      290px,
+      30vw
+    );
+
+  min-height:
+    30px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    6px;
+
+  padding:
+    0 9px;
+
+  background:
+    #ffffff;
+
+  border:
+    1px solid
+    #cbd5e1;
+
+  border-radius:
+    5px;
+
+
+  input {
+
+    min-width:
+      0;
+
+    width:
+      100%;
+
+    color:
+      #334155;
+
+    font-family:
+      inherit;
+
+    font-size:
+      0.75rem;
+
+    background:
+      transparent;
+
+    border:
+      0;
+
+    outline:
+      none;
+
+
+    &::placeholder {
+      color:
+        #94a3b8;
+    }
+  }
+
+
+  mat-icon {
+
+    flex:
+      0 0 auto;
+
+    width:
+      17px;
+
+    height:
+      17px;
+
+    color:
+      #64748b;
+
+    font-size:
+      17px;
+  }
+}
+
+
+/* =========================================================
+ * TABLA JERÁRQUICA
+ * ========================================================= */
+
+.expense-analysis-breakdown-table {
+
+  width:
+    100%;
+
+  margin-top:
+    10px;
+
+  overflow-x:
+    auto;
+}
+
+
+.expense-analysis-breakdown-row {
+
+  min-width:
+    900px;
+
+  min-height:
+    39px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      330px,
+      2fr
+    )
+    repeat(
+      4,
+      minmax(
+        130px,
+        1fr
+      )
+    );
+
+  align-items:
+    center;
+
+  border-bottom:
+    1px solid
+    #eef2f7;
+
+
+  > div {
+
+    min-width:
+      0;
+
+    padding:
+      8px 10px;
+  }
+}
+
+
+.expense-analysis-breakdown-row--header {
+
+  min-height:
+    34px;
+
+  color:
+    #334155;
+
+  font-size:
+    0.74rem;
+
+  font-weight:
+    700;
+
+  background:
+    transparent;
+
+
+  > div:not(:first-child) {
+    text-align:
+      right;
+  }
+}
+
+
+/* =========================================================
+ * CLASIFICACIÓN
+ * ========================================================= */
+
+.expense-analysis-breakdown-row--classification {
+
+  background:
+    #f1f9fd;
+
+
+  .expense-analysis-breakdown-name strong,
+  .expense-analysis-money {
+
+    color:
+      #172033;
+
+    font-weight:
+      700;
+  }
+}
+
+
+/* =========================================================
+ * GRUPO
+ * ========================================================= */
+
+.expense-analysis-breakdown-row--group {
+
+  background:
+    #f8fafc;
+
+
+  .expense-analysis-breakdown-name strong,
+  .expense-analysis-money {
+
+    color:
+      #334155;
+
+    font-weight:
+      600;
+  }
+}
+
+
+/* =========================================================
+ * NOMBRE REGISTRADO
+ * ========================================================= */
+
+.expense-analysis-breakdown-row--registered {
+
+  .expense-analysis-breakdown-name strong {
+
+    color:
+      #334155;
+
+    font-weight:
+      600;
+  }
+}
+
+
+/* =========================================================
+ * TRANSACCIÓN
+ * ========================================================= */
+
+.expense-analysis-breakdown-row--transaction {
+
+  color:
+    #64748b;
+
+
+  .expense-analysis-breakdown-name strong {
+
+    color:
+      #64748b;
+
+    font-weight:
+      500;
+  }
+}
+
+
+/* =========================================================
+ * PRIMERA COLUMNA
+ * ========================================================= */
+
+.expense-analysis-breakdown-name {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    4px;
+
+  transition:
+    padding 0.12s ease;
+}
+
+
+.expense-analysis-breakdown-name__content {
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    2px;
+
+
+  strong {
+
+    min-width:
+      0;
+
+    overflow:
+      hidden;
+
+    text-overflow:
+      ellipsis;
+
+    white-space:
+      nowrap;
+
+    font-size:
+      0.78rem;
+  }
+
+
+  small {
+
+    color:
+      #94a3b8;
+
+    font-size:
+      0.67rem;
+
+    overflow:
+      hidden;
+
+    text-overflow:
+      ellipsis;
+
+    white-space:
+      nowrap;
+  }
+}
+
+
+/* =========================================================
+ * EXPANDER
+ * ========================================================= */
+
+.expense-analysis-expand {
+
+  flex:
+    0 0 auto;
+
+  width:
+    24px;
+
+  height:
+    24px;
+
+  padding:
+    0;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  color:
+    #475569;
+
+  background:
+    transparent;
+
+  border:
+    0;
+
+  border-radius:
+    50%;
+
+  cursor:
+    pointer;
+
+
+  mat-icon {
+
+    width:
+      18px;
+
+    height:
+      18px;
+
+    font-size:
+      18px;
+  }
+
+
+  &:hover {
+
+    color:
+      #1488b8;
+
+    background:
+      #eef9fd;
+  }
+}
+
+
+.expense-analysis-expand-placeholder {
+
+  flex:
+    0 0 24px;
+
+  width:
+    24px;
+}
+
+
+/* =========================================================
+ * COLUMNAS DE DINERO
+ * ========================================================= */
+
+.expense-analysis-money {
+
+  color:
+    #475569;
+
+  font-size:
+    0.76rem;
+
+  text-align:
+    right;
+
+  white-space:
+    nowrap;
+}
+
+
+/* =========================================================
+ * EMPTY
+ * ========================================================= */
+
+.expense-analysis-empty {
+
+  min-height:
+    150px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    5px;
+
+  color:
+    #64748b;
+
+
+  strong {
+
+    color:
+      #334155;
+
+    font-size:
+      0.88rem;
+  }
+
+
+  span {
+
+    font-size:
+      0.76rem;
+  }
+}
+
+
+/* =========================================================
+ * DETALLE
+ * ========================================================= */
+
+.expense-analysis-detail {
+
+  padding-top:
+    14px;
+}
+
+
+.expense-analysis-detail__table {
+
+  margin-top:
+    12px;
+
+  min-height:
+    360px;
+}
+
+
+/* =========================================================
+ * RESPONSIVE
+ * ========================================================= */
+
+@media screen and (max-width: 1280px) {
+
+  .expense-analysis-filter-grid {
+
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+
+  .expense-analysis-extra-filters {
+
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+}
+
+
+@media screen and (max-width: 1024px) {
+
+  .expense-analysis-filter-grid {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+
+  .expense-analysis-extra-filters {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+
+  .expense-analysis-totals {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    row-gap:
+      14px;
+  }
+
+
+  .expense-analysis-total {
+
+    border-right:
+      0;
+
+    border-bottom:
+      1px solid
+      #eef2f7;
+
+
+    &:nth-last-child(-n + 2) {
+
+      border-bottom:
+        0;
+    }
+  }
+}
+
+
+@media screen and (max-width: 768px) {
+
+  .expense-analysis-section-header,
+  .expense-analysis-breakdown__header,
+  .expense-analysis-detail__header {
+
+    flex-direction:
+      column;
+  }
+
+
+  .expense-analysis-filter-actions,
+  .expense-analysis-breakdown__tools {
+
+    width:
+      100%;
+
+    justify-content:
+      flex-start;
+  }
+
+
+  .expense-analysis-local-search {
+
+    width:
+      min(
+        100%,
+        320px
+      );
+  }
+}
+
+
+@media screen and (max-width: 640px) {
+
+  .expense-analysis {
+
+    gap:
+      12px;
+  }
+
+
+  .expense-analysis-filter-grid,
+  .expense-analysis-extra-filters {
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .expense-analysis-filter-actions {
+
+    display:
+      grid;
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .expense-analysis-filter-actions button {
+
+    width:
+      100%;
+  }
+
+
+  .expense-analysis-totals {
+
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .expense-analysis-total {
+
+    padding:
+      9px 2px;
+
+    border-bottom:
+      1px solid
+      #eef2f7;
+
+
+    &:nth-last-child(-n + 2) {
+
+      border-bottom:
+        1px solid
+        #eef2f7;
+    }
+
+
+    &:last-child {
+
+      border-bottom:
+        0;
+    }
+  }
+
+
+  .expense-analysis-tabs {
+
+    overflow-x:
+      auto;
+  }
+
+
+  .expense-analysis-breakdown__tools {
+
+    align-items:
+      stretch;
+
+    flex-direction:
+      column;
+  }
+
+
+  .expense-analysis-local-search {
+
+    width:
+      100%;
+  }
+}

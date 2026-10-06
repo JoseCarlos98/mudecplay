@@ -31,7 +31,6 @@
     }
   }
 </app-page-tabs> -->
-
 <app-page-tabs
 
   [title]="'Reportes'"
@@ -49,6 +48,10 @@
   ">
 
 
+  <!-- =====================================================
+       REPORTE FINANCIERO DEL PROYECTO
+       ===================================================== -->
+
   <div
     [hidden]="
       activeSection() !==
@@ -61,6 +64,10 @@
   </div>
 
 
+  <!-- =====================================================
+       CLASIFICACIÓN DE GASTOS
+       ===================================================== -->
+
   <div
     [hidden]="
       activeSection() !==
@@ -71,5 +78,29 @@
     </app-project-classification-report>
 
   </div>
+
+
+  <!-- =====================================================
+       ANÁLISIS DE GASTOS
+       ===================================================== -->
+
+  <div
+    [hidden]="
+      activeSection() !==
+      'expense_analysis'
+    ">
+
+@if (
+  activeSection() ===
+  'expense_analysis'
+) {
+
+  <app-expense-analysis>
+  </app-expense-analysis>
+
+}
+
+  </div>
+
 
 </app-page-tabs>

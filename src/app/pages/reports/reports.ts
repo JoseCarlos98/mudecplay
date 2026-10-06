@@ -1,4 +1,6 @@
-import { CommonModule } from '@angular/common';
+import {
+  CommonModule,
+} from '@angular/common';
 
 import {
   Component,
@@ -18,15 +20,23 @@ import {
   ProjectClassificationReport,
 } from './components/project-classification-report/project-classification-report';
 
+import {
+  ExpenseAnalysis,
+} from './components/expense-analysis/expense-analysis';
+
 
 type ReportsSection =
   | 'project_all'
-  | 'project_classification';
+  | 'project_classification'
+  | 'expense_analysis';
 
 
 @Component({
-  selector: 'app-reports',
-  standalone: true,
+  selector:
+    'app-reports',
+
+  standalone:
+    true,
 
   imports: [
     CommonModule,
@@ -34,12 +44,17 @@ type ReportsSection =
 
     ProjectAllReport,
     ProjectClassificationReport,
+    ExpenseAnalysis,
   ],
 
-  templateUrl: './reports.html',
-  styleUrl: './reports.scss',
+  templateUrl:
+    './reports.html',
+
+  styleUrl:
+    './reports.scss',
 })
 export class Reports {
+
 
   readonly activeSection =
     signal<ReportsSection>(
@@ -78,19 +93,38 @@ export class Reports {
           'Gastos agrupados por clasificación homologada',
       },
 
+      {
+        id:
+          'expense_analysis',
+
+        icon:
+          'query_stats',
+
+        label:
+          'Análisis de gastos',
+
+        description:
+          'Consulta dinámica de gastos, saldos y compromisos',
+      },
+
     ];
 
 
   onActiveTabChange(
-    nextId: string,
-  ): void {
+    nextId:
+      string,
+  ):
+    void {
 
     if (
       nextId !==
         'project_all' &&
       nextId !==
-        'project_classification'
+        'project_classification' &&
+      nextId !==
+        'expense_analysis'
     ) {
+
       return;
     }
 
@@ -98,7 +132,5 @@ export class Reports {
     this.activeSection.set(
       nextId,
     );
-
   }
-
 }

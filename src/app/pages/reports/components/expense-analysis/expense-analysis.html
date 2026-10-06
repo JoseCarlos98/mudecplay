@@ -1,0 +1,605 @@
+<section class="report-tab">
+
+  <!-- =======================================================
+       HEADER
+       ======================================================= -->
+
+  <header class="report-tab__header">
+
+    <h2 class="report-tab__title">
+      Análisis de gastos
+    </h2>
+
+    <p class="report-tab__desc">
+      Consulta, analiza y desglosa los gastos por clasificación,
+      sobrenombre, nombre registrado y transacción.
+    </p>
+
+  </header>
+
+
+  <div class="expense-analysis">
+
+    <!-- =======================================================
+         FILTROS
+         ======================================================= -->
+
+    <section class="card-content shadow-md expense-analysis-filters">
+
+      <header class="expense-analysis-section-header">
+
+        <div>
+
+          <h2>
+            Filtros de análisis
+          </h2>
+
+          <p>
+            La información se actualiza automáticamente conforme cambian los filtros.
+          </p>
+
+        </div>
+
+
+        <div class="expense-analysis-filter-actions">
+
+          <button type="button" class="btn-outline" [disabled]="!hasActiveFilters" (click)="clearFilters()">
+
+            <mat-icon>
+              restart_alt
+            </mat-icon>
+
+            <span>
+              Limpiar filtros
+            </span>
+
+          </button>
+
+
+          <button type="button" class="btn-primary" [disabled]="exporting()" (click)="exportExcel()">
+
+            <mat-icon>
+              download
+            </mat-icon>
+
+            <span>
+              {{ exporting() ? 'Exportando...' : 'Exportar Excel' }}
+            </span>
+
+          </button>
+
+        </div>
+
+      </header>
+
+
+      <form [formGroup]="filtersForm">
+
+        <div class="expense-analysis-filter-grid">
+
+
+          <!-- =====================================================
+         CONTEXTO GENERAL
+         ===================================================== -->
+
+          <!-- RANGO DE FECHA -->
+
+          <app-input-date formControlName="dateRange" label="Rango de fecha" mode="range">
+          </app-input-date>
+
+
+          <!-- PROYECTO -->
+
+          <app-autocomplete formControlName="projectId" label="Proyecto" placeholder="Buscar proyecto" [remote]="true"
+            catalogType="project">
+          </app-autocomplete>
+
+
+          <!-- PROVEEDOR -->
+
+          <app-autocomplete formControlName="supplierId" label="Proveedor" placeholder="Buscar proveedor"
+            [remote]="true" catalogType="supplier">
+          </app-autocomplete>
+
+
+          <!-- PRODUCTO -->
+
+          <app-autocomplete formControlName="productId" label="Producto" placeholder="Buscar producto" [remote]="true"
+            catalogType="product">
+          </app-autocomplete>
+
+
+
+          <!-- =====================================================
+         HOMOLOGACIÓN
+         ===================================================== -->
+
+          <!-- CLASIFICACIÓN -->
+
+          <app-input-select formControlName="classificationId" label="Clasificación"
+            [options]="classificationOptions()">
+          </app-input-select>
+
+
+          <!-- SOBRENOMBRE -->
+
+          <app-input-select formControlName="groupId" label="Sobrenombre" [options]="groupOptions()">
+          </app-input-select>
+
+
+          <!-- ESTADO CLASIFICACIÓN -->
+
+          <app-input-select formControlName="classificationState" label="Estado clasificación"
+            [options]="classificationStateOptions">
+          </app-input-select>
+
+
+          <!-- ESTADO SOBRENOMBRE -->
+
+          <app-input-select formControlName="groupState" label="Estado sobrenombre" [options]="groupStateOptions">
+          </app-input-select>
+
+
+
+          <!-- =====================================================
+         DATOS DEL GASTO
+         ===================================================== -->
+
+          <!-- NOMBRE REGISTRADO -->
+
+          <app-input-field formControlName="registeredName" label="Nombre registrado"
+            placeholder="Concepto original registrado" type="text" [isFilter]="true">
+          </app-input-field>
+
+
+          <!-- ORIGEN -->
+
+          <app-input-select formControlName="origin" label="Origen" [options]="originOptions">
+          </app-input-select>
+
+
+          <!-- TRABAJO EXTRA -->
+
+          <app-input-select formControlName="isExtraWork" label="Trabajo extra" [options]="extraWorkOptions">
+          </app-input-select>
+
+
+          <!-- RANGO DE IMPORTE -->
+
+          <div class="expense-analysis-amount-range">
+
+            <span class="expense-analysis-amount-range__label">
+              Rango de importe
+            </span>
+
+            <div class="expense-analysis-amount-range__controls">
+
+              <app-input-field formControlName="amountMin" type="money" placeholder="Desde" [isFilter]="true">
+              </app-input-field>
+
+              <span class="expense-analysis-amount-range__separator">
+                -
+              </span>
+
+              <app-input-field formControlName="amountMax" type="money" placeholder="Hasta" [isFilter]="true">
+              </app-input-field>
+
+            </div>
+
+          </div>
+
+
+
+          <!-- =====================================================
+         BÚSQUEDA GENERAL
+         ===================================================== -->
+
+          <app-input-field formControlName="search" label="Búsqueda general"
+            placeholder="Folio, proveedor, proyecto, concepto..." type="text" [isFilter]="true">
+          </app-input-field>
+
+
+        </div>
+
+      </form>
+
+
+      <div class="c-form-alert c-form-alert--info expense-analysis-auto-refresh">
+
+        <mat-icon class="c-form-alert__icon">
+          info
+        </mat-icon>
+
+        <div class="c-form-alert__content">
+          El reporte se actualiza automáticamente conforme cambian los filtros.
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         TOTALES
+         ======================================================= -->
+
+    <section class="card-content shadow-md expense-analysis-totals">
+
+      <div class="expense-analysis-total">
+
+        <span>
+          Importe total
+        </span>
+
+        <strong>
+          {{
+          summary().expenseAmount
+          | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="expense-analysis-total">
+
+        <span>
+          Pagado
+        </span>
+
+        <strong>
+          {{
+          summary().paidAmount
+          | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="expense-analysis-total">
+
+        <span>
+          Saldo CxP
+        </span>
+
+        <strong>
+          {{
+          summary().cxpBalance
+          | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+
+      <div class="expense-analysis-total">
+
+        <span>
+          Compromiso O.C.
+        </span>
+
+        <strong>
+          {{
+          summary().purchaseOrderCommitment
+          | currency:'MXN':'symbol':'1.2-2'
+          }}
+        </strong>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         RESULTADOS
+         ======================================================= -->
+
+    <section class="card-content shadow-md expense-analysis-results">
+
+      <!-- =====================================================
+           TABS
+           ===================================================== -->
+
+      <nav class="expense-analysis-tabs">
+
+        <button type="button" class="expense-analysis-tab"
+          [class.expense-analysis-tab--active]="activeTab() === 'summary'" (click)="setActiveTab('summary')">
+
+          Resumen agrupado
+
+        </button>
+
+
+        <button type="button" class="expense-analysis-tab"
+          [class.expense-analysis-tab--active]="activeTab() === 'detail'" (click)="setActiveTab('detail')">
+
+          Detalle
+
+        </button>
+
+      </nav>
+
+
+      <!-- =====================================================
+           RESUMEN AGRUPADO
+           ===================================================== -->
+
+      @if (activeTab() === 'summary') {
+
+      <div class="expense-analysis-breakdown">
+
+        <header class="expense-analysis-breakdown__header">
+
+          <div>
+
+            <h2>
+              Gastos agrupados
+            </h2>
+
+            <p>
+              Explora la información por clasificación, sobrenombre,
+              nombre registrado y transacción.
+            </p>
+
+          </div>
+
+
+          <div class="expense-analysis-breakdown__tools">
+
+            <span class="expense-analysis-count">
+              {{ classificationCount() }}
+              clasificación{{ classificationCount() === 1 ? '' : 'es' }}
+            </span>
+
+
+            <div class="expense-analysis-local-search">
+
+              <input type="text" placeholder="Buscar en resultados..." [value]="breakdownSearch()"
+                (input)="onBreakdownSearch($event)" />
+
+              <mat-icon>
+                search
+              </mat-icon>
+
+            </div>
+
+          </div>
+
+        </header>
+
+
+        <div class="expense-analysis-breakdown-table">
+
+          <div class="
+                expense-analysis-breakdown-row
+                expense-analysis-breakdown-row--header
+              ">
+
+            <div>
+              Concepto
+            </div>
+
+            <div>
+              Importe
+            </div>
+
+            <div>
+              Pagado
+            </div>
+
+            <div>
+              Saldo CxP
+            </div>
+
+            <div>
+              Compromiso O.C.
+            </div>
+
+          </div>
+
+
+          @if (visibleBreakdownRows().length > 0) {
+
+          @for (
+          row of visibleBreakdownRows();
+          track row.node.key
+          ) {
+
+          <div class="expense-analysis-breakdown-row" [class.expense-analysis-breakdown-row--classification]="
+                    row.node.level === 'classification'
+                  " [class.expense-analysis-breakdown-row--group]="
+                    row.node.level === 'group'
+                  " [class.expense-analysis-breakdown-row--registered]="
+                    row.node.level === 'registered_name'
+                  " [class.expense-analysis-breakdown-row--transaction]="
+                    row.node.level === 'transaction'
+                  ">
+
+            <!-- NOMBRE -->
+
+            <div class="expense-analysis-breakdown-name" [style.padding-left.px]="12 + (row.depth * 28)">
+
+              @if (row.node.children?.length) {
+
+              <button type="button" class="expense-analysis-expand" (click)="toggleBreakdownNode(row.node)">
+
+                <mat-icon>
+                  {{
+                  isExpanded(row.node) ||
+                  breakdownSearch()
+                  ? 'keyboard_arrow_down'
+                  : 'keyboard_arrow_right'
+                  }}
+                </mat-icon>
+
+              </button>
+
+              } @else {
+
+              <span class="expense-analysis-expand-placeholder">
+              </span>
+
+              }
+
+
+              <div class="expense-analysis-breakdown-name__content">
+
+                <strong>
+                  {{ row.node.label }}
+                </strong>
+
+
+                @if (
+                row.node.level === 'transaction' &&
+                row.node.transaction
+                ) {
+
+                <small>
+
+                  {{ row.node.transaction.date || 'Sin fecha' }}
+
+                  @if (row.node.transaction.projectName) {
+                  · {{ row.node.transaction.projectName }}
+                  }
+
+                  @if (row.node.transaction.supplierName) {
+                  · {{ row.node.transaction.supplierName }}
+                  }
+
+                </small>
+
+                }
+
+              </div>
+
+            </div>
+
+
+            <!-- IMPORTE -->
+
+            <div class="expense-analysis-money">
+              {{
+              row.node.summary.expenseAmount
+              | currency:'MXN':'symbol':'1.2-2'
+              }}
+            </div>
+
+
+            <!-- PAGADO -->
+
+            <div class="expense-analysis-money">
+              {{
+              row.node.summary.paidAmount
+              | currency:'MXN':'symbol':'1.2-2'
+              }}
+            </div>
+
+
+            <!-- SALDO -->
+
+            <div class="expense-analysis-money">
+              {{
+              row.node.summary.cxpBalance
+              | currency:'MXN':'symbol':'1.2-2'
+              }}
+            </div>
+
+
+            <!-- COMPROMISO -->
+
+            <div class="expense-analysis-money">
+              {{
+              row.node.summary.purchaseOrderCommitment
+              | currency:'MXN':'symbol':'1.2-2'
+              }}
+            </div>
+
+          </div>
+
+          }
+
+          } @else {
+
+          <div class="expense-analysis-empty">
+
+            <strong>
+              Sin resultados
+            </strong>
+
+            <span>
+              No hay información agrupada que coincida con los filtros actuales.
+            </span>
+
+          </div>
+
+          }
+
+        </div>
+
+      </div>
+
+      }
+
+
+      <!-- =====================================================
+           DETALLE
+           ===================================================== -->
+
+      @if (activeTab() === 'detail') {
+
+      <div class="expense-analysis-detail">
+
+        <header class="expense-analysis-detail__header">
+
+          <div>
+
+            <h2>
+              Detalle de movimientos
+            </h2>
+
+            <p>
+              Lista de movimientos que coinciden con los filtros aplicados.
+            </p>
+
+          </div>
+
+
+          <span class="expense-analysis-count">
+            {{ pagination().total }}
+            movimiento{{ pagination().total === 1 ? '' : 's' }}
+          </span>
+
+        </header>
+
+
+        <div class="c-module-table expense-analysis-detail__table">
+
+          <app-data-table [data]="detailRows()" [columnsConfig]="detailColumns"
+            [displayedColumns]="detailDisplayedColumns" [actionPermissions]="tableActionPermissions">
+          </app-data-table>
+
+
+          <mat-paginator [length]="pagination().total" [pageSize]="limit()" [pageIndex]="page() - 1"
+            [pageSizeOptions]="[5, 10, 25, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
+          </mat-paginator>
+
+        </div>
+
+      </div>
+
+      }
+
+    </section>
+
+
+    <!-- =======================================================
+         LOADING
+         ======================================================= -->
+
+    <app-loading-overlay [visible]="loading()" [fullscreen]="true" text="Actualizando análisis de gastos...">
+    </app-loading-overlay>
+
+  </div>
+
+</section>
