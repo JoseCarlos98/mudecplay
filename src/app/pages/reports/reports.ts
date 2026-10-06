@@ -61,6 +61,11 @@ export class Reports {
       'project_all',
     );
 
+  readonly expenseAnalysisInitialized =
+    signal(
+      false,
+    );
+
 
   readonly tabs:
     PageTab[] = [
@@ -111,23 +116,24 @@ export class Reports {
 
 
   onActiveTabChange(
-    nextId:
-      string,
-  ):
-    void {
+    nextId: string,
+  ): void {
 
     if (
-      nextId !==
-        'project_all' &&
-      nextId !==
-        'project_classification' &&
-      nextId !==
-        'expense_analysis'
+      nextId !== 'project_all' &&
+      nextId !== 'project_classification' &&
+      nextId !== 'expense_analysis'
     ) {
-
       return;
     }
 
+    if (
+      nextId === 'expense_analysis'
+    ) {
+      this.expenseAnalysisInitialized.set(
+        true,
+      );
+    }
 
     this.activeSection.set(
       nextId,

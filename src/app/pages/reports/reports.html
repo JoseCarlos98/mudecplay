@@ -32,21 +32,13 @@
   }
 </app-page-tabs> -->
 <app-page-tabs
-
   [title]="'Reportes'"
-
   [description]="
     'Consulta y genera los reportes financieros de los proyectos.'
   "
-
   [tabs]="tabs"
-
   [activeTab]="activeSection()"
-
-  (activeTabChange)="
-    onActiveTabChange($event)
-  ">
-
+  (activeTabChange)="onActiveTabChange($event)">
 
   <!-- =====================================================
        REPORTE FINANCIERO DEL PROYECTO
@@ -84,23 +76,21 @@
        ANÁLISIS DE GASTOS
        ===================================================== -->
 
-  <div
-    [hidden]="
-      activeSection() !==
-      'expense_analysis'
-    ">
+  @if (expenseAnalysisInitialized()) {
 
-@if (
-  activeSection() ===
-  'expense_analysis'
-) {
+    <div
+      [hidden]="
+        activeSection() !==
+        'expense_analysis'
+      ">
 
-  <app-expense-analysis>
-  </app-expense-analysis>
+      <app-expense-analysis>
+      </app-expense-analysis>
 
-}
+    </div>
 
-  </div>
-
+  }
 
 </app-page-tabs>
+
+

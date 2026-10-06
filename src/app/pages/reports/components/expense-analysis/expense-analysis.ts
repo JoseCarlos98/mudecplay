@@ -182,13 +182,13 @@ type ExpenseAnalysisDetailTableRow =
   entity.ExpenseAnalysisRow & {
 
     groupDisplayName:
-      string;
+    string;
 
     sourceDisplayName:
-      string;
+    string;
 
     extraDisplayName:
-      string;
+    string;
   };
 
 
@@ -263,7 +263,7 @@ const DETAIL_COLUMNS:
         ): ColumnVariant => {
 
           switch (
-            row.source
+          row.source
           ) {
 
             case 'purchase_order':
@@ -390,23 +390,23 @@ type ExpenseAnalysisTab =
 interface BreakdownVisibleRow {
 
   node:
-    entity.ExpenseAnalysisBreakdownNode;
+  entity.ExpenseAnalysisBreakdownNode;
 
   depth:
-    number;
+  number;
 }
 
 
 interface ExpenseAnalysisGroupCatalogItem {
 
   id:
-    number;
+  number;
 
   name:
-    string;
+  string;
 
   classificationId:
-    number;
+  number;
 }
 
 
@@ -1000,9 +1000,7 @@ export class ExpenseAnalysis
   // INIT
   // ==========================================================
 
-  ngOnInit():
-    void {
-
+  ngOnInit(): void {
 
     // --------------------------------------------------------
     // Si cambia la clasificación, el grupo seleccionado
@@ -1010,9 +1008,7 @@ export class ExpenseAnalysis
     // --------------------------------------------------------
 
     this.filtersForm
-      .get(
-        'classificationId',
-      )
+      .get('classificationId')
       ?.valueChanges
       .pipe(
         takeUntilDestroyed(
@@ -1023,14 +1019,11 @@ export class ExpenseAnalysis
         () => {
 
           this.filtersForm
-            .get(
-              'groupId',
-            )
+            .get('groupId')
             ?.setValue(
               null,
               {
-                emitEvent:
-                  false,
+                emitEvent: false,
               },
             );
         },
@@ -1038,12 +1031,40 @@ export class ExpenseAnalysis
 
 
     // --------------------------------------------------------
-    // AUTO REFRESH
+    // FILTROS NORMALES
+    //
+    // Importante:
+    // Proyecto, proveedor y producto NO están aquí.
+    // Sus inputs cambian mientras el usuario escribe y no
+    // queremos recargar el reporte por cada letra.
     // --------------------------------------------------------
 
-    const filterChanges$ =
-      this.filtersForm
-        .valueChanges
+    const regularFilterChanges$ =
+      merge(
+
+        this.filtersForm.controls.dateRange.valueChanges,
+
+        this.filtersForm.controls.classificationId.valueChanges,
+
+        this.filtersForm.controls.classificationState.valueChanges,
+
+        this.filtersForm.controls.groupId.valueChanges,
+
+        this.filtersForm.controls.groupState.valueChanges,
+
+        this.filtersForm.controls.registeredName.valueChanges,
+
+        this.filtersForm.controls.amountMin.valueChanges,
+
+        this.filtersForm.controls.amountMax.valueChanges,
+
+        this.filtersForm.controls.origin.valueChanges,
+
+        this.filtersForm.controls.isExtraWork.valueChanges,
+
+        this.filtersForm.controls.search.valueChanges,
+
+      )
         .pipe(
 
           debounceTime(
@@ -1051,17 +1072,12 @@ export class ExpenseAnalysis
           ),
 
           filter(
-            (
-              value,
-            ) => {
+            () => {
 
               const dateRange =
-                value.dateRange;
+                this.filtersForm.controls.dateRange.value;
 
-
-              // Sin filtro de fecha:
-              // puede consultar normalmente.
-
+              // Sin rango de fecha puede consultar normalmente.
               if (
                 !dateRange
               ) {
@@ -1069,22 +1085,18 @@ export class ExpenseAnalysis
                 return true;
               }
 
-
               const hasStart =
                 Boolean(
                   dateRange.startDate,
                 );
-
 
               const hasEnd =
                 Boolean(
                   dateRange.endDate,
                 );
 
-
-              // Si empezó a seleccionar un rango,
-              // esperamos a que estén ambas fechas.
-
+              // Si está seleccionando el rango,
+              // esperamos hasta tener ambas fechas.
               if (
                 hasStart !==
                 hasEnd
@@ -1092,7 +1104,6 @@ export class ExpenseAnalysis
 
                 return false;
               }
-
 
               return true;
             },
@@ -1109,8 +1120,51 @@ export class ExpenseAnalysis
         );
 
 
+    // --------------------------------------------------------
+    // LIMPIEZA DE AUTOCOMPLETES
+    //
+    // clearInput() del autocomplete manda null al FormControl.
+    // Es el único cambio del autocomplete que escuchamos aquí.
+    //
+    // Al escribir manda string -> se ignora.
+    // Al seleccionar -> se atiende mediante optionSelected.
+    // --------------------------------------------------------
+
+    const autocompleteClearChanges$ =
+      merge(
+
+        this.filtersForm.controls.projectId.valueChanges,
+
+        this.filtersForm.controls.supplierId.valueChanges,
+
+        this.filtersForm.controls.productId.valueChanges,
+
+      )
+        .pipe(
+
+          filter(
+            value =>
+              value === null,
+          ),
+
+          tap(
+            () => {
+
+              this.page.set(
+                1,
+              );
+            },
+          ),
+        );
+
+
+    // --------------------------------------------------------
+    // RECARGA DEL REPORTE
+    // --------------------------------------------------------
+
     merge(
-      filterChanges$,
+      regularFilterChanges$,
+      autocompleteClearChanges$,
       this.reload$,
     )
       .pipe(
@@ -1131,6 +1185,15 @@ export class ExpenseAnalysis
 
     this.loadData();
   }
+
+  onAutocompleteSelected(): void {
+
+  this.page.set(
+    1,
+  );
+
+  this.reload$.next();
+}
 
 
   // ==========================================================
@@ -1781,7 +1844,7 @@ export class ExpenseAnalysis
     string {
 
     switch (
-      source
+    source
     ) {
 
       case 'direct':
