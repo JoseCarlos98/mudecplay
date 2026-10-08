@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-
 import {
   Component,
   DestroyRef,
@@ -114,7 +113,6 @@ const CLASSIFICATION_STATE_OPTIONS:
     },
   ];
 
-
 const GROUP_STATE_OPTIONS:
   Catalog[] = [
     {
@@ -130,7 +128,6 @@ const GROUP_STATE_OPTIONS:
       name: 'Sin asignar',
     },
   ];
-
 
 const ORIGIN_OPTIONS:
   Catalog[] = [
@@ -156,7 +153,6 @@ const ORIGIN_OPTIONS:
     },
   ];
 
-
 const EXTRA_WORK_OPTIONS:
   Catalog[] = [
     {
@@ -180,82 +176,42 @@ const EXTRA_WORK_OPTIONS:
 
 type ExpenseAnalysisDetailTableRow =
   entity.ExpenseAnalysisRow & {
-
-    groupDisplayName:
-      string;
-
-    sourceDisplayName:
-      string;
-
-    extraDisplayName:
-      string;
+    groupDisplayName: string;
+    sourceDisplayName: string;
+    extraDisplayName: string;
   };
-
 
 const DETAIL_COLUMNS:
   ColumnsConfig[] = [
-
     {
-      key:
-        'date',
-
-      label:
-        'Fecha',
-
-      type:
-        'date',
+      key: 'date',
+      label: 'Fecha',
+      type: 'date',
     },
-
     {
-      key:
-        'projectName',
-
-      label:
-        'Proyecto',
+      key: 'projectName',
+      label: 'Proyecto',
     },
-
     {
-      key:
-        'supplierName',
-
-      label:
-        'Proveedor',
+      key: 'supplierName',
+      label: 'Proveedor',
     },
-
     {
-      key:
-        'classificationName',
-
-      label:
-        'Clasificación',
+      key: 'classificationName',
+      label: 'Clasificación',
     },
-
     {
-      key:
-        'groupDisplayName',
-
-      label:
-        'Sobrenombre',
+      key: 'groupDisplayName',
+      label: 'Sobrenombre',
     },
-
     {
-      key:
-        'registeredName',
-
-      label:
-        'Nombre registrado',
+      key: 'registeredName',
+      label: 'Nombre registrado',
     },
-
     {
-      key:
-        'sourceDisplayName',
-
-      label:
-        'Origen',
-
-      type:
-        'chip',
-
+      key: 'sourceDisplayName',
+      label: 'Origen',
+      type: 'chip',
       variantResolver:
         (
           row:
@@ -280,81 +236,38 @@ const DETAIL_COLUMNS:
           }
         },
     },
-
     {
-      key:
-        'folio',
-
-      label:
-        'Folio',
+      key: 'folio',
+      label: 'Folio',
     },
-
     {
-      key:
-        'expenseAmount',
-
-      label:
-        'Importe',
-
-      type:
-        'money',
-
-      align:
-        'right',
+      key: 'expenseAmount',
+      label: 'Importe',
+      type: 'money',
+      align: 'right',
     },
-
     {
-      key:
-        'paidAmount',
-
-      label:
-        'Pagado',
-
-      type:
-        'money',
-
-      align:
-        'right',
+      key: 'paidAmount',
+      label: 'Pagado',
+      type: 'money',
+      align: 'right',
     },
-
     {
-      key:
-        'cxpBalance',
-
-      label:
-        'Saldo CxP',
-
-      type:
-        'money',
-
-      align:
-        'right',
+      key: 'cxpBalance',
+      label: 'Saldo CxP',
+      type: 'money',
+      align: 'right',
     },
-
     {
-      key:
-        'purchaseOrderCommitment',
-
-      label:
-        'Compromiso O.C.',
-
-      type:
-        'money',
-
-      align:
-        'right',
+      key: 'purchaseOrderCommitment',
+      label: 'Compromiso O.C.',
+      type: 'money',
+      align: 'right',
     },
-
     {
-      key:
-        'extraDisplayName',
-
-      label:
-        'Extra',
-
-      type:
-        'chip',
-
+      key: 'extraDisplayName',
+      label: 'Extra',
+      type: 'chip',
       variantResolver:
         (
           row:
@@ -365,7 +278,6 @@ const DETAIL_COLUMNS:
             : 'chip-neutral',
     },
   ];
-
 
 const DETAIL_DISPLAYED_COLUMNS =
   DETAIL_COLUMNS.map(
@@ -384,9 +296,7 @@ type ExpenseAnalysisTab =
   | 'summary'
   | 'detail';
 
-
 interface BreakdownVisibleRow {
-
   node:
     entity.ExpenseAnalysisBreakdownNode;
 
@@ -394,9 +304,7 @@ interface BreakdownVisibleRow {
     number;
 }
 
-
 interface ExpenseAnalysisGroupCatalogItem {
-
   id:
     number;
 
@@ -407,19 +315,15 @@ interface ExpenseAnalysisGroupCatalogItem {
     number;
 }
 
-
 const EXPENSE_ANALYSIS_STATE_KEY =
   'mudecplay.reports.expense-analysis.state.v1';
-
 
 type ExpenseAnalysisAutocompleteControl =
   | 'projectId'
   | 'supplierId'
   | 'productId';
 
-
 interface ExpenseAnalysisStoredFilters {
-
   dateRange:
     DateRangeValue | null;
 
@@ -478,9 +382,7 @@ interface ExpenseAnalysisStoredFilters {
     string | null;
 }
 
-
 interface ExpenseAnalysisStoredState {
-
   filters:
     ExpenseAnalysisStoredFilters;
 
@@ -530,7 +432,6 @@ interface ExpenseAnalysisStoredState {
 export class ExpenseAnalysis
   implements OnInit {
 
-
   // ==========================================================
   // INYECCIONES
   // ==========================================================
@@ -540,18 +441,15 @@ export class ExpenseAnalysis
       ExpenseClassificationsService,
     );
 
-
   private readonly service =
     inject(
       ExpenseAnalysisService,
     );
 
-
   private readonly fb =
     inject(
       FormBuilder,
     );
-
 
   private readonly destroyRef =
     inject(
@@ -566,29 +464,22 @@ export class ExpenseAnalysis
   readonly classificationStateOptions =
     CLASSIFICATION_STATE_OPTIONS;
 
-
   readonly groupStateOptions =
     GROUP_STATE_OPTIONS;
-
 
   readonly originOptions =
     ORIGIN_OPTIONS;
 
-
   readonly extraWorkOptions =
     EXTRA_WORK_OPTIONS;
-
 
   readonly detailColumns =
     DETAIL_COLUMNS;
 
-
   readonly detailDisplayedColumns =
     DETAIL_DISPLAYED_COLUMNS;
 
-
   readonly tableActionPermissions = {
-
     showEdit:
       false,
 
@@ -608,18 +499,15 @@ export class ExpenseAnalysis
       'summary',
     );
 
-
   readonly loading =
     signal(
       false,
     );
 
-
   readonly exporting =
     signal(
       false,
     );
-
 
   readonly breakdownSearch =
     signal(
@@ -635,7 +523,6 @@ export class ExpenseAnalysis
     signal(
       1,
     );
-
 
   readonly limit =
     signal(
@@ -654,7 +541,6 @@ export class ExpenseAnalysis
     >(
       null,
     );
-
 
   readonly summary =
     computed(
@@ -680,7 +566,6 @@ export class ExpenseAnalysis
       },
     );
 
-
   readonly breakdown =
     computed(
       () =>
@@ -688,7 +573,6 @@ export class ExpenseAnalysis
           ?.breakdown ??
         [],
     );
-
 
   readonly detailRows =
     computed<
@@ -711,7 +595,6 @@ export class ExpenseAnalysis
           );
       },
     );
-
 
   readonly pagination =
     computed(
@@ -736,7 +619,6 @@ export class ExpenseAnalysis
         );
       },
     );
-
 
   readonly classificationCount =
     computed(
@@ -764,14 +646,12 @@ export class ExpenseAnalysis
       [],
     );
 
-
   readonly groupCatalog =
     signal<
       ExpenseAnalysisGroupCatalogItem[]
     >(
       [],
     );
-
 
   readonly groupOptions =
     computed<
@@ -787,7 +667,6 @@ export class ExpenseAnalysis
               )
               ?.value,
           );
-
 
         return this
           .groupCatalog()
@@ -827,7 +706,6 @@ export class ExpenseAnalysis
       >(),
     );
 
-
   readonly filteredBreakdown =
     computed(
       () => {
@@ -837,7 +715,6 @@ export class ExpenseAnalysis
             this.breakdownSearch(),
           );
 
-
         if (
           !search
         ) {
@@ -845,14 +722,12 @@ export class ExpenseAnalysis
           return this.breakdown();
         }
 
-
         return this.filterBreakdownNodes(
           this.breakdown(),
           search,
         );
       },
     );
-
 
   readonly visibleBreakdownRows =
     computed<
@@ -864,14 +739,12 @@ export class ExpenseAnalysis
           BreakdownVisibleRow[] =
           [];
 
-
         const searchActive =
           Boolean(
             this.normalizeText(
               this.breakdownSearch(),
             ),
           );
-
 
         const walk =
           (
@@ -892,7 +765,6 @@ export class ExpenseAnalysis
                 depth,
               });
 
-
               const shouldShowChildren =
                 searchActive ||
                 this
@@ -900,7 +772,6 @@ export class ExpenseAnalysis
                   .has(
                     node.key,
                   );
-
 
               if (
                 shouldShowChildren &&
@@ -915,12 +786,10 @@ export class ExpenseAnalysis
             }
           };
 
-
         walk(
           this.filteredBreakdown(),
           0,
         );
-
 
         return rows;
       },
@@ -941,7 +810,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       projectId:
         this.fb.control<
           Catalog
@@ -951,7 +819,6 @@ export class ExpenseAnalysis
         >(
           null,
         ),
-
 
       supplierId:
         this.fb.control<
@@ -963,7 +830,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       productId:
         this.fb.control<
           Catalog
@@ -973,7 +839,6 @@ export class ExpenseAnalysis
         >(
           null,
         ),
-
 
       classificationId:
         this.fb.control<
@@ -985,7 +850,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       classificationState:
         this.fb.control<
           entity.ExpenseAnalysisClassificationState
@@ -993,7 +857,6 @@ export class ExpenseAnalysis
         >(
           '',
         ),
-
 
       groupId:
         this.fb.control<
@@ -1005,7 +868,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       groupState:
         this.fb.control<
           entity.ExpenseAnalysisGroupState
@@ -1014,7 +876,6 @@ export class ExpenseAnalysis
           '',
         ),
 
-
       registeredName:
         this.fb.control<
           string
@@ -1022,7 +883,6 @@ export class ExpenseAnalysis
         >(
           null,
         ),
-
 
       amountMin:
         this.fb.control<
@@ -1033,7 +893,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       amountMax:
         this.fb.control<
           number
@@ -1043,7 +902,6 @@ export class ExpenseAnalysis
           null,
         ),
 
-
       origin:
         this.fb.control<
           entity.ExpenseAnalysisOrigin
@@ -1051,7 +909,6 @@ export class ExpenseAnalysis
         >(
           '',
         ),
-
 
       isExtraWork:
         this.fb.control<
@@ -1061,7 +918,6 @@ export class ExpenseAnalysis
         >(
           '',
         ),
-
 
       search:
         this.fb.control<
@@ -1080,6 +936,9 @@ export class ExpenseAnalysis
   private readonly reload$ =
     new Subject<void>();
 
+  private lastRegularFilterSignature =
+    '';
+
 
   // ==========================================================
   // INIT
@@ -1090,6 +949,9 @@ export class ExpenseAnalysis
 
     this.restoreState();
 
+    // Estado efectivo inicial de los filtros.
+    // Evita que un blur sin cambios reales vuelva a consultar.
+    this.syncRegularFilterSignature();
 
     this.filtersForm
       .get(
@@ -1118,7 +980,6 @@ export class ExpenseAnalysis
         },
       );
 
-
     this.watchAutocompleteControl(
       'projectId',
     );
@@ -1130,7 +991,6 @@ export class ExpenseAnalysis
     this.watchAutocompleteControl(
       'productId',
     );
-
 
     const regularFilterChanges$ =
       merge(
@@ -1161,7 +1021,7 @@ export class ExpenseAnalysis
         .pipe(
 
           debounceTime(
-            350,
+            500,
           ),
 
           filter(
@@ -1173,7 +1033,6 @@ export class ExpenseAnalysis
                   .dateRange
                   .value;
 
-
               if (
                 !dateRange
               ) {
@@ -1181,18 +1040,15 @@ export class ExpenseAnalysis
                 return true;
               }
 
-
               const hasStart =
                 Boolean(
                   dateRange.startDate,
                 );
 
-
               const hasEnd =
                 Boolean(
                   dateRange.endDate,
                 );
-
 
               if (
                 hasStart !==
@@ -1202,9 +1058,16 @@ export class ExpenseAnalysis
                 return false;
               }
 
-
               return true;
             },
+          ),
+
+          // Comparamos el payload efectivo de filtros.
+          // Si el input emite lo mismo al perder el foco,
+          // no se vuelve a consultar el backend.
+          filter(
+            () =>
+              this.hasRegularFiltersChanged(),
           ),
 
           tap(
@@ -1214,12 +1077,10 @@ export class ExpenseAnalysis
                 1,
               );
 
-
               this.saveState();
             },
           ),
         );
-
 
     merge(
       regularFilterChanges$,
@@ -1236,7 +1097,6 @@ export class ExpenseAnalysis
           this.loadData();
         },
       );
-
 
     this.loadClassificationCatalog();
 
@@ -1261,8 +1121,8 @@ export class ExpenseAnalysis
 
     this.filtersForm
       .controls[
-        control
-      ]
+      control
+    ]
       .setValue(
         option,
         {
@@ -1271,11 +1131,11 @@ export class ExpenseAnalysis
         },
       );
 
-
     this.page.set(
       1,
     );
 
+    this.syncRegularFilterSignature();
 
     this.saveState();
 
@@ -1293,7 +1153,6 @@ export class ExpenseAnalysis
     const value =
       this.filtersForm
         .getRawValue();
-
 
     return Boolean(
 
@@ -1347,7 +1206,6 @@ export class ExpenseAnalysis
     this.activeTab.set(
       tab,
     );
-
 
     this.saveState();
   }
@@ -1410,26 +1268,21 @@ export class ExpenseAnalysis
       },
     );
 
-
     this.page.set(
       1,
     );
-
 
     this.limit.set(
       10,
     );
 
-
     this.activeTab.set(
       'summary',
     );
 
-
     this.breakdownSearch.set(
       '',
     );
-
 
     this
       .expandedBreakdownKeys
@@ -1439,6 +1292,7 @@ export class ExpenseAnalysis
         >(),
       );
 
+    this.syncRegularFilterSignature();
 
     this.removeStoredState();
 
@@ -1458,8 +1312,8 @@ export class ExpenseAnalysis
 
     this.filtersForm
       .controls[
-        control
-      ]
+      control
+    ]
       .valueChanges
       .pipe(
         takeUntilDestroyed(
@@ -1486,7 +1340,6 @@ export class ExpenseAnalysis
             return;
           }
 
-
           /*
            * Cuando presiona la X del autocomplete,
            * el componente manda null.
@@ -1502,6 +1355,7 @@ export class ExpenseAnalysis
               1,
             );
 
+            this.syncRegularFilterSignature();
 
             this.saveState();
 
@@ -1510,7 +1364,6 @@ export class ExpenseAnalysis
         },
       );
   }
-
 
   private saveState():
     void {
@@ -1521,7 +1374,6 @@ export class ExpenseAnalysis
         this.filtersForm
           .getRawValue();
 
-
       const state:
         ExpenseAnalysisStoredState = {
 
@@ -1530,7 +1382,6 @@ export class ExpenseAnalysis
           dateRange:
             value.dateRange ??
             null,
-
 
           /*
            * Solo persistimos autocompletes cuando realmente
@@ -1554,70 +1405,56 @@ export class ExpenseAnalysis
               value.productId,
             ),
 
-
           classificationId:
             value.classificationId ??
             null,
-
 
           classificationState:
             value.classificationState ??
             '',
 
-
           groupId:
             value.groupId ??
             null,
-
 
           groupState:
             value.groupState ??
             '',
 
-
           registeredName:
             value.registeredName ??
             null,
-
 
           amountMin:
             value.amountMin ??
             null,
 
-
           amountMax:
             value.amountMax ??
             null,
-
 
           origin:
             value.origin ??
             '',
 
-
           isExtraWork:
             value.isExtraWork ??
             '',
-
 
           search:
             value.search ??
             null,
         },
 
-
         activeTab:
           this.activeTab(),
-
 
         page:
           this.page(),
 
-
         limit:
           this.limit(),
       };
-
 
       localStorage.setItem(
         EXPENSE_ANALYSIS_STATE_KEY,
@@ -1637,7 +1474,6 @@ export class ExpenseAnalysis
     }
   }
 
-
   private restoreState():
     void {
 
@@ -1648,7 +1484,6 @@ export class ExpenseAnalysis
           EXPENSE_ANALYSIS_STATE_KEY,
         );
 
-
       if (
         !raw
       ) {
@@ -1656,15 +1491,13 @@ export class ExpenseAnalysis
         return;
       }
 
-
       const state =
         JSON.parse(
           raw,
         ) as
-          Partial<
-            ExpenseAnalysisStoredState
-          >;
-
+        Partial<
+          ExpenseAnalysisStoredState
+        >;
 
       if (
         !state.filters
@@ -1675,81 +1508,65 @@ export class ExpenseAnalysis
         return;
       }
 
-
       const filters =
         state.filters;
 
-
       this.filtersForm.patchValue(
         {
-
           dateRange:
             filters.dateRange ??
             null,
-
 
           projectId:
             this.normalizeStoredCatalog(
               filters.projectId,
             ),
 
-
           supplierId:
             this.normalizeStoredCatalog(
               filters.supplierId,
             ),
-
 
           productId:
             this.normalizeStoredCatalog(
               filters.productId,
             ),
 
-
           classificationId:
             filters.classificationId ??
             null,
-
 
           classificationState:
             filters.classificationState ??
             '',
 
-
           groupId:
             filters.groupId ??
             null,
-
 
           groupState:
             filters.groupState ??
             '',
 
-
           registeredName:
             filters.registeredName ??
             null,
-
 
           amountMin:
             filters.amountMin ??
             null,
 
-
           amountMax:
             filters.amountMax ??
             null,
-
 
           origin:
             filters.origin ??
             '',
 
-
           isExtraWork:
             filters.isExtraWork ??
             '',
-
 
           search:
             filters.search ??
@@ -1761,13 +1578,11 @@ export class ExpenseAnalysis
         },
       );
 
-
       const restoredPage =
         Number(
           state.page ??
           1,
         );
-
 
       const restoredLimit =
         Number(
@@ -1775,34 +1590,31 @@ export class ExpenseAnalysis
           10,
         );
 
-
       this.page.set(
 
         Number.isInteger(
           restoredPage,
         ) &&
-        restoredPage >
-        0
+          restoredPage >
+          0
 
           ? restoredPage
 
           : 1,
       );
 
-
       this.limit.set(
 
         Number.isInteger(
           restoredLimit,
         ) &&
-        restoredLimit >
-        0
+          restoredLimit >
+          0
 
           ? restoredLimit
 
           : 10,
       );
-
 
       this.activeTab.set(
 
@@ -1823,11 +1635,9 @@ export class ExpenseAnalysis
         error,
       );
 
-
       this.removeStoredState();
     }
   }
-
 
   private removeStoredState():
     void {
@@ -1849,7 +1659,6 @@ export class ExpenseAnalysis
     }
   }
 
-
   private getCatalogForStorage(
     value:
       unknown,
@@ -1860,7 +1669,6 @@ export class ExpenseAnalysis
       value,
     );
   }
-
 
   private normalizeStoredCatalog(
     value:
@@ -1877,20 +1685,17 @@ export class ExpenseAnalysis
       return null;
     }
 
-
     const catalog =
       value as
-        Partial<
-          Catalog
-        >;
-
+      Partial<
+        Catalog
+      >;
 
     const validId =
       typeof catalog.id ===
       'number' ||
       typeof catalog.id ===
       'string';
-
 
     if (
       !validId ||
@@ -1901,11 +1706,10 @@ export class ExpenseAnalysis
       return null;
     }
 
-
     return {
       id:
         catalog.id as
-          string | number,
+        string | number,
 
       name:
         catalog.name,
@@ -1923,11 +1727,9 @@ export class ExpenseAnalysis
     const filters =
       this.buildBackendFilters();
 
-
     this.loading.set(
       true,
     );
-
 
     this.service
       .getExpenseAnalysisData(
@@ -1945,11 +1747,9 @@ export class ExpenseAnalysis
               error,
             );
 
-
             return EMPTY;
           },
         ),
-
 
         finalize(
           () => {
@@ -1959,7 +1759,6 @@ export class ExpenseAnalysis
             );
           },
         ),
-
 
         takeUntilDestroyed(
           this.destroyRef,
@@ -1973,7 +1772,6 @@ export class ExpenseAnalysis
           this.response.set(
             response,
           );
-
 
           this.mergeBreakdownCatalogs(
             response.breakdown,
@@ -1994,30 +1792,25 @@ export class ExpenseAnalysis
       this.filtersForm
         .getRawValue();
 
-
     const startDate =
       toApiDate(
         value.dateRange?.startDate,
       );
-
 
     const endDate =
       toApiDate(
         value.dateRange?.endDate,
       );
 
-
     const amountMin =
       this.toNullableNumber(
         value.amountMin,
       );
 
-
     const amountMax =
       this.toNullableNumber(
         value.amountMax,
       );
-
 
     return {
 
@@ -2025,11 +1818,9 @@ export class ExpenseAnalysis
         startDate ??
         undefined,
 
-
       endDate:
         endDate ??
         undefined,
-
 
       projectId:
         this.getNumberId(
@@ -2037,13 +1828,11 @@ export class ExpenseAnalysis
         ) ??
         undefined,
 
-
       supplierId:
         this.getNumberId(
           value.supplierId,
         ) ??
         undefined,
-
 
       productId:
         this.getNumberId(
@@ -2051,18 +1840,15 @@ export class ExpenseAnalysis
         ) ??
         undefined,
 
-
       classificationId:
         this.getNumberId(
           value.classificationId,
         ) ??
         undefined,
 
-
       classificationState:
         value.classificationState ||
         undefined,
-
 
       groupId:
         this.getNumberId(
@@ -2070,32 +1856,26 @@ export class ExpenseAnalysis
         ) ??
         undefined,
 
-
       groupState:
         value.groupState ||
         undefined,
 
-
       registeredName:
-        value.registeredName
-          ?.trim() ||
-        undefined,
-
+        this.normalizeFilterText(
+          value.registeredName,
+        ),
 
       amountMin:
         amountMin ??
         undefined,
 
-
       amountMax:
         amountMax ??
         undefined,
 
-
       origin:
         value.origin ||
         undefined,
-
 
       isExtraWork:
         value.isExtraWork ===
@@ -2110,16 +1890,13 @@ export class ExpenseAnalysis
 
             : undefined,
 
-
       search:
-        value.search
-          ?.trim() ||
-        undefined,
-
+        this.normalizeFilterText(
+          value.search,
+        ),
 
       page:
         this.page(),
-
 
       limit:
         this.limit(),
@@ -2142,11 +1919,9 @@ export class ExpenseAnalysis
       1,
     );
 
-
     this.limit.set(
       event.pageSize,
     );
-
 
     this.saveState();
 
@@ -2168,15 +1943,12 @@ export class ExpenseAnalysis
       return;
     }
 
-
     const filters =
       this.buildBackendFilters();
-
 
     this.exporting.set(
       true,
     );
-
 
     this.service
       .exportExpenseAnalysisExcel(
@@ -2192,7 +1964,6 @@ export class ExpenseAnalysis
             );
           },
         ),
-
 
         takeUntilDestroyed(
           this.destroyRef,
@@ -2210,37 +1981,30 @@ export class ExpenseAnalysis
                 blob,
               );
 
-
             const link =
               document.createElement(
                 'a',
               );
 
-
             link.href =
               url;
 
-
             link.download =
               `analisis-gastos-${this.getFileDate()}.xlsx`;
-
 
             document.body
               .appendChild(
                 link,
               );
 
-
             link.click();
 
             link.remove();
-
 
             URL.revokeObjectURL(
               url,
             );
           },
-
 
         error:
           (
@@ -2270,7 +2034,6 @@ export class ExpenseAnalysis
       event.target as
       HTMLInputElement;
 
-
     this.breakdownSearch.set(
       input.value ??
       '',
@@ -2296,7 +2059,6 @@ export class ExpenseAnalysis
       return;
     }
 
-
     this.expandedBreakdownKeys
       .update(
         (
@@ -2307,7 +2069,6 @@ export class ExpenseAnalysis
             new Set(
               current,
             );
-
 
           if (
             next.has(
@@ -2326,12 +2087,10 @@ export class ExpenseAnalysis
             );
           }
 
-
           return next;
         },
       );
   }
-
 
   isExpanded(
     node:
@@ -2358,31 +2117,25 @@ export class ExpenseAnalysis
     ExpenseAnalysisDetailTableRow {
 
     return {
-
       ...row,
-
 
       projectName:
         row.projectName ??
         'Sin proyecto',
 
-
       supplierName:
         row.supplierName ??
         'Sin proveedor',
-
 
       groupDisplayName:
         this.getGroupDisplayName(
           row,
         ),
 
-
       sourceDisplayName:
         this.getOriginLabel(
           row.source,
         ),
-
 
       extraDisplayName:
         row.isExtraWork
@@ -2390,7 +2143,6 @@ export class ExpenseAnalysis
           : 'No',
     };
   }
-
 
   private getGroupDisplayName(
     row:
@@ -2409,10 +2161,8 @@ export class ExpenseAnalysis
       );
     }
 
-
     return '—';
   }
-
 
   private getOriginLabel(
     source:
@@ -2428,21 +2178,17 @@ export class ExpenseAnalysis
 
         return 'Gasto directo';
 
-
       case 'warehouse':
 
         return 'Almacén';
-
 
       case 'purchase_order':
 
         return 'Orden de compra';
 
-
       case 'labor':
 
         return 'Mano de obra';
-
 
       default:
 
@@ -2467,7 +2213,6 @@ export class ExpenseAnalysis
         string
       >();
 
-
     for (
       const item
       of this.classificationOptions()
@@ -2477,7 +2222,6 @@ export class ExpenseAnalysis
         Number(
           item.id,
         );
-
 
       if (
         Number.isInteger(
@@ -2492,13 +2236,11 @@ export class ExpenseAnalysis
       }
     }
 
-
     const groups =
       new Map<
         number,
         ExpenseAnalysisGroupCatalogItem
       >();
-
 
     for (
       const item
@@ -2510,7 +2252,6 @@ export class ExpenseAnalysis
         item,
       );
     }
-
 
     const walk =
       (
@@ -2538,7 +2279,6 @@ export class ExpenseAnalysis
             );
           }
 
-
           if (
             node.level ===
             'group' &&
@@ -2563,7 +2303,6 @@ export class ExpenseAnalysis
             );
           }
 
-
           if (
             node.children
               ?.length
@@ -2576,11 +2315,9 @@ export class ExpenseAnalysis
         }
       };
 
-
     walk(
       nodes,
     );
-
 
     this.classificationOptions
       .set(
@@ -2615,7 +2352,6 @@ export class ExpenseAnalysis
               ),
           ),
       );
-
 
     this.groupCatalog.set(
 
@@ -2657,7 +2393,6 @@ export class ExpenseAnalysis
       entity.ExpenseAnalysisBreakdownNode[] =
       [];
 
-
     for (
       const node
       of nodes
@@ -2670,7 +2405,6 @@ export class ExpenseAnalysis
           search,
         );
 
-
       const ownMatch =
         this.normalizeText(
           node.label,
@@ -2679,10 +2413,8 @@ export class ExpenseAnalysis
             search,
           );
 
-
       const transaction =
         node.transaction;
-
 
       const transactionMatch =
         transaction
@@ -2707,7 +2439,6 @@ export class ExpenseAnalysis
             )
           : false;
 
-
       if (
         ownMatch ||
         transactionMatch ||
@@ -2721,7 +2452,6 @@ export class ExpenseAnalysis
       }
     }
 
-
     return result;
   }
 
@@ -2729,6 +2459,69 @@ export class ExpenseAnalysis
   // ==========================================================
   // HELPERS
   // ==========================================================
+
+  private hasRegularFiltersChanged():
+    boolean {
+
+    const signature =
+      this.buildRegularFilterSignature();
+
+    if (
+      signature ===
+      this.lastRegularFilterSignature
+    ) {
+
+      return false;
+    }
+
+    this.lastRegularFilterSignature =
+      signature;
+
+    return true;
+  }
+
+  private syncRegularFilterSignature():
+    void {
+
+    this.lastRegularFilterSignature =
+      this.buildRegularFilterSignature();
+  }
+
+  private buildRegularFilterSignature():
+    string {
+
+    const {
+      page: _page,
+      limit: _limit,
+      ...filters
+    } =
+      this.buildBackendFilters();
+
+    return JSON.stringify(
+      filters,
+    );
+  }
+
+  private normalizeFilterText(
+    value:
+      unknown,
+  ):
+    string | undefined {
+
+    const normalized =
+      String(
+        value ??
+        '',
+      )
+        .replace(
+          /\s+/g,
+          ' ',
+        )
+        .trim();
+
+    return normalized ||
+      undefined;
+  }
 
   private getNumberId(
     value:
@@ -2743,7 +2536,6 @@ export class ExpenseAnalysis
         ),
       );
 
-
     if (
       !id ||
       Number.isNaN(
@@ -2754,10 +2546,8 @@ export class ExpenseAnalysis
       return null;
     }
 
-
     return id;
   }
-
 
   private toNullableNumber(
     value:
@@ -2777,7 +2567,6 @@ export class ExpenseAnalysis
       return null;
     }
 
-
     const normalized =
       String(
         value,
@@ -2792,12 +2581,10 @@ export class ExpenseAnalysis
         )
         .trim();
 
-
     const numberValue =
       Number(
         normalized,
       );
-
 
     return Number.isFinite(
       numberValue,
@@ -2805,7 +2592,6 @@ export class ExpenseAnalysis
       ? numberValue
       : null;
   }
-
 
   private normalizeText(
     value:
@@ -2832,17 +2618,14 @@ export class ExpenseAnalysis
       .toLowerCase();
   }
 
-
   private getFileDate():
     string {
 
     const now =
       new Date();
 
-
     const year =
       now.getFullYear();
-
 
     const month =
       String(
@@ -2854,7 +2637,6 @@ export class ExpenseAnalysis
           '0',
         );
 
-
     const day =
       String(
         now.getDate(),
@@ -2863,7 +2645,6 @@ export class ExpenseAnalysis
           2,
           '0',
         );
-
 
     return `${year}-${month}-${day}`;
   }
@@ -2893,11 +2674,9 @@ export class ExpenseAnalysis
               error,
             );
 
-
             return EMPTY;
           },
         ),
-
 
         takeUntilDestroyed(
           this.destroyRef,
@@ -2915,7 +2694,6 @@ export class ExpenseAnalysis
                 (
                   classification,
                 ) => ({
-
                   id:
                     classification.id,
 
@@ -2942,7 +2720,6 @@ export class ExpenseAnalysis
       );
   }
 
-
   private loadGroupCatalog():
     void {
 
@@ -2963,16 +2740,13 @@ export class ExpenseAnalysis
               error,
             );
 
-
             this.groupCatalog.set(
               [],
             );
 
-
             return EMPTY;
           },
         ),
-
 
         takeUntilDestroyed(
           this.destroyRef,
@@ -2990,7 +2764,6 @@ export class ExpenseAnalysis
                 (
                   group,
                 ) => ({
-
                   id:
                     group.id,
 
