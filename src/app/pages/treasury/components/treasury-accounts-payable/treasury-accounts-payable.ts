@@ -763,9 +763,21 @@ export class TreasuryAccountsPayable
   readonly pendingReconciliationMode =
     signal<PendingReconciliationMode>('purchase_orders');
 
-  /** Selección de conceptos por O.C.: independiente del pago tradicional. */
+  /** Selección bancaria por O.C., independiente de la modalidad tradicional. */
   readonly selectedPurchaseOrderItems =
     signal<TreasuryPendingPurchaseOrderSelection[]>([]);
+
+  /** Preparación de pago en efectivo por O.C.; no registra pagos por sí misma. */
+  readonly selectedPurchaseOrderCashItems =
+    signal<TreasuryPendingPurchaseOrderSelection[]>([]);
+
+  /** Impide marcar para O.C. un concepto usado en la selección tradicional. */
+  readonly unavailablePurchaseOrderItemIds = computed(() => [
+    ...new Set([
+      ...this.selectedExpenseItems().keys(),
+      ...this.selectedCashExpenseItems().keys(),
+    ]),
+  ]);
 
   readonly historicalPendingPaymentColumns =
     HISTORICAL_PENDING_PAYMENT_COLUMNS;
@@ -3173,6 +3185,7 @@ export class TreasuryAccountsPayable
     this.removeCashExpenseItemSelection(
       row.expense_item_id,
     );
+    this.releasePurchaseOrderSelections(row.expense_item_id);
 
     this.selectedExpenseItems
       .update(
@@ -3345,6 +3358,7 @@ export class TreasuryAccountsPayable
           this.removeCashExpenseItemSelection(
             row.expense_item_id,
           );
+          this.releasePurchaseOrderSelections(row.expense_item_id);
 
           /*
            * Por seguridad elimina cualquier selección
@@ -3855,102 +3869,102 @@ export class TreasuryAccountsPayable
       });
   }
 
-  private restoreHistoricalFilters(
-    regularizationStatus:
-      entity.TreasuryHistoricalRegularizationStatus,
-  ): void {
-    const storageKey =
-      this.getHistoricalFiltersStorageKey(
-        regularizationStatus,
-      );
+private restoreHistoricalFilters(
+  regularizationStatus:
+    entity.TreasuryHistoricalRegularizationStatus,
+): void {
+  const storageKey =
+    this.getHistoricalFiltersStorageKey(
+      regularizationStatus,
+    );
 
-    const saved =
-      this.storage.getItem<
-        entity.TreasuryHistoricalPaymentUiFilters
-      >(
-        storageKey,
-      );
+  const saved =
+    this.storage.getItem<
+      entity.TreasuryHistoricalPaymentUiFilters
+    >(
+      storageKey,
+    );
 
-    const dateRange =
-      this.normalizeDateRange(
-        saved?.dateRange,
-      );
+  const dateRange =
+    this.normalizeDateRange(
+      saved?.dateRange,
+    );
 
-    this.historicalSorts = [
-      ...(saved?.sorts ?? []),
-    ];
+  this.historicalSorts = [
+    ...(saved?.sorts ?? []),
+  ];
 
-    const uiState:
-      entity.TreasuryHistoricalPaymentUiFilters = {
-      dateRange,
+  const uiState:
+    entity.TreasuryHistoricalPaymentUiFilters = {
+    dateRange,
+
+    search:
+      saved?.search ?? '',
+
+    supplier_id:
+      saved?.supplier_id ?? null,
+
+    project_id:
+      saved?.project_id ?? null,
+
+    /*
+     * La pestaña determina obligatoriamente
+     * el estado histórico.
+     */
+    regularization_status:
+      regularizationStatus,
+
+    regularization_type:
+      saved?.regularization_type ?? '',
+
+    missing_payment_date:
+      saved?.missing_payment_date ?? '',
+
+    sorts: [
+      ...this.historicalSorts,
+    ],
+
+    page:
+      saved?.page ?? 1,
+
+    limit:
+      saved?.limit ??
+      DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+  };
+
+  this.historicalFilterForm.reset(
+    {
+      dateRange:
+        uiState.dateRange,
 
       search:
-        saved?.search ?? '',
+        uiState.search,
 
       supplier_id:
-        saved?.supplier_id ?? null,
+        uiState.supplier_id,
 
       project_id:
-        saved?.project_id ?? null,
+        uiState.project_id,
 
-      /*
-       * La pestaña determina obligatoriamente
-       * el estado histórico.
-       */
       regularization_status:
         regularizationStatus,
 
       regularization_type:
-        saved?.regularization_type ?? '',
+        uiState.regularization_type,
 
       missing_payment_date:
-        saved?.missing_payment_date ?? '',
+        uiState.missing_payment_date,
+    },
+    {
+      emitEvent: false,
+    },
+  );
 
-      sorts: [
-        ...this.historicalSorts,
-      ],
-
-      page:
-        saved?.page ?? 1,
-
-      limit:
-        saved?.limit ??
-        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
-    };
-
-    this.historicalFilterForm.reset(
-      {
-        dateRange:
-          uiState.dateRange,
-
-        search:
-          uiState.search,
-
-        supplier_id:
-          uiState.supplier_id,
-
-        project_id:
-          uiState.project_id,
-
-        regularization_status:
-          regularizationStatus,
-
-        regularization_type:
-          uiState.regularization_type,
-
-        missing_payment_date:
-          uiState.missing_payment_date,
-      },
-      {
-        emitEvent: false,
-      },
+  this.historicalFilters =
+    this.buildHistoricalBackendFiltersFromUi(
+      uiState,
     );
-
-    this.historicalFilters =
-      this.buildHistoricalBackendFiltersFromUi(
-        uiState,
-      );
-  }
+}
 
   private saveOutflowFiltersToStorage(
     state?: entity.TreasuryAvailableOutflowUiFilters,
@@ -4542,7 +4556,39 @@ export class TreasuryAccountsPayable
   onPurchaseOrderSelectionChange(
     selections: TreasuryPendingPurchaseOrderSelection[],
   ): void {
-    this.selectedPurchaseOrderItems.set(selections);
+    const blocked = new Set([
+      ...this.selectedExpenseItems().keys(),
+      ...this.selectedCashExpenseItems().keys(),
+      ...this.selectedPurchaseOrderCashItems().map((entry) => entry.item.expense_item_id),
+    ]);
+    this.selectedPurchaseOrderItems.set(selections.filter((entry) =>
+      entry.item.is_selectable && Number(entry.item.pending_amount) > 0 &&
+      !blocked.has(entry.item.expense_item_id),
+    ));
+  }
+
+  onPurchaseOrderCashSelectionChange(
+    selections: TreasuryPendingPurchaseOrderSelection[],
+  ): void {
+    const blocked = new Set([
+      ...this.selectedExpenseItems().keys(),
+      ...this.selectedCashExpenseItems().keys(),
+      ...this.selectedPurchaseOrderItems().map((entry) => entry.item.expense_item_id),
+    ]);
+    this.selectedPurchaseOrderCashItems.set(selections.filter((entry) =>
+      entry.item.is_selectable && Number(entry.item.pending_amount) > 0 &&
+      !blocked.has(entry.item.expense_item_id),
+    ).slice(0, 200));
+  }
+
+  /** Al seleccionar un concepto en la modalidad tradicional, elimina la intención de O.C. */
+  private releasePurchaseOrderSelections(expenseItemId: number): void {
+    this.selectedPurchaseOrderItems.update((current) =>
+      current.filter((entry) => entry.item.expense_item_id !== expenseItemId),
+    );
+    this.selectedPurchaseOrderCashItems.update((current) =>
+      current.filter((entry) => entry.item.expense_item_id !== expenseItemId),
+    );
   }
 
   setPendingWorkspaceView(
@@ -4632,6 +4678,11 @@ export class TreasuryAccountsPayable
       return;
     }
 
+    // La selección tradicional de efectivo prevalece sobre la intención de O.C.
+    if (!isSelected) {
+      this.releasePurchaseOrderSelections(expenseItemId);
+    }
+
     this.selectedCashExpenseItems
       .update(
         (
@@ -4709,7 +4760,13 @@ export class TreasuryAccountsPayable
               this.selectedExpenseItems()
                 .has(
                   expenseItemId,
-                )
+                ) ||
+              this.selectedPurchaseOrderItems().some(
+                (entry) => entry.item.expense_item_id === expenseItemId,
+              ) ||
+              this.selectedPurchaseOrderCashItems().some(
+                (entry) => entry.item.expense_item_id === expenseItemId,
+              )
             ) {
               continue;
             }
