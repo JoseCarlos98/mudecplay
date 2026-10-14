@@ -2,7 +2,7 @@
   <header class="treasury-pending-purchase-orders__header">
     <div>
       <h2>Órdenes de compra pendientes</h2>
-      <p>Consulta los conceptos vinculados y su estado de pago.</p>
+      <p>Selecciona una O.C. completa o únicamente sus conceptos pendientes.</p>
     </div>
 
     <div class="treasury-pending-purchase-orders__balance">
@@ -12,6 +12,20 @@
       </strong>
     </div>
   </header>
+
+  <div class="treasury-pending-purchase-orders__selection-summary" aria-live="polite">
+    <div>
+      <strong>{{ selectedItemsCount() }} concepto(s) seleccionado(s)</strong>
+      <span>
+        Saldo de la selección:
+        {{ selectedPendingAmount() | currency:'MXN':'symbol':'1.2-2' }}
+      </span>
+      <small>Preparación de selección; todavía no aplica pagos bancarios.</small>
+    </div>
+    @if (selectedItemsCount() > 0) {
+      <button type="button" (click)="clearSelection()">Limpiar selección</button>
+    }
+  </div>
 
   @if (loading()) {
     <p class="treasury-pending-purchase-orders__message" role="status">
@@ -33,6 +47,9 @@
       <table class="treasury-pending-purchase-orders__table">
         <thead>
           <tr>
+            <th scope="col" class="treasury-pending-purchase-orders__check-cell">
+              <span class="treasury-pending-purchase-orders__sr-only">Seleccionar orden</span>
+            </th>
             <th scope="col">O.C.</th>
             <th scope="col">Fecha</th>
             <th scope="col">Proyecto</th>
@@ -44,6 +61,16 @@
         @for (order of tableData().data; track order.purchase_order_id) {
           <tbody>
             <tr>
+              <td class="treasury-pending-purchase-orders__check-cell">
+                <input
+                  type="checkbox"
+                  [attr.aria-label]="'Seleccionar conceptos pendientes de ' + order.folio"
+                  [checked]="isOrderSelected(order)"
+                  [indeterminate]="isOrderPartiallySelected(order)"
+                  [disabled]="getSelectableItems(order).length === 0"
+                  (change)="onOrderSelectionChange(order, $event)"
+                />
+              </td>
               <td>
                 <button
                   class="treasury-pending-purchase-orders__expand"
@@ -62,6 +89,11 @@
               <td>
                 {{ order.pending_items_count }} pendiente(s)
                 · {{ order.paid_items_count }} pagado(s)
+                @if (getSelectedOrderItemsCount(order) > 0) {
+                  <span class="treasury-pending-purchase-orders__selected-count">
+                    {{ getSelectedOrderItemsCount(order) }} seleccionado(s)
+                  </span>
+                }
               </td>
               <td class="treasury-pending-purchase-orders__numeric">
                 {{ order.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
@@ -70,11 +102,14 @@
 
             @if (expandedOrderId() === order.purchase_order_id) {
               <tr class="treasury-pending-purchase-orders__detail-row">
-                <td colspan="5">
+                <td colspan="6">
                   <div class="treasury-pending-purchase-orders__detail-wrapper">
                     <table class="treasury-pending-purchase-orders__detail-table">
                       <thead>
                         <tr>
+                          <th scope="col" class="treasury-pending-purchase-orders__check-cell">
+                            <span class="treasury-pending-purchase-orders__sr-only">Seleccionar concepto</span>
+                          </th>
                           <th scope="col">Concepto</th>
                           <th scope="col">Gasto</th>
                           <th scope="col" class="treasury-pending-purchase-orders__numeric">Original</th>
@@ -86,6 +121,16 @@
                       <tbody>
                         @for (item of order.items; track item.expense_item_id) {
                           <tr [class.treasury-pending-purchase-orders__paid]="!item.is_selectable">
+                            <td class="treasury-pending-purchase-orders__check-cell">
+                              <input
+                                type="checkbox"
+                                [attr.aria-label]="'Seleccionar concepto ' + item.expense_item_id + ' de ' + order.folio"
+                                [checked]="isItemSelected(item.expense_item_id)"
+                                [disabled]="!item.is_selectable || item.pending_amount <= 0"
+                                [attr.title]="item.is_selectable ? 'Seleccionar saldo pendiente' : 'Concepto liquidado; solo lectura'"
+                                (change)="onItemSelectionChange(order, item, $event)"
+                              />
+                            </td>
                             <td>{{ item.product_name || item.concept || 'Sin concepto' }}</td>
                             <td>{{ item.internal_folio }}</td>
                             <td class="treasury-pending-purchase-orders__numeric">
