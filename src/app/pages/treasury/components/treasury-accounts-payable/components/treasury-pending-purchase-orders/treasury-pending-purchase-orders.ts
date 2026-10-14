@@ -7,6 +7,7 @@ import {
   inject,
   OnInit,
   output,
+  input,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -45,14 +46,24 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   readonly loadError = signal(false);
   readonly expandedOrderId = signal<number | null>(null);
 
+  /** Recibe el movimiento seleccionado del panel izquierdo. */
+  readonly bankMovement = input<entity.TreasuryAvailableOutflowTableRow | null>(null);
+
   /**
-   * Selección LOCAL por ID de concepto; no registra pagos.
-   * Se reutilizará desde el padre en el siguiente paso.
-   * Evita sumar dos veces un concepto si aparece en más de una O.C.
+   * El padre conserva la selección entre páginas y cambios de modalidad.
+   * Una partida figura una sola vez, aunque esté vinculada a varias O.C.
    */
-  readonly selectedItems = signal<
-    ReadonlyMap<number, TreasuryPendingPurchaseOrderSelection>
-  >(new Map<number, TreasuryPendingPurchaseOrderSelection>());
+  readonly selectedSelections = input<TreasuryPendingPurchaseOrderSelection[]>([]);
+  readonly selectedItems = computed(() =>
+    new Map<number, TreasuryPendingPurchaseOrderSelection>(
+      this.selectedSelections().map(
+        (selection): [number, TreasuryPendingPurchaseOrderSelection] => [
+          selection.item.expense_item_id,
+          selection,
+        ],
+      ),
+    ),
+  );
 
   readonly selectionChange = output<TreasuryPendingPurchaseOrderSelection[]>();
 
@@ -66,6 +77,40 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       ),
     ),
   );
+
+  /** Comparación informativa; NO representa aún un pago aplicado. */
+  readonly movementAvailable = computed(() =>
+    Math.max(roundMoney(Number(this.bankMovement()?.available_amount ?? 0)), 0),
+  );
+  readonly bankCoverageDifference = computed(() =>
+    roundMoney(this.movementAvailable() - this.selectedPendingAmount()),
+  );
+  readonly bankShortfall = computed(() =>
+    Math.max(-this.bankCoverageDifference(), 0),
+  );
+  readonly bankSurplus = computed(() =>
+    Math.max(this.bankCoverageDifference(), 0),
+  );
+  readonly maximumPossibleAbono = computed(() =>
+    Math.min(this.movementAvailable(), this.selectedPendingAmount()),
+  );
+  readonly canFullyCoverSelection = computed(() =>
+    this.bankMovement() !== null &&
+    this.selectedItemsCount() > 0 &&
+    this.bankShortfall() === 0,
+  );
+
+  /** Número de conceptos seleccionados que no están visibles en la página actual. */
+  readonly selectionsOnOtherPages = computed(() => {
+    const currentIds = new Set(
+      this.tableData().data.flatMap((order) =>
+        order.items.map((item) => item.expense_item_id),
+      ),
+    );
+    return Array.from(this.selectedItems().keys()).filter(
+      (id) => !currentIds.has(id),
+    ).length;
+  });
 
   readonly filters = signal<entity.TreasuryPendingPurchaseOrderFilters>({
     page: 1,
@@ -100,9 +145,8 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   }
 
   loadPendingPurchaseOrders(): void {
-    // Tras una recarga, se evita conservar saldos que pudieron cambiar.
-    this.clearSelection();
-
+    // La selección se conserva entre páginas. Al volver a una página,
+    // se sincronizan o quitan conceptos cuyo saldo cambió.
     const requestSequence = ++this.requestSequence;
     const filters = { ...this.filters() };
 
@@ -126,6 +170,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
           }
 
           this.tableData.set(response);
+          this.reconcileVisibleSelections(response);
           this.expandedOrderId.set(null);
         },
         error: (error: unknown) => {
@@ -241,8 +286,49 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   private updateSelection(
     selection: Map<number, TreasuryPendingPurchaseOrderSelection>,
   ): void {
-    this.selectedItems.set(selection);
     this.selectionChange.emit(Array.from(selection.values()));
+  }
+
+  /**
+   * Revalida SOLO los conceptos de las O.C. devueltas en la página actual.
+   * Los de otras páginas permanecen seleccionados hasta volver a consultarlos.
+   * Antes de aplicar pagos, el backend debe comprobar otra vez los saldos.
+   */
+  private reconcileVisibleSelections(
+    response: entity.TreasuryPendingPurchaseOrdersResponse,
+  ): void {
+    if (this.selectedItems().size === 0) return;
+
+    const next = new Map(this.selectedItems());
+    let changed = false;
+
+    for (const order of response.data) {
+      for (const item of order.items) {
+        const current = next.get(item.expense_item_id);
+        if (!current) continue;
+
+        if (!item.is_selectable || Number(item.pending_amount) <= 0) {
+          next.delete(item.expense_item_id);
+          changed = true;
+          continue;
+        }
+
+        if (
+          current.item.pending_amount !== item.pending_amount ||
+          current.item.paid_amount !== item.paid_amount ||
+          current.item.amount !== item.amount
+        ) {
+          next.set(item.expense_item_id, {
+            purchase_order_id: order.purchase_order_id,
+            folio: order.folio,
+            item,
+          });
+          changed = true;
+        }
+      }
+    }
+
+    if (changed) this.updateSelection(next);
   }
 
   onPageChange(event: PageEvent): void {

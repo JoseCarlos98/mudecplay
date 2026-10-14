@@ -84,7 +84,7 @@ import { PermissionsService } from '../../../../auth/services/permissions.servic
 import { ModalAccountsPayableClassification } from './components/modal-accounts-payable-classification.ts/modal-accounts-payable-classification';
 import { ModalAccountsPayableBulkClassification } from './components/modal-accounts-payable-bulk-classification/modal-accounts-payable-bulk-classification';
 import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
-import { TreasuryPendingPurchaseOrders } from './components/treasury-pending-purchase-orders/treasury-pending-purchase-orders';
+import { TreasuryPendingPurchaseOrders, TreasuryPendingPurchaseOrderSelection } from './components/treasury-pending-purchase-orders/treasury-pending-purchase-orders';
 
 // =========================================================
 // STORAGE
@@ -762,6 +762,10 @@ export class TreasuryAccountsPayable
   // Modalidad mostrada únicamente en el panel derecho.
   readonly pendingReconciliationMode =
     signal<PendingReconciliationMode>('purchase_orders');
+
+  /** Selección de conceptos por O.C.: independiente del pago tradicional. */
+  readonly selectedPurchaseOrderItems =
+    signal<TreasuryPendingPurchaseOrderSelection[]>([]);
 
   readonly historicalPendingPaymentColumns =
     HISTORICAL_PENDING_PAYMENT_COLUMNS;
@@ -3851,102 +3855,102 @@ export class TreasuryAccountsPayable
       });
   }
 
-private restoreHistoricalFilters(
-  regularizationStatus:
-    entity.TreasuryHistoricalRegularizationStatus,
-): void {
-  const storageKey =
-    this.getHistoricalFiltersStorageKey(
-      regularizationStatus,
-    );
+  private restoreHistoricalFilters(
+    regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus,
+  ): void {
+    const storageKey =
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      );
 
-  const saved =
-    this.storage.getItem<
-      entity.TreasuryHistoricalPaymentUiFilters
-    >(
-      storageKey,
-    );
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryHistoricalPaymentUiFilters
+      >(
+        storageKey,
+      );
 
-  const dateRange =
-    this.normalizeDateRange(
-      saved?.dateRange,
-    );
+    const dateRange =
+      this.normalizeDateRange(
+        saved?.dateRange,
+      );
 
-  this.historicalSorts = [
-    ...(saved?.sorts ?? []),
-  ];
+    this.historicalSorts = [
+      ...(saved?.sorts ?? []),
+    ];
 
-  const uiState:
-    entity.TreasuryHistoricalPaymentUiFilters = {
-    dateRange,
-
-    search:
-      saved?.search ?? '',
-
-    supplier_id:
-      saved?.supplier_id ?? null,
-
-    project_id:
-      saved?.project_id ?? null,
-
-    /*
-     * La pestaña determina obligatoriamente
-     * el estado histórico.
-     */
-    regularization_status:
-      regularizationStatus,
-
-    regularization_type:
-      saved?.regularization_type ?? '',
-
-    missing_payment_date:
-      saved?.missing_payment_date ?? '',
-
-    sorts: [
-      ...this.historicalSorts,
-    ],
-
-    page:
-      saved?.page ?? 1,
-
-    limit:
-      saved?.limit ??
-      DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
-  };
-
-  this.historicalFilterForm.reset(
-    {
-      dateRange:
-        uiState.dateRange,
+    const uiState:
+      entity.TreasuryHistoricalPaymentUiFilters = {
+      dateRange,
 
       search:
-        uiState.search,
+        saved?.search ?? '',
 
       supplier_id:
-        uiState.supplier_id,
+        saved?.supplier_id ?? null,
 
       project_id:
-        uiState.project_id,
+        saved?.project_id ?? null,
 
+      /*
+       * La pestaña determina obligatoriamente
+       * el estado histórico.
+       */
       regularization_status:
         regularizationStatus,
 
       regularization_type:
-        uiState.regularization_type,
+        saved?.regularization_type ?? '',
 
       missing_payment_date:
-        uiState.missing_payment_date,
-    },
-    {
-      emitEvent: false,
-    },
-  );
+        saved?.missing_payment_date ?? '',
 
-  this.historicalFilters =
-    this.buildHistoricalBackendFiltersFromUi(
-      uiState,
+      sorts: [
+        ...this.historicalSorts,
+      ],
+
+      page:
+        saved?.page ?? 1,
+
+      limit:
+        saved?.limit ??
+        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+    };
+
+    this.historicalFilterForm.reset(
+      {
+        dateRange:
+          uiState.dateRange,
+
+        search:
+          uiState.search,
+
+        supplier_id:
+          uiState.supplier_id,
+
+        project_id:
+          uiState.project_id,
+
+        regularization_status:
+          regularizationStatus,
+
+        regularization_type:
+          uiState.regularization_type,
+
+        missing_payment_date:
+          uiState.missing_payment_date,
+      },
+      {
+        emitEvent: false,
+      },
     );
-}
+
+    this.historicalFilters =
+      this.buildHistoricalBackendFiltersFromUi(
+        uiState,
+      );
+  }
 
   private saveOutflowFiltersToStorage(
     state?: entity.TreasuryAvailableOutflowUiFilters,
@@ -4532,6 +4536,13 @@ private restoreHistoricalFilters(
     mode: PendingReconciliationMode,
   ): void {
     this.pendingReconciliationMode.set(mode);
+  }
+
+  /** El padre conserva la selección aunque el hijo se destruya al cambiar de pestaña. */
+  onPurchaseOrderSelectionChange(
+    selections: TreasuryPendingPurchaseOrderSelection[],
+  ): void {
+    this.selectedPurchaseOrderItems.set(selections);
   }
 
   setPendingWorkspaceView(
