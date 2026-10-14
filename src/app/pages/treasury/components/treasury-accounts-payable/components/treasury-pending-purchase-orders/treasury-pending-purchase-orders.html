@@ -1,0 +1,134 @@
+<section class="treasury-pending-purchase-orders">
+  <header class="treasury-pending-purchase-orders__header">
+    <div>
+      <h2>Órdenes de compra pendientes</h2>
+      <p>Consulta los conceptos vinculados y su estado de pago.</p>
+    </div>
+
+    <div class="treasury-pending-purchase-orders__balance">
+      <span>Saldo pendiente</span>
+      <strong>
+        {{ tableData().summary.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
+      </strong>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="treasury-pending-purchase-orders__message" role="status">
+      Cargando órdenes de compra...
+    </p>
+  } @else if (loadError()) {
+    <div class="treasury-pending-purchase-orders__message" role="alert">
+      <p>No fue posible consultar las órdenes de compra.</p>
+      <button type="button" (click)="loadPendingPurchaseOrders()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (tableData().data.length === 0) {
+    <p class="treasury-pending-purchase-orders__message">
+      No se encontraron órdenes de compra con saldo pendiente.
+    </p>
+  } @else {
+    <div class="treasury-pending-purchase-orders__table-wrapper">
+      <table class="treasury-pending-purchase-orders__table">
+        <thead>
+          <tr>
+            <th scope="col">O.C.</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Proyecto</th>
+            <th scope="col">Conceptos</th>
+            <th scope="col" class="treasury-pending-purchase-orders__numeric">Pendiente</th>
+          </tr>
+        </thead>
+
+        @for (order of tableData().data; track order.purchase_order_id) {
+          <tbody>
+            <tr>
+              <td>
+                <button
+                  class="treasury-pending-purchase-orders__expand"
+                  type="button"
+                  (click)="toggleOrder(order.purchase_order_id)"
+                  [attr.aria-expanded]="expandedOrderId() === order.purchase_order_id"
+                >
+                  <mat-icon aria-hidden="true">
+                    {{ expandedOrderId() === order.purchase_order_id ? 'expand_more' : 'chevron_right' }}
+                  </mat-icon>
+                  {{ order.folio }}
+                </button>
+              </td>
+              <td>{{ order.created_at | date:'dd/MM/yyyy' }}</td>
+              <td>{{ order.project?.name || 'Sin proyecto' }}</td>
+              <td>
+                {{ order.pending_items_count }} pendiente(s)
+                · {{ order.paid_items_count }} pagado(s)
+              </td>
+              <td class="treasury-pending-purchase-orders__numeric">
+                {{ order.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
+              </td>
+            </tr>
+
+            @if (expandedOrderId() === order.purchase_order_id) {
+              <tr class="treasury-pending-purchase-orders__detail-row">
+                <td colspan="5">
+                  <div class="treasury-pending-purchase-orders__detail-wrapper">
+                    <table class="treasury-pending-purchase-orders__detail-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">Concepto</th>
+                          <th scope="col">Gasto</th>
+                          <th scope="col" class="treasury-pending-purchase-orders__numeric">Original</th>
+                          <th scope="col" class="treasury-pending-purchase-orders__numeric">Abonado</th>
+                          <th scope="col" class="treasury-pending-purchase-orders__numeric">Pendiente</th>
+                          <th scope="col">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @for (item of order.items; track item.expense_item_id) {
+                          <tr [class.treasury-pending-purchase-orders__paid]="!item.is_selectable">
+                            <td>{{ item.product_name || item.concept || 'Sin concepto' }}</td>
+                            <td>{{ item.internal_folio }}</td>
+                            <td class="treasury-pending-purchase-orders__numeric">
+                              {{ item.amount | currency:'MXN':'symbol':'1.2-2' }}
+                            </td>
+                            <td class="treasury-pending-purchase-orders__numeric">
+                              {{ item.paid_amount | currency:'MXN':'symbol':'1.2-2' }}
+                            </td>
+                            <td class="treasury-pending-purchase-orders__numeric">
+                              {{ item.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
+                            </td>
+                            <td>
+                              <span
+                                class="treasury-pending-purchase-orders__status"
+                                [class.treasury-pending-purchase-orders__status--paid]="item.payment_status === 'paid'"
+                                [class.treasury-pending-purchase-orders__status--partial]="item.payment_status === 'partial'"
+                              >
+                                @if (!item.is_selectable) {
+                                  <mat-icon aria-hidden="true">lock</mat-icon>
+                                }
+                                {{ getPaymentStatusLabel(item.payment_status) }}
+                              </span>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        }
+      </table>
+    </div>
+
+    <mat-paginator
+      [length]="tableData().meta.total"
+      [pageSize]="filters().limit"
+      [pageIndex]="filters().page - 1"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
+  }
+</section>

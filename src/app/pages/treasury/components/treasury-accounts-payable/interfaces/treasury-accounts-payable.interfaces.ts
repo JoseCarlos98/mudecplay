@@ -18,6 +18,7 @@ export interface TreasuryAccountsPayableSortItem {
 }
 
 
+
 // =========================================================
 // REFERENCIAS BÁSICAS
 // =========================================================
@@ -1936,4 +1937,98 @@ export interface TreasuryConfirmBankMovementsClassificationResponse {
 
   movements:
   TreasuryConfirmedBankMovement[];
+}
+
+
+// =========================================================
+// CUENTAS POR PAGAR: ÓRDENES DE COMPRA PENDIENTES
+// =========================================================
+
+export type TreasuryPendingPurchaseOrderPaymentStatus =
+  | 'unpaid'
+  | 'partial'
+  | 'paid'
+  | 'no_amount';
+
+export interface TreasuryPendingPurchaseOrderFilters {
+  supplier_id?: number | null;
+  supplier_ids?: number[];
+
+  project_id?: number | null;
+
+  date_from?: string | null;
+  date_to?: string | null;
+
+  amount?: number | null;
+  search?: string;
+
+  sorts?: TreasuryAccountsPayableSortItem[];
+
+  page: number;
+  limit: number;
+}
+
+export interface TreasuryPendingPurchaseOrderItem {
+  expense_item_id: number;
+  expense_id: number;
+
+  internal_folio: string;
+  expense_date: string;
+
+  concept: string | null;
+  item_type: TreasuryPendingExpenseItemType;
+  product_name: string | null;
+
+  amount: number;
+  paid_amount: number;
+  pending_amount: number;
+
+  payment_status: TreasuryPendingPurchaseOrderPaymentStatus;
+  payment_progress_percentage: number;
+  is_selectable: boolean;
+
+  supplier: Omit<
+    TreasuryAccountsPayableSupplierReference,
+    'display_name'
+  >;
+  project: TreasuryAccountsPayableProjectReference | null;
+}
+
+export interface TreasuryPendingPurchaseOrder {
+  purchase_order_id: number;
+  folio: string;
+  status: string;
+  concept: string | null;
+
+  requested_amount: number;
+  created_at: string;
+
+  project: TreasuryAccountsPayableProjectReference | null;
+
+  items_count: number;
+  pending_items_count: number;
+  paid_items_count: number;
+
+  original_amount: number;
+  paid_amount: number;
+  pending_amount: number;
+
+  items: TreasuryPendingPurchaseOrderItem[];
+}
+
+export interface TreasuryPendingPurchaseOrdersSummary {
+  orders_count: number;
+  items_count: number;
+  pending_items_count: number;
+  paid_items_count: number;
+
+  original_amount: number;
+  paid_amount: number;
+  pending_amount: number;
+}
+
+export interface TreasuryPendingPurchaseOrdersResponse {
+  data: TreasuryPendingPurchaseOrder[];
+  summary: TreasuryPendingPurchaseOrdersSummary;
+  meta: TreasuryPaginationMeta;
 }
