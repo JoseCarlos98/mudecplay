@@ -84,6 +84,7 @@ import { PermissionsService } from '../../../../auth/services/permissions.servic
 import { ModalAccountsPayableClassification } from './components/modal-accounts-payable-classification.ts/modal-accounts-payable-classification';
 import { ModalAccountsPayableBulkClassification } from './components/modal-accounts-payable-bulk-classification/modal-accounts-payable-bulk-classification';
 import { SearchMultiSelect } from '../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
+import { TreasuryPendingPurchaseOrders } from './components/treasury-pending-purchase-orders/treasury-pending-purchase-orders';
 
 // =========================================================
 // STORAGE
@@ -681,6 +682,10 @@ type PendingWorkspaceView =
   | 'current'
   | 'historical';
 
+type PendingReconciliationMode =
+  | 'purchase_orders'
+  | 'expense_items';
+
 @Component({
   selector: 'app-treasury-accounts-payable',
   standalone: true,
@@ -696,6 +701,7 @@ type PendingWorkspaceView =
     BtnsSection,
     LoadingOverlay,
     SearchMultiSelect,
+    TreasuryPendingPurchaseOrders,
     MatPaginatorModule,
     MatIconModule,
     MatButtonModule,
@@ -752,6 +758,10 @@ export class TreasuryAccountsPayable
     signal<PendingWorkspaceView>(
       'current',
     );
+
+  // Modalidad mostrada únicamente en el panel derecho.
+  readonly pendingReconciliationMode =
+    signal<PendingReconciliationMode>('purchase_orders');
 
   readonly historicalPendingPaymentColumns =
     HISTORICAL_PENDING_PAYMENT_COLUMNS;
@@ -4516,6 +4526,12 @@ private restoreHistoricalFilters(
           this.loadAvailableOutflows();
         },
       );
+  }
+
+  setPendingReconciliationMode(
+    mode: PendingReconciliationMode,
+  ): void {
+    this.pendingReconciliationMode.set(mode);
   }
 
   setPendingWorkspaceView(
