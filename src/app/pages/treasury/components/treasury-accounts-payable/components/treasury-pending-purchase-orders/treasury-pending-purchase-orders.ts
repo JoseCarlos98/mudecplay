@@ -15,6 +15,8 @@ import { DateRangeValue, InputDate } from '../../../../../../shared/ui/input-dat
 import { InputField } from '../../../../../../shared/ui/input-field/input-field';
 import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
 import { BtnsSection } from '../../../../../../shared/ui/btns-section/btns-section';
+import { DataTable } from '../../../../../../shared/ui/data-table/data-table';
+import { ColumnsConfig, DataTableSortEvent } from '../../../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { Catalog } from '../../../../../../shared/interfaces/general-interfaces';
 import { LocalStorageService } from '../../../../../../shared/services/local-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -36,6 +38,20 @@ export interface TreasuryPendingPurchaseOrderSelection {
 type SelectionMode = 'bank' | 'cash';
 const PURCHASE_ORDER_FILTERS_KEY = 'mp_treasury_accounts_payable_purchase_orders_v1';
 
+const ORDER_COLUMNS: ColumnsConfig[] = [
+  { key: 'bank_check', label: 'Banco', align: 'center' },
+  { key: 'cash_check', label: 'Efectivo', align: 'center' },
+  { key: 'folio', label: 'O.C.', sortable: true, sortKey: 'folio' },
+  { key: 'created_at', label: 'Fecha', sortable: true, sortKey: 'created_at' },
+  { key: 'project', label: 'Proyecto' },
+  { key: 'concepts_count', label: 'Conceptos' },
+  { key: 'pending_amount', label: 'Pendiente', align: 'right', sortable: true, sortKey: 'pending_amount' },
+];
+const ORDER_DISPLAYED_COLUMNS = ORDER_COLUMNS.map((column) => column.key);
+const DEFAULT_ORDER_SORTS: entity.TreasuryAccountsPayableSortItem[] = [
+  { key: 'created_at', direction: 'desc' },
+];
+
 interface StoredPurchaseOrderUiFilters {
   dateRange: DateRangeValue | null;
   search: string;
@@ -46,6 +62,7 @@ interface StoredPurchaseOrderUiFilters {
   project_id?: Catalog | number | string | null;
   page: number;
   limit: number;
+  sorts?: entity.TreasuryAccountsPayableSortItem[];
 }
 
 @Component({
@@ -60,6 +77,7 @@ interface StoredPurchaseOrderUiFilters {
     InputField,
     SearchMultiSelect,
     BtnsSection,
+    DataTable,
   ],
   templateUrl: './treasury-pending-purchase-orders.html',
   styleUrl: './treasury-pending-purchase-orders.scss',
@@ -89,7 +107,9 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
 
   readonly loading = signal(false);
   readonly loadError = signal(false);
-  readonly expandedOrderId = signal<number | null>(null);
+  readonly orderColumns = ORDER_COLUMNS;
+  readonly orderDisplayedColumns = ORDER_DISPLAYED_COLUMNS;
+  readonly orderRowKey = (row: entity.TreasuryPendingPurchaseOrder) => row.purchase_order_id;
   readonly filterError = signal<string | null>(null);
 
   // Mismo contrato de filtros UI compartidos que la modalidad tradicional.
@@ -111,7 +131,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
     project_ids: [],
     date_from: null,
     date_to: null,
-    sorts: [{ key: 'created_at', direction: 'desc' }],
+    sorts: [...DEFAULT_ORDER_SORTS],
   });
 
   readonly tableData = signal<entity.TreasuryPendingPurchaseOrdersResponse>({
@@ -198,7 +218,8 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       value.search?.trim() ||
       amount !== null ||
       (value.suppliersIds?.length ?? 0) > 0 ||
-      (value.projectIds?.length ?? 0) > 0,
+      (value.projectIds?.length ?? 0) > 0 ||
+      JSON.stringify(this.filters().sorts ?? []) !== JSON.stringify(DEFAULT_ORDER_SORTS),
     );
   }
 
@@ -236,7 +257,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       project_ids: [...new Set(projectIds)],
       date_from: ui.dateRange?.startDate ?? null,
       date_to: ui.dateRange?.endDate ?? null,
-      sorts: [{ key: 'created_at', direction: 'desc' }],
+      sorts: [...(this.filters().sorts ?? DEFAULT_ORDER_SORTS)],
     };
   }
 
@@ -250,6 +271,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       projectIds: ui.projectIds ?? [],
       page: this.filters().page,
       limit: this.filters().limit,
+      sorts: [...(this.filters().sorts ?? [])],
     };
     this.storage.setItem(PURCHASE_ORDER_FILTERS_KEY, saved);
   }
@@ -282,10 +304,13 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
 
     const page = Number(saved.page);
     const limit = Number(saved.limit);
-    this.filters.set(this.buildFiltersFromUi(
-      Number.isInteger(page) && page > 0 ? page : 1,
-      [2, 5, 10, 25, 50].includes(limit) ? limit : 10,
-    ));
+    this.filters.set({
+      ...this.buildFiltersFromUi(
+        Number.isInteger(page) && page > 0 ? page : 1,
+        [2, 5, 10, 25, 50].includes(limit) ? limit : 10,
+      ),
+      sorts: Array.isArray(saved.sorts) ? [...saved.sorts] : [...DEFAULT_ORDER_SORTS],
+    });
   }
 
   loadPendingPurchaseOrders(): void {
@@ -303,7 +328,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
           if (requestSequence !== this.requestSequence) return;
           this.tableData.set(response);
           this.reconcileVisibleSelections(response);
-          this.expandedOrderId.set(null);
+          // DataTable conserva la expansión por purchase_order_id cuando sigue visible.
         },
         error: (error: unknown) => {
           if (requestSequence !== this.requestSequence) return;
@@ -355,13 +380,15 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       suppliersIds: [],
       projectIds: [],
     }, { emitEvent: false });
-    this.filters.set(this.buildFiltersFromUi());
+    this.filters.set({ ...this.buildFiltersFromUi(), sorts: [...DEFAULT_ORDER_SORTS] });
     this.storage.removeItem(PURCHASE_ORDER_FILTERS_KEY);
     this.loadPendingPurchaseOrders();
   }
 
-  toggleOrder(orderId: number): void {
-    this.expandedOrderId.update((current) => current === orderId ? null : orderId);
+  onOrderSortChange(event: DataTableSortEvent): void {
+    this.filters.update((current) => ({ ...current, page: 1, sorts: [...event.sorts] }));
+    this.saveFilters();
+    this.loadPendingPurchaseOrders();
   }
 
   getSelectableItems(order: entity.TreasuryPendingPurchaseOrder): entity.TreasuryPendingPurchaseOrderItem[] {

@@ -93,60 +93,43 @@
   <p class="treasury-pending-purchase-orders__message">No hay órdenes de compra que coincidan con los filtros.</p>
   } @else {
   <div class="treasury-pending-purchase-orders__table-wrapper">
-    <table class="treasury-pending-purchase-orders__table">
-      <thead>
-        <tr>
-          <th class="treasury-pending-purchase-orders__check-cell" scope="col" title="Conciliación bancaria">Banco</th>
-          <th class="treasury-pending-purchase-orders__check-cell" scope="col" title="Pago en efectivo">Efectivo</th>
-          <th scope="col">O.C.</th>
-          <th scope="col">Fecha</th>
-          <th scope="col">Proyecto</th>
-          <th scope="col">Conceptos</th>
-          <th class="treasury-pending-purchase-orders__numeric" scope="col">Pendiente</th>
-        </tr>
-      </thead>
-      @for (order of tableData().data; track order.purchase_order_id) {
-      <tbody>
-        <tr>
-          <td class="treasury-pending-purchase-orders__check-cell">
-            <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para banco'"
-              [checked]="isOrderSelected(order, 'bank')" [indeterminate]="isOrderPartial(order, 'bank')"
-              [disabled]="isOrderDisabled(order, 'bank')" (change)="onOrderSelectionChange(order, 'bank', $event)" />
-          </td>
-          <td class="treasury-pending-purchase-orders__check-cell">
-            <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para efectivo'"
-              [checked]="isOrderSelected(order, 'cash')" [indeterminate]="isOrderPartial(order, 'cash')"
-              [disabled]="isOrderDisabled(order, 'cash')" (change)="onOrderSelectionChange(order, 'cash', $event)" />
-          </td>
-          <td>
-            <button type="button" class="treasury-pending-purchase-orders__expand"
-              (click)="toggleOrder(order.purchase_order_id)"
-              [attr.aria-expanded]="expandedOrderId() === order.purchase_order_id">
-              <mat-icon aria-hidden="true">{{ expandedOrderId() === order.purchase_order_id ? 'expand_more' :
-                'chevron_right' }}</mat-icon>
-              {{ order.folio }}
-            </button>
-          </td>
-          <td>{{ order.created_at | date:'dd/MM/yyyy' }}</td>
-          <td>{{ order.project?.name || 'Sin proyecto' }}</td>
-          <td>
-            {{ order.pending_items_count }} pendiente(s) · {{ order.paid_items_count }} pagado(s)
-            @if (getOrderSelectedCount(order, 'bank') > 0) {
-            <span class="treasury-pending-purchase-orders__selected-count">{{ getOrderSelectedCount(order, 'bank') }}
-              para banco</span>
-            }
-            @if (getOrderSelectedCount(order, 'cash') > 0) {
-            <span
-              class="treasury-pending-purchase-orders__selected-count treasury-pending-purchase-orders__selected-count--cash">{{
-              getOrderSelectedCount(order, 'cash') }} para efectivo</span>
-            }
-          </td>
-          <td class="treasury-pending-purchase-orders__numeric">{{ order.pending_amount |
-            currency:'MXN':'symbol':'1.2-2' }}</td>
-        </tr>
-        @if (expandedOrderId() === order.purchase_order_id) {
-        <tr class="treasury-pending-purchase-orders__detail-row">
-          <td colspan="7">
+    <ng-template #bankCheckCell let-order>
+      <div class="treasury-pending-purchase-orders__check-cell">
+        <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para banco'"
+          [checked]="isOrderSelected(order, 'bank')" [indeterminate]="isOrderPartial(order, 'bank')"
+          [disabled]="isOrderDisabled(order, 'bank')"
+          (change)="onOrderSelectionChange(order, 'bank', $event)" />
+      </div>
+    </ng-template>
+    <ng-template #cashCheckCell let-order>
+      <div class="treasury-pending-purchase-orders__check-cell">
+        <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para efectivo'"
+          [checked]="isOrderSelected(order, 'cash')" [indeterminate]="isOrderPartial(order, 'cash')"
+          [disabled]="isOrderDisabled(order, 'cash')"
+          (change)="onOrderSelectionChange(order, 'cash', $event)" />
+      </div>
+    </ng-template>
+    <ng-template #dateCell let-order>{{ order.created_at | date:'dd/MM/yyyy' }}</ng-template>
+    <ng-template #projectCell let-order>{{ order.project?.name || 'Sin proyecto' }}</ng-template>
+    <ng-template #conceptsCell let-order>
+      {{ order.pending_items_count }} pendiente(s) · {{ order.paid_items_count }} pagado(s)
+      @if (getOrderSelectedCount(order, 'bank') > 0) {
+        <span class="treasury-pending-purchase-orders__selected-count">
+          {{ getOrderSelectedCount(order, 'bank') }} para banco
+        </span>
+      }
+      @if (getOrderSelectedCount(order, 'cash') > 0) {
+        <span class="treasury-pending-purchase-orders__selected-count treasury-pending-purchase-orders__selected-count--cash">
+          {{ getOrderSelectedCount(order, 'cash') }} para efectivo
+        </span>
+      }
+    </ng-template>
+    <ng-template #pendingCell let-order>
+      <span class="treasury-pending-purchase-orders__numeric">
+        {{ order.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
+      </span>
+    </ng-template>
+    <ng-template #orderDetails let-order>
             <div class="treasury-pending-purchase-orders__detail-wrapper">
               <table class="treasury-pending-purchase-orders__detail-table">
                 <thead>
@@ -199,12 +182,26 @@
                 </tbody>
               </table>
             </div>
-          </td>
-        </tr>
-        }
-      </tbody>
-      }
-    </table>
+    </ng-template>
+    <app-data-table
+      [data]="tableData().data"
+      [columnsConfig]="orderColumns"
+      [displayedColumns]="orderDisplayedColumns"
+      [sorts]="filters().sorts ?? []"
+      [expandable]="true"
+      [rowKeyResolver]="orderRowKey"
+      [expandedRowTemplate]="orderDetails"
+      [cellTemplates]="{
+        bank_check: bankCheckCell,
+        cash_check: cashCheckCell,
+        created_at: dateCell,
+        project: projectCell,
+        concepts_count: conceptsCell,
+        pending_amount: pendingCell
+      }"
+      expandTooltip="Ver conceptos de la O.C."
+      (sortChange)="onOrderSortChange($event)">
+    </app-data-table>
   </div>
   }
   <mat-paginator [length]="tableData().meta.total" [pageSize]="filters().limit" [pageIndex]="filters().page - 1"
