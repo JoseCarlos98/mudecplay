@@ -701,6 +701,42 @@
         ">
 
 
+      <!-- MODALIDADES DE CONCILIACIÓN: solo panel derecho -->
+      <nav class="accounts-payable-mode-tabs" aria-label="Modalidad de conciliación">
+        <button
+          type="button"
+          class="accounts-payable-mode-tab"
+          [class.accounts-payable-mode-tab--active]="pendingReconciliationMode() === 'purchase_orders'"
+          [attr.aria-pressed]="pendingReconciliationMode() === 'purchase_orders'"
+          (click)="setPendingReconciliationMode('purchase_orders')">
+          <mat-icon aria-hidden="true">shopping_cart</mat-icon>
+          Por órdenes de compra
+        </button>
+
+        <button
+          type="button"
+          class="accounts-payable-mode-tab"
+          [class.accounts-payable-mode-tab--active]="pendingReconciliationMode() === 'expense_items'"
+          [attr.aria-pressed]="pendingReconciliationMode() === 'expense_items'"
+          (click)="setPendingReconciliationMode('expense_items')">
+          <mat-icon aria-hidden="true">receipt_long</mat-icon>
+          Por conceptos pendientes
+        </button>
+      </nav>
+
+      @if (pendingReconciliationMode() === 'purchase_orders') {
+        <app-treasury-pending-purchase-orders
+          [bankMovement]="selectedMovement()"
+          [selectedSelections]="selectedPurchaseOrderItems()"
+          [cashSelections]="selectedPurchaseOrderCashItems()"
+          [unavailableItemIds]="unavailablePurchaseOrderItemIds()"
+          (selectionChange)="onPurchaseOrderSelectionChange($event)"
+          (cashSelectionChange)="onPurchaseOrderCashSelectionChange($event)"
+          (applyPaymentRequested)="preparePurchaseOrderPayment()"
+          (cashPaymentRequested)="openPurchaseOrderCashPayment()"
+        />
+      } @else {
+
       <!-- ===============================================
              SUBTABS
              =============================================== -->
@@ -1271,6 +1307,8 @@
       </div>
 
       }
+
+      } <!-- Fin de la modalidad tradicional -->
 
     </section>
 

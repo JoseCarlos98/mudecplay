@@ -701,6 +701,130 @@ export class TreasuryAccountsPayableService {
       payload,
     );
   }
+
+
+  // =========================================================
+  // CUENTAS POR PAGAR:
+  // ÓRDENES DE COMPRA PENDIENTES
+  // =========================================================
+
+  getPendingPurchaseOrders(
+    filters?: entity.TreasuryPendingPurchaseOrderFilters,
+  ): Observable<entity.TreasuryPendingPurchaseOrdersResponse> {
+    let params = new HttpParams();
+
+    if (filters) {
+      params = params.set(
+        'page',
+        String(filters.page),
+      );
+
+      params = params.set(
+        'limit',
+        String(filters.limit),
+      );
+
+      if (filters.sorts?.length) {
+        const sort = filters.sorts
+          .map(
+            (item) =>
+              `${item.key}:${item.direction}`,
+          )
+          .join(',');
+
+        params = params.set(
+          'sort',
+          sort,
+        );
+      }
+
+      if (filters.search?.trim()) {
+        params = params.set(
+          'search',
+          filters.search.trim(),
+        );
+      }
+
+      if (
+        filters.amount !== undefined &&
+        filters.amount !== null
+      ) {
+        params = params.set(
+          'amount',
+          String(filters.amount),
+        );
+      }
+
+      // Mismo formato que getPendingExpenseItems().
+      // ?supplier_ids=3&supplier_ids=8
+      for (const supplierId of filters.supplier_ids ?? []) {
+        if (
+          Number.isInteger(Number(supplierId)) &&
+          Number(supplierId) > 0
+        ) {
+          params = params.append(
+            'supplier_ids',
+            String(supplierId),
+          );
+        }
+      }
+
+      if (
+        filters.supplier_id !== undefined &&
+        filters.supplier_id !== null
+      ) {
+        params = params.set(
+          'supplier_id',
+          String(filters.supplier_id),
+        );
+      }
+
+
+      if (filters.project_ids?.length) {
+        for (const projectId of filters.project_ids) {
+          const id = Number(projectId);
+
+          if (Number.isInteger(id) && id > 0) {
+            params = params.append(
+              'project_ids',
+              String(id),
+            );
+          }
+        }
+      } else if (
+        filters.project_id !== undefined &&
+        filters.project_id !== null
+      ) {
+        params = params.set(
+          'project_id',
+          String(filters.project_id),
+        );
+      }
+
+
+      if (filters.date_from?.trim()) {
+        params = params.set(
+          'date_from',
+          filters.date_from.trim(),
+        );
+      }
+
+      if (filters.date_to?.trim()) {
+        params = params.set(
+          'date_to',
+          filters.date_to.trim(),
+        );
+      }
+    }
+
+    return this.http.get<
+      entity.TreasuryPendingPurchaseOrdersResponse
+    >(
+      `${this.apiUrl}/pending-purchase-orders`,
+      { params },
+    );
+  }
+
 }
 
 

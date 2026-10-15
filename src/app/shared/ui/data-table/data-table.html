@@ -188,6 +188,9 @@
             "
           >
 
+            @if (cellTemplates[col.key]; as customCellTemplate) {
+              <ng-container *ngTemplateOutlet="customCellTemplate; context: { $implicit: element, row: element }"></ng-container>
+            } @else {
             @switch (col.type) {
 
               <!-- RELATION -->
@@ -668,6 +671,7 @@
                 </span>
               }
             }
+            }
 
           </td>
         </ng-container>
@@ -1059,3 +1063,5 @@
     </table>
   </div>
 </div>
+
+

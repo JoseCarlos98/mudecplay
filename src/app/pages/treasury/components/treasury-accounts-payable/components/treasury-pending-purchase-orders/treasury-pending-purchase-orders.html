@@ -1,0 +1,255 @@
+<section class="treasury-pending-purchase-orders">
+  <!-- Efectivo: intención separada del banco. El registro queda para la etapa del modal. -->
+  @if (cashItemsCount() > 0) {
+  <div class="treasury-pending-purchase-orders__cash-bar" aria-live="polite">
+    <div class="treasury-pending-purchase-orders__cash-info">
+      <mat-icon aria-hidden="true">payments</mat-icon>
+      <div>
+        <strong>{{ cashItemsCount() }} seleccionado(s) para efectivo</strong>
+        <span>{{ cashOrdersCount() }} O.C. · Total: {{ cashPendingAmount() | currency:'MXN':'symbol':'1.2-2' }}</span>
+        <small>El importe de cada concepto puede ajustarse en el modal.</small>
+        @if (cashOnOtherPages() > 0) {
+        <small>{{ cashOnOtherPages() }} concepto(s) seleccionados en otras páginas.</small>
+        }
+      </div>
+    </div>
+    <div class="treasury-pending-purchase-orders__cash-actions">
+      <button type="button"
+        class="treasury-pending-purchase-orders__action treasury-pending-purchase-orders__action--success"
+        [disabled]="loading() || loadError() || cashItemsCount() === 0"
+        (click)="cashPaymentRequested.emit()"
+        title="Abrir el modal para registrar abonos en efectivo">
+        <mat-icon aria-hidden="true">payments</mat-icon> Registrar en efectivo
+      </button>
+      <button type="button" class="treasury-pending-purchase-orders__action" (click)="clearSelection('cash')">
+        <mat-icon aria-hidden="true">close</mat-icon> Limpiar
+      </button>
+    </div>
+  </div>
+  }
+  <header class="treasury-pending-purchase-orders__header">
+    <div>
+      <h2>Órdenes de compra pendientes</h2>
+      <p>Selecciona una O.C. completa o sus conceptos para conciliarlos con banco o prepararlos para efectivo.</p>
+    </div>
+    <div class="treasury-pending-purchase-orders__balance">
+      <span>Pendiente</span>
+      <strong>{{ tableData().summary.pending_amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+    </div>
+  </header>
+  @if (bankMovement(); as movement) {
+  <div class="treasury-pending-purchase-orders__movement-bar">
+    <mat-icon aria-hidden="true">account_balance</mat-icon>
+    <span>Movimiento: <strong>{{ movement.reference_display || movement.id }}</strong>
+      · Monto original: <strong>{{ movement.amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+      · Disponible actual: <strong>{{ movementAvailable() | currency:'MXN':'symbol':'1.2-2' }}</strong>
+    </span>
+  </div>
+  }
+  <!-- Componentes reutilizables: mismo patrón de Cuentas por Pagar original. -->
+  <form [formGroup]="filterForm">
+    <div class="c-filters treasury-pending-purchase-orders__filters">
+      <app-input-date formControlName="dateRange" label="Fecha del gasto" mode="range">
+      </app-input-date>
+      <app-input-field formControlName="search" label="Buscar" placeholder="O.C., gasto, concepto, proveedor o proyecto"
+        type="text" [isFilter]="true">
+      </app-input-field>
+      <app-input-field formControlName="amount" label="Importe original" placeholder="Monto del concepto" type="money"
+        [isFilter]="true">
+      </app-input-field>
+      <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+        catalogType="supplier" valueMode="objects">
+      </app-autocomplete-multiple>
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" [remote]="true"
+      catalogType="project" valueMode="objects">
+    </app-autocomplete-multiple>
+      <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters"
+        (action)="onFilterBtnsSectionAction($event)">
+      </app-btns-section>
+    </div>
+  </form>
+  @if (filterError(); as error) {
+  <p class="treasury-pending-purchase-orders__validation" role="alert">{{ error }}</p>
+  }
+  <div class="treasury-pending-purchase-orders__quick-actions">
+    <button type="button"
+      class="treasury-pending-purchase-orders__action treasury-pending-purchase-orders__action--cash-page"
+      [disabled]="loading() || tableData().data.length === 0" (click)="selectPageForCash()">
+      <mat-icon aria-hidden="true">
+        select_all
+      </mat-icon>
+      Seleccionar página para efectivo
+    </button>
+  </div>
+  @if (loading()) {
+  <p class="treasury-pending-purchase-orders__message" role="status">Cargando órdenes de compra...</p>
+  } @else if (loadError()) {
+  <div class="treasury-pending-purchase-orders__message" role="alert">
+    <p>No fue posible consultar las órdenes de compra.</p>
+    <button type="button" class="treasury-pending-purchase-orders__action"
+      (click)="loadPendingPurchaseOrders()">Reintentar</button>
+  </div>
+  } @else if (tableData().data.length === 0) {
+  <p class="treasury-pending-purchase-orders__message">No hay órdenes de compra que coincidan con los filtros.</p>
+  } @else {
+  <div class="treasury-pending-purchase-orders__table-wrapper">
+    <ng-template #bankCheckCell let-order>
+      <div class="treasury-pending-purchase-orders__check-cell">
+        <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para banco'"
+          [checked]="isOrderSelected(order, 'bank')" [indeterminate]="isOrderPartial(order, 'bank')"
+          [disabled]="isOrderDisabled(order, 'bank')"
+          (change)="onOrderSelectionChange(order, 'bank', $event)" />
+      </div>
+    </ng-template>
+    <ng-template #cashCheckCell let-order>
+      <div class="treasury-pending-purchase-orders__check-cell">
+        <input type="checkbox" [attr.aria-label]="'Seleccionar ' + order.folio + ' para efectivo'"
+          [checked]="isOrderSelected(order, 'cash')" [indeterminate]="isOrderPartial(order, 'cash')"
+          [disabled]="isOrderDisabled(order, 'cash')"
+          (change)="onOrderSelectionChange(order, 'cash', $event)" />
+      </div>
+    </ng-template>
+    <ng-template #dateCell let-order>{{ order.created_at | date:'dd/MM/yyyy' }}</ng-template>
+    <ng-template #projectCell let-order>{{ order.project?.name || 'Sin proyecto' }}</ng-template>
+    <ng-template #conceptsCell let-order>
+      {{ order.pending_items_count }} pendiente(s) · {{ order.paid_items_count }} pagado(s)
+      @if (getOrderSelectedCount(order, 'bank') > 0) {
+        <span class="treasury-pending-purchase-orders__selected-count">
+          {{ getOrderSelectedCount(order, 'bank') }} para banco
+        </span>
+      }
+      @if (getOrderSelectedCount(order, 'cash') > 0) {
+        <span class="treasury-pending-purchase-orders__selected-count treasury-pending-purchase-orders__selected-count--cash">
+          {{ getOrderSelectedCount(order, 'cash') }} para efectivo
+        </span>
+      }
+    </ng-template>
+    <ng-template #pendingCell let-order>
+      <span class="treasury-pending-purchase-orders__numeric">
+        {{ order.pending_amount | currency:'MXN':'symbol':'1.2-2' }}
+      </span>
+    </ng-template>
+    <ng-template #orderDetails let-order>
+            <div class="treasury-pending-purchase-orders__detail-wrapper">
+              <table class="treasury-pending-purchase-orders__detail-table">
+                <thead>
+                  <tr>
+                    <th class="treasury-pending-purchase-orders__check-cell" scope="col">Banco</th>
+                    <th class="treasury-pending-purchase-orders__check-cell" scope="col">Efectivo</th>
+                    <th scope="col">Concepto</th>
+                    <th scope="col">Gasto</th>
+                    <th scope="col" class="treasury-pending-purchase-orders__numeric">Original</th>
+                    <th scope="col" class="treasury-pending-purchase-orders__numeric">Abonado</th>
+                    <th scope="col" class="treasury-pending-purchase-orders__numeric">Pendiente</th>
+                    <th scope="col">Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of order.items; track item.expense_item_id) {
+                  <tr [class.treasury-pending-purchase-orders__paid]="!item.is_selectable">
+                    <td class="treasury-pending-purchase-orders__check-cell">
+                      <input type="checkbox"
+                        [attr.aria-label]="'Banco: ' + (item.product_name || item.concept || 'Concepto')"
+                        [checked]="isItemSelected(item.expense_item_id, 'bank')"
+                        [disabled]="!item.is_selectable || item.pending_amount <= 0 || isItemDisabled(item.expense_item_id, 'bank')"
+                        (change)="onItemSelectionChange(order, item, 'bank', $event)" />
+                    </td>
+                    <td class="treasury-pending-purchase-orders__check-cell">
+                      <input type="checkbox"
+                        [attr.aria-label]="'Efectivo: ' + (item.product_name || item.concept || 'Concepto')"
+                        [checked]="isItemSelected(item.expense_item_id, 'cash')"
+                        [disabled]="!item.is_selectable || item.pending_amount <= 0 || isItemDisabled(item.expense_item_id, 'cash')"
+                        (change)="onItemSelectionChange(order, item, 'cash', $event)" />
+                    </td>
+                    <td>{{ item.product_name || item.concept || 'Sin concepto' }}</td>
+                    <td>{{ item.internal_folio }}</td>
+                    <td class="treasury-pending-purchase-orders__numeric">{{ item.amount |
+                      currency:'MXN':'symbol':'1.2-2' }}</td>
+                    <td class="treasury-pending-purchase-orders__numeric">{{ item.paid_amount |
+                      currency:'MXN':'symbol':'1.2-2' }}</td>
+                    <td class="treasury-pending-purchase-orders__numeric">{{ item.pending_amount |
+                      currency:'MXN':'symbol':'1.2-2' }}</td>
+                    <td>
+                      <span class="treasury-pending-purchase-orders__status"
+                        [class.treasury-pending-purchase-orders__status--paid]="item.payment_status === 'paid'"
+                        [class.treasury-pending-purchase-orders__status--partial]="item.payment_status === 'partial'">
+                        @if (!item.is_selectable) { <mat-icon aria-hidden="true">lock</mat-icon> }
+                        {{ getPaymentStatusLabel(item.payment_status) }}
+                      </span>
+                    </td>
+                  </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+    </ng-template>
+    <app-data-table
+      [data]="tableData().data"
+      [columnsConfig]="orderColumns"
+      [displayedColumns]="orderDisplayedColumns"
+      [sorts]="filters().sorts ?? []"
+      [expandable]="true"
+      [rowKeyResolver]="orderRowKey"
+      [expandedRowTemplate]="orderDetails"
+      [cellTemplates]="{
+        bank_check: bankCheckCell,
+        cash_check: cashCheckCell,
+        created_at: dateCell,
+        project: projectCell,
+        concepts_count: conceptsCell,
+        pending_amount: pendingCell
+      }"
+      expandTooltip="Ver conceptos de la O.C."
+      (sortChange)="onOrderSortChange($event)">
+    </app-data-table>
+  </div>
+  }
+  <mat-paginator [length]="tableData().meta.total" [pageSize]="filters().limit" [pageIndex]="filters().page - 1"
+    [pageSizeOptions]="[2, 5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
+  </mat-paginator>
+  <footer class="treasury-pending-purchase-orders__bottom-summary" aria-live="polite">
+    <div class="treasury-pending-purchase-orders__summary-grid">
+      <div><span>Seleccionados para banco</span><strong>{{ bankItemsCount() }}</strong></div>
+      <div><span>Pendiente seleccionado</span><strong>{{ bankPendingAmount() | currency:'MXN':'symbol':'1.2-2'
+          }}</strong></div>
+      <div><span>Máximo abonable</span><strong>{{ bankMovement() ? (maximumPossibleAbono() |
+          currency:'MXN':'symbol':'1.2-2') : 'Sin movimiento' }}</strong></div>
+      <div><span>{{ !bankMovement() ? 'Movimiento restante' : (bankShortfall() > 0 ? 'Faltante para liquidar' :
+          'Movimiento restante estimado') }}</span>
+        <strong>{{ bankMovement() ? ((bankShortfall() > 0 ? bankShortfall() : bankSurplus()) |
+          currency:'MXN':'symbol':'1.2-2') : 'Sin movimiento' }}</strong>
+      </div>
+    </div>
+    <button type="button" class="treasury-pending-purchase-orders__apply-button"
+      [disabled]="!canPrepareBankPayment()"
+      (click)="applyPaymentRequested.emit()"
+      title="Revisar los importes y abrir el modal de aplicación bancaria">
+      <mat-icon aria-hidden="true">payments</mat-icon> Aplicar pago
+    </button>
+  </footer>
+  @if (bankMovement() && bankItemsCount() > 0) {
+  <div class="treasury-pending-purchase-orders__coverage"
+    [class.treasury-pending-purchase-orders__coverage--warning]="bankShortfall() > 0">
+    <mat-icon aria-hidden="true">{{ bankShortfall() > 0 ? 'warning_amber' : 'check_circle' }}</mat-icon>
+    @if (bankShortfall() > 0) {
+    No alcanza para liquidar todo. Máximo abonable:
+    <strong>{{ maximumPossibleAbono() | currency:'MXN':'symbol':'1.2-2' }}</strong>.
+    La distribución del abono se definirá en el modal.
+    } @else {
+    Saldo suficiente para liquidar lo seleccionado.
+    }
+  </div>
+  }
+  @if (selectedOnOtherPages() > 0) {
+  <p class="treasury-pending-purchase-orders__other-pages">
+    {{ selectedOnOtherPages() }} concepto(s) de banco seleccionados en otras páginas.
+    Los importes deberán verificarse de nuevo antes del pago.
+  </p>
+  }
+  @if (bankItemsCount() > 0) {
+  <div class="treasury-pending-purchase-orders__clear-bank">
+    <button type="button" class="treasury-pending-purchase-orders__action" (click)="clearSelection('bank')">Limpiar
+      selección bancaria</button>
+  </div>
+  }
+</section>

@@ -1859,3 +1859,63 @@
     }
   }
 }
+
+// =========================================================
+// MODALIDAD DE CONCILIACIÓN: PANEL DERECHO
+// =========================================================
+.accounts-payable-mode-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.35rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e4e7ec;
+  border-radius: 0.7rem;
+  background: #f8fafc;
+}
+
+.accounts-payable-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.4rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #475467;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  mat-icon {
+    width: 1.15rem;
+    height: 1.15rem;
+    font-size: 1.15rem;
+  }
+
+  &:hover {
+    color: var(--color-primary-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary-strong);
+    outline-offset: 2px;
+  }
+
+  &--active {
+    background: #fff;
+    border-color: rgba(30, 134, 177, 0.28);
+    color: var(--color-primary-strong);
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.08);
+  }
+}
+
+@media (max-width: 640px) {
+  .accounts-payable-mode-tab {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
+}

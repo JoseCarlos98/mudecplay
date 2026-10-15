@@ -90,6 +90,10 @@ export class DataTable<T>
   columnsConfig:
     ColumnsConfig[] = [];
 
+  /** Plantillas de celda opcionales por columna, sin afectar usos existentes. */
+  @Input()
+  cellTemplates: Record<string, TemplateRef<{ $implicit: T; row: T }>> = {};
+
   @Input()
   data:
     T[] = [];
