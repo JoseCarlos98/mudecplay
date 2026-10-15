@@ -733,6 +733,7 @@
           (selectionChange)="onPurchaseOrderSelectionChange($event)"
           (cashSelectionChange)="onPurchaseOrderCashSelectionChange($event)"
           (applyPaymentRequested)="preparePurchaseOrderPayment()"
+          (cashPaymentRequested)="openPurchaseOrderCashPayment()"
         />
       } @else {
 

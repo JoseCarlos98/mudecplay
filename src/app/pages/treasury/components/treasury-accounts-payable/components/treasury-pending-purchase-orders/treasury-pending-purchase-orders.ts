@@ -85,6 +85,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
 
   /** Solo solicita abrir el modal. El pago se confirma en el componente padre. */
   readonly applyPaymentRequested = output<void>();
+  readonly cashPaymentRequested = output<void>();
 
   readonly loading = signal(false);
   readonly loadError = signal(false);

@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-
 import {
   Component,
   DestroyRef,
@@ -7,121 +6,93 @@ import {
   inject,
   signal,
 } from '@angular/core';
-
 import {
   FormBuilder,
+  FormControl,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
 } from '@angular/material/dialog';
-
 import {
   MatIconModule,
 } from '@angular/material/icon';
-
 import {
   takeUntilDestroyed,
 } from '@angular/core/rxjs-interop';
-
 import {
   finalize,
 } from 'rxjs';
-
 // =========================================================
 // UI COMPARTIDA
 // =========================================================
-
 import {
   ModuleHeader,
 } from '../../../../../../shared/ui/module-header/module-header';
-
 import {
   ModuleHeaderConfig,
 } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
-
 import {
   BtnsSection,
   ModuleFooterAction,
 } from '../../../../../../shared/ui/btns-section/btns-section';
-
 import {
   InputField,
 } from '../../../../../../shared/ui/input-field/input-field';
-
 import {
   InputSelect,
 } from '../../../../../../shared/ui/input-select/input-select';
-
 import {
   InputDate,
 } from '../../../../../../shared/ui/input-date/input-date';
-
 import {
   LoadingOverlay,
 } from '../../../../../../shared/ui/loading-overlay/loading-overlay';
-
 // =========================================================
 // INTERFACES Y HELPERS COMPARTIDOS
 // =========================================================
-
 import {
   Catalog,
 } from '../../../../../../shared/interfaces/general-interfaces';
-
 import {
   roundMoney,
   toApiDate,
   toIdForm,
 } from '../../../../../../shared/helpers/general-helpers';
-
 // =========================================================
 // SERVICIOS COMPARTIDOS
 // =========================================================
-
 import {
   CatalogsService,
 } from '../../../../../../shared/services/catalogs.service';
-
 import {
   DialogService,
 } from '../../../../../../shared/services/dialog.service';
-
 // =========================================================
 // MÓDULO
 // =========================================================
-
 import * as entity
   from '../../interfaces/treasury-accounts-payable.interfaces';
-
 import {
   TreasuryAccountsPayableService,
 } from '../../services/treasury-accounts-payable.service';
-
 // =========================================================
 // CONFIGURACIÓN
 // =========================================================
-
 const HEADER_CONFIG:
   ModuleHeaderConfig = {
   modal: true,
 };
-
 @Component({
   selector:
     'app-modal-cash-payment',
-
   standalone: true,
-
   imports: [
     CommonModule,
     ReactiveFormsModule,
-
     MatIconModule,
-
     ModuleHeader,
     BtnsSection,
     InputField,
@@ -129,25 +100,20 @@ const HEADER_CONFIG:
     InputDate,
     LoadingOverlay,
   ],
-
   templateUrl:
     './modal-cash-payment.html',
-
   styleUrl:
     './modal-cash-payment.scss',
 })
 export class ModalCashPayment
   implements OnInit {
-
   // =========================================================
   // INYECCIONES
   // =========================================================
-
   readonly data =
     inject<
       entity.TreasuryCashPaymentModalData
     >(MAT_DIALOG_DATA);
-
   private readonly dialogRef =
     inject(
       MatDialogRef<
@@ -157,68 +123,95 @@ export class ModalCashPayment
         | null
       >,
     );
-
   private readonly accountsPayableService =
     inject(
       TreasuryAccountsPayableService,
     );
-
   private readonly catalogsService =
     inject(
       CatalogsService,
     );
-
   private readonly dialogService =
     inject(
       DialogService,
     );
-
   private readonly fb =
     inject(
       FormBuilder,
     );
-
   private readonly destroyRef =
     inject(
       DestroyRef,
     );
-
   // =========================================================
   // UI
   // =========================================================
-
   readonly headerConfig =
     HEADER_CONFIG;
-
   readonly loadingCatalogs =
     signal(false);
-
   readonly saving =
     signal(false);
-
   companyOptions:
     Catalog[] = [];
-
   // =========================================================
   // DATOS DEL MODO
   // =========================================================
-
   get isBulk(): boolean {
-    return (
-      this.data.mode ===
-      'bulk'
-    );
+    return this.data.mode === 'bulk';
+  }
+
+  get isPurchaseOrders(): boolean {
+    return this.data.mode === 'purchase_orders';
+  }
+
+  get purchaseOrderSelections(): entity.TreasuryPurchaseOrderCashPaymentModalItem[] {
+    return this.data.mode === 'purchase_orders' ? this.data.selections : [];
+  }
+
+  readonly purchaseOrderAmounts = this.fb.array<FormControl<number | null>>([]);
+
+  get purchaseOrderTotalPending(): number {
+    return roundMoney(this.purchaseOrderSelections.reduce(
+      (total, selection) => total + Number(selection.item.pending_amount || 0), 0,
+    ));
+  }
+
+  get purchaseOrderTotalPaying(): number {
+    return roundMoney(this.purchaseOrderAmounts.controls.reduce(
+      (total, control) => total + Number(control.value ?? 0), 0,
+    ));
+  }
+
+  get purchaseOrderCount(): number {
+    return new Set(this.purchaseOrderSelections.map(s => s.purchase_order_id)).size;
+  }
+
+  get purchaseOrderAmountsValid(): boolean {
+    const selections = this.purchaseOrderSelections;
+    if (!selections.length || selections.length > 200 ||
+        selections.length !== this.purchaseOrderAmounts.length || this.purchaseOrderAmounts.invalid) {
+      return false;
+    }
+    const ids = new Set<number>();
+    return selections.every((selection, index) => {
+      const id = Number(selection.item.expense_item_id);
+      const amount = Number(this.purchaseOrderAmounts.at(index).value);
+      const max = roundMoney(Number(selection.item.pending_amount));
+      if (!Number.isInteger(id) || id <= 0 || ids.has(id) || !selection.item.is_selectable ||
+          !Number.isFinite(amount) || amount < 0.01 || roundMoney(amount) !== amount ||
+          amount > max) return false;
+      ids.add(id);
+      return true;
+    });
   }
 
   private get singleItem():
     entity.TreasuryPendingExpenseItemTableRow
     | null {
-    return this.data.mode ===
-      'bulk'
-      ? null
-      : this.data.item;
+    return this.data.mode === 'bulk' || this.data.mode === 'purchase_orders'
+      ? null : this.data.item;
   }
-
   get bulkExpenseItems():
     entity.TreasuryPendingExpenseItemTableRow[] {
     return this.data.mode ===
@@ -226,7 +219,6 @@ export class ModalCashPayment
       ? this.data.expense_items
       : [];
   }
-
   get bulkHistoricalPayments():
     entity.TreasuryHistoricalPaymentTableRow[] {
     return this.data.mode ===
@@ -234,14 +226,12 @@ export class ModalCashPayment
       ? this.data.historical_payments
       : [];
   }
-
   get bulkSelectedCount(): number {
     return (
       this.bulkExpenseItems.length +
       this.bulkHistoricalPayments.length
     );
   }
-
   get bulkCurrentAmount(): number {
     const total =
       this.bulkExpenseItems.reduce(
@@ -256,12 +246,10 @@ export class ModalCashPayment
           ),
         0,
       );
-
     return roundMoney(
       total,
     );
   }
-
   get bulkHistoricalAmount(): number {
     const total =
       this.bulkHistoricalPayments.reduce(
@@ -276,46 +264,42 @@ export class ModalCashPayment
           ),
         0,
       );
-
     return roundMoney(
       total,
     );
   }
-
   // =========================================================
   // TEXTOS UI
   // =========================================================
-
   get modalTitle(): string {
+    if (this.isPurchaseOrders) return 'Registrar efectivo por órdenes de compra';
     return this.isBulk
       ? 'Registrar efectivo masivo'
       : 'Registrar pago en efectivo';
   }
-
   get saveLabel(): string {
+    if (this.isPurchaseOrders) return 'Registrar abonos';
     return this.isBulk
       ? 'Registrar seleccionados'
       : 'Registrar pago';
   }
-
   get amountLabel(): string {
+    if (this.isPurchaseOrders) return 'Total a pagar';
     return this.isBulk
       ? 'Total en efectivo'
       : 'Importe pagado';
   }
-
   get paymentDateLabel(): string {
     return this.isBulk
       ? 'Fecha para conceptos actuales'
       : 'Fecha del pago';
   }
-
   get notesLabel(): string {
+    if (this.isPurchaseOrders) return 'Motivo / descripción común';
     return this.isBulk
       ? 'Motivo / descripción común'
       : 'Notas';
   }
-
   get loadingText(): string {
     if (
       this.saving()
@@ -324,15 +308,13 @@ export class ModalCashPayment
         ? 'Registrando pagos en efectivo...'
         : 'Registrando pago en efectivo...';
     }
-
     return 'Cargando información...';
   }
-
   // =========================================================
   // DATOS PARA MOSTRAR
   // =========================================================
-
   get pendingAmount(): number {
+    if (this.isPurchaseOrders) return this.purchaseOrderTotalPending;
     if (
       this.isBulk
     ) {
@@ -341,7 +323,6 @@ export class ModalCashPayment
         this.bulkHistoricalAmount,
       );
     }
-
     return roundMoney(
       Number(
         this.singleItem
@@ -350,14 +331,13 @@ export class ModalCashPayment
       ),
     );
   }
-
   get paidAmount(): number {
+    if (this.isPurchaseOrders) return 0;
     if (
       this.isBulk
     ) {
       return 0;
     }
-
     return roundMoney(
       Number(
         this.singleItem
@@ -366,14 +346,13 @@ export class ModalCashPayment
       ),
     );
   }
-
   get originalAmount(): number {
+    if (this.isPurchaseOrders) return this.purchaseOrderTotalPending;
     if (
       this.isBulk
     ) {
       return this.pendingAmount;
     }
-
     return roundMoney(
       Number(
         this.singleItem
@@ -382,8 +361,8 @@ export class ModalCashPayment
       ),
     );
   }
-
   get folioDisplay(): string {
+    if (this.isPurchaseOrders) return `${this.purchaseOrderCount} O.C. · ${this.purchaseOrderSelections.length} conceptos`;
     if (
       this.isBulk
     ) {
@@ -397,14 +376,12 @@ export class ModalCashPayment
         )
       );
     }
-
     return (
       this.singleItem
         ?.internal_folio ||
       'Sin folio'
     );
   }
-
   get supplierDisplay(): string {
     return (
       this.singleItem
@@ -415,7 +392,6 @@ export class ModalCashPayment
       'Sin proveedor'
     );
   }
-
   get projectDisplay(): string {
     return (
       this.singleItem
@@ -426,7 +402,6 @@ export class ModalCashPayment
       'Sin proyecto'
     );
   }
-
   get conceptDisplay(): string {
     return (
       this.singleItem
@@ -434,11 +409,9 @@ export class ModalCashPayment
       'Sin concepto'
     );
   }
-
   // =========================================================
   // FORMULARIO
   // =========================================================
-
   readonly form =
     this.fb.group({
       amount:
@@ -449,18 +422,15 @@ export class ModalCashPayment
           {
             validators: [
               Validators.required,
-
               Validators.min(
                 0.01,
               ),
-
               Validators.max(
                 this.pendingAmount,
               ),
             ],
           },
         ),
-
       payment_date:
         this.fb.control<
           Date | string | null
@@ -474,7 +444,6 @@ export class ModalCashPayment
             ],
           },
         ),
-
       company_id:
         this.fb.control<
           | Catalog
@@ -484,14 +453,12 @@ export class ModalCashPayment
         >(
           null,
         ),
-
       reference:
         this.fb.control<string>(
           '',
           {
             nonNullable:
               true,
-
             validators: [
               Validators.maxLength(
                 180,
@@ -499,21 +466,17 @@ export class ModalCashPayment
             ],
           },
         ),
-
       notes:
         this.fb.control<string>(
           '',
           {
             nonNullable:
               true,
-
             validators: [
               Validators.required,
-
               Validators.minLength(
                 5,
               ),
-
               Validators.maxLength(
                 1000,
               ),
@@ -521,14 +484,21 @@ export class ModalCashPayment
           },
         ),
     });
-
   // =========================================================
   // CICLO DE VIDA
   // =========================================================
-
   ngOnInit(): void {
     this.loadCompanies();
-
+    if (this.isPurchaseOrders) {
+      for (const selection of this.purchaseOrderSelections) {
+        const pending = roundMoney(Number(selection.item.pending_amount || 0));
+        this.purchaseOrderAmounts.push(this.fb.control<number | null>(pending, {
+          validators: [Validators.required, Validators.min(0.01), Validators.max(pending)],
+        }));
+      }
+      this.form.controls.amount.setValue(this.purchaseOrderTotalPending, { emitEvent: false });
+      this.form.controls.amount.disable({ emitEvent: false });
+    }
     if (
       this.isBulk
     ) {
@@ -548,14 +518,12 @@ export class ModalCashPayment
               false,
           },
         );
-
       this.form.controls
         .amount
         .disable({
           emitEvent:
             false,
         });
-
       /*
        * Los pagos históricos ya tienen
        * su propia fecha de pago.
@@ -576,11 +544,9 @@ export class ModalCashPayment
                 false,
             },
           );
-
         this.form.controls
           .payment_date
           .clearValidators();
-
         this.form.controls
           .payment_date
           .disable({
@@ -589,7 +555,6 @@ export class ModalCashPayment
           });
       }
     }
-
     /*
      * Aplica las reglas correctas desde
      * el primer render del modal.
@@ -599,7 +564,6 @@ export class ModalCashPayment
         .company_id
         .value,
     );
-
     this.form.controls
       .company_id
       .valueChanges
@@ -622,12 +586,11 @@ export class ModalCashPayment
         },
       );
   }
-
   // =========================================================
   // IMPORTES
   // =========================================================
-
   get amountToPay(): number {
+    if (this.isPurchaseOrders) return this.purchaseOrderTotalPaying;
     return roundMoney(
       Number(
         this.form.controls
@@ -637,14 +600,13 @@ export class ModalCashPayment
       ),
     );
   }
-
   get pendingAfter(): number {
+    if (this.isPurchaseOrders) return roundMoney(Math.max(0, this.pendingAmount - this.amountToPay));
     if (
       this.isBulk
     ) {
       return 0;
     }
-
     return roundMoney(
       Math.max(
         this.pendingAmount -
@@ -653,11 +615,9 @@ export class ModalCashPayment
       ),
     );
   }
-
   // =========================================================
   // EMPRESA
   // =========================================================
-
   get companyWasIdentified(): boolean {
     const companyId =
       Number(
@@ -668,7 +628,6 @@ export class ModalCashPayment
         ) ??
         0,
       );
-
     return (
       Number.isInteger(
         companyId,
@@ -676,23 +635,21 @@ export class ModalCashPayment
       companyId > 0
     );
   }
-
   // =========================================================
   // VALIDACIÓN
   // =========================================================
-
   get canSave(): boolean {
-    if (
-      this.saving() ||
-      this.form.invalid
-    ) {
-      return false;
+    if (this.saving() || this.form.invalid) return false;
+    if (this.isPurchaseOrders) {
+      return this.purchaseOrderAmountsValid &&
+        Number.isFinite(this.amountToPay) && this.amountToPay > 0 &&
+        Boolean(toApiDate(this.form.controls.payment_date.value)) &&
+        this.form.controls.notes.value.trim().length >= 5 &&
+        this.form.controls.notes.value.trim().length <= 500;
     }
-
     // =====================================================
     // BULK
     // =====================================================
-
     if (
       this.isBulk
     ) {
@@ -704,13 +661,11 @@ export class ModalCashPayment
       ) {
         return false;
       }
-
       const notes =
         this.form.controls
           .notes
           .value
           .trim();
-
       if (
         notes.length <
           5 ||
@@ -719,7 +674,6 @@ export class ModalCashPayment
       ) {
         return false;
       }
-
       /*
        * Solo los conceptos actuales
        * requieren una nueva fecha.
@@ -734,27 +688,22 @@ export class ModalCashPayment
               .payment_date
               .value,
           );
-
         if (
           !paymentDate
         ) {
           return false;
         }
       }
-
       return true;
     }
-
     // =====================================================
     // INDIVIDUAL
     // =====================================================
-
     if (
       !this.singleItem
     ) {
       return false;
     }
-
     if (
       !Number.isFinite(
         this.amountToPay,
@@ -766,19 +715,16 @@ export class ModalCashPayment
     ) {
       return false;
     }
-
     const paymentDate =
       toApiDate(
         this.form.controls
           .payment_date
           .value,
       );
-
     return Boolean(
       paymentDate,
     );
   }
-
   private updateNotesValidators(
     company:
       | Catalog
@@ -789,37 +735,31 @@ export class ModalCashPayment
     const notesControl =
       this.form.controls
         .notes;
-
     /*
      * En efectivo masivo el motivo
      * siempre es obligatorio porque
      * se aplicará a todo el lote.
      */
     if (
-      this.isBulk
+      this.isBulk || this.isPurchaseOrders
     ) {
       notesControl
         .setValidators([
           Validators.required,
-
           Validators.minLength(
             5,
           ),
-
           Validators.maxLength(
             500,
           ),
         ]);
-
       notesControl
         .updateValueAndValidity({
           emitEvent:
             false,
         });
-
       return;
     }
-
     const companyId =
       Number(
         toIdForm(
@@ -827,14 +767,12 @@ export class ModalCashPayment
         ) ??
         0,
       );
-
     const hasCompany =
       Number.isInteger(
         companyId,
       ) &&
       companyId >
         0;
-
     /*
      * Flujo individual existente:
      *
@@ -857,46 +795,38 @@ export class ModalCashPayment
       notesControl
         .setValidators([
           Validators.required,
-
           Validators.minLength(
             5,
           ),
-
           Validators.maxLength(
             1000,
           ),
         ]);
     }
-
     notesControl
       .updateValueAndValidity({
         emitEvent:
           false,
       });
   }
-
   // =========================================================
   // CATÁLOGOS
   // =========================================================
-
   private loadCompanies(): void {
     if (
       this.loadingCatalogs()
     ) {
       return;
     }
-
     this.loadingCatalogs.set(
       true,
     );
-
     this.catalogsService
       .treasuryCompaniesCatalog()
       .pipe(
         takeUntilDestroyed(
           this.destroyRef,
         ),
-
         finalize(() =>
           this.loadingCatalogs.set(
             false,
@@ -911,7 +841,6 @@ export class ModalCashPayment
           this.companyOptions =
             companies ?? [];
         },
-
         error: (
           error:
             unknown,
@@ -923,50 +852,43 @@ export class ModalCashPayment
         },
       });
   }
-
   // =========================================================
   // GUARDAR
   // =========================================================
-
   saveData(): void {
     if (
       !this.canSave
     ) {
       this.form
         .markAllAsTouched();
-
       return;
     }
-
+    if (this.isPurchaseOrders) {
+      this.savePurchaseOrderCash();
+      return;
+    }
     if (
       this.isBulk
     ) {
       this.saveBulkCash();
-
       return;
     }
-
     this.saveSingleCash();
   }
-
   // =========================================================
   // EFECTIVO INDIVIDUAL
   // =========================================================
-
   private saveSingleCash(): void {
     const item =
       this.singleItem;
-
     if (
       !item
     ) {
       return;
     }
-
     const value =
       this.form
         .getRawValue();
-
     const amount =
       roundMoney(
         Number(
@@ -974,12 +896,10 @@ export class ModalCashPayment
           0,
         ),
       );
-
     const paymentDate =
       toApiDate(
         value.payment_date,
       );
-
     const companyId =
       Number(
         toIdForm(
@@ -987,17 +907,14 @@ export class ModalCashPayment
         ) ??
         0,
       );
-
     const reference =
       value.reference
         .trim() ||
       null;
-
     const notes =
       value.notes
         .trim() ||
       null;
-
     if (
       !paymentDate ||
       amount <=
@@ -1007,10 +924,8 @@ export class ModalCashPayment
     ) {
       this.form
         .markAllAsTouched();
-
       return;
     }
-
     if (
       companyId <=
         0 &&
@@ -1023,35 +938,26 @@ export class ModalCashPayment
       this.form.controls
         .notes
         .markAsTouched();
-
       return;
     }
-
     const payload:
       entity.TreasuryApplyCashPaymentPayload = {
       expense_item_id:
         item.expense_item_id,
-
       amount,
-
       payment_date:
         paymentDate,
-
       company_id:
         companyId >
           0
           ? companyId
           : null,
-
       reference,
-
       notes,
     };
-
     this.saving.set(
       true,
     );
-
     this.accountsPayableService
       .applyCashPayment(
         payload,
@@ -1060,7 +966,6 @@ export class ModalCashPayment
         takeUntilDestroyed(
           this.destroyRef,
         ),
-
         finalize(() =>
           this.saving.set(
             false,
@@ -1077,7 +982,6 @@ export class ModalCashPayment
           ) {
             return;
           }
-
           /*
            * El interceptor muestra el mensaje backend.
            * Solo devolvemos el resultado a la tabla.
@@ -1086,7 +990,6 @@ export class ModalCashPayment
             response,
           );
         },
-
         error: (
           error:
             unknown,
@@ -1095,7 +998,6 @@ export class ModalCashPayment
             'Error al registrar el pago en efectivo:',
             error,
           );
-
           this.showError(
             this.resolveErrorMessage(
               error,
@@ -1104,16 +1006,51 @@ export class ModalCashPayment
         },
       });
   }
+  // =========================================================
+  // EFECTIVO POR ÓRDENES DE COMPRA (ABONOS POR CONCEPTO)
+  // =========================================================
+  private savePurchaseOrderCash(): void {
+    if (!this.purchaseOrderAmountsValid) return;
+    const value = this.form.getRawValue();
+    const paymentDate = toApiDate(value.payment_date);
+    const reason = value.notes.trim();
+    const companyId = Number(toIdForm(value.company_id) ?? 0);
+    if (!paymentDate || reason.length < 5 || reason.length > 500) return;
+
+    const applications = this.purchaseOrderSelections.map((selection, index) => ({
+      expense_item_id: Number(selection.item.expense_item_id),
+      amount: roundMoney(Number(this.purchaseOrderAmounts.at(index).value)),
+    }));
+    const payload: entity.TreasuryBulkApplyCashPaymentsPayload = {
+      expense_item_ids: applications.map(application => application.expense_item_id),
+      applications,
+      payment_date: paymentDate,
+      company_id: companyId > 0 ? companyId : null,
+      reference: value.reference.trim() || null,
+      reason,
+    };
+
+    this.saving.set(true);
+    this.accountsPayableService.bulkApplyCashPayments(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.saving.set(false)))
+      .subscribe({
+        next: (response: entity.TreasuryBulkApplyCashPaymentsResponse) => {
+          if (response.success) this.dialogRef.close(response);
+        },
+        error: (error: unknown) => {
+          console.error('Error al registrar abonos por O.C. en efectivo:', error);
+          this.showError(this.resolveErrorMessage(error));
+        },
+      });
+  }
 
   // =========================================================
   // EFECTIVO MASIVO
   // =========================================================
-
   private saveBulkCash(): void {
     const value =
       this.form
         .getRawValue();
-
     const companyId =
       Number(
         toIdForm(
@@ -1121,7 +1058,6 @@ export class ModalCashPayment
         ) ??
         0,
       );
-
     /*
      * Solo aplica a conceptos actuales.
      * Los históricos mantienen su payment_date.
@@ -1133,16 +1069,13 @@ export class ModalCashPayment
             value.payment_date,
           )
         : null;
-
     const reference =
       value.reference
         .trim() ||
       null;
-
     const reason =
       value.notes
         .trim();
-
     if (
       reason.length <
         5 ||
@@ -1152,10 +1085,8 @@ export class ModalCashPayment
       this.form.controls
         .notes
         .markAsTouched();
-
       return;
     }
-
     if (
       this.bulkExpenseItems.length >
         0 &&
@@ -1164,10 +1095,8 @@ export class ModalCashPayment
       this.form.controls
         .payment_date
         .markAsTouched();
-
       return;
     }
-
     const historicalPaymentIds =
       this.bulkHistoricalPayments
         .map(
@@ -1178,7 +1107,6 @@ export class ModalCashPayment
               row.payment_id,
             ),
         );
-
     const expenseItemIds =
       this.bulkExpenseItems
         .map(
@@ -1189,7 +1117,6 @@ export class ModalCashPayment
               row.expense_item_id,
             ),
         );
-
     if (
       historicalPaymentIds.length +
       expenseItemIds.length !==
@@ -1197,33 +1124,25 @@ export class ModalCashPayment
     ) {
       return;
     }
-
     const payload:
       entity.TreasuryBulkApplyCashPaymentsPayload = {
       historical_payment_ids:
         historicalPaymentIds,
-
       expense_item_ids:
         expenseItemIds,
-
       company_id:
         companyId >
           0
           ? companyId
           : null,
-
       payment_date:
         paymentDate,
-
       reference,
-
       reason,
     };
-
     this.saving.set(
       true,
     );
-
     this.accountsPayableService
       .bulkApplyCashPayments(
         payload,
@@ -1232,7 +1151,6 @@ export class ModalCashPayment
         takeUntilDestroyed(
           this.destroyRef,
         ),
-
         finalize(() =>
           this.saving.set(
             false,
@@ -1249,7 +1167,6 @@ export class ModalCashPayment
           ) {
             return;
           }
-
           /*
            * Sin diálogo adicional.
            * El interceptor global presenta
@@ -1259,7 +1176,6 @@ export class ModalCashPayment
             response,
           );
         },
-
         error: (
           error:
             unknown,
@@ -1268,7 +1184,6 @@ export class ModalCashPayment
             'Error registrando efectivo masivo:',
             error,
           );
-
           this.showError(
             this.resolveErrorMessage(
               error,
@@ -1277,11 +1192,9 @@ export class ModalCashPayment
         },
       });
   }
-
   // =========================================================
   // ACCIONES DEL FOOTER
   // =========================================================
-
   onBtnsSectionAction(
     action:
       ModuleFooterAction,
@@ -1292,29 +1205,24 @@ export class ModalCashPayment
       case 'save':
         this.saveData();
         break;
-
       case 'cancel':
         this.closeModal();
         break;
     }
   }
-
   closeModal(): void {
     if (
       this.saving()
     ) {
       return;
     }
-
     this.dialogRef.close(
       null,
     );
   }
-
   // =========================================================
   // ERROR
   // =========================================================
-
   private showError(
     message:
       string,
@@ -1325,18 +1233,14 @@ export class ModalCashPayment
           this.isBulk
             ? 'No se pudieron registrar los pagos'
             : 'No se pudo registrar el pago',
-
         message,
-
         confirmText:
           'Aceptar',
-
         cancelText:
           '',
       })
       .subscribe();
   }
-
   private resolveErrorMessage(
     error:
       unknown,
@@ -1348,16 +1252,13 @@ export class ModalCashPayment
             | string
             | string[];
         };
-
         message?:
           string;
       };
-
     const backendMessage =
       httpError
         ?.error
         ?.message;
-
     if (
       Array.isArray(
         backendMessage,
@@ -1367,7 +1268,6 @@ export class ModalCashPayment
         ' ',
       );
     }
-
     if (
       typeof backendMessage ===
         'string' &&
@@ -1375,7 +1275,6 @@ export class ModalCashPayment
     ) {
       return backendMessage;
     }
-
     if (
       typeof httpError
         ?.message ===
@@ -1386,7 +1285,6 @@ export class ModalCashPayment
     ) {
       return httpError.message;
     }
-
     return this.isBulk
       ? 'No fue posible procesar la selección en efectivo. Alguno de los registros pudo cambiar mientras realizabas la operación.'
       : 'No se pudo registrar el pago en efectivo. Revisa que el concepto todavía tenga saldo pendiente.';

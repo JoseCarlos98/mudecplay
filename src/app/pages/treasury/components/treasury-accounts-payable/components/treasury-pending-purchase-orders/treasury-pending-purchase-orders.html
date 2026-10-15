@@ -7,7 +7,7 @@
       <div>
         <strong>{{ cashItemsCount() }} seleccionado(s) para efectivo</strong>
         <span>{{ cashOrdersCount() }} O.C. · Total: {{ cashPendingAmount() | currency:'MXN':'symbol':'1.2-2' }}</span>
-        <small>Preparación de efectivo; se habilitará el registro al integrar el modal.</small>
+        <small>El importe de cada concepto puede ajustarse en el modal.</small>
         @if (cashOnOtherPages() > 0) {
         <small>{{ cashOnOtherPages() }} concepto(s) seleccionados en otras páginas.</small>
         }
@@ -15,8 +15,10 @@
     </div>
     <div class="treasury-pending-purchase-orders__cash-actions">
       <button type="button"
-        class="treasury-pending-purchase-orders__action treasury-pending-purchase-orders__action--success" disabled
-        title="Conectaremos el registro de efectivo al modal existente después de validar esta pantalla">
+        class="treasury-pending-purchase-orders__action treasury-pending-purchase-orders__action--success"
+        [disabled]="loading() || loadError() || cashItemsCount() === 0"
+        (click)="cashPaymentRequested.emit()"
+        title="Abrir el modal para registrar abonos en efectivo">
         <mat-icon aria-hidden="true">payments</mat-icon> Registrar en efectivo
       </button>
       <button type="button" class="treasury-pending-purchase-orders__action" (click)="clearSelection('cash')">
