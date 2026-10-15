@@ -1955,6 +1955,7 @@ export interface TreasuryPendingPurchaseOrderFilters {
   supplier_ids?: number[];
 
   project_id?: number | null;
+  project_ids?: number[];
 
   date_from?: string | null;
   date_to?: string | null;

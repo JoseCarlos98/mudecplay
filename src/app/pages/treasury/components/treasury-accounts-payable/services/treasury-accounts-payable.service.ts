@@ -779,7 +779,19 @@ export class TreasuryAccountsPayableService {
         );
       }
 
-      if (
+
+      if (filters.project_ids?.length) {
+        for (const projectId of filters.project_ids) {
+          const id = Number(projectId);
+
+          if (Number.isInteger(id) && id > 0) {
+            params = params.append(
+              'project_ids',
+              String(id),
+            );
+          }
+        }
+      } else if (
         filters.project_id !== undefined &&
         filters.project_id !== null
       ) {
@@ -788,6 +800,7 @@ export class TreasuryAccountsPayableService {
           String(filters.project_id),
         );
       }
+
 
       if (filters.date_from?.trim()) {
         params = params.set(

@@ -25,7 +25,6 @@
     </div>
   </div>
   }
-
   <header class="treasury-pending-purchase-orders__header">
     <div>
       <h2>Órdenes de compra pendientes</h2>
@@ -36,7 +35,6 @@
       <strong>{{ tableData().summary.pending_amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
     </div>
   </header>
-
   @if (bankMovement(); as movement) {
   <div class="treasury-pending-purchase-orders__movement-bar">
     <mat-icon aria-hidden="true">account_balance</mat-icon>
@@ -46,56 +44,41 @@
     </span>
   </div>
   }
-
   <!-- Componentes reutilizables: mismo patrón de Cuentas por Pagar original. -->
   <form [formGroup]="filterForm">
     <div class="c-filters treasury-pending-purchase-orders__filters">
       <app-input-date formControlName="dateRange" label="Fecha del gasto" mode="range">
       </app-input-date>
-
       <app-input-field formControlName="search" label="Buscar" placeholder="O.C., gasto, concepto, proveedor o proyecto"
         type="text" [isFilter]="true">
       </app-input-field>
-
       <app-input-field formControlName="amount" label="Importe original" placeholder="Monto del concepto" type="money"
         [isFilter]="true">
       </app-input-field>
-
       <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
         catalogType="supplier" valueMode="objects">
       </app-autocomplete-multiple>
-
-      <app-input-select formControlName="project_id" label="Proyecto" [options]="projectOptions()">
-      </app-input-select>
-
-      <app-input-select formControlName="sort" label="Ordenar por" [options]="sortOptions">
-      </app-input-select>
-
+      <app-autocomplete-multiple formControlName="projectIds" label="Proyectos" [remote]="true"
+      catalogType="project" valueMode="objects">
+    </app-autocomplete-multiple>
       <app-btns-section type="search" [hasActiveFilters]="hasActiveFilters"
         (action)="onFilterBtnsSectionAction($event)">
       </app-btns-section>
     </div>
   </form>
-
   @if (filterError(); as error) {
   <p class="treasury-pending-purchase-orders__validation" role="alert">{{ error }}</p>
   }
-
-
   <div class="treasury-pending-purchase-orders__quick-actions">
     <button type="button"
       class="treasury-pending-purchase-orders__action treasury-pending-purchase-orders__action--cash-page"
       [disabled]="loading() || tableData().data.length === 0" (click)="selectPageForCash()">
-
       <mat-icon aria-hidden="true">
         select_all
       </mat-icon>
-
       Seleccionar página para efectivo
     </button>
   </div>
-
-
   @if (loading()) {
   <p class="treasury-pending-purchase-orders__message" role="status">Cargando órdenes de compra...</p>
   } @else if (loadError()) {
@@ -222,11 +205,9 @@
     </table>
   </div>
   }
-
   <mat-paginator [length]="tableData().meta.total" [pageSize]="filters().limit" [pageIndex]="filters().page - 1"
     [pageSizeOptions]="[2, 5, 10, 25, 50]" (page)="onPageChange($event)" showFirstLastButtons>
   </mat-paginator>
-
   <footer class="treasury-pending-purchase-orders__bottom-summary" aria-live="polite">
     <div class="treasury-pending-purchase-orders__summary-grid">
       <div><span>Seleccionados para banco</span><strong>{{ bankItemsCount() }}</strong></div>
