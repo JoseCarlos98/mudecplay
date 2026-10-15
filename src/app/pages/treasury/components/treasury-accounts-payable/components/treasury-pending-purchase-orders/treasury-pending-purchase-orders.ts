@@ -11,6 +11,13 @@ import {
   signal,
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { DateRangeValue, InputDate } from '../../../../../../shared/ui/input-date/input-date';
+import { InputField } from '../../../../../../shared/ui/input-field/input-field';
+import { InputSelect } from '../../../../../../shared/ui/input-select/input-select';
+import { SearchMultiSelect } from '../../../../../../shared/ui/autocomplete-multiple/autocomplete-multiple';
+import { BtnsSection } from '../../../../../../shared/ui/btns-section/btns-section';
+import { Catalog } from '../../../../../../shared/interfaces/general-interfaces';
+import { LocalStorageService } from '../../../../../../shared/services/local-storage.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -36,15 +43,44 @@ type SortValue =
   | 'folio:asc'
   | 'folio:desc';
 
-interface LookupOption {
-  id: number;
-  name: string;
+const PURCHASE_ORDER_FILTERS_KEY = 'mp_treasury_accounts_payable_purchase_orders_v1';
+
+const PURCHASE_ORDER_SORT_OPTIONS: Catalog[] = [
+  { id: 'created_at:desc', name: 'O.C. más recientes' },
+  { id: 'created_at:asc', name: 'O.C. más antiguas' },
+  { id: 'pending_amount:desc', name: 'Mayor saldo pendiente' },
+  { id: 'pending_amount:asc', name: 'Menor saldo pendiente' },
+  { id: 'folio:asc', name: 'Folio A–Z' },
+  { id: 'folio:desc', name: 'Folio Z–A' },
+];
+
+const DEFAULT_SORT_VALUE: SortValue = 'created_at:desc';
+
+interface StoredPurchaseOrderUiFilters {
+  dateRange: DateRangeValue | null;
+  search: string;
+  amount: number | string | null;
+  suppliersIds: Catalog[];
+  project_id: Catalog | number | string | null;
+  sort: Catalog | string | null;
+  page: number;
+  limit: number;
 }
 
 @Component({
   selector: 'app-treasury-pending-purchase-orders',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, MatPaginatorModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    MatPaginatorModule,
+    InputDate,
+    InputField,
+    InputSelect,
+    SearchMultiSelect,
+    BtnsSection,
+  ],
   templateUrl: './treasury-pending-purchase-orders.html',
   styleUrl: './treasury-pending-purchase-orders.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -53,6 +89,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   private readonly accountsPayableService = inject(TreasuryAccountsPayableService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly fb = inject(FormBuilder);
+  private readonly storage = inject(LocalStorageService);
 
   readonly bankMovement = input<entity.TreasuryAvailableOutflowTableRow | null>(null);
 
@@ -69,17 +106,18 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   readonly loading = signal(false);
   readonly loadError = signal(false);
   readonly expandedOrderId = signal<number | null>(null);
-  readonly supplierOptions = signal<LookupOption[]>([]);
-  readonly selectedSupplierIds = signal<number[]>([]);
-  readonly projectOptions = signal<LookupOption[]>([]);
+  readonly projectOptions = signal<Catalog[]>([]);
+  readonly sortOptions = PURCHASE_ORDER_SORT_OPTIONS;
+  readonly filterError = signal<string | null>(null);
 
+  // Mismo contrato de filtros UI compartidos que la modalidad tradicional.
   readonly filterForm = this.fb.group({
-    date_from: this.fb.nonNullable.control(''),
-    date_to: this.fb.nonNullable.control(''),
-    search: this.fb.nonNullable.control(''),
-    amount: this.fb.nonNullable.control(''),
-    project_id: this.fb.nonNullable.control(''),
-    sort: this.fb.nonNullable.control<SortValue>('created_at:desc'),
+    dateRange: this.fb.control<DateRangeValue | null>(null),
+    search: this.fb.control<string>(''),
+    amount: this.fb.control<number | string | null>(null),
+    suppliersIds: this.fb.control<Catalog[]>([]),
+    project_id: this.fb.control<Catalog | number | string | null>(null),
+    sort: this.fb.control<Catalog | string | null>(PURCHASE_ORDER_SORT_OPTIONS[0]),
   });
 
   readonly filters = signal<entity.TreasuryPendingPurchaseOrderFilters>({
@@ -155,57 +193,154 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
     return [...this.cashSelected().keys()].filter((id) => !ids.has(id)).length;
   });
 
-  readonly hasActiveFilters = computed(() => {
-    const value = this.filters();
-    return Boolean(value.search?.trim() || value.amount != null ||
-      value.supplier_ids?.length || value.project_id || value.date_from || value.date_to ||
-      value.sorts?.[0]?.key !== 'created_at' || value.sorts?.[0]?.direction !== 'desc');
-  });
+  get hasActiveFilters(): boolean {
+    const value = this.filterForm.getRawValue();
+    const amount = this.normalizeAmountFilter(value.amount);
+    return Boolean(
+      value.dateRange?.startDate ||
+      value.dateRange?.endDate ||
+      value.search?.trim() ||
+      amount !== null ||
+      (value.suppliersIds?.length ?? 0) > 0 ||
+      this.getNumberId(value.project_id) ||
+      this.getSortValue(value.sort) !== DEFAULT_SORT_VALUE,
+    );
+  }
 
   ngOnInit(): void {
-    this.loadLookupOptions();
+    this.restoreFilters();
+    this.loadProjectOptions();
     this.loadPendingPurchaseOrders();
   }
 
-  /**
-   * Obtiene opciones de proveedor/proyecto a partir de las primeras 100 O.C.
-   * No existe un endpoint de catálogos de O.C. confirmado en los archivos.
-   * El buscador libre sí consulta todas las O.C. en el backend.
-   */
-  private loadLookupOptions(): void {
+  // Las opciones de proyecto se obtienen de las O.C. disponibles. El selector
+  // no pretende sustituir un catálogo corporativo exhaustivo de proyectos.
+  private loadProjectOptions(): void {
     this.accountsPayableService.getPendingPurchaseOrders({
-      page: 1, limit: 100, sorts: [{ key: 'created_at', direction: 'desc' }],
+      page: 1,
+      limit: 100,
+      sorts: [{ key: 'created_at', direction: 'desc' }],
     }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (response) => this.captureOptions(response),
-      error: (error: unknown) => console.warn('No se pudieron cargar opciones de O.C.:', error),
+      next: (response) => this.captureProjectOptions(response),
+      error: (error: unknown) => console.warn('No fue posible cargar opciones de proyectos de O.C.:', error),
     });
   }
 
-  private captureOptions(response: entity.TreasuryPendingPurchaseOrdersResponse): void {
-    const suppliers = new Map(this.supplierOptions().map((value) => [value.id, value]));
-    const projects = new Map(this.projectOptions().map((value) => [value.id, value]));
+  private captureProjectOptions(response: entity.TreasuryPendingPurchaseOrdersResponse): void {
+    const projects = new Map<number, Catalog>();
+    for (const option of this.projectOptions()) {
+      projects.set(Number(option.id), option);
+    }
     for (const order of response.data ?? []) {
       if (order.project?.id) {
         projects.set(order.project.id, {
-          id: order.project.id, name: order.project.name || `Proyecto ${order.project.id}`,
+          id: order.project.id,
+          name: order.project.name || `Proyecto ${order.project.id}`,
         });
       }
       for (const item of order.items) {
-        if (item.supplier?.id) {
-          suppliers.set(item.supplier.id, {
-            id: item.supplier.id,
-            name: item.supplier.company_name || item.supplier.name || `Proveedor ${item.supplier.id}`,
-          });
-        }
         if (item.project?.id) {
           projects.set(item.project.id, {
-            id: item.project.id, name: item.project.name || `Proyecto ${item.project.id}`,
+            id: item.project.id,
+            name: item.project.name || `Proyecto ${item.project.id}`,
           });
         }
       }
     }
-    this.supplierOptions.set([...suppliers.values()].sort((a, b) => a.name.localeCompare(b.name)));
-    this.projectOptions.set([...projects.values()].sort((a, b) => a.name.localeCompare(b.name)));
+    this.projectOptions.set([...projects.values()].sort((a, b) =>
+      a.name.localeCompare(b.name),
+    ));
+  }
+
+  private getCatalogValue(
+    value: Catalog | number | string | null | undefined,
+  ): string | number | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'string' || typeof value === 'number') return value;
+    return value.id;
+  }
+
+  private getNumberId(value: Catalog | number | string | null | undefined): number | null {
+    const id = Number(this.getCatalogValue(value));
+    return Number.isInteger(id) && id > 0 ? id : null;
+  }
+
+  private getSortValue(value: Catalog | string | null | undefined): SortValue {
+    const raw = this.getCatalogValue(value);
+    const found = PURCHASE_ORDER_SORT_OPTIONS.find((option) => option.id === raw);
+    return (found?.id as SortValue | undefined) ?? DEFAULT_SORT_VALUE;
+  }
+
+  private normalizeAmountFilter(value: unknown): number | null {
+    if (value === '' || value === null || value === undefined) return null;
+    const amount = Number(value);
+    return Number.isFinite(amount) && amount > 0 ? roundMoney(amount) : null;
+  }
+
+  private buildFiltersFromUi(page = 1, limit = this.filters().limit): entity.TreasuryPendingPurchaseOrderFilters {
+    const ui = this.filterForm.getRawValue();
+    const [key, direction] = this.getSortValue(ui.sort).split(':') as [string, 'asc' | 'desc'];
+    const supplierIds = (ui.suppliersIds ?? [])
+      .map((supplier) => Number(supplier.id))
+      .filter((id) => Number.isInteger(id) && id > 0);
+
+    return {
+      page,
+      limit,
+      search: ui.search?.trim() || '',
+      amount: this.normalizeAmountFilter(ui.amount),
+      supplier_id: null,
+      supplier_ids: [...new Set(supplierIds)],
+      project_id: this.getNumberId(ui.project_id),
+      date_from: ui.dateRange?.startDate ?? null,
+      date_to: ui.dateRange?.endDate ?? null,
+      sorts: [{ key, direction }],
+    };
+  }
+
+  private saveFilters(): void {
+    const ui = this.filterForm.getRawValue();
+    const saved: StoredPurchaseOrderUiFilters = {
+      dateRange: ui.dateRange ?? null,
+      search: ui.search?.trim() || '',
+      amount: ui.amount ?? null,
+      suppliersIds: ui.suppliersIds ?? [],
+      project_id: ui.project_id ?? null,
+      sort: ui.sort ?? PURCHASE_ORDER_SORT_OPTIONS[0],
+      page: this.filters().page,
+      limit: this.filters().limit,
+    };
+    this.storage.setItem(PURCHASE_ORDER_FILTERS_KEY, saved);
+  }
+
+  private restoreFilters(): void {
+    const saved = this.storage.getItem<StoredPurchaseOrderUiFilters>(PURCHASE_ORDER_FILTERS_KEY);
+    if (!saved) return;
+
+    const dateRange: DateRangeValue | null = saved.dateRange
+      ? {
+          startDate: saved.dateRange.startDate ?? null,
+          endDate: saved.dateRange.endDate ?? null,
+        }
+      : null;
+    const sortValue = this.getSortValue(saved.sort);
+    const sortOption = PURCHASE_ORDER_SORT_OPTIONS.find((option) => option.id === sortValue);
+
+    this.filterForm.patchValue({
+      dateRange,
+      search: saved.search ?? '',
+      amount: saved.amount ?? null,
+      suppliersIds: Array.isArray(saved.suppliersIds) ? saved.suppliersIds : [],
+      project_id: saved.project_id ?? null,
+      sort: sortOption ?? PURCHASE_ORDER_SORT_OPTIONS[0],
+    }, { emitEvent: false });
+
+    const page = Number(saved.page);
+    const limit = Number(saved.limit);
+    this.filters.set(this.buildFiltersFromUi(
+      Number.isInteger(page) && page > 0 ? page : 1,
+      [2, 5, 10, 25, 50].includes(limit) ? limit : 10,
+    ));
   }
 
   loadPendingPurchaseOrders(): void {
@@ -222,7 +357,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
         next: (response) => {
           if (requestSequence !== this.requestSequence) return;
           this.tableData.set(response);
-          this.captureOptions(response);
+          this.captureProjectOptions(response);
           this.reconcileVisibleSelections(response);
           this.expandedOrderId.set(null);
         },
@@ -234,55 +369,52 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
       });
   }
 
+  onFilterBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'search':
+        this.search();
+        break;
+      case 'clean':
+        this.clearFilters();
+        break;
+      default:
+        break;
+    }
+  }
+
   search(): void {
-    const value = this.filterForm.getRawValue();
-    const amountText = String(value.amount ?? '').trim();
-    const parsedAmount = amountText === '' ? null : Number(amountText);
-    if (parsedAmount !== null && (!Number.isFinite(parsedAmount) || parsedAmount < 0)) {
-      this.filterForm.controls.amount.setErrors({ invalid: true });
+    this.filterError.set(null);
+    const ui = this.filterForm.getRawValue();
+    const amountText = ui.amount === null || ui.amount === undefined
+      ? ''
+      : String(ui.amount).trim();
+    if (amountText !== '' && this.normalizeAmountFilter(ui.amount) === null) {
+      this.filterError.set('Ingresa un importe mayor que cero.');
       return;
     }
-    if (value.date_from && value.date_to && value.date_from > value.date_to) {
-      this.filterForm.controls.date_to.setErrors({ invalidRange: true });
+    if (ui.dateRange?.startDate && ui.dateRange?.endDate &&
+        ui.dateRange.startDate > ui.dateRange.endDate) {
+      this.filterError.set('La fecha final debe ser igual o posterior a la inicial.');
       return;
     }
-    const [key, direction] = value.sort.split(':') as [string, 'asc' | 'desc'];
-    this.filters.update((current) => ({
-      ...current,
-      page: 1,
-      search: value.search.trim(),
-      amount: parsedAmount,
-      supplier_id: null,
-      supplier_ids: [...this.selectedSupplierIds()],
-      project_id: value.project_id ? Number(value.project_id) : null,
-      date_from: value.date_from || null,
-      date_to: value.date_to || null,
-      sorts: [{ key, direction }],
-    }));
+    this.filters.set(this.buildFiltersFromUi());
+    this.saveFilters();
     this.loadPendingPurchaseOrders();
   }
 
   clearFilters(): void {
+    this.filterError.set(null);
     this.filterForm.reset({
-      date_from: '', date_to: '', search: '', amount: '',
-      project_id: '', sort: 'created_at:desc',
-    });
-    this.selectedSupplierIds.set([]);
-    this.filters.update((current) => ({
-      ...current,
-      page: 1,
-      search: '', amount: null, supplier_id: null, supplier_ids: [],
-      project_id: null, date_from: null, date_to: null,
-      sorts: [{ key: 'created_at', direction: 'desc' }],
-    }));
+      dateRange: null,
+      search: '',
+      amount: null,
+      suppliersIds: [],
+      project_id: null,
+      sort: PURCHASE_ORDER_SORT_OPTIONS[0],
+    }, { emitEvent: false });
+    this.filters.set(this.buildFiltersFromUi());
+    this.storage.removeItem(PURCHASE_ORDER_FILTERS_KEY);
     this.loadPendingPurchaseOrders();
-  }
-
-  toggleSupplierId(supplierId: number, event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.selectedSupplierIds.update((current) =>
-      checked ? [...new Set([...current, supplierId])] : current.filter((id) => id !== supplierId),
-    );
   }
 
   toggleOrder(orderId: number): void {
@@ -414,6 +546,7 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
 
   onPageChange(event: PageEvent): void {
     this.filters.update((filters) => ({ ...filters, page: event.pageIndex + 1, limit: event.pageSize }));
+    this.saveFilters();
     this.loadPendingPurchaseOrders();
   }
 
