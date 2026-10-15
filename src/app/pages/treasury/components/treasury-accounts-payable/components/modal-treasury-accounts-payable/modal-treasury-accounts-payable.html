@@ -1,16 +1,13 @@
 <div class="c-modal treasury-payment-modal">
   <app-module-header title="Aplicar pago bancario" [config]="headerConfig" (action)="closeModal()">
   </app-module-header>
-
   <div class="treasury-payment-modal__body">
     <!-- ===============================================
          MOVIMIENTO BANCARIO
          =============================================== -->
-
     <section class="payment-summary">
       <div>
         <strong>Empresa:</strong>
-
         <span>
           {{
           movement.company_name ||
@@ -19,10 +16,8 @@
           }}
         </span>
       </div>
-
       <div>
         <strong>Banco:</strong>
-
         <span>
           {{
           movement.bank_name ||
@@ -31,18 +26,14 @@
           }}
         </span>
       </div>
-
       <div>
         <strong>Cuenta:</strong>
-
         <span>
           {{ accountDisplay }}
         </span>
       </div>
-
       <div>
         <strong>Fecha:</strong>
-
         <span>
           {{
           movement.movement_date
@@ -50,19 +41,15 @@
           }}
         </span>
       </div>
-
       <div class="payment-summary__reference">
         <strong>Referencia:</strong>
-
         <span>
           {{ movement.reference_display }}
         </span>
       </div>
-
       <div class="payment-summary__amounts">
         <div>
           <strong>Monto original:</strong>
-
           <span class="payment-summary__money--original">
             {{
             movement.amount
@@ -70,10 +57,8 @@
             }}
           </span>
         </div>
-
         <div>
           <strong>Disponible actual:</strong>
-
           <span class="payment-summary__money">
             {{
             movement.available_amount
@@ -82,10 +67,8 @@
           </span>
         </div>
       </div>
-
       <div class="payment-summary__description">
         <strong>Descripción:</strong>
-
         <span>
           {{
           movement.description_original ||
@@ -94,23 +77,18 @@
         </span>
       </div>
     </section>
-
     <!-- ===============================================
          RESUMEN DEL PAGO
          =============================================== -->
-
     <section class="payment-totals">
       <div>
         <span>Conceptos</span>
-
         <strong>
           {{ applicationsCount }}
         </strong>
       </div>
-
       <div>
         <span>Total a aplicar</span>
-
         <strong class="payment-totals__applied">
           {{
           totalToApply
@@ -118,10 +96,8 @@
           }}
         </strong>
       </div>
-
       <div>
         <span>Movimiento restante</span>
-
         <strong [class.payment-totals__remaining--invalid]="
             movementExceededAmount > 0
           ">
@@ -132,12 +108,10 @@
         </strong>
       </div>
     </section>
-
     @if (movementExceededAmount > 0) {
     <div class="payment-total-error">
       El total de los conceptos supera el saldo disponible del
       movimiento por
-
       <strong>
         {{
         movementExceededAmount
@@ -146,28 +120,23 @@
       </strong>.
     </div>
     }
-
     <!-- ===============================================
          CONCEPTOS SELECCIONADOS
          =============================================== -->
-
     <section class="payment-applications">
       <div class="payment-applications__header">
         <div>
           <h3>
             Conceptos seleccionados
           </h3>
-
           <p>
             Puedes modificar el importe para registrar un pago parcial.
           </p>
         </div>
-
         <span class="payment-applications__count">
           {{ applicationsCount }}
         </span>
       </div>
-
       <div class="payment-applications__list">
         @for (
         application of data.applications;
@@ -182,23 +151,25 @@
                 'Sin folio'
                 }}
               </span>
-
               <strong>
                 {{
                 application.item.concept ||
                 'Sin concepto'
                 }}
               </strong>
-
               <small>
                 {{
                 application.item.supplier_display_name ||
                 application.item.supplier?.display_name ||
                 'Sin proveedor'
                 }}
+                @if (getPurchaseOrderFolio(application); as purchaseOrderFolio) {
+                  <span class="payment-application__purchase-order">
+                    Orden de compra: {{ purchaseOrderFolio }}
+                  </span>
+                }
               </small>
             </div>
-
             <div class="payment-application__amount" [class.payment-application__amount--invalid]="
     hasApplicationAmountError(application)
   ">
@@ -208,13 +179,11 @@
               </app-input-field>
             </div>
           </div>
-
           <div class="payment-application__balances">
             <div>
               <span>
                 Pendiente actual
               </span>
-
               <strong>
                 {{
                 application.item.pending_amount
@@ -222,12 +191,10 @@
                 }}
               </strong>
             </div>
-
             <div>
               <span>
                 Pendiente después
               </span>
-
               <strong>
                 {{
                 getPendingAfter(application)
@@ -235,12 +202,10 @@
                 }}
               </strong>
             </div>
-
             <div>
               <span>
                 Proyecto
               </span>
-
               <strong>
                 {{
                 application.item.project_name ||
@@ -254,24 +219,20 @@
         }
       </div>
     </section>
-
     <!-- ===============================================
          NOTAS
          =============================================== -->
-
     <section class="payment-confirmation-row">
       <form id="form" class="payment-notes-form" [formGroup]="form" (ngSubmit)="applyPayment()">
         <app-input-field formControlName="notes" label="Notas" type="text">
         </app-input-field>
       </form>
-
       <div class="payment-warning">
         Al confirmar, el pago quedará relacionado con el movimiento
         bancario y reducirá el saldo pendiente de los conceptos
         seleccionados.
       </div>
     </section>
-
   </div>
   <app-btns-section class="modal-actions-spacer" type="save" form="form" [saveDisabled]="!canApplyPayment"
     (action)="onBtnsSectionAction($event)">

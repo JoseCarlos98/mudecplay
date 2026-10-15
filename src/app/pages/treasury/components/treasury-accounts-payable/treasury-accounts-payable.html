@@ -732,6 +732,7 @@
           [unavailableItemIds]="unavailablePurchaseOrderItemIds()"
           (selectionChange)="onPurchaseOrderSelectionChange($event)"
           (cashSelectionChange)="onPurchaseOrderCashSelectionChange($event)"
+          (applyPaymentRequested)="preparePurchaseOrderPayment()"
         />
       } @else {
 

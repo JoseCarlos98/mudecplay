@@ -83,6 +83,9 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   readonly selectionChange = output<TreasuryPendingPurchaseOrderSelection[]>();
   readonly cashSelectionChange = output<TreasuryPendingPurchaseOrderSelection[]>();
 
+  /** Solo solicita abrir el modal. El pago se confirma en el componente padre. */
+  readonly applyPaymentRequested = output<void>();
+
   readonly loading = signal(false);
   readonly loadError = signal(false);
   readonly expandedOrderId = signal<number | null>(null);
@@ -157,6 +160,20 @@ export class TreasuryPendingPurchaseOrders implements OnInit {
   readonly canFullyCoverSelection = computed(() =>
     this.bankMovement() !== null && this.bankItemsCount() > 0 && this.bankShortfall() === 0,
   );
+
+  /** Permite abrir el modal también si el movimiento solo alcanza para un abono parcial. */
+  readonly canPrepareBankPayment = computed(() => {
+    const movement = this.bankMovement();
+    return Boolean(
+      movement &&
+      movement.is_payable &&
+      !movement.requires_classification_review &&
+      this.movementAvailable() > 0 &&
+      this.bankItemsCount() > 0 &&
+      !this.loading() &&
+      !this.loadError()
+    );
+  });
 
   readonly selectedOnOtherPages = computed(() => {
     const ids = new Set(this.tableData().data.flatMap((order) =>

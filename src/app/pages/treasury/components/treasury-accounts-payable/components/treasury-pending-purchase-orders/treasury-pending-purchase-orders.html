@@ -221,8 +221,10 @@
           currency:'MXN':'symbol':'1.2-2') : 'Sin movimiento' }}</strong>
       </div>
     </div>
-    <button type="button" class="treasury-pending-purchase-orders__apply-button" disabled
-      title="El pago bancario por O.C. se conectará al modal existente después de validar esta pantalla">
+    <button type="button" class="treasury-pending-purchase-orders__apply-button"
+      [disabled]="!canPrepareBankPayment()"
+      (click)="applyPaymentRequested.emit()"
+      title="Revisar los importes y abrir el modal de aplicación bancaria">
       <mat-icon aria-hidden="true">payments</mat-icon> Aplicar pago
     </button>
   </footer>

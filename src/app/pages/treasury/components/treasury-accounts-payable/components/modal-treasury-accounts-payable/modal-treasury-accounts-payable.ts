@@ -1,67 +1,61 @@
 import { CommonModule } from '@angular/common';
-
 import {
   Component,
   inject,
 } from '@angular/core';
-
 import {
   FormBuilder,
   FormControl,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-
 import {
   MAT_DIALOG_DATA,
   MatDialogRef,
 } from '@angular/material/dialog';
-
 import {
   finalize,
 } from 'rxjs';
-
 // UI compartida
 import {
   ModuleHeader,
 } from '../../../../../../shared/ui/module-header/module-header';
-
 import {
   ModuleHeaderConfig,
 } from '../../../../../../shared/ui/module-header/interfaces/module-header-interface';
-
 import {
   BtnsSection,
 } from '../../../../../../shared/ui/btns-section/btns-section';
-
 import {
   InputField,
 } from '../../../../../../shared/ui/input-field/input-field';
-
 // Helpers
 import {
   roundMoney,
 } from '../../../../../../shared/helpers/general-helpers';
-
 // Servicios compartidos
 import {
   DialogService,
 } from '../../../../../../shared/services/dialog.service';
-
 // Módulo
 import * as entity from '../../interfaces/treasury-accounts-payable.interfaces';
-
 import {
   TreasuryAccountsPayableService,
 } from '../../services/treasury-accounts-payable.service';
-
 // =========================================================
 // CONFIGURACIÓN
 // =========================================================
-
 const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true,
 };
+/**
+ * Metadato opcional de presentación para la vista «Por órdenes de compra».
+ * No forma parte del payload financiero enviado al backend.
+ */
+type BankModalApplicationWithPurchaseOrder =
+  entity.TreasuryApplyBankMovementModalApplication & {
+    purchase_order_folio?: string | null;
+  };
 
 @Component({
   selector: 'app-modal-treasury-accounts-payable',
@@ -69,7 +63,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   imports: [
     CommonModule,
     ReactiveFormsModule,
-
     ModuleHeader,
     BtnsSection,
     InputField,
@@ -83,15 +76,12 @@ export class ModalTreasuryAccountsPayable {
   // =========================================================
   // INYECCIONES
   // =========================================================
-
   readonly data =
     inject<entity.TreasuryApplyBankMovementModalData>(
       MAT_DIALOG_DATA,
     );
-
   private readonly fb =
     inject(FormBuilder);
-
   private readonly dialogRef =
     inject(
       MatDialogRef<
@@ -99,26 +89,19 @@ export class ModalTreasuryAccountsPayable {
         entity.TreasuryApplyBankMovementResponse | null
       >,
     );
-
   private readonly accountsPayableService =
     inject(TreasuryAccountsPayableService);
-
   private readonly dialogService =
     inject(DialogService);
-
   // =========================================================
   // UI
   // =========================================================
-
   readonly headerConfig =
     HEADER_CONFIG;
-
   saving = false;
-
   // =========================================================
   // FORMULARIO
   // =========================================================
-
   readonly form =
     this.fb.group({
       notes:
@@ -126,7 +109,6 @@ export class ModalTreasuryAccountsPayable {
           null,
         ),
     });
-
   /**
    * Cada concepto tiene su propio control editable.
    *
@@ -138,20 +120,16 @@ export class ModalTreasuryAccountsPayable {
       number,
       FormControl<number | null>
     >();
-
   constructor() {
     this.initializeApplicationAmountControls();
   }
-
   // =========================================================
   // INFORMACIÓN DEL MOVIMIENTO
   // =========================================================
-
   get movement():
     entity.TreasuryAvailableOutflowTableRow {
     return this.data.movement;
   }
-
   get accountDisplay(): string {
     return (
       this.movement.bank_account_display ||
@@ -161,11 +139,25 @@ export class ModalTreasuryAccountsPayable {
       'Sin cuenta'
     );
   }
+  /**
+   * Presenta el folio de O.C. solo cuando lo entrega la modalidad de órdenes.
+   * La pestaña tradicional no necesita suministrar este campo.
+   */
+  getPurchaseOrderFolio(
+    application: entity.TreasuryApplyBankMovementModalApplication,
+  ): string | null {
+    const folio = (
+      application as BankModalApplicationWithPurchaseOrder
+    ).purchase_order_folio;
+
+    return typeof folio === 'string' && folio.trim()
+      ? folio.trim()
+      : null;
+  }
 
   get applicationsCount(): number {
     return this.data.applications.length;
   }
-
   get totalToApply(): number {
     const total =
       this.data.applications.reduce(
@@ -177,7 +169,6 @@ export class ModalTreasuryAccountsPayable {
             this.getApplicationAmountControl(
               application,
             );
-
           return (
             accumulator +
             Number(
@@ -187,10 +178,8 @@ export class ModalTreasuryAccountsPayable {
         },
         0,
       );
-
     return roundMoney(total);
   }
-
   get movementAvailableAmount(): number {
     return roundMoney(
       Number(
@@ -199,7 +188,6 @@ export class ModalTreasuryAccountsPayable {
       ),
     );
   }
-
   get remainingMovementAmount(): number {
     return roundMoney(
       Math.max(
@@ -209,7 +197,6 @@ export class ModalTreasuryAccountsPayable {
       ),
     );
   }
-
   get movementExceededAmount(): number {
     return roundMoney(
       Math.max(
@@ -219,7 +206,6 @@ export class ModalTreasuryAccountsPayable {
       ),
     );
   }
-
   get canApplyPayment(): boolean {
     if (
       this.saving ||
@@ -228,26 +214,22 @@ export class ModalTreasuryAccountsPayable {
     ) {
       return false;
     }
-
     if (
       this.totalToApply <= 0 ||
       this.movementExceededAmount > 0
     ) {
       return false;
     }
-
     return this.data.applications.every(
       (application) => {
         const control =
           this.getApplicationAmountControl(
             application,
           );
-
         const amount =
           Number(
             control.value,
           );
-
         const pendingAmount =
           roundMoney(
             Number(
@@ -256,7 +238,6 @@ export class ModalTreasuryAccountsPayable {
               0,
             ),
           );
-
         return (
           control.valid &&
           Number.isFinite(amount) &&
@@ -266,11 +247,9 @@ export class ModalTreasuryAccountsPayable {
       },
     );
   }
-
   // =========================================================
   // CONTROLES DE IMPORTE
   // =========================================================
-
   getApplicationAmountControl(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
@@ -280,16 +259,13 @@ export class ModalTreasuryAccountsPayable {
         application.item
           .expense_item_id,
       );
-
     const control =
       this.applicationAmountControls.get(
         expenseItemId,
       );
-
     if (control) {
       return control;
     }
-
     /*
      * Respaldo defensivo.
      * Normalmente todos los controles se crean
@@ -303,21 +279,17 @@ export class ModalTreasuryAccountsPayable {
           0,
         ),
       );
-
     const fallbackControl =
       this.createApplicationAmountControl(
         application,
         pendingAmount,
       );
-
     this.applicationAmountControls.set(
       expenseItemId,
       fallbackControl,
     );
-
     return fallbackControl;
   }
-
   normalizeApplicationAmount(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
@@ -326,37 +298,30 @@ export class ModalTreasuryAccountsPayable {
       this.getApplicationAmountControl(
         application,
       );
-
     control.markAsTouched();
-
     if (
       control.value === null ||
       control.value === undefined
     ) {
       return;
     }
-
     const amount =
       Number(
         control.value,
       );
-
     if (!Number.isFinite(amount)) {
       return;
     }
-
     control.setValue(
       roundMoney(amount),
       {
         emitEvent: false,
       },
     );
-
     control.updateValueAndValidity({
       emitEvent: false,
     });
   }
-
   selectAmountInput(
     event: FocusEvent,
   ): void {
@@ -364,10 +329,8 @@ export class ModalTreasuryAccountsPayable {
       event.target as
         | HTMLInputElement
         | null;
-
     input?.select();
   }
-
   hasApplicationAmountError(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
@@ -376,7 +339,6 @@ export class ModalTreasuryAccountsPayable {
       this.getApplicationAmountControl(
         application,
       );
-
     return (
       control.invalid &&
       (
@@ -385,7 +347,6 @@ export class ModalTreasuryAccountsPayable {
       )
     );
   }
-
   getApplicationAmountError(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
@@ -394,7 +355,6 @@ export class ModalTreasuryAccountsPayable {
       this.getApplicationAmountControl(
         application,
       );
-
     if (
       !control.invalid ||
       (
@@ -404,28 +364,23 @@ export class ModalTreasuryAccountsPayable {
     ) {
       return null;
     }
-
     if (
       control.hasError('required')
     ) {
       return 'Ingresa el importe que deseas aplicar.';
     }
-
     if (
       control.hasError('min')
     ) {
       return 'El importe debe ser mayor a cero.';
     }
-
     if (
       control.hasError('max')
     ) {
       return 'El importe no puede superar el saldo pendiente.';
     }
-
     return 'El importe ingresado no es válido.';
   }
-
   getPendingAfter(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
@@ -434,7 +389,6 @@ export class ModalTreasuryAccountsPayable {
       this.getApplicationAmountControl(
         application,
       );
-
     const pendingAmount =
       roundMoney(
         Number(
@@ -443,7 +397,6 @@ export class ModalTreasuryAccountsPayable {
           0,
         ),
       );
-
     const amount =
       roundMoney(
         Number(
@@ -451,7 +404,6 @@ export class ModalTreasuryAccountsPayable {
           0,
         ),
       );
-
     return roundMoney(
       Math.max(
         pendingAmount -
@@ -460,11 +412,9 @@ export class ModalTreasuryAccountsPayable {
       ),
     );
   }
-
   // =========================================================
   // ACCIONES
   // =========================================================
-
   onBtnsSectionAction(
     action: string,
   ): void {
@@ -472,31 +422,26 @@ export class ModalTreasuryAccountsPayable {
       case 'save':
         this.applyPayment();
         break;
-
       case 'cancel':
         this.closeModal();
         break;
     }
   }
-
   applyPayment(): void {
     if (!this.canApplyPayment) {
       this.markApplicationAmountControlsAsTouched();
       return;
     }
-
     const notes =
       this.form.controls.notes.value
         ?.trim() ||
       null;
-
     const payload:
       entity.TreasuryApplyBankMovementPayload = {
       bank_movement_id:
         String(
           this.movement.id,
         ),
-
       applications:
         this.data.applications.map(
           (application) => {
@@ -504,12 +449,10 @@ export class ModalTreasuryAccountsPayable {
               this.getApplicationAmountControl(
                 application,
               );
-
             return {
               expense_item_id:
                 application.item
                   .expense_item_id,
-
               amount:
                 roundMoney(
                   Number(
@@ -520,13 +463,10 @@ export class ModalTreasuryAccountsPayable {
             };
           },
         ),
-
       notes,
     };
-
     this.saving = true;
     this.setFormsDisabled(true);
-
     this.accountsPayableService
       .applyBankMovement(payload)
       .pipe(
@@ -543,7 +483,6 @@ export class ModalTreasuryAccountsPayable {
           if (!response.success) {
             return;
           }
-
           /*
            * Cierra el modal y entrega el resultado
            * al componente principal.
@@ -552,7 +491,6 @@ export class ModalTreasuryAccountsPayable {
             response,
           );
         },
-
         error: (
           error: unknown,
         ) => {
@@ -560,20 +498,16 @@ export class ModalTreasuryAccountsPayable {
             'Error al aplicar el movimiento bancario:',
             error,
           );
-
           this.dialogService
             .confirm({
               title:
                 'No se pudo aplicar el pago',
-
               message:
                 this.getErrorMessage(
                   error,
                 ),
-
               confirmText:
                 'Aceptar',
-
               cancelText:
                 '',
             })
@@ -581,21 +515,17 @@ export class ModalTreasuryAccountsPayable {
         },
       });
   }
-
   closeModal(): void {
     if (this.saving) {
       return;
     }
-
     this.dialogRef.close(
       null,
     );
   }
-
   // =========================================================
   // INICIALIZACIÓN
   // =========================================================
-
   private initializeApplicationAmountControls(): void {
     this.data.applications.forEach(
       (application) => {
@@ -604,7 +534,6 @@ export class ModalTreasuryAccountsPayable {
             application.item
               .expense_item_id,
           );
-
         const pendingAmount =
           roundMoney(
             Number(
@@ -613,7 +542,6 @@ export class ModalTreasuryAccountsPayable {
               0,
             ),
           );
-
         this.applicationAmountControls.set(
           expenseItemId,
           this.createApplicationAmountControl(
@@ -624,18 +552,15 @@ export class ModalTreasuryAccountsPayable {
       },
     );
   }
-
   private createApplicationAmountControl(
     application:
       entity.TreasuryApplyBankMovementModalApplication,
-
     pendingAmount: number,
   ): FormControl<number | null> {
     const originalAmount =
       Number(
         application.amount,
       );
-
     const initialAmount =
       Number.isFinite(
         originalAmount,
@@ -648,7 +573,6 @@ export class ModalTreasuryAccountsPayable {
             ),
           )
         : pendingAmount;
-
     return this.fb.control<
       number | null
     >(
@@ -666,11 +590,9 @@ export class ModalTreasuryAccountsPayable {
       },
     );
   }
-
   // =========================================================
   // HELPERS
   // =========================================================
-
   private markApplicationAmountControlsAsTouched(): void {
     this.applicationAmountControls
       .forEach(
@@ -680,7 +602,6 @@ export class ModalTreasuryAccountsPayable {
         },
       );
   }
-
   private setFormsDisabled(
     disabled: boolean,
   ): void {
@@ -688,7 +609,6 @@ export class ModalTreasuryAccountsPayable {
       this.form.disable({
         emitEvent: false,
       });
-
       this.applicationAmountControls
         .forEach(
           (control) =>
@@ -696,14 +616,11 @@ export class ModalTreasuryAccountsPayable {
               emitEvent: false,
             }),
         );
-
       return;
     }
-
     this.form.enable({
       emitEvent: false,
     });
-
     this.applicationAmountControls
       .forEach(
         (control) =>
@@ -712,7 +629,6 @@ export class ModalTreasuryAccountsPayable {
           }),
       );
   }
-
   private getErrorMessage(
     error: unknown,
   ): string {
@@ -723,13 +639,10 @@ export class ModalTreasuryAccountsPayable {
             | string
             | string[];
         };
-
         message?: string;
       };
-
     const backendMessage =
       httpError?.error?.message;
-
     if (
       Array.isArray(
         backendMessage,
@@ -739,7 +652,6 @@ export class ModalTreasuryAccountsPayable {
         ' ',
       );
     }
-
     if (
       typeof backendMessage ===
         'string' &&
@@ -747,7 +659,6 @@ export class ModalTreasuryAccountsPayable {
     ) {
       return backendMessage;
     }
-
     if (
       typeof httpError?.message ===
         'string' &&
@@ -755,7 +666,6 @@ export class ModalTreasuryAccountsPayable {
     ) {
       return httpError.message;
     }
-
     return 'No se pudo aplicar el movimiento bancario. Revisa que el movimiento y los conceptos todavía tengan saldo disponible.';
   }
 }

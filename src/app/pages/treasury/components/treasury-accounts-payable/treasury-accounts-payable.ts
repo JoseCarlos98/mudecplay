@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   OnInit,
+  ViewChild,
   computed,
   inject,
   signal,
@@ -770,6 +771,11 @@ export class TreasuryAccountsPayable
   /** Preparación de pago en efectivo por O.C.; no registra pagos por sí misma. */
   readonly selectedPurchaseOrderCashItems =
     signal<TreasuryPendingPurchaseOrderSelection[]>([]);
+
+  /** Vista activa de O.C.; puede no existir al estar en otra modalidad. */
+  @ViewChild(TreasuryPendingPurchaseOrders)
+  private pendingPurchaseOrdersComponent?: TreasuryPendingPurchaseOrders;
+
 
   /** Impide marcar para O.C. un concepto usado en la selección tradicional. */
   readonly unavailablePurchaseOrderItemIds = computed(() => [
@@ -3420,6 +3426,158 @@ export class TreasuryAccountsPayable
       );
   }
 
+  /**
+   * Prepara las selecciones de O.C. para el modal bancario ya existente.
+   * No registra pagos: el usuario confirma dentro del propio modal.
+   */
+  preparePurchaseOrderPayment(): void {
+    const movement = this.selectedMovement();
+    const selections = this.selectedPurchaseOrderItems();
+
+    if (
+      !movement ||
+      !movement.is_payable ||
+      movement.requires_classification_review ||
+      Number(movement.available_amount) <= 0 ||
+      selections.length === 0
+    ) {
+      return;
+    }
+
+    // Un concepto nunca puede participar simultáneamente en dos flujos.
+    const blockedIds = new Set<number>([
+      ...this.selectedExpenseItems().keys(),
+      ...this.selectedCashExpenseItems().keys(),
+      ...this.selectedPurchaseOrderCashItems().map(
+        (entry) => Number(entry.item.expense_item_id),
+      ),
+    ]);
+    const uniqueIds = new Set<number>();
+
+    const allValid = selections.every((selection) => {
+      const item = selection.item;
+      const itemId = Number(item.expense_item_id);
+      const amount = roundMoney(Number(item.pending_amount));
+
+      if (
+        !Number.isInteger(itemId) ||
+        itemId <= 0 ||
+        !Number.isFinite(amount) ||
+        amount <= 0 ||
+        !item.is_selectable ||
+        blockedIds.has(itemId) ||
+        uniqueIds.has(itemId)
+      ) {
+        return false;
+      }
+      uniqueIds.add(itemId);
+      return true;
+    });
+
+    if (!allValid) {
+      this.dialogService.confirm({
+        title: 'Selección no disponible',
+        message:
+          'Alguno de los conceptos de O.C. ya no está disponible o aparece repetido. Actualiza la selección e inténtalo nuevamente.',
+        confirmText: 'Aceptar',
+        cancelText: '',
+      }).subscribe();
+      return;
+    }
+
+    // El modal usa la misma API financiera que la modalidad tradicional:
+    // { bank_movement_id, applications: [{expense_item_id, amount}], notes }.
+    // purchase_order_folio solo sirve para presentación en el modal.
+    const applications: (
+      entity.TreasuryApplyBankMovementModalApplication & {
+        purchase_order_folio: string;
+      }
+    )[] = selections.map((selection) => ({
+      item: this.mapPurchaseOrderItemForBankModal(selection),
+      amount: roundMoney(Number(selection.item.pending_amount)),
+      purchase_order_folio: selection.folio,
+    }));
+
+    const modalData: entity.TreasuryApplyBankMovementModalData = {
+      movement,
+      applications,
+    };
+
+    this.dialogService
+      .open(ModalTreasuryAccountsPayable, modalData, 'medium')
+      .afterClosed()
+      .subscribe((result: entity.TreasuryApplyBankMovementResponse | null) => {
+        if (!result?.success) return;
+
+        // Solo borramos la selección bancaria de O.C. confirmada.
+        // La selección para efectivo sigue siendo independiente.
+        this.selectedPurchaseOrderItems.set([]);
+        this.clearPaymentSelection();
+        this.reloadPaymentTables();
+
+        // Si el hijo está visible, refresca sus saldos conservando filtros.
+        // Si está oculto, cargará datos nuevos al volver a montarse.
+        this.pendingPurchaseOrdersComponent?.loadPendingPurchaseOrders();
+      });
+  }
+
+  /**
+   * Adaptador de presentación para el modal compartido. El endpoint de O.C.
+   * entrega campos financieros de concepto, pero no todos los metadatos
+   * de TreasuryPendingExpenseItemTableRow. Los campos de compatibilidad
+   * NO se muestran aquí ni se envían al backend como parte del pago.
+   */
+  private mapPurchaseOrderItemForBankModal(
+    selection: TreasuryPendingPurchaseOrderSelection,
+  ): entity.TreasuryPendingExpenseItemTableRow {
+    const item = selection.item;
+    const supplierName =
+      item.supplier?.company_name?.trim() ||
+      item.supplier?.name?.trim() ||
+      'Sin proveedor';
+
+    return {
+      expense_item_id: item.expense_item_id,
+      expense_id: item.expense_id,
+      id: item.expense_item_id,
+      internal_folio: item.internal_folio,
+      expense_date: item.expense_date,
+      concept:
+        item.product_name?.trim() ||
+        item.concept?.trim() ||
+        'Sin concepto',
+      item_type: item.item_type,
+      amount: item.amount,
+      paid_amount: item.paid_amount,
+      pending_amount: item.pending_amount,
+      payment_status:
+        item.payment_status === 'partial' ? 'partial' : 'unpaid',
+      payment_progress_percentage: item.payment_progress_percentage,
+      supplier: {
+        ...item.supplier,
+        display_name: supplierName,
+      },
+      project: item.project,
+      supplier_display_name: supplierName,
+      project_name: item.project?.name?.trim() || 'Sin proyecto',
+      item_type_label: item.item_type === 'warehouse' ? 'Almacén' : 'Directo',
+      payment_status_label:
+        item.payment_status === 'partial' ? 'Parcial' : 'Pendiente',
+      cash_selected: false,
+
+      // Obligatorios por compatibilidad de tipo; ausentes en la respuesta
+      // de O.C. y NO utilizados por el modal ni enviados en el payload.
+      expense_total_amount: 0,
+      cfdi_uuid: null,
+      has_cfdi: false,
+      origin_type: null,
+      source_module: null,
+      source_record_id: null,
+      is_archived: false,
+      labor: null,
+    };
+  }
+
   preparePayment(): void {
     const movement =
       this.selectedMovement();
@@ -3869,102 +4027,102 @@ export class TreasuryAccountsPayable
       });
   }
 
-private restoreHistoricalFilters(
-  regularizationStatus:
-    entity.TreasuryHistoricalRegularizationStatus,
-): void {
-  const storageKey =
-    this.getHistoricalFiltersStorageKey(
-      regularizationStatus,
-    );
+  private restoreHistoricalFilters(
+    regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus,
+  ): void {
+    const storageKey =
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      );
 
-  const saved =
-    this.storage.getItem<
-      entity.TreasuryHistoricalPaymentUiFilters
-    >(
-      storageKey,
-    );
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryHistoricalPaymentUiFilters
+      >(
+        storageKey,
+      );
 
-  const dateRange =
-    this.normalizeDateRange(
-      saved?.dateRange,
-    );
+    const dateRange =
+      this.normalizeDateRange(
+        saved?.dateRange,
+      );
 
-  this.historicalSorts = [
-    ...(saved?.sorts ?? []),
-  ];
+    this.historicalSorts = [
+      ...(saved?.sorts ?? []),
+    ];
 
-  const uiState:
-    entity.TreasuryHistoricalPaymentUiFilters = {
-    dateRange,
-
-    search:
-      saved?.search ?? '',
-
-    supplier_id:
-      saved?.supplier_id ?? null,
-
-    project_id:
-      saved?.project_id ?? null,
-
-    /*
-     * La pestaña determina obligatoriamente
-     * el estado histórico.
-     */
-    regularization_status:
-      regularizationStatus,
-
-    regularization_type:
-      saved?.regularization_type ?? '',
-
-    missing_payment_date:
-      saved?.missing_payment_date ?? '',
-
-    sorts: [
-      ...this.historicalSorts,
-    ],
-
-    page:
-      saved?.page ?? 1,
-
-    limit:
-      saved?.limit ??
-      DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
-  };
-
-  this.historicalFilterForm.reset(
-    {
-      dateRange:
-        uiState.dateRange,
+    const uiState:
+      entity.TreasuryHistoricalPaymentUiFilters = {
+      dateRange,
 
       search:
-        uiState.search,
+        saved?.search ?? '',
 
       supplier_id:
-        uiState.supplier_id,
+        saved?.supplier_id ?? null,
 
       project_id:
-        uiState.project_id,
+        saved?.project_id ?? null,
 
+      /*
+       * La pestaña determina obligatoriamente
+       * el estado histórico.
+       */
       regularization_status:
         regularizationStatus,
 
       regularization_type:
-        uiState.regularization_type,
+        saved?.regularization_type ?? '',
 
       missing_payment_date:
-        uiState.missing_payment_date,
-    },
-    {
-      emitEvent: false,
-    },
-  );
+        saved?.missing_payment_date ?? '',
 
-  this.historicalFilters =
-    this.buildHistoricalBackendFiltersFromUi(
-      uiState,
+      sorts: [
+        ...this.historicalSorts,
+      ],
+
+      page:
+        saved?.page ?? 1,
+
+      limit:
+        saved?.limit ??
+        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+    };
+
+    this.historicalFilterForm.reset(
+      {
+        dateRange:
+          uiState.dateRange,
+
+        search:
+          uiState.search,
+
+        supplier_id:
+          uiState.supplier_id,
+
+        project_id:
+          uiState.project_id,
+
+        regularization_status:
+          regularizationStatus,
+
+        regularization_type:
+          uiState.regularization_type,
+
+        missing_payment_date:
+          uiState.missing_payment_date,
+      },
+      {
+        emitEvent: false,
+      },
     );
-}
+
+    this.historicalFilters =
+      this.buildHistoricalBackendFiltersFromUi(
+        uiState,
+      );
+  }
 
   private saveOutflowFiltersToStorage(
     state?: entity.TreasuryAvailableOutflowUiFilters,
