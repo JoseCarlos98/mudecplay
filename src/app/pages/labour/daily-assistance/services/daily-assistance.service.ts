@@ -127,6 +127,24 @@ export class DailyAssistanceService {
     );
   }
 
+  markVacation(
+    payload: entity.MarkEmployeeVacation,
+  ): Observable<entity.SuccessResponse> {
+    return this.http.post<entity.SuccessResponse>(
+      `${this.apiUrl}/vacation`,
+      payload,
+    );
+  }
+
+  restoreVacation(
+    id: number,
+  ): Observable<entity.SuccessResponse> {
+    return this.http.patch<entity.SuccessResponse>(
+      `${this.apiUrl}/${id}/vacation/restore`,
+      {},
+    );
+  }
+
   cancelAttendance(
     id: number,
     payload: entity.CancelEmployeeAttendance,

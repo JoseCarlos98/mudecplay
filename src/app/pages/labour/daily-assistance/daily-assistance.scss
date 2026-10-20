@@ -32,7 +32,7 @@
 
 .daily-top-summary {
   display: grid;
-  grid-template-columns: 1.15fr repeat(5, minmax(0, 1fr));
+  grid-template-columns: 1.15fr repeat(6, minmax(0, 1fr));
   gap: 10px;
   margin-top: 12px;
 }
@@ -130,6 +130,10 @@
     background: #f59e0b;
   }
 
+  &--vacation::before {
+    background: #0284c7;
+  }
+
   &--cancelled::before {
     background: #e53835;
   }
@@ -165,6 +169,11 @@
   &--absent &__icon {
     color: #92400e;
     background: rgba(245, 158, 11, 0.12);
+  }
+
+  &--vacation &__icon {
+    color: #0369a1;
+    background: rgba(2, 132, 199, 0.1);
   }
 
   &--cancelled &__icon {
@@ -496,7 +505,8 @@
   gap: 8px;
 }
 
-.daily-absence-mini-btn {
+.daily-absence-mini-btn,
+.daily-vacation-mini-btn {
   height: 26px;
   padding: 0 9px;
   border-radius: 9999px;
@@ -527,6 +537,17 @@
 
   &:disabled {
     opacity: 0.55;
+  }
+}
+
+.daily-vacation-mini-btn {
+  color: #0369a1;
+  border-color: rgba(2, 132, 199, 0.28);
+  background: rgba(2, 132, 199, 0.08);
+
+  &:hover:not(:disabled) {
+    background: rgba(2, 132, 199, 0.15);
+    border-color: rgba(2, 132, 199, 0.4);
   }
 }
 
@@ -662,6 +683,11 @@
 
     color:
       #92400e;
+  }
+
+  &--vacation {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0369a1;
   }
 }
 
@@ -1720,5 +1746,62 @@
     grid-column: 3;
     grid-row: 1;
     justify-self: end;
+  }
+}
+
+
+/* Vacaciones: permitir dos acciones sin superponer botones en móvil. */
+@media screen and (max-width: 875px) {
+  .daily-employee-actions {
+    display: flex;
+    flex-wrap: wrap;
+    grid-column: 1;
+    grid-row: 2;
+    justify-content: flex-end;
+    gap: 5px;
+  }
+
+  .daily-employee-side {
+    min-width: 145px;
+  }
+
+  .daily-absence-mini-btn,
+  .daily-vacation-mini-btn {
+    white-space: nowrap;
+    height: 26px;
+    font-size: 10px;
+    padding: 0 7px;
+  }
+}
+
+@media screen and (max-width: 560px) {
+  .daily-employee-card {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .daily-employee-side {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .daily-employee-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .daily-money-chip,
+  .daily-check-indicator,
+  .daily-absence-mini-btn,
+  .daily-vacation-mini-btn {
+    grid-column: auto;
+    grid-row: auto;
   }
 }

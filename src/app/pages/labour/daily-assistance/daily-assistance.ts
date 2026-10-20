@@ -57,7 +57,7 @@ type AssignmentCard = entity.EmployeeAttendanceAssignmentRow & {
   daily_salary_snapshot: number;
 };
 
-type AbsenceCard = entity.EmployeeAttendanceRow & {
+type AttendanceStatusCard = entity.EmployeeAttendanceRow & {
   employee_full_name: string;
   employee_area_label: string;
   employee_position: string;
@@ -108,7 +108,8 @@ export class DailyAssistance implements OnInit {
 
   employees: EmployeeCard[] = [];
   assignedAttendances: AssignmentCard[] = [];
-  absentAttendances: AbsenceCard[] = [];
+  absentAttendances: AttendanceStatusCard[] = [];
+  vacationAttendances: AttendanceStatusCard[] = [];
   cancelledAttendances: AssignmentCard[] = [];
 
   selectedEmployeeIds = new Set<number>();
@@ -122,11 +123,14 @@ export class DailyAssistance implements OnInit {
   cancellingAttendance: AssignmentCard | null = null;
 
   absenceEmployee: EmployeeCard | null = null;
+  vacationEmployee: EmployeeCard | null = null;
 
-  correctingAbsence: AbsenceCard | null = null;
+  correctingAbsence: AttendanceStatusCard | null = null;
+  correctingVacation: AttendanceStatusCard | null = null;
 
   cancellationReason = '';
   absenceReason = '';
+  vacationReason = '';
 
   sundayGenerationStatus: entity.SundayGenerationStatusResponse | null = null;
   isGeneratingSunday = false;
@@ -174,6 +178,10 @@ export class DailyAssistance implements OnInit {
     return this.absentAttendances.length;
   }
 
+  get vacationCount(): number {
+    return this.vacationAttendances.length;
+  }
+
   get cancelledCount(): number {
     return this.cancelledAttendances.length;
   }
@@ -215,8 +223,12 @@ export class DailyAssistance implements OnInit {
     return this.filterAssignments(this.assignedAttendances);
   }
 
-  get displayAbsentAttendances(): AbsenceCard[] {
-    return this.filterAbsences(this.absentAttendances);
+  get displayAbsentAttendances(): AttendanceStatusCard[] {
+    return this.filterAttendanceStatusCards(this.absentAttendances);
+  }
+
+  get displayVacationAttendances(): AttendanceStatusCard[] {
+    return this.filterAttendanceStatusCards(this.vacationAttendances);
   }
 
   get displayCancelledAttendances(): AssignmentCard[] {
@@ -313,6 +325,8 @@ export class DailyAssistance implements OnInit {
         return 'Buscar asignado';
       case 'absent':
         return 'Buscar falta';
+      case 'vacation':
+        return 'Buscar vacaciones';
       case 'cancelled':
         return 'Buscar cancelado';
       default:
@@ -380,6 +394,8 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
     this.correctingAbsence = null;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
   }
 
   selectProject(projectId: number): void {
@@ -392,6 +408,8 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
     this.correctingAbsence = null;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = attendance.project_id;
     this.cancellationReason = '';
@@ -404,6 +422,8 @@ export class DailyAssistance implements OnInit {
     this.editingAttendance = null;
     this.absenceEmployee = null;
     this.correctingAbsence = null;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
     this.selectedEmployeeIds.clear();
     this.selectedProjectId = null;
     this.cancellationReason = '';
@@ -417,6 +437,9 @@ export class DailyAssistance implements OnInit {
     if (!employee.can_mark_absent || this.isSaving) return;
 
     this.absenceEmployee = employee;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
+    this.vacationReason = '';
     this.editingAttendance = null;
     this.cancellingAttendance = null;
     this.correctingAbsence = null;
@@ -428,11 +451,14 @@ export class DailyAssistance implements OnInit {
   }
 
   startCorrectAbsence(
-    attendance: AbsenceCard,
+    attendance: AttendanceStatusCard,
   ): void {
     if (this.isSaving) return;
 
     this.correctingAbsence = attendance;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
+    this.vacationReason = '';
 
     this.editingAttendance = null;
     this.cancellingAttendance = null;
@@ -480,6 +506,42 @@ export class DailyAssistance implements OnInit {
             'Error corrigiendo falta:',
             err,
           );
+        },
+      });
+  }
+
+  startVacation(employee: EmployeeCard, event?: Event): void {
+    event?.stopPropagation();
+    if (!employee.can_mark_vacation || this.isSaving) return;
+
+    this.resetActionState();
+    this.vacationEmployee = employee;
+    this.vacationReason = 'Vacaciones';
+  }
+
+  startCorrectVacation(attendance: AttendanceStatusCard): void {
+    if (this.isSaving) return;
+    this.resetActionState();
+    this.correctingVacation = attendance;
+  }
+
+  confirmCorrectVacation(): void {
+    if (!this.correctingVacation || this.isSaving) return;
+
+    this.isSaving = true;
+    this.dailyAssistanceService
+      .restoreVacation(this.correctingVacation.id)
+      .pipe(
+        finalize(() => { this.isSaving = false; }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.resetActionState();
+          this.reloadBoard();
+        },
+        error: (err) => {
+          console.error('Error corrigiendo vacaciones:', err);
         },
       });
   }
@@ -607,6 +669,40 @@ export class DailyAssistance implements OnInit {
         },
         error: (err) => {
           console.error('Error registrando falta:', err);
+        },
+      });
+  }
+
+  confirmVacation(): void {
+    if (
+      !this.vacationEmployee ||
+      !this.vacationEmployee.can_mark_vacation ||
+      !this.vacationReason.trim() ||
+      this.vacationReason.trim().length > 255 ||
+      this.isSaving ||
+      !this.currentDate
+    ) {
+      return;
+    }
+
+    this.isSaving = true;
+    this.dailyAssistanceService
+      .markVacation({
+        employee_id: this.vacationEmployee.id,
+        work_date: this.currentDate,
+        vacation_reason: this.vacationReason.trim(),
+      })
+      .pipe(
+        finalize(() => { this.isSaving = false; }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.resetActionState();
+          this.reloadBoard();
+        },
+        error: (err) => {
+          console.error('Error registrando vacaciones:', err);
         },
       });
   }
@@ -749,7 +845,12 @@ export class DailyAssistance implements OnInit {
 
     this.absentAttendances = attendances
       .filter((attendance) => attendance.status === 'absent')
-      .map((attendance) => this.mapAbsenceCard(attendance, employeeMap))
+      .map((attendance) => this.mapAttendanceStatusCard(attendance, employeeMap))
+      .sort((a, b) => a.employee_full_name.localeCompare(b.employee_full_name));
+
+    this.vacationAttendances = attendances
+      .filter((attendance) => attendance.status === 'vacation')
+      .map((attendance) => this.mapAttendanceStatusCard(attendance, employeeMap))
       .sort((a, b) => a.employee_full_name.localeCompare(b.employee_full_name));
 
     this.employees = allEmployees
@@ -806,10 +907,10 @@ export class DailyAssistance implements OnInit {
     };
   }
 
-  private mapAbsenceCard(
+  private mapAttendanceStatusCard(
     attendance: entity.EmployeeAttendanceRow,
     employeeMap: Map<number, entity.EmployeeAttendanceCatalogRow>,
-  ): AbsenceCard {
+  ): AttendanceStatusCard {
     const employee = employeeMap.get(attendance.employee_id);
 
     return {
@@ -850,7 +951,7 @@ export class DailyAssistance implements OnInit {
     });
   }
 
-  private filterAbsences(rows: AbsenceCard[]): AbsenceCard[] {
+  private filterAttendanceStatusCards(rows: AttendanceStatusCard[]): AttendanceStatusCard[] {
     const term = this.normalizeText(this.employeeSearchTerm);
 
     if (!term) return rows;
@@ -861,6 +962,7 @@ export class DailyAssistance implements OnInit {
         row.employee_area_label,
         row.employee_position,
         row.absence_reason ?? '',
+        row.vacation_reason ?? '',
       ]
         .map((value) => this.normalizeText(value))
         .join(' ');
@@ -881,9 +983,12 @@ export class DailyAssistance implements OnInit {
     this.cancellingAttendance = null;
     this.absenceEmployee = null;
     this.correctingAbsence = null;
+    this.vacationEmployee = null;
+    this.correctingVacation = null;
 
     this.cancellationReason = '';
     this.absenceReason = '';
+    this.vacationReason = '';
 
     this.syncEmployeeSelection();
   }

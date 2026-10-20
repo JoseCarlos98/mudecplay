@@ -1,7 +1,7 @@
-export type EmployeeAttendanceStatus = 'present' | 'absent' | 'cancelled';
+export type EmployeeAttendanceStatus = 'present' | 'absent' | 'cancelled' | 'vacation';
 export type EmployeeAttendanceAssignmentStatus = 'active' | 'cancelled';
 
-export type DailyAssistanceView = 'unassigned' | 'assigned' | 'absent' | 'cancelled';
+export type DailyAssistanceView = 'unassigned' | 'assigned' | 'absent' | 'vacation' | 'cancelled';
 
 export type ArrivalStatus = 'pending' | 'on_time' | 'tardy';
 
@@ -65,6 +65,10 @@ export interface EmployeeAttendanceRow {
   absent_by_user_id: number | null;
   absence_reason: string | null;
 
+  vacation_at: string | null;
+  vacation_by_user_id: number | null;
+  vacation_reason: string | null;
+
   cancelled_at: string | null;
   cancelled_by_user_id: number | null;
   cancellation_reason: string | null;
@@ -115,6 +119,12 @@ export interface MarkEmployeeAbsence {
   absence_reason: string;
 }
 
+export interface MarkEmployeeVacation {
+  employee_id: number;
+  work_date: string;
+  vacation_reason: string;
+}
+
 export interface SuccessResponse {
   id?: number;
   message: string;
@@ -145,8 +155,10 @@ export interface EmployeeAttendanceCatalogRow {
 
   can_assign: boolean;
   can_mark_absent: boolean;
+  can_mark_vacation: boolean;
 
   absence_reason: string | null;
+  vacation_reason: string | null;
 }
 
 export interface SundayGenerationStatusResponse {

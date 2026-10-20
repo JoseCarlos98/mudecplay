@@ -88,6 +88,16 @@
           </strong>
         </div>
 
+        <div class="daily-top-card daily-top-card--metric daily-top-card--vacation">
+          <div class="daily-top-card__head">
+            <span class="daily-top-card__icon">
+              <mat-icon>beach_access</mat-icon>
+            </span>
+            <span class="daily-top-card__label">Vacaciones</span>
+          </div>
+          <strong class="daily-top-card__value">{{ vacationCount }}</strong>
+        </div>
+
         <div class="daily-top-card daily-top-card--metric daily-top-card--cancelled">
           <div class="daily-top-card__head">
             <span class="daily-top-card__icon">
@@ -143,6 +153,15 @@
         <span class="daily-tab-count">
           {{ absentCount }}
         </span>
+      </button>
+
+      <button
+        type="button"
+        class="c-pill-tab-btn"
+        [class.c-pill-tab-btn--active]="currentView === 'vacation'"
+        (click)="changeView('vacation')">
+        Vacaciones
+        <span class="daily-tab-count">{{ vacationCount }}</span>
       </button>
 
       <button
@@ -240,6 +259,10 @@
                   Trabajadores con falta
                 }
 
+                @case ('vacation') {
+                  Trabajadores de vacaciones
+                }
+
                 @case ('cancelled') {
                   Asignaciones canceladas
                 }
@@ -260,6 +283,11 @@
 
                 @case ('absent') {
                   Consulta los trabajadores marcados como falta
+                  en la fecha seleccionada.
+                }
+
+                @case ('vacation') {
+                  Consulta los trabajadores de vacaciones
                   en la fecha seleccionada.
                 }
 
@@ -356,6 +384,14 @@
                           )
                         ">
                         Falta
+                      </button>
+
+                      <button
+                        type="button"
+                        class="daily-vacation-mini-btn"
+                        [disabled]="!employee.can_mark_vacation || isSaving"
+                        (click)="startVacation(employee, $event)">
+                        Vacaciones
                       </button>
 
                       <div
@@ -607,6 +643,120 @@
                       hasEmployeeSearch
                         ? 'No hay faltas que coincidan con la búsqueda.'
                         : 'No hay faltas registradas para la fecha seleccionada.'
+                    }}
+                  </span>
+                </div>
+              }
+            </div>
+          }
+
+          @if (currentView === 'vacation') {
+            <div class="daily-cards-list">
+              @for (
+                attendance of displayVacationAttendances;
+                track attendance.id
+              ) {
+                <article
+                  class="
+                    daily-attendance-card
+                    daily-attendance-card--vacation
+                  ">
+
+                  <div class="daily-attendance-card__header">
+                    <div>
+                      <strong class="daily-employee-name">
+                        {{ attendance.employee_full_name }}
+                      </strong>
+
+                      <span class="daily-employee-meta">
+                        {{ attendance.employee_area_label }}
+                        ·
+                        {{ attendance.employee_position }}
+                      </span>
+                    </div>
+
+                    <span
+                      class="
+                        daily-status-badge
+                        daily-status-badge--vacation
+                      ">
+                      Vacaciones
+                    </span>
+                  </div>
+
+                  <div class="daily-attendance-card__body">
+                    <div class="daily-attendance-detail">
+                      <mat-icon>
+                        beach_access
+                      </mat-icon>
+
+                      <span>
+                        {{
+                          attendance.vacation_reason ||
+                          'Sin motivo'
+                        }}
+                      </span>
+                    </div>
+
+                    <div class="daily-attendance-detail">
+                      <mat-icon>
+                        calendar_today
+                      </mat-icon>
+
+                      <span>
+                        Fecha de vacaciones:
+                        {{
+                          formatWorkDate(
+                            attendance.work_date
+                          )
+                        }}
+                      </span>
+                    </div>
+
+                    <div class="daily-attendance-detail">
+                      <mat-icon>
+                        schedule
+                      </mat-icon>
+
+                      <span>
+                        Registrada:
+                        {{
+                          attendance.vacation_at
+                            ? (
+                                attendance.vacation_at
+                                  | date:'dd/MM/yyyy, HH:mm'
+                              )
+                            : 'Sin fecha de registro'
+                        }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="daily-attendance-card__actions">
+                    <button
+                      type="button"
+                      class="btn-outline"
+                      [disabled]="isSaving"
+                      (click)="
+                        startCorrectVacation(
+                          attendance
+                        )
+                      ">
+                      Corregir vacaciones
+                    </button>
+                  </div>
+                </article>
+              } @empty {
+                <div class="daily-empty-state">
+                  <mat-icon>
+                    beach_access
+                  </mat-icon>
+
+                  <span>
+                    {{
+                      hasEmployeeSearch
+                        ? 'No hay vacaciones que coincidan con la búsqueda.'
+                        : 'No hay vacaciones registradas para la fecha seleccionada.'
                     }}
                   </span>
                 </div>
@@ -1000,6 +1150,64 @@
                   (click)="clearActionPanel()">
                   Limpiar
                 </button>
+              </div>
+            </div>
+
+          } @else if (correctingVacation) {
+            <div class="daily-action-card">
+              <span class="daily-action-title">Corregir vacaciones</span>
+              <div class="daily-action-detail">
+                <strong>{{ correctingVacation.employee_full_name }}</strong>
+                <span>{{ correctingVacation.employee_area_label }} · {{ correctingVacation.employee_position }}</span>
+                <span>Fecha: {{ formatWorkDate(correctingVacation.work_date) }}</span>
+                <span>Motivo registrado: {{ correctingVacation.vacation_reason || 'Sin motivo' }}</span>
+                <span>Las vacaciones se quitarán y el trabajador volverá a estar disponible para asignaciones.</span>
+              </div>
+              <div class="daily-action-buttons">
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="isSaving"
+                  (click)="confirmCorrectVacation()">
+                  {{ isSaving ? 'Corrigiendo...' : 'Confirmar corrección' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-outline"
+                  [disabled]="isSaving"
+                  (click)="clearActionPanel()">Limpiar</button>
+              </div>
+            </div>
+
+          } @else if (vacationEmployee) {
+            <div class="daily-action-card">
+              <span class="daily-action-title">Registrar vacaciones</span>
+              <div class="daily-action-detail">
+                <strong>{{ vacationEmployee.full_name }}</strong>
+                <span>{{ vacationEmployee.area_label }} · {{ vacationEmployee.position || 'Sin puesto' }}</span>
+                <span>Fecha: {{ formatWorkDate(currentDate) }}</span>
+                <span>Se marcará al trabajador de vacaciones solo en esta fecha, sin generar horas ni gastos.</span>
+              </div>
+              <textarea
+                class="daily-textarea"
+                [(ngModel)]="vacationReason"
+                [ngModelOptions]="{ standalone: true }"
+                maxlength="255"
+                placeholder="Ejemplo: Vacaciones autorizadas.">
+              </textarea>
+              <div class="daily-action-buttons">
+                <button
+                  type="button"
+                  class="btn-primary"
+                  [disabled]="!vacationReason.trim() || vacationReason.trim().length > 255 || isSaving"
+                  (click)="confirmVacation()">
+                  {{ isSaving ? 'Registrando...' : 'Registrar vacaciones' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn-outline"
+                  [disabled]="isSaving"
+                  (click)="clearActionPanel()">Limpiar</button>
               </div>
             </div>
 
