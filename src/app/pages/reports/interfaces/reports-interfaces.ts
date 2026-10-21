@@ -370,3 +370,53 @@ export interface ExpenseAnalysisResponse {
   pagination:
     ExpenseAnalysisPagination;
 }
+
+
+
+  // ==========================================================
+  // REPORTE DE ASISTENCIA DE MANO DE OBRA
+  // ==========================================================
+
+  export type AttendanceReportPeriod =
+    | 'monthly'
+    | 'annual';
+
+  export interface AttendanceReportFilters {
+    period: AttendanceReportPeriod;
+    year: number;
+    month?: number;
+  }
+
+  export interface AttendanceReportMonth {
+    month: number;
+    worked_days: number;
+    absences: number;
+    vacations: number;
+  }
+
+  export interface AttendanceReportEmployee {
+    employee_id: number;
+    employee_name: string;
+
+    worked_days: number;
+    absences: number;
+    vacations: number;
+
+    months: AttendanceReportMonth[];
+  }
+
+  export interface AttendanceReportSummary {
+    employees_count: number;
+    worked_days: number;
+    absences: number;
+    vacations: number;
+  }
+
+  export interface AttendanceReportData {
+    period: AttendanceReportPeriod;
+    year: number;
+    month: number | null;
+
+    summary: AttendanceReportSummary;
+    employees: AttendanceReportEmployee[];
+  }

@@ -1,53 +1,12 @@
-<!-- <app-page-tabs
-  [title]="'Reportes'"
-  [description]="'Genera reportes en PDF a partir de filtros: proyecto, proveedor, estado financiero y cuentas por cobrar.'"
-  [tabs]="tabs"
-  [activeTab]="activeSection()"
-  (activeTabChange)="onActiveTabChange($event)"
->
-  @switch (activeSection()) {
-    @case ('project_detail') {
-      <app-project-report></app-project-report>
-    }
-
-    @case ('project_by_supplier') {
-      <app-supplier-report></app-supplier-report>
-    }
-
-    @case ('by_area') {
-      <app-area-report></app-area-report>
-    }
-
-    @case ('project_payables') {
-      <app-project-payables></app-project-payables>
-    }
-
-    @case ('project_status') {
-      <app-project-status></app-project-status>
-    }
-
-    @case ('accounts_receivable_report') {
-      <app-accounts-receivable-report></app-accounts-receivable-report>
-    }
-  }
-</app-page-tabs> -->
-
-
-<app-page-tabs
-  [title]="'Reportes'"
-  [description]="
-    'Consulta y genera los reportes financieros de los proyectos.'
-  "
-  [tabs]="tabs"
-  [activeTab]="activeSection()"
-  (activeTabChange)="onActiveTabChange($event)">
+<app-page-tabs [title]="'Reportes'" [description]="
+    'Consulta y genera reportes financieros y de asistencia de mano de obra.'
+  " [tabs]="tabs" [activeTab]="activeSection()" (activeTabChange)="onActiveTabChange($event)">
 
   <!-- =====================================================
        REPORTE FINANCIERO DEL PROYECTO
        ===================================================== -->
 
-  <div
-    [hidden]="
+  <div [hidden]="
       activeSection() !==
       'project_all'
     ">
@@ -57,13 +16,11 @@
 
   </div>
 
-
   <!-- =====================================================
        CLASIFICACIÓN DE GASTOS
        ===================================================== -->
 
-  <div
-    [hidden]="
+  <div [hidden]="
       activeSection() !==
       'project_classification'
     ">
@@ -73,24 +30,32 @@
 
   </div>
 
-
   <!-- =====================================================
        ANÁLISIS DE GASTOS
        ===================================================== -->
 
   @if (expenseAnalysisInitialized()) {
-
-    <div
-      [hidden]="
+  <div [hidden]="
         activeSection() !==
         'expense_analysis'
       ">
 
-      <app-expense-analysis>
-      </app-expense-analysis>
+    <app-expense-analysis>
+    </app-expense-analysis>
 
-    </div>
-
+  </div>
   }
+
+  <!-- =====================================================
+       ASISTENCIA DE MANO DE OBRA
+       ===================================================== -->
+  <div [hidden]="
+      activeSection() !==
+      'attendance'
+    ">
+
+    <app-attendance-report>
+    </app-attendance-report>
+  </div>
 
 </app-page-tabs>

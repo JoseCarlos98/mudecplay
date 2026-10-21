@@ -5,6 +5,8 @@ import { ApiSuccess } from '../../../shared/interfaces/general-interfaces';
 import {
   ProjectsByStatusPreviewPayload,
   AccountsReceivablePreviewPayload,
+  AttendanceReportFilters,
+  AttendanceReportData,
 } from '../interfaces/reports-interfaces';
 
 export interface ProjectDetailPreviewPayload {
@@ -98,4 +100,31 @@ export class ReportsApiService {
   saveAccountsReceivableHistory(payload: AccountsReceivablePreviewPayload) {
     return this.http.post<ApiSuccess>(`${this.baseUrl}/reports/accounts-receivable/history`, payload);
   }
+
+
+  // ==========================================================
+  // REPORTE DE ASISTENCIA DE MANO DE OBRA
+  // ==========================================================
+
+
+  // ==========================================================
+  // REPORTE ASISTENCIA - PDF
+  // ==========================================================
+
+  previewAttendanceReport(
+    payload: {
+      startDate: string;
+      endDate: string;
+    },
+  ) {
+    return this.http.post(
+      `${this.baseUrl}/reports/attendance/preview`,
+      payload,
+      {
+        responseType: 'blob',
+      },
+    );
+  }
+
+
 }
