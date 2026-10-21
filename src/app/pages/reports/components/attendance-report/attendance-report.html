@@ -1,4 +1,3 @@
-
 <section class="report-tab">
 
   <!-- =====================================================
@@ -20,13 +19,12 @@
   </header>
 
 
-  <!-- =====================================================
-       FILTROS
-       ===================================================== -->
 
-  <form
-    [formGroup]="formFilters"
-    (ngSubmit)="onBtnsSectionAction('search')">
+  <!-- =====================================================
+     FILTROS
+     ===================================================== -->
+
+  <form [formGroup]="formFilters">
 
     <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4">
 
@@ -34,25 +32,35 @@
 
       <div class="col-span-2 md:col-span-2">
 
-        <app-input-date
-          formControlName="dateRange"
-          label="Rango de fechas"
-          mode="range">
+        <app-input-date formControlName="dateRange" label="Rango de fechas" mode="range">
         </app-input-date>
 
       </div>
 
 
-      <!-- BOTÓN DE BÚSQUEDA REUTILIZABLE -->
+      <!-- BOTÓN CONSULTAR -->
 
       <div class="col-span-2 sm:col-span-1">
 
-        <app-btns-section
-          type="search"
-          [hasActiveSearch]="hasActiveSearch"
-          [hasActiveFilters]="false"
+        <app-btns-section type="search" [hasActiveSearch]="hasActiveSearch" [hasActiveFilters]="false"
           (action)="onBtnsSectionAction($event)">
         </app-btns-section>
+
+      </div>
+
+
+      <!-- BOTÓN DESCARGAR PDF -->
+
+      <div class="col-span-2 sm:col-span-1 flex items-center justify-end">
+
+        <button type="button" class="btn-primary" [disabled]="!hasActiveSearch || loadingPreview()"
+          (click)="downloadPdf()">
+
+          <mat-icon>download</mat-icon>
+
+          <span>Descargar PDF</span>
+
+        </button>
 
       </div>
 
@@ -61,36 +69,32 @@
   </form>
 
 
+
   <!-- =====================================================
        VISTA PREVIA PDF
        ===================================================== -->
 
   @if (pdfUrl() || loadingPreview()) {
 
-    <div class="c-pdf-wrap">
+  <div class="c-pdf-wrap">
 
-      @if (pdfUrl()) {
+    @if (pdfUrl()) {
 
-        <iframe
-          class="c-pdf-viewer"
-          title="Reporte de asistencia de mano de obra"
-          [src]="pdfUrl()">
-        </iframe>
+    <iframe class="c-pdf-viewer" title="Reporte de asistencia de mano de obra" [src]="pdfUrl()">
+    </iframe>
 
-      } @else {
+    } @else {
 
-        <div class="c-pdf-placeholder">
-        </div>
-
-      }
-
-
-      <app-loading-overlay
-        [visible]="loadingPreview()"
-        text="Generando reporte de asistencia...">
-      </app-loading-overlay>
-
+    <div class="c-pdf-placeholder">
     </div>
+
+    }
+
+
+    <app-loading-overlay [visible]="loadingPreview()" text="Generando reporte de asistencia...">
+    </app-loading-overlay>
+
+  </div>
 
   }
 
@@ -101,13 +105,11 @@
 
   @if (errorPreview()) {
 
-    <div
-      class="c-preview-error"
-      role="alert">
+  <div class="c-preview-error" role="alert">
 
-      {{ errorPreview() }}
+    {{ errorPreview() }}
 
-    </div>
+  </div>
 
   }
 

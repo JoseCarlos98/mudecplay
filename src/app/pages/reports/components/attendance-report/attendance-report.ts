@@ -47,6 +47,7 @@ import {
 import {
   ReportsApiService,
 } from '../../services/reports-api.service';
+import { MatIcon } from '@angular/material/icon';
 
 
 interface AttendanceRangePayload {
@@ -64,6 +65,7 @@ interface AttendanceRangePayload {
     ReactiveFormsModule,
     InputDate,
     BtnsSection,
+    MatIcon,
     LoadingOverlay,
   ],
 
@@ -107,7 +109,7 @@ export class AttendanceReport implements OnDestroy {
   readonly pdfUrl = signal<SafeResourceUrl | null>(null);
 
   private lastObjectUrl: string | null = null;
-
+  private lastGeneratedRange: string | null = null;
   private request: Subscription | null = null;
 
 
@@ -120,24 +122,20 @@ export class AttendanceReport implements OnDestroy {
   }
 
 
-  constructor() {
 
-    // Si cambia el rango, invalidamos el PDF anterior.
-    // No se consulta automáticamente.
+constructor() {
 
-    this.formFilters.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+  this.formFilters.valueChanges
+    .pipe(takeUntilDestroyed(this.destroyRef))
+    .subscribe(() => {
+      this.request?.unsubscribe();
+      this.request = null;
 
-        this.request?.unsubscribe();
-        this.request = null;
+      this.loadingPreview.set(false);
+      this.errorPreview.set(null);
+    });
+}
 
-        this.loadingPreview.set(false);
-        this.errorPreview.set(null);
-
-        this.clearPdf();
-      });
-  }
 
 
   // =====================================================
@@ -174,7 +172,6 @@ export class AttendanceReport implements OnDestroy {
       return;
     }
 
-    this.clearPdf();
     this.errorPreview.set(null);
     this.loadingPreview.set(true);
 
@@ -196,7 +193,10 @@ export class AttendanceReport implements OnDestroy {
             return;
           }
 
-          this.setPdfBlob(blob);
+          this.setPdfBlob(
+            blob,
+            `${payload.startDate}|${payload.endDate}`,
+          );
         },
 
         error: (error: unknown) => {
@@ -249,13 +249,19 @@ export class AttendanceReport implements OnDestroy {
   // PDF
   // =====================================================
 
-  private setPdfBlob(blob: Blob): void {
+
+  private setPdfBlob(
+    blob: Blob,
+    rangeKey: string,
+  ): void {
 
     this.clearPdf();
 
     const url = URL.createObjectURL(blob);
 
     this.lastObjectUrl = url;
+
+    this.lastGeneratedRange = rangeKey;
 
     this.pdfUrl.set(
       this.sanitizer.bypassSecurityTrustResourceUrl(url),
@@ -268,12 +274,102 @@ export class AttendanceReport implements OnDestroy {
     this.pdfUrl.set(null);
 
     if (this.lastObjectUrl) {
-
       URL.revokeObjectURL(this.lastObjectUrl);
-
-      this.lastObjectUrl = null;
     }
+
+    this.lastObjectUrl = null;
+    this.lastGeneratedRange = null;
   }
+
+
+
+  downloadPdf(): void {
+
+    if (this.loadingPreview()) {
+      return;
+    }
+
+    const payload = this.buildPayloadOrNull();
+
+    if (!payload) {
+      this.formFilters.markAllAsTouched();
+      return;
+    }
+
+    const rangeKey =
+      `${payload.startDate}|${payload.endDate}`;
+
+    // Descargar el PDF existente si corresponde
+    // al rango actualmente seleccionado.
+
+    if (
+      this.lastObjectUrl &&
+      this.lastGeneratedRange === rangeKey
+    ) {
+      this.forceDownload(this.lastObjectUrl);
+      return;
+    }
+
+    // Si aún no existe un PDF para este rango,
+    // generarlo y descargarlo.
+
+    this.errorPreview.set(null);
+    this.loadingPreview.set(true);
+
+    this.request = this.api
+      .previewAttendanceReport(payload)
+      .pipe(
+        finalize(() => this.loadingPreview.set(false)),
+      )
+      .subscribe({
+
+        next: (blob: Blob) => {
+
+          if (!blob.size || !blob.type.includes('pdf')) {
+            this.errorPreview.set(
+              'El servidor no devolvió un PDF válido.',
+            );
+            return;
+          }
+
+          this.setPdfBlob(blob, rangeKey);
+
+          if (this.lastObjectUrl) {
+            this.forceDownload(this.lastObjectUrl);
+          }
+        },
+
+        error: (error: unknown) => {
+
+          console.error(
+            '[REPORTES] Error descargando asistencia:',
+            error,
+          );
+
+          this.errorPreview.set(
+            'No se pudo descargar el reporte de asistencia.',
+          );
+        },
+      });
+  }
+
+
+  private forceDownload(url: string): void {
+
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+
+    anchor.download =
+      'reporte-asistencia-mano-de-obra.pdf';
+
+    document.body.appendChild(anchor);
+
+    anchor.click();
+
+    anchor.remove();
+  }
+
 
 
   // =====================================================
