@@ -2,7 +2,8 @@ import { Injectable } from '@angular/core';
 
 export type WorkstationPrinterCode =
   | 'JEFE_OFICINA'
-  | 'JEFE_OFICINA_2';
+  | 'JEFE_OFICINA_2'
+  | 'JEFE_OFICINA_3';
 
 @Injectable({
   providedIn: 'root',
@@ -25,18 +26,18 @@ export class WorkstationPrinterService {
       .toUpperCase();
 
     if (
-      storedCode ===
-      'JEFE_OFICINA_2'
+      storedCode === 'JEFE_OFICINA' ||
+      storedCode === 'JEFE_OFICINA_2' ||
+      storedCode === 'JEFE_OFICINA_3'
     ) {
-      return 'JEFE_OFICINA_2';
+      return storedCode;
     }
 
     return this.defaultPrinterCode;
   }
 
   setPrinterCode(
-    printerCode:
-      WorkstationPrinterCode,
+    printerCode: WorkstationPrinterCode,
   ): void {
     localStorage.setItem(
       this.storageKey,

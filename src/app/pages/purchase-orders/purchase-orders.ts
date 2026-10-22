@@ -16,7 +16,7 @@ import {
 } from '@angular/router';
 import { finalize } from 'rxjs';
 
-import { WorkstationPrinterService } from '../../shared/services/workstation-printer.service';
+import { WorkstationPrinterCode, WorkstationPrinterService } from '../../shared/services/workstation-printer.service';
 
 // Angular Material
 import { MatButtonModule } from '@angular/material/button';
@@ -1822,132 +1822,98 @@ export class PurchaseOrders
     }
 
     const isPrinted =
-      row.printing?.status ===
-      'printed';
+      row.printing?.status === 'printed';
 
-    let targetPrinterCode:
-      | 'JEFE_OFICINA'
-      | 'JEFE_OFICINA_2'
-      | null = null;
+    const printerLabels: Record<
+      WorkstationPrinterCode,
+      string
+    > = {
+      JEFE_OFICINA: 'Impresora 1',
+      JEFE_OFICINA_2: 'Impresora 2',
+      JEFE_OFICINA_3: 'Impresora 3',
+    };
 
-    let targetPrinterLabel =
-      '';
+    // Conservar el respaldo original de PC 1 y PC 2.
+    // Si falla PC 3, utilizar PC 1 como respaldo.
+    const backupPrinters: Record<
+      WorkstationPrinterCode,
+      WorkstationPrinterCode
+    > = {
+      JEFE_OFICINA: 'JEFE_OFICINA_2',
+      JEFE_OFICINA_2: 'JEFE_OFICINA',
+      JEFE_OFICINA_3: 'JEFE_OFICINA',
+    };
 
-    let title =
-      '';
-
-    let message =
-      '';
+    let targetPrinterCode: WorkstationPrinterCode;
+    let title: string;
+    let message: string;
 
     if (isPrinted) {
       targetPrinterCode =
-        this.workstationPrinterService
-          .getPrinterCode();
+        this.workstationPrinterService.getPrinterCode();
 
-      targetPrinterLabel =
-        targetPrinterCode ===
-          'JEFE_OFICINA_2'
-          ? 'Impresora 2'
-          : 'Impresora 1';
-
-      title =
-        'Reimprimir ticket';
+      title = 'Reimprimir ticket';
 
       message =
-        `La O.C. ${row.folio} se volverá a imprimir en ${targetPrinterLabel}. ¿Deseas continuar?`;
+        `La O.C. ${row.folio} se volverá a imprimir en ` +
+        `${printerLabels[targetPrinterCode]}. ¿Deseas continuar?`;
     } else {
-      const currentPrinterCode =
-        String(
-          row.printing?.printer_code ?? '',
-        )
-          .trim()
-          .toUpperCase();
+      const currentPrinterCode = String(
+        row.printing?.printer_code ?? '',
+      )
+        .trim()
+        .toUpperCase();
 
       if (
-        currentPrinterCode ===
-        'JEFE_OFICINA'
+        currentPrinterCode !== 'JEFE_OFICINA' &&
+        currentPrinterCode !== 'JEFE_OFICINA_2' &&
+        currentPrinterCode !== 'JEFE_OFICINA_3'
       ) {
-        targetPrinterCode =
-          'JEFE_OFICINA_2';
-      } else if (
-        currentPrinterCode ===
-        'JEFE_OFICINA_2'
-      ) {
-        targetPrinterCode =
-          'JEFE_OFICINA';
-      }
-
-      if (!targetPrinterCode) {
         console.error(
-          'No se pudo determinar la impresora de respaldo.',
+          'No se pudo identificar la impresora original.',
         );
-
         return;
       }
 
-      targetPrinterLabel =
-        targetPrinterCode ===
-          'JEFE_OFICINA_2'
-          ? 'Impresora 2'
-          : 'Impresora 1';
+      targetPrinterCode =
+        backupPrinters[currentPrinterCode];
 
-      title =
-        'Enviar a impresora de respaldo';
+      title = 'Enviar a impresora de respaldo';
 
       message =
-        `La O.C. ${row.folio} se enviará a ${targetPrinterLabel}. ¿Deseas continuar?`;
+        `La O.C. ${row.folio} se enviará a ` +
+        `${printerLabels[targetPrinterCode]}. ¿Deseas continuar?`;
     }
 
     this.dialogService
       .confirm({
         title,
-
         message,
-
-        confirmText:
-          isPrinted
-            ? 'Sí, reimprimir'
-            : 'Sí, enviar',
-
-        cancelText:
-          'Cancelar',
-
-        size:
-          'mini',
-
-        variant:
-          'primary',
+        confirmText: isPrinted
+          ? 'Sí, reimprimir'
+          : 'Sí, enviar',
+        cancelText: 'Cancelar',
+        size: 'mini',
+        variant: 'primary',
       })
       .subscribe((confirmed) => {
         if (!confirmed) {
           return;
         }
 
-        this.loadingTable.set(
-          true,
-        );
+        this.loadingTable.set(true);
 
         this.purchaseOrdersService
-          .reprintPurchaseOrder(
-            row.id,
-            {
-              printer_code:
-                targetPrinterCode,
-            },
-          )
+          .reprintPurchaseOrder(row.id, {
+            printer_code: targetPrinterCode,
+          })
           .subscribe({
             next: () => {
-              this.loadingTable.set(
-                false,
-              );
-
+              this.loadingTable.set(false);
               this.loadPurchaseOrders();
             },
-
             error: (error) => {
-              this.loadingTable.set(
-                false,
-              );
+              this.loadingTable.set(false);
 
               console.error(
                 'Error al reimprimir ticket de O.C.:',
@@ -3251,7 +3217,8 @@ export class PurchaseOrders
 
     if (
       printerCode !== 'JEFE_OFICINA' &&
-      printerCode !== 'JEFE_OFICINA_2'
+      printerCode !== 'JEFE_OFICINA_2' &&
+      printerCode !== 'JEFE_OFICINA_3'
     ) {
       return;
     }
