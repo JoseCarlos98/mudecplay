@@ -26,18 +26,18 @@ import {
 import {
   AttendanceReport,
 } from './components/attendance-report/attendance-report';
+import { LaborHoursReport } from './components/labor-hours-report/labor-hours-report';
 
 
 type ReportsSection =
   | 'project_all'
   | 'project_classification'
   | 'expense_analysis'
-  | 'attendance';
-
+  | 'attendance'
+  | 'labor_hours';
 
 const REPORTS_ACTIVE_SECTION_KEY =
   'mudecplay.reports.active-section.v1';
-
 
 @Component({
   selector: 'app-reports',
@@ -50,6 +50,7 @@ const REPORTS_ACTIVE_SECTION_KEY =
     ProjectClassificationReport,
     ExpenseAnalysis,
     AttendanceReport,
+    LaborHoursReport
   ],
 
   templateUrl: './reports.html',
@@ -95,6 +96,12 @@ export class Reports {
       label: 'Asistencia de Mano de Obra',
       description:
         'Días trabajados, faltas y vacaciones por trabajador',
+    },
+    {
+      id: 'labor_hours',
+      icon: 'schedule',
+      label: 'Horas por trabajador y proyecto',
+      description: 'Horas, importes y totales por período y trabajadores seleccionados',
     },
   ];
 
@@ -166,7 +173,8 @@ export class Reports {
       value === 'project_all' ||
       value === 'project_classification' ||
       value === 'expense_analysis' ||
-      value === 'attendance'
+      value === 'attendance' || 
+      value === 'labor_hours'
     );
   }
 }

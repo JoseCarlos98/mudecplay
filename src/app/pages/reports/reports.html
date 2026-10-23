@@ -58,4 +58,15 @@
     </app-attendance-report>
   </div>
 
+
+<!-- =====================================================
+     HORAS POR TRABAJADOR Y PROYECTO
+     ===================================================== -->
+
+<div [hidden]="activeSection() !== 'labor_hours'">
+  <app-labor-hours-report>
+  </app-labor-hours-report>
+</div>
+
+
 </app-page-tabs>
