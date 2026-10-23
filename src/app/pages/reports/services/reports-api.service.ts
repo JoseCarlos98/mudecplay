@@ -7,6 +7,8 @@ import {
   AccountsReceivablePreviewPayload,
   AttendanceReportFilters,
   AttendanceReportData,
+  LaborHoursReportData,
+  LaborHoursReportFilters,
 } from '../interfaces/reports-interfaces';
 
 export interface ProjectDetailPreviewPayload {
@@ -126,5 +128,18 @@ export class ReportsApiService {
     );
   }
 
+
+  getLaborHoursData(payload: LaborHoursReportFilters) {
+    return this.http.post<LaborHoursReportData>(
+      `${this.baseUrl}/reports/labor-hours/data`, payload,
+    );
+  }
+
+  previewLaborHoursReport(payload: LaborHoursReportFilters) {
+    return this.http.post(
+      `${this.baseUrl}/reports/labor-hours/preview`, payload,
+      { responseType: 'blob' },
+    );
+  }
 
 }

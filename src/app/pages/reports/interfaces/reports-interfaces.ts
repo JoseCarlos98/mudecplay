@@ -420,3 +420,36 @@ export interface ExpenseAnalysisResponse {
     summary: AttendanceReportSummary;
     employees: AttendanceReportEmployee[];
   }
+
+
+  
+export interface LaborHoursReportFilters {
+  startDate: string;
+  endDate: string;
+  employeeIds: number[];
+}
+
+export interface LaborHoursProjectRow {
+  project_id: number;
+  project_name: string;
+  hours: number;
+  amount: number;
+}
+
+export interface LaborHoursEmployeeGroup {
+  employee_id: number;
+  employee_name: string;
+  projects: LaborHoursProjectRow[];
+  total_hours: number;
+  total_amount: number;
+}
+
+export interface LaborHoursReportData {
+  startDate: string;
+  endDate: string;
+  employees: LaborHoursEmployeeGroup[];
+  summary_by_project: LaborHoursProjectRow[];
+  total_employees: number;
+  total_hours: number;
+  total_amount: number;
+}

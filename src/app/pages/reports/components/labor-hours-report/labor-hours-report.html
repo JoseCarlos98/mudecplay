@@ -1,0 +1,60 @@
+<section class="report-tab">
+  <header class="report-tab__header">
+    <h2 class="report-tab__title">Horas e importes por trabajador y proyecto</h2>
+    <p class="report-tab__desc">
+      Selecciona el período y los trabajadores que deseas incluir. Consulta las horas e importes
+      por proyecto, los totales por trabajador y el resumen general del período.
+    </p>
+  </header>
+
+  <form [formGroup]="formFilters">
+    <div class="c-filters grid grid-cols-2 sm:grid-cols-6 lg:grid-cols-6">
+      <div class="col-span-2 md:col-span-2">
+        <app-input-date formControlName="dateRange" label="Rango de fechas" mode="range">
+        </app-input-date>
+      </div>
+      <div class="col-span-2 md:col-span-2">
+        <app-input-select
+          formControlName="employeeIds"
+          label="Trabajadores"
+          [options]="employeesCatalog"
+          [multiple]="true">
+        </app-input-select>
+      </div>
+      <div class="col-span-2 sm:col-span-1">
+        <app-btns-section
+          type="search"
+          [hasActiveSearch]="hasActiveSearch"
+          [hasActiveFilters]="false"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+      <div class="col-span-2 sm:col-span-1 flex items-center justify-end">
+        <button type="button" class="btn-primary" [disabled]="!hasActiveSearch || loadingPreview()"
+          (click)="downloadPdf()">
+          <mat-icon>download</mat-icon><span>Descargar PDF</span>
+        </button>
+      </div>
+    </div>
+  </form>
+
+  @if (loadingCatalog()) {
+    <p class="report-tab__notice">Cargando catálogo de trabajadores...</p>
+  }
+  @if (errorPreview()) {
+    <p class="c-preview-error" role="alert">{{ errorPreview() }}</p>
+  }
+
+  @if (pdfUrl() || loadingPreview()) {
+    <div class="c-pdf-wrap">
+      @if (pdfUrl()) {
+        <iframe class="c-pdf-viewer" title="Reporte de horas por trabajador y proyecto"
+          [src]="pdfUrl()"></iframe>
+      } @else {
+        <div class="c-pdf-placeholder"></div>
+      }
+      <app-loading-overlay [visible]="loadingPreview()" text="Generando reporte de horas e importes...">
+      </app-loading-overlay>
+    </div>
+  }
+</section>
