@@ -1,17 +1,138 @@
-<div class="c-table-page">
-  <div class="card-content shadow-md">
+<div class="c-table-page attendance-clock-import-page">
+  <section class="card-content-form shadow-md">
     <app-module-header
       title="Importar reloj checador"
-      [config]="headerConfig">
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
     </app-module-header>
 
-    <p class="text-info mb-4">
-      La navegación ya está configurada. La carga del Excel y la revisión
-      de incidencias se implementarán en el siguiente paso.
-    </p>
+    <div class="clock-import-intro">
+      <p class="text-info">
+        Carga el reporte de marcajes del reloj checador para analizar llegadas,
+        retardos y posibles faltas. No se modifica ninguna asistencia durante esta vista previa.
+      </p>
+      <div class="clock-import-steps" aria-label="Etapas de importación">
+        <span class="clock-import-step clock-import-step--current">
+          <span class="clock-import-step__number">1</span>
+          Cargar Excel
+        </span>
+        <mat-icon>chevron_right</mat-icon>
+        <span class="clock-import-step clock-import-step--next">
+          <span class="clock-import-step__number">2</span>
+          Revisar y aplicar
+        </span>
+      </div>
+    </div>
 
-    <button type="button" class="btn-outline" (click)="goBack()">
-      Volver a Llegadas y retardos
-    </button>
-  </div>
+    <section class="clock-import-panel" aria-labelledby="clock-upload-title">
+      <div class="clock-import-panel__title">
+        <span class="clock-import-panel__icon"><mat-icon>upload_file</mat-icon></span>
+        <div>
+          <h3 id="clock-upload-title">Archivo del reloj checador</h3>
+          <p>Selecciona un Excel .xls de hasta 10 MB.</p>
+        </div>
+      </div>
+
+      <div class="clock-import-upload">
+        <input
+          #excelInput
+          type="file"
+          accept=".xls,application/vnd.ms-excel"
+          (change)="onFileSelected($event)"
+          aria-label="Archivo Excel del reloj checador"
+          class="clock-import-upload__input" />
+
+        <div class="clock-import-upload__description">
+          <mat-icon>description</mat-icon>
+          <div>
+            @if (selectedFile(); as file) {
+              <strong>{{ file.name }}</strong>
+              <span>{{ formatFileSize(file.size) }}</span>
+            } @else {
+              <strong>Ningún archivo seleccionado</strong>
+              <span>El análisis comienza automáticamente al seleccionar el archivo.</span>
+            }
+          </div>
+        </div>
+        <button
+          type="button"
+          class="btn-outline"
+          [disabled]="loadingPreview()"
+          (click)="openFilePicker()">
+          <mat-icon>folder_open</mat-icon>
+          {{ selectedFile() ? 'Cambiar Excel' : 'Seleccionar Excel' }}
+        </button>
+      </div>
+
+      @if (errorMessage(); as error) {
+        <div class="clock-import-message clock-import-message--error" role="alert">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+      }
+    </section>
+
+    @if (preview(); as result) {
+      <section class="clock-import-panel" aria-labelledby="clock-preview-title">
+        <div class="clock-import-panel__title">
+          <span class="clock-import-panel__icon"><mat-icon>fact_check</mat-icon></span>
+          <div>
+            <h3 id="clock-preview-title">Resultado del análisis</h3>
+            <p>Vista previa informativa: todavía no se ha guardado la importación.</p>
+          </div>
+        </div>
+
+        <div class="clock-import-stats">
+          <article class="clock-import-stat clock-import-stat--period">
+            <span>Periodo detectado</span>
+            <strong>{{ formatApiDate(result.period_start) }} – {{ formatApiDate(result.period_end) }}</strong>
+          </article>
+          <article class="clock-import-stat">
+            <span>Trabajadores</span>
+            <strong>{{ result.employees_count }}</strong>
+          </article>
+          <article class="clock-import-stat">
+            <span>Registros</span>
+            <strong>{{ result.rows_count }}</strong>
+          </article>
+          <article class="clock-import-stat">
+            <span>Vinculados</span>
+            <strong>{{ result.linked_employees_count }}</strong>
+          </article>
+          <article class="clock-import-stat">
+            <span>Sin vincular</span>
+            <strong>{{ result.unlinked_employees_count }}</strong>
+          </article>
+        </div>
+
+        <h4 class="clock-import-subtitle">Clasificación preliminar</h4>
+        <div class="clock-import-review-counts">
+          <div><span class="clock-import-count-mark clock-import-count-mark--ready"></span> Para aprobar <strong>{{ result.review_summary.ready_for_approval }}</strong></div>
+          <div><span class="clock-import-count-mark clock-import-count-mark--warning"></span> Revisión manual <strong>{{ result.review_summary.manual_review }}</strong></div>
+          <div><span class="clock-import-count-mark clock-import-count-mark--blocked"></span> Bloqueados <strong>{{ result.review_summary.blocked }}</strong></div>
+          <div><span class="clock-import-count-mark clock-import-count-mark--neutral"></span> Sin cambios <strong>{{ result.review_summary.no_change }}</strong></div>
+        </div>
+
+        @if (result.unlinked_employees_count > 0) {
+          <div class="clock-import-message clock-import-message--warning">
+            <mat-icon>info_outline</mat-icon>
+            <span>
+              {{ result.unlinked_employees_count }} trabajador(es) no tienen vinculación con MUDECPLAY.
+              Se identificarán durante la revisión, antes de aplicar asistencias.
+            </span>
+          </div>
+        }
+        <div class="clock-import-message clock-import-message--info">
+          <mat-icon>verified_user</mat-icon>
+          <span>El análisis fue exitoso. La siguiente etapa permitirá guardar la importación, revisar los registros y aprobar cada decisión.</span>
+        </div>
+      </section>
+    }
+  </section>
 </div>
+
+<app-loading-overlay
+  [visible]="loadingPreview()"
+  [fullscreen]="true"
+  text="Analizando Excel del reloj checador...">
+</app-loading-overlay>
