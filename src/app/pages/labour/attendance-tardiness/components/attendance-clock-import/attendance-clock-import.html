@@ -8,131 +8,296 @@
 
     <div class="clock-import-intro">
       <p class="text-info">
-        Carga el reporte de marcajes del reloj checador para analizar llegadas,
-        retardos y posibles faltas. No se modifica ninguna asistencia durante esta vista previa.
+        Importa los marcajes del reloj y revísalos antes de confirmar llegadas o faltas.
+        La carga y las vinculaciones no aplican asistencias.
       </p>
-      <div class="clock-import-steps" aria-label="Etapas de importación">
-        <span class="clock-import-step clock-import-step--current">
-          <span class="clock-import-step__number">1</span>
-          Cargar Excel
-        </span>
+      <nav class="clock-import-steps" aria-label="Etapas de importación">
+        <button type="button" class="clock-import-step"
+          [class.clock-import-step--current]="pageMode() === 'load'"
+          (click)="selectLoad()">
+          <span class="clock-import-step__number">1</span> Cargar Excel
+        </button>
         <mat-icon>chevron_right</mat-icon>
-        <span class="clock-import-step clock-import-step--next">
-          <span class="clock-import-step__number">2</span>
-          Revisar y aplicar
-        </span>
-      </div>
+        <button type="button" class="clock-import-step"
+          [class.clock-import-step--current]="pageMode() === 'review'"
+          [disabled]="!activeImportId()"
+          (click)="selectReview()">
+          <span class="clock-import-step__number">2</span> Revisar y aplicar
+        </button>
+      </nav>
     </div>
 
-    <section class="clock-import-panel" aria-labelledby="clock-upload-title">
-      <div class="clock-import-panel__title">
-        <span class="clock-import-panel__icon"><mat-icon>upload_file</mat-icon></span>
-        <div>
-          <h3 id="clock-upload-title">Archivo del reloj checador</h3>
-          <p>Selecciona un Excel .xls de hasta 10 MB.</p>
-        </div>
+    @if (errorMessage(); as error) {
+      <div class="clock-import-message clock-import-message--error" role="alert">
+        <mat-icon>error_outline</mat-icon><span>{{ error }}</span>
       </div>
-
-      <div class="clock-import-upload">
-        <input
-          #excelInput
-          type="file"
-          accept=".xls,application/vnd.ms-excel"
-          (change)="onFileSelected($event)"
-          aria-label="Archivo Excel del reloj checador"
-          class="clock-import-upload__input" />
-
-        <div class="clock-import-upload__description">
-          <mat-icon>description</mat-icon>
-          <div>
-            @if (selectedFile(); as file) {
-              <strong>{{ file.name }}</strong>
-              <span>{{ formatFileSize(file.size) }}</span>
-            } @else {
-              <strong>Ningún archivo seleccionado</strong>
-              <span>El análisis comienza automáticamente al seleccionar el archivo.</span>
-            }
-          </div>
-        </div>
-        <button
-          type="button"
-          class="btn-outline"
-          [disabled]="loadingPreview()"
-          (click)="openFilePicker()">
-          <mat-icon>folder_open</mat-icon>
-          {{ selectedFile() ? 'Cambiar Excel' : 'Seleccionar Excel' }}
-        </button>
+    }
+    @if (noticeMessage(); as notice) {
+      <div class="clock-import-message clock-import-message--info" role="status">
+        <mat-icon>info_outline</mat-icon><span>{{ notice }}</span>
       </div>
+    }
 
-      @if (errorMessage(); as error) {
-        <div class="clock-import-message clock-import-message--error" role="alert">
-          <mat-icon>error_outline</mat-icon>
-          <span>{{ error }}</span>
-        </div>
-      }
-    </section>
-
-    @if (preview(); as result) {
-      <section class="clock-import-panel" aria-labelledby="clock-preview-title">
+    @if (pageMode() === 'load') {
+      <section class="clock-import-panel" aria-labelledby="clock-upload-title">
         <div class="clock-import-panel__title">
-          <span class="clock-import-panel__icon"><mat-icon>fact_check</mat-icon></span>
+          <span class="clock-import-panel__icon"><mat-icon>upload_file</mat-icon></span>
           <div>
-            <h3 id="clock-preview-title">Resultado del análisis</h3>
-            <p>Vista previa informativa: todavía no se ha guardado la importación.</p>
+            <h3 id="clock-upload-title">Archivo del reloj checador</h3>
+            <p>Selecciona un Excel .xls de hasta 10 MB. El análisis inicia automáticamente.</p>
           </div>
         </div>
 
-        <div class="clock-import-stats">
-          <article class="clock-import-stat clock-import-stat--period">
-            <span>Periodo detectado</span>
-            <strong>{{ formatApiDate(result.period_start) }} – {{ formatApiDate(result.period_end) }}</strong>
-          </article>
-          <article class="clock-import-stat">
-            <span>Trabajadores</span>
-            <strong>{{ result.employees_count }}</strong>
-          </article>
-          <article class="clock-import-stat">
-            <span>Registros</span>
-            <strong>{{ result.rows_count }}</strong>
-          </article>
-          <article class="clock-import-stat">
-            <span>Vinculados</span>
-            <strong>{{ result.linked_employees_count }}</strong>
-          </article>
-          <article class="clock-import-stat">
-            <span>Sin vincular</span>
-            <strong>{{ result.unlinked_employees_count }}</strong>
-          </article>
-        </div>
-
-        <h4 class="clock-import-subtitle">Clasificación preliminar</h4>
-        <div class="clock-import-review-counts">
-          <div><span class="clock-import-count-mark clock-import-count-mark--ready"></span> Para aprobar <strong>{{ result.review_summary.ready_for_approval }}</strong></div>
-          <div><span class="clock-import-count-mark clock-import-count-mark--warning"></span> Revisión manual <strong>{{ result.review_summary.manual_review }}</strong></div>
-          <div><span class="clock-import-count-mark clock-import-count-mark--blocked"></span> Bloqueados <strong>{{ result.review_summary.blocked }}</strong></div>
-          <div><span class="clock-import-count-mark clock-import-count-mark--neutral"></span> Sin cambios <strong>{{ result.review_summary.no_change }}</strong></div>
-        </div>
-
-        @if (result.unlinked_employees_count > 0) {
-          <div class="clock-import-message clock-import-message--warning">
-            <mat-icon>info_outline</mat-icon>
-            <span>
-              {{ result.unlinked_employees_count }} trabajador(es) no tienen vinculación con MUDECPLAY.
-              Se identificarán durante la revisión, antes de aplicar asistencias.
-            </span>
+        <div class="clock-import-upload">
+          <input #excelInput type="file" accept=".xls,application/vnd.ms-excel"
+            (change)="onFileSelected($event)" aria-label="Archivo Excel del reloj checador"
+            class="clock-import-upload__input" />
+          <div class="clock-import-upload__description">
+            <mat-icon>description</mat-icon>
+            <div>
+              @if (selectedFile(); as file) {
+                <strong>{{ file.name }}</strong><span>{{ formatFileSize(file.size) }}</span>
+              } @else {
+                <strong>Ningún archivo seleccionado</strong>
+                <span>Primero analiza los marcajes; después podrás guardar la importación.</span>
+              }
+            </div>
           </div>
-        }
-        <div class="clock-import-message clock-import-message--info">
-          <mat-icon>verified_user</mat-icon>
-          <span>El análisis fue exitoso. La siguiente etapa permitirá guardar la importación, revisar los registros y aprobar cada decisión.</span>
+          <button type="button" class="btn-outline" [disabled]="loading()"
+            (click)="openFilePicker()">
+            <mat-icon>folder_open</mat-icon>
+            {{ selectedFile() ? 'Cambiar Excel' : 'Seleccionar Excel' }}
+          </button>
         </div>
       </section>
+
+      @if (preview(); as result) {
+        <section class="clock-import-panel" aria-labelledby="clock-preview-title">
+          <div class="clock-import-panel__title">
+            <span class="clock-import-panel__icon"><mat-icon>fact_check</mat-icon></span>
+            <div>
+              <h3 id="clock-preview-title">Resultado del análisis</h3>
+              <p>Vista previa: todavía no hay modificaciones en las asistencias.</p>
+            </div>
+          </div>
+
+          <div class="clock-import-stats">
+            <article class="clock-import-stat clock-import-stat--period">
+              <span>Periodo detectado</span>
+              <strong>{{ formatApiDate(result.period_start) }} – {{ formatApiDate(result.period_end) }}</strong>
+            </article>
+            <article class="clock-import-stat"><span>Trabajadores</span><strong>{{ result.employees_count }}</strong></article>
+            <article class="clock-import-stat"><span>Registros</span><strong>{{ result.rows_count }}</strong></article>
+            <article class="clock-import-stat"><span>Vinculados</span><strong>{{ result.linked_employees_count }}</strong></article>
+            <article class="clock-import-stat"><span>Sin vincular</span><strong>{{ result.unlinked_employees_count }}</strong></article>
+          </div>
+
+          <h4 class="clock-import-subtitle">Clasificación preliminar</h4>
+          <div class="clock-import-review-counts">
+            <div><span class="clock-import-count-mark clock-import-count-mark--ready"></span>Para aprobar <strong>{{ result.review_summary.ready_for_approval }}</strong></div>
+            <div><span class="clock-import-count-mark clock-import-count-mark--warning"></span>Revisión manual <strong>{{ result.review_summary.manual_review }}</strong></div>
+            <div><span class="clock-import-count-mark clock-import-count-mark--blocked"></span>Bloqueados <strong>{{ result.review_summary.blocked }}</strong></div>
+            <div><span class="clock-import-count-mark clock-import-count-mark--neutral"></span>Sin cambios <strong>{{ result.review_summary.no_change }}</strong></div>
+          </div>
+
+          @if (result.unlinked_employees_count > 0) {
+            <div class="clock-import-message clock-import-message--warning">
+              <mat-icon>info_outline</mat-icon>
+              <span>Los trabajadores sin vinculación se configuran una sola vez. Los registros se reevaluarán automáticamente en la vista previa al guardar cada vinculación.</span>
+            </div>
+          }
+        </section>
+
+        @if (workers().length > 0) {
+          <section class="clock-import-panel" aria-labelledby="clock-mapping-title">
+            <div class="clock-import-panel__title">
+              <span class="clock-import-panel__icon"><mat-icon>people</mat-icon></span>
+              <div>
+                <h3 id="clock-mapping-title">Vinculación de trabajadores</h3>
+                <p>Los empleados ya identificados no vuelven a solicitar vinculación.</p>
+              </div>
+            </div>
+
+            <div class="clock-import-workers">
+              @for (worker of workers(); track worker.clock_employee_number) {
+                <div class="clock-import-worker">
+                  <div class="clock-import-worker__name">
+                    <strong>{{ worker.clock_employee_name || 'Sin nombre' }}</strong>
+                    <span>Reloj #{{ worker.clock_employee_number }} · {{ worker.records }} registros</span>
+                  </div>
+                  @if (worker.employee_id !== null) {
+                    <div class="clock-import-worker__linked">
+                      <mat-icon>check_circle</mat-icon>
+                      <span>{{ worker.employee_name || 'Empleado #' + worker.employee_id }}</span>
+                    </div>
+                  } @else {
+                    <div class="clock-import-worker__select">
+                      <app-input-select [formControl]="controlFor(worker.clock_employee_number)"
+                        label="Empleado MUDECPLAY" [options]="employeeOptions()">
+                      </app-input-select>
+                    </div>
+                    <button type="button" class="btn-primary clock-import-worker__save"
+                      [disabled]="loading() || loadingCatalog() || savingClockNumber() !== null || !controlFor(worker.clock_employee_number).value"
+                      (click)="saveMapping(worker)">
+                      <mat-icon>link</mat-icon>
+                      {{ savingClockNumber() === worker.clock_employee_number ? 'Guardando...' : 'Vincular' }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+            <div class="clock-import-message clock-import-message--warning">
+              <mat-icon>privacy_tip</mat-icon>
+              <span>Confirma cuidadosamente cada identidad antes de vincular. La relación permanecerá guardada para futuras cargas.</span>
+            </div>
+          </section>
+        }
+
+        <section class="clock-import-panel clock-import-panel--actions" aria-labelledby="clock-continue-title">
+          <div class="clock-import-panel__title">
+            <span class="clock-import-panel__icon"><mat-icon>save_alt</mat-icon></span>
+            <div>
+              <h3 id="clock-continue-title">Continuar con la revisión</h3>
+              <p>Guardar el lote no confirma ni aplica ninguna asistencia.</p>
+            </div>
+          </div>
+          @if (duplicateImportId(); as existingId) {
+            <div class="clock-import-message clock-import-message--warning">
+              <mat-icon>history</mat-icon>
+              <span>Este Excel ya se registró con ID {{ existingId }}. Continúa la carga existente en lugar de duplicarla.</span>
+            </div>
+            <button class="btn-primary" type="button" [disabled]="loading()"
+              (click)="openExistingImport(existingId)">
+              <mat-icon>open_in_new</mat-icon> Continuar importación {{ existingId }}
+            </button>
+          } @else {
+            <button class="btn-primary" type="button"
+              [disabled]="!preview() || loading()" (click)="stageImport()">
+              <mat-icon>save</mat-icon> Guardar para revisión
+            </button>
+          }
+          <div class="clock-import-open-existing">
+            <label for="clockExistingImportId">¿Ya tienes una importación guardada?</label>
+            <input id="clockExistingImportId" type="number" min="1" step="1"
+              placeholder="ID de importación" [value]="existingImportId()"
+              (input)="onExistingImportIdInput($event)" />
+            <button type="button" class="btn-outline" [disabled]="loading()"
+              (click)="openExistingImport()">
+              <mat-icon>history</mat-icon> Abrir importación
+            </button>
+          </div>
+        </section>
+      } @else {
+        <section class="clock-import-panel clock-import-panel--actions">
+          <div class="clock-import-panel__title">
+            <span class="clock-import-panel__icon"><mat-icon>history</mat-icon></span>
+            <div>
+              <h3>Continuar una importación existente</h3>
+              <p>Puedes abrir un lote anterior por su ID, aunque no tengas el Excel a mano.</p>
+            </div>
+          </div>
+          <div class="clock-import-open-existing">
+            <label for="clockExistingImportIdEmpty">ID de importación</label>
+            <input id="clockExistingImportIdEmpty" type="number" min="1" step="1"
+              placeholder="Ej. 1" [value]="existingImportId()"
+              (input)="onExistingImportIdInput($event)" />
+            <button type="button" class="btn-outline" [disabled]="loading()"
+              (click)="openExistingImport()"><mat-icon>history</mat-icon> Abrir</button>
+          </div>
+        </section>
+      }
+    } @else {
+      @if (staged(); as batch) {
+        <section class="clock-import-panel" aria-labelledby="clock-saved-title">
+          <div class="clock-import-panel__title clock-import-panel__title--between">
+            <span class="clock-import-panel__icon"><mat-icon>assignment_turned_in</mat-icon></span>
+            <div>
+              <h3 id="clock-saved-title">Importación #{{ batch.import_id }}</h3>
+              <p>{{ batch.file_name }} · Estado: {{ batch.status }}</p>
+            </div>
+            <button type="button" class="btn-outline" [disabled]="loading()"
+              (click)="reconcileImport()">
+              <mat-icon>sync</mat-icon> Actualizar revisión
+            </button>
+          </div>
+          <div class="clock-import-stats clock-import-stats--review">
+            <article class="clock-import-stat"><span>Total</span><strong>{{ batch.total_rows }}</strong></article>
+            <article class="clock-import-stat"><span>Pendientes</span><strong>{{ batch.pending_rows }}</strong></article>
+            <article class="clock-import-stat"><span>Omitidos</span><strong>{{ batch.skipped_rows }}</strong></article>
+            <article class="clock-import-stat"><span>Aplicados</span><strong>{{ batch.applied_rows }}</strong></article>
+          </div>
+          <div class="clock-import-message clock-import-message--info">
+            <mat-icon>info_outline</mat-icon>
+            <span>Si guardaste nuevas vinculaciones después de registrar este lote, usa «Actualizar revisión». Esto no aplica ninguna asistencia.</span>
+          </div>
+        </section>
+
+        <section class="clock-import-panel" aria-labelledby="clock-staged-title">
+          <div class="clock-import-panel__title">
+            <span class="clock-import-panel__icon"><mat-icon>table_view</mat-icon></span>
+            <div>
+              <h3 id="clock-staged-title">Registros guardados</h3>
+              <p>Revisa la clasificación y los estados persistidos, antes de aprobar cada caso.</p>
+            </div>
+          </div>
+          <div class="c-module-table clock-import-review-table">
+            <app-data-table [data]="tableRows()" [columnsConfig]="tableColumns"
+              [displayedColumns]="displayedColumns" [actionPermissions]="{ showEdit: false, showDelete: false }">
+            </app-data-table>
+            <mat-paginator [length]="batch.total" [pageSize]="batch.limit"
+              [pageIndex]="batch.page - 1" [pageSizeOptions]="[10, 20, 50, 100]"
+              (page)="onPageChange($event)" showFirstLastButtons>
+            </mat-paginator>
+          </div>
+        </section>
+
+        @if (workers().length > 0) {
+          <section class="clock-import-panel" aria-labelledby="clock-review-mapping-title">
+            <div class="clock-import-panel__title">
+              <span class="clock-import-panel__icon"><mat-icon>people</mat-icon></span>
+              <div>
+                <h3 id="clock-review-mapping-title">Trabajadores de la revisión</h3>
+                <p>Se muestran los trabajadores de la página actual, o todos los del Excel si lo cargaste en esta sesión.</p>
+              </div>
+            </div>
+            <div class="clock-import-workers">
+              @for (worker of workers(); track worker.clock_employee_number) {
+                <div class="clock-import-worker">
+                  <div class="clock-import-worker__name">
+                    <strong>{{ worker.clock_employee_name || 'Sin nombre' }}</strong>
+                    <span>Reloj #{{ worker.clock_employee_number }}</span>
+                  </div>
+                  @if (worker.employee_id !== null) {
+                    <div class="clock-import-worker__linked"><mat-icon>check_circle</mat-icon>
+                      <span>{{ worker.employee_name || 'Empleado #' + worker.employee_id }}</span>
+                    </div>
+                  } @else {
+                    <div class="clock-import-worker__select">
+                      <app-input-select [formControl]="controlFor(worker.clock_employee_number)"
+                        label="Empleado MUDECPLAY" [options]="employeeOptions()">
+                      </app-input-select>
+                    </div>
+                    <button type="button" class="btn-primary clock-import-worker__save"
+                      [disabled]="loading() || loadingCatalog() || savingClockNumber() !== null || !controlFor(worker.clock_employee_number).value"
+                      (click)="saveMapping(worker)">
+                      <mat-icon>link</mat-icon> Vincular
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        <div class="clock-import-message clock-import-message--warning">
+          <mat-icon>pending_actions</mat-icon>
+          <span>Las acciones de aprobar decisiones y aplicar asistencias se integrarán en la siguiente entrega. Esta pantalla únicamente consulta, vincula y reconcilia.</span>
+        </div>
+      }
     }
   </section>
 </div>
 
-<app-loading-overlay
-  [visible]="loadingPreview()"
-  [fullscreen]="true"
-  text="Analizando Excel del reloj checador...">
+<app-loading-overlay [visible]="loading()" [fullscreen]="true"
+  text="Procesando datos del reloj checador...">
 </app-loading-overlay>
