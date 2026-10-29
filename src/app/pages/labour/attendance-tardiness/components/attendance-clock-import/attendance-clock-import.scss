@@ -1,5 +1,29 @@
+/* Pantalla de importación: desplazamiento propio, sin c-table-page.
+   c-table-page reserva solo dos filas y bloquea el scroll del contenedor
+   global: aquí tenemos múltiples paneles verticales. */
 :host {
   display: block;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.attendance-clock-import-page {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 18px;
+  box-sizing: border-box;
+}
+
+.attendance-clock-import-page > .card-content-form {
+  min-height: 0;
+  height: auto;
+  margin-bottom: 0;
 }
 
 .attendance-clock-import-page {
