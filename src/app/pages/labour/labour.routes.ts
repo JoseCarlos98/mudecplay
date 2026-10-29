@@ -47,6 +47,13 @@ export const LABOUR_ROUTES: Routes = [
     data: { roles: ['ASISTENCIA_EDITOR'] },
   },
   {
+    path: 'llegadas-retardos/importar-reloj',
+    loadComponent: () =>
+      import('./attendance-tardiness/components/attendance-clock-import/attendance-clock-import').then(m => m.AttendanceClockImport),
+    canActivate: [rolesGuard],
+    data: { roles: ['LLEGADAS_RETARDOS_EDITOR'] },
+  },
+  {
     path: 'llegadas-retardos',
     loadComponent: () =>
       import('./attendance-tardiness/attendance-tardiness').then(m => m.AttendanceTardiness),
