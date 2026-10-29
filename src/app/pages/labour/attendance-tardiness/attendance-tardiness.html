@@ -1,22 +1,10 @@
 <div class="c-table-page">
   <div class="card-content shadow-md">
-    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-      <div class="flex-1 min-w-0">
-        <app-module-header
-          title="Llegadas y retardos"
-          [config]="headerConfig"
-          (action)="onHeaderAction($event)">
-        </app-module-header>
-      </div>
-
-      <button
-        type="button"
-        class="btn-primary whitespace-nowrap"
-        (click)="goToClockImport()">
-        <mat-icon>upload_file</mat-icon>
-        <span>Importar reloj checador</span>
-      </button>
-    </div>
+    <app-module-header
+      title="Llegadas y retardos"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
+    </app-module-header>
 
     <form [formGroup]="formFilters">
       <div class="c-filters grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5">

@@ -4,7 +4,6 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { finalize } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
 
 import { InputDate } from '../../../shared/ui/input-date/input-date';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -42,6 +41,12 @@ const ATTENDANCE_TARDINESS_FILTERS_KEY = 'mp_attendance_tardiness_filters_v1';
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: false,
   showUploadXml: false,
+  uploadButton: {
+    label: 'Importar reloj checador',
+    icon: 'file_upload',
+    action: 'importClock',
+    roles: ['LLEGADAS_RETARDOS_EDITOR'],
+  },
 };
 
 const COLUMNS_CONFIG: ColumnsConfig[] = [
@@ -128,7 +133,6 @@ const STATUS_OPTIONS: SelectCatalogOption[] = [
     InputSelect,
     LoadingOverlay,
     MatPaginatorModule,
-    MatIconModule,
   ],
   templateUrl: './attendance-tardiness.html',
   styleUrl: './attendance-tardiness.scss',
@@ -366,7 +370,9 @@ export class AttendanceTardiness implements OnInit {
   }
 
   onHeaderAction(action: string): void {
-    console.log('Header action:', action);
+    if (action === 'importClock') {
+      this.goToClockImport();
+    }
   }
 
   goToClockImport(): void {

@@ -1,4 +1,4 @@
-import { RoleCode } from "../../../../auth/interfaces/auth.interface";
+import { RoleCode } from '../../../../auth/interfaces/auth.interface';
 
 export type ModuleHeaderAction =
   | 'new'
@@ -11,11 +11,16 @@ export interface ExtraButton {
   label: string;
   icon: string;
   action: string;
+  roles?: RoleCode[];
+  /** Compatibilidad con botones extras previamente configurados. */
+  variant?: 'blue' | 'default';
+}
 
-  /**
-   * Roles requeridos para ver el botón.
-   * Si se omite, se muestra siempre (asumiendo que config lo permite).
-   */
+/** Acción de carga personalizada con el mismo estilo que Cargar XML. */
+export interface ModuleHeaderUploadButton {
+  label: string;
+  action: string;
+  icon?: string;
   roles?: RoleCode[];
 }
 
@@ -27,11 +32,10 @@ export interface ModuleHeaderConfig {
   showUploadXml?: boolean;
   showDownload?: boolean;
 
-  /**
-   * Roles requeridos por botón (si se omite, no se valida rol para ese botón).
-   * ADMIN_GENERAL pasa siempre por bypass en PermissionsService.
-   */
   newRoles?: RoleCode[];
   uploadXmlRoles?: RoleCode[];
   downloadRoles?: RoleCode[];
+
+  /** Botón de carga genérico, sin alterar showUploadXml. */
+  uploadButton?: ModuleHeaderUploadButton;
 }

@@ -6,7 +6,7 @@
       </button>
     }
 
-    <h2 class="color-secundary" [ngClass]="{ 'modal-text-format': config.modal || config.formFull}">
+    <h2 class="color-secundary" [ngClass]="{ 'modal-text-format': config.modal || config.formFull }">
       {{ title }}
     </h2>
   </div>
@@ -20,6 +20,18 @@
         <mat-icon>file_upload</mat-icon>
         Cargar XML
       </button>
+    }
+
+    <!-- Botón de carga genérico. Usa exactamente el estilo existente de Cargar XML. -->
+    @if (config.uploadButton; as uploadButton) {
+      @if (canShow(uploadButton.roles)) {
+        <button
+          class="radius border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10 transition-all"
+          (click)="emit(uploadButton.action)">
+          <mat-icon>{{ uploadButton.icon || 'file_upload' }}</mat-icon>
+          {{ uploadButton.label }}
+        </button>
+      }
     }
 
     @if (config.showNew && canShow(config.newRoles)) {
@@ -45,7 +57,10 @@
       @if (canShow(btn.roles)) {
         <button
           mat-stroked-button
-          class="radius border-gray-400 text-gray-600 hover:bg-gray-100 transition-all"
+          class="radius transition-all"
+          [ngClass]="btn.variant === 'blue'
+            ? 'border-[#1e86b1] text-[#1e86b1] hover:bg-[#1e86b1]/10'
+            : 'border-gray-400 text-gray-600 hover:bg-gray-100'"
           (click)="emit(btn.action)">
           <mat-icon>{{ btn.icon }}</mat-icon>
           {{ btn.label }}
