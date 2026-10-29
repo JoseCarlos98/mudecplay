@@ -1,0 +1,59 @@
+<div class="c-modal clock-decision-modal">
+  <app-module-header title="Revisar registro del reloj" [config]="headerConfig"
+    (action)="close()"></app-module-header>
+
+  <div class="clock-decision-modal__summary">
+    <div><span>Trabajador del reloj</span><strong>{{ data.row.worker_label }}</strong></div>
+    <div><span>Empleado MUDECPLAY</span><strong>{{ data.row.employee_label }}</strong></div>
+    <div><span>Fecha</span><strong>{{ data.row.work_date }}</strong></div>
+    <div><span>Marcajes originales</span><strong>{{ data.row.marks_label }}</strong></div>
+    <div class="clock-decision-modal__wide"><span>Revisión</span><strong>{{ data.row.review_label }}</strong></div>
+  </div>
+
+  <form [formGroup]="form" class="clock-decision-modal__form" (ngSubmit)="save()">
+    <app-input-select label="Decisión" formControlName="decision"
+      [options]="decisionOptions">
+    </app-input-select>
+
+    @if (standardArrival) {
+      <div class="clock-decision-modal__hint">
+        <mat-icon>schedule</mat-icon>
+        <span>Se aprobará la llegada original <strong>{{ data.row.original_arrival_time }}</strong>.
+          No se permite sustituirla por una hora distinta.</span>
+      </div>
+    }
+
+    @if (manualArrival) {
+      <div class="clock-decision-modal__field">
+        <label for="clockApprovedArrival">Marcaje elegido como llegada *</label>
+        <select id="clockApprovedArrival" formControlName="approvedArrivalTime">
+          <option [ngValue]="null">Selecciona una hora original</option>
+          @for (item of arrivalOptions; track item.id) {
+            <option [ngValue]="item.id">{{ item.name }}</option>
+          }
+        </select>
+        <small>Solo puedes elegir una hora que aparezca en el Excel.</small>
+      </div>
+    }
+
+    @if (selectedDecision) {
+      <div class="clock-decision-modal__field">
+        <label for="clockResolutionReason">Motivo / observaciones {{ needsReason ? '*' : '(opcional)' }}</label>
+        <textarea id="clockResolutionReason" rows="3" maxlength="500"
+          formControlName="reason" placeholder="Describe por qué tomas esta decisión..."></textarea>
+        @if (needsReason) {
+          <small>Mínimo 5 caracteres. Se guardará para auditoría.</small>
+        }
+      </div>
+    }
+  </form>
+
+  <div class="clock-decision-modal__hint clock-decision-modal__hint--neutral">
+    <mat-icon>info_outline</mat-icon>
+    <span>Guardar la decisión no crea ni modifica asistencias. La aplicación se hace por separado.</span>
+  </div>
+
+  <app-btns-section class="modal-actions-spacer" type="save"
+    [saveDisabled]="!isValid" (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

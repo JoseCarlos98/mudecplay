@@ -164,3 +164,72 @@ export interface ClockStagedTableRow extends ClockStagedRow {
   review_label: string;
   status_label: string;
 }
+
+/** PATCH imports/:id/rows/:rowId/decision. No aplica asistencias. */
+export type ClockRowDecision = 'import_arrival' | 'confirm_absence' | 'skip';
+
+export interface ClockSaveDecisionPayload {
+  decision: ClockRowDecision;
+  approved_arrival_time?: string | null;
+  resolution_note?: string | null;
+}
+
+export interface ClockDecisionResult {
+  import_id: number;
+  row_id: number;
+  row_index: number;
+  employee_id: number | null;
+  work_date: string | null;
+  decision: ClockRowDecision;
+  approved_arrival_time: string | null;
+  resolution_note: string | null;
+  status: 'ready' | 'skipped';
+  reviewed_by_user_id: number;
+  decision_recorded_at: string;
+  pending_rows: number;
+  skipped_rows: number;
+  message: string;
+}
+
+/** GET imports/:id/apply-preview. Solo lectura: no reserva la aprobación. */
+export interface ClockApplyPreflightRow {
+  row_id: number;
+  row_index: number;
+  employee_id: number | null;
+  work_date: string | null;
+  decision: ClockRowDecision | null;
+  status: ClockStagedRow['status'];
+  approved_arrival_time: string | null;
+  current_attendance_id: number | null;
+  readiness: 'eligible' | 'blocked' | 'skipped' | 'already_applied';
+  reason_code: string;
+  reason: string;
+}
+
+export interface ClockApplyPreflightResult {
+  import_id: number;
+  import_status: string;
+  total_decisions: number;
+  eligible_rows: number;
+  blocked_rows: number;
+  skipped_rows: number;
+  already_applied_rows: number;
+  rows: ClockApplyPreflightRow[];
+  message: string;
+}
+
+/** POST imports/:id/rows/:rowId/apply. Escribe UNA asistencia tras revalidarla. */
+export interface ClockApplyRowResult {
+  import_id: number;
+  row_id: number;
+  attendance_id: number;
+  decision: 'import_arrival' | 'confirm_absence';
+  status: 'applied';
+  attendance_created: boolean;
+  applied_by_user_id: number;
+  processed_at: string;
+  tardiness_minutes: number | null;
+  tardiness_discount: number | null;
+  pending_rows: number;
+  message: string;
+}

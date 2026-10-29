@@ -1,16 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-
-import {
-  ClockEmployeeMapping,
-  ClockImportPreviewResponse,
-  ClockImportReconcileResult,
-  ClockImportStageResult,
-  ClockMappingSaveResult,
-  ClockStagedRowsResult,
-} from '../interfaces/attendance-clock-import.interfaces';
 import { environment } from '../../../../../../../environments/environment';
+import { ClockApplyPreflightResult, ClockApplyRowResult, ClockDecisionResult, ClockEmployeeMapping, ClockImportPreviewResponse, ClockImportReconcileResult, ClockImportStageResult, ClockMappingSaveResult, ClockSaveDecisionPayload, ClockStagedRowsResult } from '../interfaces/attendance-clock-import.interfaces';
+
 
 /** Servicio del importador. Independiente del registro manual de llegadas. */
 @Injectable({ providedIn: 'root' })
@@ -57,6 +50,23 @@ export class AttendanceClockImportService {
   /** Recalcula únicamente filas sin decisión, tras vincular trabajadores. */
   reconcile(importId: number): Observable<ClockImportReconcileResult> {
     return this.http.post<ClockImportReconcileResult>(`${this.importsUrl}/${importId}/reconcile`, {});
+  }
+
+  /** Guardar UNA decisión humana en staging. No modifica la asistencia. */
+  saveDecision(importId: number, rowId: number, payload: ClockSaveDecisionPayload): Observable<ClockDecisionResult> {
+    return this.http.patch<ClockDecisionResult>(
+      `${this.importsUrl}/${importId}/rows/${rowId}/decision`, payload,
+    );
+  }
+
+  /** Verifica todas las decisiones guardadas; no modifica la asistencia. */
+  getApplyPreview(importId: number): Observable<ClockApplyPreflightResult> {
+    return this.http.get<ClockApplyPreflightResult>(`${this.importsUrl}/${importId}/apply-preview`);
+  }
+
+  /** Aplica UNA decisión autorizada después de la prevalidación; el servidor revalida. */
+  applyDecision(importId: number, rowId: number): Observable<ClockApplyRowResult> {
+    return this.http.post<ClockApplyRowResult>(`${this.importsUrl}/${importId}/rows/${rowId}/apply`, {});
   }
 
   private buildFileFormData(file: File): FormData {

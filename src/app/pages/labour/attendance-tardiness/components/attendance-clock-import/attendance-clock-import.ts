@@ -11,11 +11,14 @@ import { ModuleHeader } from '../../../../../shared/ui/module-header/module-head
 import { ModuleHeaderConfig } from '../../../../../shared/ui/module-header/interfaces/module-header-interface';
 import { LoadingOverlay } from '../../../../../shared/ui/loading-overlay/loading-overlay';
 import { DataTable } from '../../../../../shared/ui/data-table/data-table';
-import { ColumnsConfig } from '../../../../../shared/ui/data-table/interfaces/table-interfaces';
+import { ColumnsConfig, DataTableActionEvent, DataTableExtraAction } from '../../../../../shared/ui/data-table/interfaces/table-interfaces';
 import { InputSelect, SelectCatalogOption } from '../../../../../shared/ui/input-select/input-select';
 import { EmployeesService } from '../../../employees/services/employees.service';
+import { DialogService } from '../../../../../shared/services/dialog.service';
+import { ModalClockDecision, ClockDecisionModalResult } from './components/modal-clock-decision/modal-clock-decision';
 import { AttendanceClockImportService } from './services/attendance-clock-import.service';
-import { ClockEmployeeMapping, ClockImportPreviewResponse, ClockStagedRow, ClockStagedRowsResult, ClockStagedTableRow, ClockWorkerGroup } from './interfaces/attendance-clock-import.interfaces';
+import { ClockApplyPreflightResult, ClockEmployeeMapping, ClockImportPreviewResponse, ClockStagedRow, ClockStagedRowsResult, ClockStagedTableRow, ClockWorkerGroup } from './interfaces/attendance-clock-import.interfaces';
+
 
 const MAX_EXCEL_BYTES = 10 * 1024 * 1024;
 const HEADER_CONFIG: ModuleHeaderConfig = { formFull: true, showNew: false, showUploadXml: false };
@@ -60,12 +63,13 @@ export class AttendanceClockImport implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly importService = inject(AttendanceClockImportService);
   private readonly employeesService = inject(EmployeesService);
+  private readonly dialogService = inject(DialogService);
 
   @ViewChild('excelInput') private excelInput?: ElementRef<HTMLInputElement>;
 
   readonly headerConfig = HEADER_CONFIG;
   readonly tableColumns = STAGED_COLUMNS;
-  readonly displayedColumns = STAGED_COLUMNS.map((item) => item.key);
+  readonly displayedColumns = [...STAGED_COLUMNS.map((item) => item.key), 'actions'];
   readonly loading = signal(false);
   readonly loadingCatalog = signal(false);
   readonly selectedFile = signal<File | null>(null);
@@ -97,15 +101,16 @@ export class AttendanceClockImport implements OnInit {
         continue;
       }
       const mapped = this.mappings().find((item) => item.clock_employee_number === number);
+      // El ID guardado en staging puede estar desactualizado después de una
+      // desvinculación: mostrar SIEMPRE la vinculación actual del reloj.
       grouped.set(number, {
         clock_employee_number: number,
         clock_employee_name: row.clock_employee_name ?? '',
         clock_department: 'clock_department' in row ? (row.clock_department ?? '')
           : (row.issues?.clock_department ?? '').toString(),
         records: 1,
-        employee_id: row.employee_id ?? mapped?.employee_id ?? null,
-        employee_name: 'employee_name' in row ? (row.employee_name ?? mapped?.employee_name ?? null)
-          : mapped?.employee_name ?? null,
+        employee_id: mapped?.employee_id ?? null,
+        employee_name: mapped?.employee_name ?? null,
       });
     }
     return [...grouped.values()].sort((a, b) =>
@@ -123,13 +128,127 @@ export class AttendanceClockImport implements OnInit {
         ...row,
         worker_label: `${row.clock_employee_number ?? '—'} · ${row.clock_employee_name ?? 'Sin nombre'}`,
         employee_label: row.employee_id === null ? 'Sin vincular'
-          : (mapping?.employee_name ?? employee?.name ?? `Empleado #${row.employee_id}`),
+          : mapping?.employee_id !== row.employee_id ? 'Vinculación desactualizada (reconciliar)'
+          : (mapping.employee_name ?? employee?.name ?? `Empleado #${row.employee_id}`),
         marks_label: row.original_marks?.join(', ') || 'Sin marcajes',
         review_label: row.issues?.review_message ?? 'Sin observaciones',
         status_label: STATUS_LABELS[row.status] ?? row.status,
       };
     });
   });
+
+  /** Solo se puede decidir una fila sin decisión previa y sin procesar. */
+  readonly canReviewDecision = (row: ClockStagedTableRow): boolean =>
+    (row.status === 'pending' || row.status === 'conflict') &&
+    row.decision === null && !row.processed_at &&
+    row.clock_employee_number !== null &&
+    this.loading() === false;
+
+  readonly canApplyDecision = (row: ClockStagedTableRow): boolean =>
+    row.status === 'ready' &&
+    (row.decision === 'import_arrival' || row.decision === 'confirm_absence') &&
+    !row.processed_at && !this.loading();
+
+  readonly rowExtraActions: DataTableExtraAction<ClockStagedTableRow>[] = [
+    {
+      type: 'reviewDecision', icon: 'fact_check',
+      tooltip: (row) => this.canReviewDecision(row) ? 'Revisar y decidir' : 'Registro sin decisión disponible',
+      visible: () => true,
+      disabled: (row) => !this.canReviewDecision(row),
+    },
+    {
+      type: 'applyDecision', icon: 'task_alt',
+      tooltip: (row) => this.canApplyDecision(row) ? 'Prevalidar y aplicar asistencia' : 'Requiere decisión aprobada',
+      visible: () => true,
+      disabled: (row) => !this.canApplyDecision(row),
+    },
+  ];
+
+  onTableAction(event: DataTableActionEvent<ClockStagedTableRow>): void {
+    if (event.type === 'reviewDecision') this.openDecisionModal(event.row);
+    if (event.type === 'applyDecision') this.prevalidateAndApply(event.row);
+  }
+
+  private openDecisionModal(row: ClockStagedTableRow): void {
+    if (!this.canReviewDecision(row)) return;
+    // Nunca permitir una decisión sobre una foto histórica de una vinculación.
+    // Sí se permite omitir, pero evitamos mezclar acciones hasta reconciliar.
+    const mapping = this.mappings().find((item) => item.clock_employee_number === row.clock_employee_number);
+    if (row.employee_id !== null && mapping?.employee_id !== row.employee_id) {
+      this.errorMessage.set('La vinculación actual no coincide con esta fila. Actualiza la revisión antes de decidir.');
+      return;
+    }
+    this.dialogService.open(ModalClockDecision, { row }, 'medium')
+      .afterClosed()
+      .subscribe((result: ClockDecisionModalResult | null) => {
+        if (!result || result.action !== 'save') return;
+        this.saveRowDecision(row.id, result.payload);
+      });
+  }
+
+  private saveRowDecision(rowId: number, payload: ClockDecisionModalResult['payload']): void {
+    const importId = this.activeImportId();
+    if (!importId || this.loading()) return;
+    const page = this.staged()?.page ?? 1;
+    const limit = this.staged()?.limit ?? 20;
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+    this.loading.set(true);
+    this.importService.saveDecision(importId, rowId, payload).pipe(
+      tap((result) => this.noticeMessage.set(result.message)),
+      switchMap(() => this.importService.getRows(importId, page, limit)),
+      finalize(() => this.loading.set(false)),
+    ).subscribe({
+      next: (batch) => this.setStagedResult(batch),
+      error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
+    });
+  }
+
+  /** Prevalidación informativa seguida de confirmación humana y aplicación individual. */
+  private prevalidateAndApply(row: ClockStagedTableRow): void {
+    const importId = this.activeImportId();
+    if (!importId || !this.canApplyDecision(row)) return;
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+    this.loading.set(true);
+    this.importService.getApplyPreview(importId).pipe(
+      finalize(() => this.loading.set(false)),
+    ).subscribe({
+      next: (preflight: ClockApplyPreflightResult) => {
+        const status = preflight.rows.find((item) => item.row_id === row.id);
+        if (!status || status.readiness !== 'eligible') {
+          this.errorMessage.set(status?.reason ?? 'Esta decisión no está autorizada para aplicarse. Actualiza la revisión.');
+          return;
+        }
+        const type = row.decision === 'confirm_absence' ? 'una falta' : 'una llegada';
+        this.dialogService.confirm({
+          title: 'Confirmar aplicación',
+          message: `¿Aplicar ${type} del ${row.work_date} a ${row.employee_label}? Esta operación modificará la asistencia en DEV.`,
+          confirmText: 'Aplicar asistencia',
+          cancelText: 'Cancelar',
+        }).subscribe((confirmed) => {
+          if (confirmed) this.applyRowDecision(row.id);
+        });
+      },
+      error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
+    });
+  }
+
+  private applyRowDecision(rowId: number): void {
+    const importId = this.activeImportId();
+    if (!importId || this.loading()) return;
+    const page = this.staged()?.page ?? 1;
+    const limit = this.staged()?.limit ?? 20;
+    this.loading.set(true);
+    this.importService.applyDecision(importId, rowId).pipe(
+      tap((result) => this.noticeMessage.set(`Asistencia #${result.attendance_id} aplicada. ${result.message}`)),
+      switchMap(() => this.importService.getRows(importId, page, limit)),
+      finalize(() => this.loading.set(false)),
+    ).subscribe({
+      next: (batch) => this.setStagedResult(batch),
+      error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
+    });
+  }
 
   ngOnInit(): void {
     this.loadCatalogs();

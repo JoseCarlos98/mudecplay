@@ -237,12 +237,15 @@
             <span class="clock-import-panel__icon"><mat-icon>table_view</mat-icon></span>
             <div>
               <h3 id="clock-staged-title">Registros guardados</h3>
-              <p>Revisa la clasificación y los estados persistidos, antes de aprobar cada caso.</p>
+              <p>Usa la acción de revisar para registrar tu decisión. Cuando quede aprobada, usa aplicar.
+                Cada asistencia se procesa individualmente y se valida de nuevo.</p>
             </div>
           </div>
           <div class="c-module-table clock-import-review-table">
             <app-data-table [data]="tableRows()" [columnsConfig]="tableColumns"
-              [displayedColumns]="displayedColumns" [actionPermissions]="{ showEdit: false, showDelete: false }">
+              [displayedColumns]="displayedColumns" [extraActions]="rowExtraActions"
+              [actionPermissions]="{ showEdit: false, showDelete: false }"
+              (action)="onTableAction($event)">
             </app-data-table>
             <mat-paginator [length]="batch.total" [pageSize]="batch.limit"
               [pageIndex]="batch.page - 1" [pageSizeOptions]="[5, 10, 20, 50, 100]"
@@ -291,7 +294,8 @@
 
         <div class="clock-import-message clock-import-message--warning">
           <mat-icon>pending_actions</mat-icon>
-          <span>Las acciones de aprobar decisiones y aplicar asistencias se integrarán en la siguiente entrega. Esta pantalla únicamente consulta, vincula y reconcilia.</span>
+          <span>Guardar una decisión NO cambia asistencias. La acción «Aplicar» realiza una nueva validación y solicita confirmación.
+            Las filas ya aplicadas u omitidas no se procesan de nuevo.</span>
         </div>
       }
     }
