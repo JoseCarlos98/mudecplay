@@ -332,11 +332,14 @@
               [actionPermissions]="{ showEdit: false, showDelete: false }"
               (action)="onTableAction($event)">
             </app-data-table>
-            <mat-paginator [length]="batch.total" [pageSize]="batch.limit"
-              [pageIndex]="batch.page - 1" [pageSizeOptions]="[5, 10, 20, 50, 100]"
-              (page)="onPageChange($event)" showFirstLastButtons>
-            </mat-paginator>
           </div>
+          <!-- Paginador NATIVO, debajo de la tabla y fuera de su contenedor con overflow. -->
+          <mat-paginator class="clock-import-review-paginator"
+            [length]="batch.total" [pageSize]="batch.limit"
+            [pageIndex]="batch.page - 1" [pageSizeOptions]="[5, 10, 20, 50, 100]"
+            [disabled]="loading()"
+            (page)="onPageChange($event)" showFirstLastButtons>
+          </mat-paginator>
         </section>
 
         @if (workers().length > 0) {

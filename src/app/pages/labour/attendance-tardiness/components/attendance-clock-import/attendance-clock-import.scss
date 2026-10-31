@@ -481,3 +481,46 @@
   .clock-import-history__item { flex-wrap: wrap; }
   .clock-import-history__item > button { width: 100%; justify-content: center; }
 }
+
+
+/* Paginador Angular Material debajo de la tabla, sin posición fija
+   ni navegación duplicada. La tabla puede desplazarse horizontalmente,
+   pero los controles del paginador quedan dentro del ancho visible. */
+.clock-import-review-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.clock-import-review-paginator {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+  position: static;
+  overflow: visible;
+  background: transparent;
+}
+
+/* Estos elementos se generan dentro de mat-paginator; Angular Material
+   aporta las flechas y sus estados deshabilitados de forma nativa. */
+:host ::ng-deep .clock-import-review-paginator .mat-mdc-paginator-container {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+:host ::ng-deep .clock-import-review-paginator .mat-mdc-paginator-range-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+:host ::ng-deep .clock-import-review-paginator .mat-mdc-paginator-range-actions button.mat-mdc-icon-button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  visibility: visible;
+}
