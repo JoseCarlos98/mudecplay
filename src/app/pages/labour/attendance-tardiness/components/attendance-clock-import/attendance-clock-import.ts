@@ -5,7 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { finalize, forkJoin, switchMap, tap } from 'rxjs';
+import { concatMap, finalize, forkJoin, from, switchMap, tap, toArray } from 'rxjs';
 
 import { ModuleHeader } from '../../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -17,8 +17,17 @@ import { EmployeesService } from '../../../employees/services/employees.service'
 import { DialogService } from '../../../../../shared/services/dialog.service';
 import { ModalClockDecision, ClockDecisionModalResult } from './components/modal-clock-decision/modal-clock-decision';
 import { AttendanceClockImportService } from './services/attendance-clock-import.service';
-import { ClockApplyPreflightResult, ClockEmployeeMapping, ClockImportPreviewResponse, ClockStagedRow, ClockStagedRowsResult, ClockStagedTableRow, ClockWorkerGroup } from './interfaces/attendance-clock-import.interfaces';
-
+import {
+  ClockEmployeeMapping,
+  ClockImportPreviewResponse,
+  ClockStagedRow,
+  ClockStagedRowsResult,
+  ClockStagedTableRow,
+  ClockWorkerGroup,
+  ClockApplyPreflightResult,
+  ClockBulkResult,
+  ClockImportHistoryResult,
+} from './interfaces/attendance-clock-import.interfaces';
 
 const MAX_EXCEL_BYTES = 10 * 1024 * 1024;
 const HEADER_CONFIG: ModuleHeaderConfig = { formFull: true, showNew: false, showUploadXml: false };
@@ -77,7 +86,9 @@ export class AttendanceClockImport implements OnInit {
   readonly staged = signal<ClockStagedRowsResult | null>(null);
   readonly allImportRows = signal<ClockStagedRow[]>([]);
   readonly activeImportId = signal<number | null>(null);
-  readonly existingImportId = signal('');
+  readonly importHistory = signal<ClockImportHistoryResult | null>(null);
+  readonly loadingHistory = signal(false);
+  readonly historyError = signal<string | null>(null);
   readonly duplicateImportId = signal<number | null>(null);
   readonly pageMode = signal<'load' | 'review'>('load');
   readonly errorMessage = signal<string | null>(null);
@@ -85,6 +96,23 @@ export class AttendanceClockImport implements OnInit {
   readonly employeeOptions = signal<SelectCatalogOption[]>([]);
   readonly mappings = signal<ClockEmployeeMapping[]>([]);
   readonly savingClockNumber = signal<string | null>(null);
+
+  /** Selección explícita solo sobre las filas visibles de la página actual. */
+  readonly bulkMode = signal<'approve' | 'apply'>('approve');
+  readonly bulkSelectedIds = signal<number[]>([]);
+
+  readonly bulkCandidates = computed(() =>
+    this.tableRows().filter((row) => this.isBulkCandidate(row, this.bulkMode())),
+  );
+  readonly bulkSelectedRows = computed(() => {
+    const ids = new Set(this.bulkSelectedIds());
+    return this.bulkCandidates().filter((row) => ids.has(row.id));
+  });
+  readonly allBulkSelected = computed(() =>
+    this.bulkCandidates().length > 0 &&
+    this.bulkSelectedRows().length === this.bulkCandidates().length,
+  );
+
 
   /** Controles identificados por el número físico del reloj. No se recrean con cada render. */
   private readonly mappingControls = new Map<string, FormControl<number | null>>();
@@ -136,6 +164,142 @@ export class AttendanceClockImport implements OnInit {
       };
     });
   });
+
+  /** Únicamente llegadas estándar no dominicales, con dos marcajes inequívocos. */
+  private isBulkCandidate(row: ClockStagedTableRow, mode: 'approve' | 'apply'): boolean {
+    const issues = row.issues;
+    const standard = issues?.review_status === 'ready_for_approval' &&
+      (issues.review_code === 'new_arrival' || issues.review_code === 'existing_attendance_without_arrival');
+    const marks = row.original_marks ?? [];
+    const clearArrival = marks.length === 2 && !!row.original_arrival_time &&
+      marks[0] === row.original_arrival_time;
+    const isSunday = !!row.work_date && new Date(`${row.work_date}T00:00:00Z`).getUTCDay() === 0;
+    const linked = row.employee_id !== null && !!row.clock_employee_number &&
+      this.mappings().some((mapping) =>
+        mapping.clock_employee_number === row.clock_employee_number &&
+        mapping.employee_id === row.employee_id);
+
+    if (!standard || !clearArrival || isSunday || !linked || !!row.processed_at) return false;
+    return mode === 'approve'
+      ? (row.status === 'pending' || row.status === 'conflict') && row.decision === null
+      : row.status === 'ready' && row.decision === 'import_arrival';
+  }
+
+  selectBulkMode(mode: 'approve' | 'apply'): void {
+    if (this.loading()) return;
+    this.bulkMode.set(mode);
+    this.bulkSelectedIds.set([]);
+  }
+
+  toggleBulkRow(rowId: number, checked: boolean): void {
+    if (this.loading() || !this.bulkCandidates().some((row) => row.id === rowId)) return;
+    this.bulkSelectedIds.update((previous) => checked
+      ? [...new Set([...previous, rowId])]
+      : previous.filter((id) => id !== rowId));
+  }
+
+  selectAllBulkCandidates(): void {
+    if (this.loading()) return;
+    this.bulkSelectedIds.set(this.allBulkSelected() ? [] : this.bulkCandidates().map((row) => row.id));
+  }
+
+  /** La aprobación puede dejar decisiones guardadas; nunca escribe asistencias. */
+  approveSelectedBulk(): void {
+    if (this.bulkMode() !== 'approve' || this.loading()) return;
+    const rows = this.bulkSelectedRows();
+    if (!rows.length) return;
+    this.dialogService.confirm({
+      title: 'Aprobar llegadas seleccionadas',
+      message: `¿Aprobar ${rows.length} llegadas claras de esta página? Se guardarán decisiones, sin modificar asistencias. Las faltas y los marcajes ambiguos quedan excluidos.`,
+      confirmText: 'Aprobar llegadas',
+      cancelText: 'Cancelar',
+    }).subscribe((confirmed) => {
+      if (confirmed) this.executeBulk('approve', rows.map((row) => row.id));
+    });
+  }
+
+  /** Antes de aplicar, prevalidar TODOS los IDs elegidos y pedir confirmación. */
+  prevalidateSelectedBulk(): void {
+    if (this.bulkMode() !== 'apply' || this.loading()) return;
+    const rows = this.bulkSelectedRows();
+    const importId = this.activeImportId();
+    if (!importId || !rows.length) return;
+    const ids = rows.map((row) => row.id);
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+    this.loading.set(true);
+    this.importService.getApplyPreview(importId).pipe(
+      finalize(() => this.loading.set(false)),
+    ).subscribe({
+      next: (preflight) => {
+        const checked = new Map(preflight.rows.map((row) => [row.row_id, row]));
+        const blocked = rows.filter((row) => checked.get(row.id)?.readiness !== 'eligible');
+        if (blocked.length) {
+          const example = checked.get(blocked[0].id)?.reason ?? 'Necesita revisión.';
+          this.errorMessage.set(`${blocked.length} registros dejaron de estar listos para aplicar. ${example} No se aplicó ninguno.`);
+          return;
+        }
+        this.dialogService.confirm({
+          title: 'Confirmar aplicación en lote',
+          message: `¿Aplicar ${ids.length} llegadas aprobadas de esta página? Se crearán o actualizarán asistencias, con nueva validación por registro. Esta operación NO puede deshacerse desde el importador.`,
+          confirmText: 'Aplicar asistencias',
+          cancelText: 'Cancelar',
+        }).subscribe((confirmed) => {
+          if (confirmed) this.executeBulk('apply', ids);
+        });
+      },
+      error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
+    });
+  }
+
+  /** Angular divide automáticamente en grupos de hasta 25; nunca reintenta filas rechazadas. */
+  private executeBulk(kind: 'approve' | 'apply', rowIds: number[]): void {
+    const importId = this.activeImportId();
+    if (!importId || this.loading() || !rowIds.length) return;
+    const stillEligible = new Set(this.bulkCandidates().map((row) => row.id));
+    if (this.bulkMode() !== kind || rowIds.some((id) => !stillEligible.has(id))) {
+      this.errorMessage.set('La selección cambió. Vuelve a seleccionar los registros.');
+      this.bulkSelectedIds.set([]);
+      return;
+    }
+    const chunks: number[][] = [];
+    for (let index = 0; index < rowIds.length; index += 25) {
+      chunks.push(rowIds.slice(index, index + 25));
+    }
+    const page = this.staged()?.page ?? 1;
+    const limit = this.staged()?.limit ?? 20;
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+    this.loading.set(true);
+    from(chunks).pipe(
+      concatMap((chunk) => kind === 'approve'
+        ? this.importService.bulkApproveArrivals(importId, chunk)
+        : this.importService.bulkApplyArrivals(importId, chunk)),
+      toArray(),
+      switchMap((results: ClockBulkResult[]) => {
+        const successful = results.reduce((sum, result) =>
+          sum + (kind === 'approve' ? result.approved_rows ?? 0 : result.applied_rows ?? 0), 0);
+        const blocked = results.flatMap((result) => result.blocked ?? []);
+        const verb = kind === 'approve' ? 'Aprobadas' : 'Aplicadas';
+        this.noticeMessage.set(`${verb}: ${successful}. Bloqueadas: ${blocked.length}.`);
+        if (blocked.length) {
+          this.errorMessage.set(blocked.slice(0, 3).map((item) =>
+            `Fila ${item.row_id}: ${item.reason}`).join(' | '));
+        }
+        return this.importService.getRows(importId, page, limit);
+      }),
+      finalize(() => this.loading.set(false)),
+    ).subscribe({
+      next: (result) => {
+        this.bulkSelectedIds.set([]);
+        this.setStagedResult(result);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.bulkSelectedIds.set([]);
+        this.errorMessage.set(`No se completó el lote: ${this.errorText(err)}. Algunas filas podrían haberse procesado; recarga el lote para verificar sus estados antes de intentar nuevamente.`);
+      },
+    });
+  }
 
   /** Solo se puede decidir una fila sin decisión previa y sin procesar. */
   readonly canReviewDecision = (row: ClockStagedTableRow): boolean =>
@@ -252,6 +416,38 @@ export class AttendanceClockImport implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogs();
+    this.loadHistory(1, 10);
+  }
+
+  /** Historial paginado de solo lectura, independiente del procesamiento de asistencias. */
+  loadHistory(page: number, limit: number): void {
+    if (this.loadingHistory()) return;
+    this.historyError.set(null);
+    this.loadingHistory.set(true);
+    this.importService.getHistory(page, limit)
+      .pipe(finalize(() => this.loadingHistory.set(false)))
+      .subscribe({
+        next: (result) => this.importHistory.set(result),
+        error: (err: HttpErrorResponse) => this.historyError.set(this.errorText(err)),
+      });
+  }
+
+  onHistoryPageChange(event: PageEvent): void {
+    this.loadHistory(event.pageIndex + 1, event.pageSize);
+  }
+
+  refreshHistory(): void {
+    this.loadHistory(this.importHistory()?.page ?? 1, this.importHistory()?.limit ?? 10);
+  }
+
+  importStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      processing: 'En revisión',
+      completed: 'Completada',
+      partial: 'Parcial',
+      failed: 'Fallida',
+    };
+    return labels[status] ?? status;
   }
 
   private loadCatalogs(): void {
@@ -279,14 +475,18 @@ export class AttendanceClockImport implements OnInit {
   }
 
   selectLoad(): void {
+    if (this.loading()) return;
     this.pageMode.set('load');
+    this.bulkSelectedIds.set([]);
     this.errorMessage.set(null);
     this.noticeMessage.set(null);
+    this.refreshHistory();
   }
 
   selectReview(): void {
     if (!this.activeImportId()) return;
     this.pageMode.set('review');
+    this.bulkSelectedIds.set([]);
     this.errorMessage.set(null);
   }
 
@@ -306,6 +506,7 @@ export class AttendanceClockImport implements OnInit {
     this.activeImportId.set(null);
     this.duplicateImportId.set(null);
     this.mappingControls.clear();
+    this.bulkSelectedIds.set([]);
     this.errorMessage.set(null);
     this.noticeMessage.set(null);
     this.selectedFile.set(file);
@@ -395,7 +596,6 @@ export class AttendanceClockImport implements OnInit {
       .pipe(
         switchMap((result) => {
           this.activeImportId.set(result.import_id);
-          this.existingImportId.set(String(result.import_id));
           this.noticeMessage.set(result.message);
           return this.importService.getRows(result.import_id, 1, 20);
         }),
@@ -409,7 +609,6 @@ export class AttendanceClockImport implements OnInit {
             const found = /importaci[oó]n\s+(\d+)/i.exec(message);
             if (found) {
               this.duplicateImportId.set(Number(found[1]));
-              this.existingImportId.set(found[1]);
               this.noticeMessage.set('Este archivo ya tiene una importación guardada. Puedes continuarla sin duplicar registros.');
               return;
             }
@@ -419,14 +618,9 @@ export class AttendanceClockImport implements OnInit {
       });
   }
 
-  onExistingImportIdInput(event: Event): void {
-    this.existingImportId.set((event.target as HTMLInputElement).value);
-  }
-
-  openExistingImport(id?: number): void {
-    const importId = id ?? Number(this.existingImportId());
+  openExistingImport(importId: number): void {
     if (!Number.isSafeInteger(importId) || importId <= 0) {
-      this.errorMessage.set('Escribe un ID de importación válido.');
+      this.errorMessage.set('La importación seleccionada no es válida.');
       return;
     }
     this.duplicateImportId.set(null);
@@ -436,11 +630,13 @@ export class AttendanceClockImport implements OnInit {
     this.selectedFile.set(null);
     this.allImportRows.set([]);
     this.mappingControls.clear();
+    this.bulkSelectedIds.set([]);
     this.activeImportId.set(importId);
     this.loadReviewPage(1, 20);
   }
 
   onPageChange(event: PageEvent): void {
+    this.bulkSelectedIds.set([]);
     this.loadReviewPage(event.pageIndex + 1, event.pageSize);
   }
 
@@ -472,9 +668,9 @@ export class AttendanceClockImport implements OnInit {
       this.mappingControls.clear();
     }
     this.staged.set(result);
+    this.bulkSelectedIds.set([]);
     this.pageMode.set('review');
     this.prepareMappingControls();
-    this.existingImportId.set(String(result.import_id));
     // Para un lote reabierto sin Excel, recuperar los trabajadores de todas
     // las páginas. Mantiene el listado completo sin volver a subir el archivo.
     if (!this.preview() && this.allImportRows().length === 0) {

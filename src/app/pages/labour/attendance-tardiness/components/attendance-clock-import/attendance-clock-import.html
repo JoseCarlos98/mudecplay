@@ -176,36 +176,66 @@
               <mat-icon>save</mat-icon> Guardar para revisión
             </button>
           }
-          <div class="clock-import-open-existing">
-            <label for="clockExistingImportId">¿Ya tienes una importación guardada?</label>
-            <input id="clockExistingImportId" type="number" min="1" step="1"
-              placeholder="ID de importación" [value]="existingImportId()"
-              (input)="onExistingImportIdInput($event)" />
-            <button type="button" class="btn-outline" [disabled]="loading()"
-              (click)="openExistingImport()">
-              <mat-icon>history</mat-icon> Abrir importación
-            </button>
-          </div>
-        </section>
-      } @else {
-        <section class="clock-import-panel clock-import-panel--actions">
-          <div class="clock-import-panel__title">
-            <span class="clock-import-panel__icon"><mat-icon>history</mat-icon></span>
-            <div>
-              <h3>Continuar una importación existente</h3>
-              <p>Puedes abrir un lote anterior por su ID, aunque no tengas el Excel a mano.</p>
-            </div>
-          </div>
-          <div class="clock-import-open-existing">
-            <label for="clockExistingImportIdEmpty">ID de importación</label>
-            <input id="clockExistingImportIdEmpty" type="number" min="1" step="1"
-              placeholder="Ej. 1" [value]="existingImportId()"
-              (input)="onExistingImportIdInput($event)" />
-            <button type="button" class="btn-outline" [disabled]="loading()"
-              (click)="openExistingImport()"><mat-icon>history</mat-icon> Abrir</button>
-          </div>
         </section>
       }
+
+      <section class="clock-import-panel" aria-labelledby="clock-history-title">
+        <div class="clock-import-panel__title clock-import-panel__title--between">
+          <span class="clock-import-panel__icon"><mat-icon>history</mat-icon></span>
+          <div>
+            <h3 id="clock-history-title">Historial de importaciones</h3>
+            <p>Continúa una carga anterior por su nombre y fecha, sin recordar el ID ni volver a subir el Excel.</p>
+          </div>
+          <button type="button" class="btn-outline"
+            [disabled]="loadingHistory() || loading()"
+            (click)="refreshHistory()">
+            <mat-icon>refresh</mat-icon> Actualizar
+          </button>
+        </div>
+
+        @if (loadingHistory()) {
+          <p class="clock-import-history__empty" role="status">Cargando importaciones...</p>
+        }
+        @if (historyError(); as historyErrorText) {
+          <div class="clock-import-message clock-import-message--error" role="alert">
+            <mat-icon>error_outline</mat-icon><span>{{ historyErrorText }}</span>
+          </div>
+        }
+        @if (importHistory(); as history) {
+          @if (history.imports.length > 0) {
+            <div class="clock-import-history__list">
+              @for (item of history.imports; track item.id) {
+                <article class="clock-import-history__item">
+                  <div class="clock-import-history__details">
+                    <strong>{{ item.file_name }} · {{ item.created_at | date:'dd/MM/yyyy, HH:mm' }}</strong>
+                    <span>Importación #{{ item.id }} · {{ importStatusLabel(item.status) }} ·
+                      {{ item.total_rows }} registros · {{ item.pending_rows }} pendientes ·
+                      {{ item.applied_rows }} aplicados · {{ item.skipped_rows }} omitidos</span>
+                  </div>
+                  <button type="button" class="btn-primary"
+                    [disabled]="loading() || loadingHistory()"
+                    (click)="openExistingImport(item.id)">
+                    <mat-icon>open_in_new</mat-icon> Continuar
+                  </button>
+                </article>
+              }
+            </div>
+          } @else if (!loadingHistory() && !historyError()) {
+            <p class="clock-import-history__empty">Todavía no hay importaciones guardadas.</p>
+          }
+          @if (history.total > history.limit) {
+            <mat-paginator
+              [length]="history.total"
+              [pageSize]="history.limit"
+              [pageIndex]="history.page - 1"
+              [pageSizeOptions]="[5, 10, 20]"
+              [disabled]="loadingHistory() || loading()"
+              (page)="onHistoryPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
+          }
+        }
+      </section>
     } @else {
       @if (staged(); as batch) {
         <section class="clock-import-panel" aria-labelledby="clock-saved-title">
@@ -237,9 +267,62 @@
             <span class="clock-import-panel__icon"><mat-icon>table_view</mat-icon></span>
             <div>
               <h3 id="clock-staged-title">Registros guardados</h3>
-              <p>Usa la acción de revisar para registrar tu decisión. Cuando quede aprobada, usa aplicar.
-                Cada asistencia se procesa individualmente y se valida de nuevo.</p>
+              <p>Puedes procesar llegadas claras en lote. Las incidencias se revisan con las acciones de cada fila.</p>
             </div>
+          </div>
+          <div class="clock-import-bulk" aria-label="Procesamiento de llegadas en lote">
+            <div class="clock-import-bulk__header">
+              <div>
+                <h4>Procesamiento en lote</h4>
+                <p>Solo llegadas claras con dos marcajes y vinculación vigente. Las faltas, domingos y marcajes ambiguos se revisan individualmente.</p>
+              </div>
+              <div class="c-pill-tabs clock-import-bulk__tabs" role="group" aria-label="Acción de lote">
+                <button type="button" class="c-pill-tab-btn"
+                  [class.c-pill-tab-btn--active]="bulkMode() === 'approve'"
+                  [disabled]="loading()" (click)="selectBulkMode('approve')">Por aprobar</button>
+                <button type="button" class="c-pill-tab-btn"
+                  [class.c-pill-tab-btn--active]="bulkMode() === 'apply'"
+                  [disabled]="loading()" (click)="selectBulkMode('apply')">Por aplicar</button>
+              </div>
+            </div>
+            <div class="clock-import-bulk__toolbar">
+              <span><strong>{{ bulkCandidates().length }}</strong> candidatos en esta página ·
+                <strong>{{ bulkSelectedRows().length }}</strong> seleccionados</span>
+              <button type="button" class="btn-outline"
+                [disabled]="loading() || bulkCandidates().length === 0"
+                (click)="selectAllBulkCandidates()">
+                <mat-icon>{{ allBulkSelected() ? 'deselect' : 'select_all' }}</mat-icon>
+                {{ allBulkSelected() ? 'Quitar selección' : 'Seleccionar visibles' }}
+              </button>
+              @if (bulkMode() === 'approve') {
+                <button type="button" class="btn-primary"
+                  [disabled]="loading() || bulkSelectedRows().length === 0"
+                  (click)="approveSelectedBulk()">
+                  <mat-icon>fact_check</mat-icon> Aprobar seleccionadas
+                </button>
+              } @else {
+                <button type="button" class="btn-primary"
+                  [disabled]="loading() || bulkSelectedRows().length === 0"
+                  (click)="prevalidateSelectedBulk()">
+                  <mat-icon>task_alt</mat-icon> Prevalidar y aplicar
+                </button>
+              }
+            </div>
+            @if (bulkCandidates().length > 0) {
+              <div class="clock-import-bulk__items">
+                @for (row of bulkCandidates(); track row.id) {
+                  <label class="clock-import-bulk__item">
+                    <input type="checkbox" [checked]="bulkSelectedIds().includes(row.id)"
+                      [disabled]="loading()"
+                      (change)="toggleBulkRow(row.id, $any($event.target).checked)" />
+                    <span><strong>#{{ row.row_index }}</strong> · {{ row.worker_label }} ·
+                      {{ formatApiDate(row.work_date || '') }} · {{ row.original_arrival_time }}</span>
+                  </label>
+                }
+              </div>
+            } @else {
+              <p class="clock-import-bulk__empty">No hay llegadas aptas para esta acción en la página actual.</p>
+            }
           </div>
           <div class="c-module-table clock-import-review-table">
             <app-data-table [data]="tableRows()" [columnsConfig]="tableColumns"

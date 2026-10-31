@@ -287,8 +287,7 @@
   gap: 12px;
 }
 .clock-import-panel--actions > .clock-import-panel__title { margin-bottom: 0; }
-.clock-import-panel--actions > button,
-.clock-import-open-existing > button {
+.clock-import-panel--actions > button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -304,28 +303,6 @@
     align-items: center;
     gap: 6px;
     height: 32px;
-  }
-}
-.clock-import-open-existing {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  border-top: 1px solid var(--clock-border);
-  width: 100%;
-  padding-top: 12px;
-
-  label { font-size: 12px; font-weight: 600; color: #64748b; }
-  input {
-    height: 33px;
-    width: 160px;
-    min-width: 0;
-    padding: 5px 10px;
-    border: 1px solid rgba(148, 163, 184, .5);
-    border-radius: 7px;
-    font: inherit;
-    font-size: 13px;
-    outline-color: var(--clock-primary);
   }
 }
 .clock-import-workers { display: grid; gap: 8px; }
@@ -385,6 +362,122 @@
   .clock-import-stats--review { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 500px) {
-  .clock-import-open-existing input { flex: 1 1 120px; }
   .clock-import-worker__name { flex: 1 1 100%; }
+}
+
+
+/* Procesamiento en lote: selección explícita sin alterar app-data-table compartido. */
+.clock-import-bulk {
+  display: grid;
+  gap: 12px;
+  padding: 13px 15px;
+  border: 1px solid var(--clock-border);
+  border-radius: 10px;
+  background: #f8fbff;
+  margin: 12px 0 16px;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+
+    h4 { margin: 0 0 4px; font-size: 14px; font-weight: 700; color: var(--color-secundary); }
+    p { margin: 0; max-width: 700px; font-size: 12px; color: #64748b; line-height: 1.5; }
+  }
+
+  &__tabs { margin: 0; padding: 0; border: 0; }
+  &__toolbar { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  &__toolbar > span { flex: 1; min-width: 200px; font-size: 12px; color: #475569; }
+  &__toolbar button { min-height: 32px; display: inline-flex; align-items: center; gap: 6px; }
+  &__toolbar mat-icon { width: 18px; height: 18px; font-size: 18px; }
+  &__items {
+    max-height: 190px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 7px;
+    padding-right: 3px;
+  }
+  &__item {
+    display: flex;
+    gap: 9px;
+    align-items: center;
+    min-width: 0;
+    padding: 8px 9px;
+    border: 1px solid rgba(148, 163, 184, .32);
+    background: #fff;
+    border-radius: 7px;
+    font-size: 12px;
+    color: #334155;
+    cursor: pointer;
+
+    input { accent-color: var(--color-primary-strong); flex: 0 0 auto; }
+    span { line-height: 1.35; overflow-wrap: anywhere; }
+  }
+  &__empty { margin: 0; font-size: 12px; color: #64748b; }
+}
+
+@media (max-width: 640px) {
+  .clock-import-bulk { padding: 10px; }
+  .clock-import-bulk__items { grid-template-columns: 1fr; }
+  .clock-import-bulk__toolbar > span { flex-basis: 100%; }
+}
+
+/* Historial de cargas: identifica archivos repetidos por ID y fecha de importación. */
+.clock-import-history__list {
+  display: grid;
+  gap: 8px;
+}
+
+.clock-import-history__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--clock-border);
+  border-radius: 9px;
+  background: #fbfdff;
+
+  > button {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 32px;
+  }
+
+  > button mat-icon { width: 18px; height: 18px; font-size: 18px; }
+}
+
+.clock-import-history__details {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+
+  strong {
+    color: var(--color-secundary);
+    font-size: 13px;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+  }
+}
+
+.clock-import-history__empty {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 640px) {
+  .clock-import-history__item { flex-wrap: wrap; }
+  .clock-import-history__item > button { width: 100%; justify-content: center; }
 }

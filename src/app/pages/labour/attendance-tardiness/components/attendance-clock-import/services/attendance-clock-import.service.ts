@@ -1,9 +1,22 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../../../../../environments/environment';
-import { ClockApplyPreflightResult, ClockApplyRowResult, ClockDecisionResult, ClockEmployeeMapping, ClockImportPreviewResponse, ClockImportReconcileResult, ClockImportStageResult, ClockMappingSaveResult, ClockSaveDecisionPayload, ClockStagedRowsResult } from '../interfaces/attendance-clock-import.interfaces';
 
+import {
+  ClockEmployeeMapping,
+  ClockImportPreviewResponse,
+  ClockImportReconcileResult,
+  ClockImportStageResult,
+  ClockMappingSaveResult,
+  ClockStagedRowsResult,
+  ClockSaveDecisionPayload,
+  ClockDecisionResult,
+  ClockApplyPreflightResult,
+  ClockApplyRowResult,
+  ClockBulkResult,
+  ClockImportHistoryResult,
+} from '../interfaces/attendance-clock-import.interfaces';
+import { environment } from '../../../../../../../environments/environment';
 
 /** Servicio del importador. Independiente del registro manual de llegadas. */
 @Injectable({ providedIn: 'root' })
@@ -39,6 +52,14 @@ export class AttendanceClockImportService {
     );
   }
 
+  /** Historial paginado: conserva nombre original y fecha de cada carga. */
+  getHistory(page: number, limit: number): Observable<ClockImportHistoryResult> {
+    const params = new HttpParams()
+      .set('page', String(page))
+      .set('limit', String(limit));
+    return this.http.get<ClockImportHistoryResult>(this.importsUrl, { params });
+  }
+
   /** Abre un lote ya guardado, con paginación del backend. */
   getRows(importId: number, page: number, limit: number): Observable<ClockStagedRowsResult> {
     const params = new HttpParams()
@@ -67,6 +88,20 @@ export class AttendanceClockImportService {
   /** Aplica UNA decisión autorizada después de la prevalidación; el servidor revalida. */
   applyDecision(importId: number, rowId: number): Observable<ClockApplyRowResult> {
     return this.http.post<ClockApplyRowResult>(`${this.importsUrl}/${importId}/rows/${rowId}/apply`, {});
+  }
+
+  /** Aprueba llegadas estándar seleccionadas; no crea ni modifica asistencias. */
+  bulkApproveArrivals(importId: number, rowIds: number[]): Observable<ClockBulkResult> {
+    return this.http.post<ClockBulkResult>(
+      `${this.importsUrl}/${importId}/bulk/approve-arrivals`, { row_ids: rowIds },
+    );
+  }
+
+  /** Aplica llegadas estándar aprobadas tras una prevalidación y confirmación. */
+  bulkApplyArrivals(importId: number, rowIds: number[]): Observable<ClockBulkResult> {
+    return this.http.post<ClockBulkResult>(
+      `${this.importsUrl}/${importId}/bulk/apply-arrivals`, { row_ids: rowIds },
+    );
   }
 
   private buildFileFormData(file: File): FormData {

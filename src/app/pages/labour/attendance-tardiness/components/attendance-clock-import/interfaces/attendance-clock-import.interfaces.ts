@@ -58,6 +58,31 @@ export interface ClockImportPreviewResponse {
   rows: ClockImportPreviewRow[];
 }
 
+/** GET /employee-attendances/imports?page=&limit=. Historial de cargas guardadas. */
+export interface ClockImportHistoryItem {
+  id: number;
+  file_name: string;
+  imported_by_user_id: number;
+  status: 'processing' | 'completed' | 'partial' | 'failed';
+  total_rows: number;
+  pending_rows: number;
+  skipped_rows: number;
+  created_rows: number;
+  updated_rows: number;
+  applied_rows: number;
+  error_rows: number;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+}
+
+export interface ClockImportHistoryResult {
+  page: number;
+  limit: number;
+  total: number;
+  imports: ClockImportHistoryItem[];
+}
+
 /** Vinculación permanente obtenida de GET /employee-attendances/clock-mappings. */
 export interface ClockEmployeeMapping {
   id: number;
@@ -231,5 +256,23 @@ export interface ClockApplyRowResult {
   tardiness_minutes: number | null;
   tardiness_discount: number | null;
   pending_rows: number;
+  message: string;
+}
+
+/** Respuestas de los endpoints de aprobación/aplicación por lotes (máx. 25 IDs por petición). */
+export interface ClockBulkBlockedRow {
+  row_id: number;
+  reason: string;
+}
+
+export interface ClockBulkResult {
+  import_id: number;
+  requested_rows: number;
+  blocked_rows: number;
+  approved_rows?: number;
+  applied_rows?: number;
+  approved_row_ids?: number[];
+  applied_row_ids?: number[];
+  blocked: ClockBulkBlockedRow[];
   message: string;
 }
