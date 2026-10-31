@@ -5,7 +5,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { concatMap, finalize, forkJoin, from, switchMap, tap, toArray } from 'rxjs';
+import { concatMap, finalize, forkJoin, from, of, switchMap, tap, toArray } from 'rxjs';
 
 import { ModuleHeader } from '../../../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../../../shared/ui/module-header/interfaces/module-header-interface';
@@ -209,9 +209,9 @@ export class AttendanceClockImport implements OnInit {
     const rows = this.bulkSelectedRows();
     if (!rows.length) return;
     this.dialogService.confirm({
-      title: 'Aprobar llegadas seleccionadas',
-      message: `¿Aprobar ${rows.length} llegadas claras de esta página? Se guardarán decisiones, sin modificar asistencias. Las faltas y los marcajes ambiguos quedan excluidos.`,
-      confirmText: 'Aprobar llegadas',
+      title: rows.length === 1 ? 'Aprobar llegada seleccionada' : 'Aprobar llegadas seleccionadas',
+      message: `¿Aprobar ${rows.length} ${rows.length === 1 ? 'llegada clara' : 'llegadas claras'} de esta página? Se guardarán decisiones, sin modificar asistencias. Las faltas y los marcajes ambiguos quedan excluidos.`,
+      confirmText: rows.length === 1 ? 'Aprobar llegada' : 'Aprobar llegadas',
       cancelText: 'Cancelar',
     }).subscribe((confirmed) => {
       if (confirmed) this.executeBulk('approve', rows.map((row) => row.id));
@@ -236,12 +236,12 @@ export class AttendanceClockImport implements OnInit {
         const blocked = rows.filter((row) => checked.get(row.id)?.readiness !== 'eligible');
         if (blocked.length) {
           const example = checked.get(blocked[0].id)?.reason ?? 'Necesita revisión.';
-          this.errorMessage.set(`${blocked.length} registros dejaron de estar listos para aplicar. ${example} No se aplicó ninguno.`);
+          this.errorMessage.set(`${blocked.length} ${blocked.length === 1 ? 'registro dejó' : 'registros dejaron'} de estar ${blocked.length === 1 ? 'listo' : 'listos'} para aplicar. ${example} No se aplicó ningún registro.`);
           return;
         }
         this.dialogService.confirm({
           title: 'Confirmar aplicación en lote',
-          message: `¿Aplicar ${ids.length} llegadas aprobadas de esta página? Se crearán o actualizarán asistencias, con nueva validación por registro. Esta operación NO puede deshacerse desde el importador.`,
+          message: `¿Aplicar ${ids.length} ${ids.length === 1 ? 'llegada aprobada' : 'llegadas aprobadas'} de esta página? Se crearán o actualizarán asistencias, con nueva validación por registro. Esta operación NO puede deshacerse desde el importador.`,
           confirmText: 'Aplicar asistencias',
           cancelText: 'Cancelar',
         }).subscribe((confirmed) => {
@@ -280,8 +280,11 @@ export class AttendanceClockImport implements OnInit {
         const successful = results.reduce((sum, result) =>
           sum + (kind === 'approve' ? result.approved_rows ?? 0 : result.applied_rows ?? 0), 0);
         const blocked = results.flatMap((result) => result.blocked ?? []);
-        const verb = kind === 'approve' ? 'Aprobadas' : 'Aplicadas';
-        this.noticeMessage.set(`${verb}: ${successful}. Bloqueadas: ${blocked.length}.`);
+        const resultLabel = kind === 'approve' ? 'aprobada' : 'aplicada';
+        this.noticeMessage.set(
+          `${successful} ${successful === 1 ? 'llegada' : 'llegadas'} ${successful === 1 ? resultLabel : `${resultLabel}s`}. ` +
+          `${blocked.length} ${blocked.length === 1 ? 'registro bloqueado' : 'registros bloqueados'}.`,
+        );
         if (blocked.length) {
           this.errorMessage.set(blocked.slice(0, 3).map((item) =>
             `Fila ${item.row_id}: ${item.reason}`).join(' | '));
@@ -548,6 +551,10 @@ export class AttendanceClockImport implements OnInit {
     return this.mappingControls.get(clockNumber)!;
   }
 
+  /**
+   * Guarda la vinculación, actualiza los mappings y reconcilia el lote activo.
+   * La reconciliación solo reclasifica filas sin decisión; NO aplica asistencias.
+   */
   saveMapping(worker: ClockWorkerGroup): void {
     if (this.loading() || this.savingClockNumber() || worker.employee_id !== null) return;
     const employeeId = Number(this.controlFor(worker.clock_employee_number).value);
@@ -560,28 +567,61 @@ export class AttendanceClockImport implements OnInit {
       this.errorMessage.set('El empleado seleccionado no está en el catálogo actual.');
       return;
     }
+
+    // Priorizar staging cuando se trabaja con un lote ya guardado, incluso
+    // si el Excel seleccionado continúa presente tras guardar la importación.
+    const importId = this.pageMode() === 'review' ? this.activeImportId() : null;
+    const page = this.staged()?.page ?? 1;
+    const limit = this.staged()?.limit ?? 20;
+    let mappingSaved = false;
+
     this.savingClockNumber.set(worker.clock_employee_number);
+    this.loading.set(true);
     this.errorMessage.set(null);
     this.noticeMessage.set(null);
-    this.importService.saveMapping(employeeId, worker.clock_employee_number)
-      .pipe(finalize(() => this.savingClockNumber.set(null)))
-      .subscribe({
-        next: () => {
-          this.noticeMessage.set(`Vinculación de ${worker.clock_employee_name} con ${catalogEmployee.name} guardada.`);
-          this.importService.getMappings().subscribe({
-            next: (mappings) => {
-              this.mappings.set(mappings ?? []);
-              if (this.selectedFile()) {
-                this.refreshPreview(this.selectedFile()!);
-              } else if (this.activeImportId()) {
-                this.prepareMappingControls();
-              }
-            },
-            error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
-          });
-        },
-        error: (err: HttpErrorResponse) => this.errorMessage.set(this.errorText(err)),
-      });
+
+    this.importService.saveMapping(employeeId, worker.clock_employee_number).pipe(
+      tap(() => {
+        mappingSaved = true;
+        this.noticeMessage.set(`Vinculación de ${worker.clock_employee_name} con ${catalogEmployee.name} guardada.`);
+      }),
+      switchMap(() => this.importService.getMappings()),
+      tap((mappings) => this.mappings.set(mappings ?? [])),
+      switchMap(() => {
+        if (importId !== null) {
+          return this.importService.reconcile(importId).pipe(
+            tap((result) => this.noticeMessage.set(
+              `Vinculación guardada. Revisión actualizada automáticamente: ${result.changed_rows} filas recalculadas.`,
+            )),
+            switchMap(() => this.importService.getRows(importId, page, limit)),
+            tap((result) => {
+              if (this.activeImportId() === importId) this.setStagedResult(result);
+            }),
+          );
+        }
+
+        // Antes de guardar el Excel todavía no existe un staging que reconciliar.
+        // Se actualiza únicamente la vista previa con la vinculación nueva.
+        const file = this.selectedFile();
+        if (file) {
+          return this.importService.preview(file).pipe(
+            tap((result) => {
+              this.preview.set(result);
+              this.prepareMappingControls();
+            }),
+          );
+        }
+        return of(null);
+      }),
+      finalize(() => {
+        this.savingClockNumber.set(null);
+        this.loading.set(false);
+      }),
+    ).subscribe({
+      error: (err: HttpErrorResponse) => this.errorMessage.set(mappingSaved
+        ? `La vinculación se guardó, pero no se pudo actualizar la revisión automáticamente. ${this.errorText(err)} Usa «Actualizar revisión» para reintentar.`
+        : this.errorText(err)),
+    });
   }
 
   /** Guarda solo staging; nunca aplica llegadas ni descuentos. */
