@@ -55,7 +55,8 @@ export type TreasuryBankMovementReviewClassification =
   | 'pago_tercero'
   | 'gasto_por_comprobar'
   | 'prestamo'
-  | 'impuesto';
+  | 'impuesto'
+  | 'caja_chica';
 // =========================================================
 // FILTROS: SALIDAS DISPONIBLES
 // =========================================================

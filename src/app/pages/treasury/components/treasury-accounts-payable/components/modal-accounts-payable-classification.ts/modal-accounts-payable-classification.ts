@@ -102,6 +102,10 @@ const CLASSIFICATION_OPTIONS: Catalog[] = [
     id: 'traspaso_interno_salida',
     name: 'Traspaso interno',
   },
+  {
+    id: 'caja_chica',
+    name: 'Caja chica',
+  },
 ];
 
 const VALID_CLASSIFICATIONS:
@@ -112,6 +116,7 @@ const VALID_CLASSIFICATIONS:
     'gasto_por_comprobar',
     'prestamo',
     'impuesto',
+    'caja_chica',
   ];
 
 @Component({

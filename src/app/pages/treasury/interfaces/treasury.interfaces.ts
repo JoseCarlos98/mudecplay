@@ -505,7 +505,8 @@ export type TreasuryManualBankMovementClassification =
   | 'transferencia_salida'
   | 'pago_tercero'
   | 'gasto_por_comprobar'
-  | 'prestamo';
+  | 'prestamo'
+  | 'caja_chica';
 
 export interface TreasuryUpdateBankMovementClassificationPayload {
   classification: TreasuryManualBankMovementClassification;

@@ -98,8 +98,11 @@ const CLASSIFICATION_OPTIONS:
       id: 'traspaso_interno_salida',
       name: 'Traspaso interno',
     },
+    {
+      id: 'caja_chica',
+      name: 'Caja chica',
+    },
   ];
-
 
 const VALID_CLASSIFICATIONS:
   entity.TreasuryBankMovementReviewClassification[] = [
@@ -109,15 +112,13 @@ const VALID_CLASSIFICATIONS:
     'gasto_por_comprobar',
     'prestamo',
     'impuesto',
+    'caja_chica',
   ];
-
 
 @Component({
   selector:
     'app-modal-accounts-payable-bulk-classification',
-
   standalone: true,
-
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -259,7 +260,7 @@ export class ModalAccountsPayableBulkClassification {
 
     const raw =
       typeof value === 'object' &&
-      value !== null
+        value !== null
         ? value.id
         : value;
 
@@ -274,7 +275,7 @@ export class ModalAccountsPayableBulkClassification {
 
     const classification =
       normalized as
-        entity.TreasuryBankMovementReviewClassification;
+      entity.TreasuryBankMovementReviewClassification;
 
     return VALID_CLASSIFICATIONS
       .includes(
@@ -296,7 +297,7 @@ export class ModalAccountsPayableBulkClassification {
       ) &&
       this.form.valid &&
       this.selectedClassification !==
-        null
+      null
     );
   }
 

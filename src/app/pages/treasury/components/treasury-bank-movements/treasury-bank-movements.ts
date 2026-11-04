@@ -1068,6 +1068,10 @@ export class TreasuryBankMovements implements OnInit {
   ): string {
     if (!classification) return 'Sin clasificación';
 
+    if (classification === 'caja_chica') {
+      return 'Caja chica';
+    }
+
     return classification
       .split('_')
       .filter(Boolean)

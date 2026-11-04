@@ -88,6 +88,10 @@ const CLASSIFICATION_OPTIONS: Catalog[] = [
     id: 'prestamo',
     name: 'Préstamo',
   },
+  {
+    id: 'caja_chica',
+    name: 'Caja chica',
+  },
 ];
 
 @Component({
@@ -280,12 +284,13 @@ export class ModalBankMovementClassification {
     const normalized =
       String(value ?? '').trim();
 
-    const allowedValues:
+     const allowedValues:
       entity.TreasuryManualBankMovementClassification[] = [
       'transferencia_salida',
       'pago_tercero',
       'gasto_por_comprobar',
       'prestamo',
+      'caja_chica',
     ];
 
     return allowedValues.includes(
@@ -505,6 +510,9 @@ export class ModalBankMovementClassification {
 
       case 'prestamo':
         return 'Préstamo';
+
+      case 'caja_chica':
+        return 'Caja chica';
 
       default:
         return 'Sin clasificación';

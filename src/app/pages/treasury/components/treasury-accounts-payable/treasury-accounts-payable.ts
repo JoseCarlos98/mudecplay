@@ -4332,13 +4332,8 @@ private restoreHistoricalFilters(
   // HELPERS
   // =========================================================
   private isReviewClassification(
-    value:
-      string |
-      null |
-      undefined,
-  ): value is
-    entity.TreasuryBankMovementReviewClassification {
-
+    value: string | null | undefined,
+  ): value is entity.TreasuryBankMovementReviewClassification {
     return [
       'transferencia_salida',
       'traspaso_interno_salida',
@@ -4346,11 +4341,8 @@ private restoreHistoricalFilters(
       'gasto_por_comprobar',
       'prestamo',
       'impuesto',
-    ].includes(
-      String(
-        value ?? '',
-      ),
-    );
+      'caja_chica',
+    ].includes(String(value ?? ''));
   }
 
   private getBankAccountDisplay(
@@ -4461,6 +4453,9 @@ private restoreHistoricalFilters(
 
       case 'impuesto':
         return 'Impuesto';
+
+              case 'caja_chica':
+        return 'Caja chica';
 
       default:
         return 'Sin clasificación';

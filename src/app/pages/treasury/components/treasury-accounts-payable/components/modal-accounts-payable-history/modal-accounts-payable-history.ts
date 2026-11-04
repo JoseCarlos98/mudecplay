@@ -604,6 +604,9 @@ export class ModalAccountsPayableHistory
       case 'transferencia_entrada':
         return 'Transferencia de entrada';
 
+      case 'caja_chica':
+        return 'Caja chica';
+
       default:
         return classification
           ? this.humanizeText(
