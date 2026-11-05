@@ -96,6 +96,7 @@ export class AttendanceClockImport implements OnInit {
   readonly employeeOptions = signal<SelectCatalogOption[]>([]);
   readonly mappings = signal<ClockEmployeeMapping[]>([]);
   readonly savingClockNumber = signal<string | null>(null);
+  readonly editingClockNumber = signal<string | null>(null);
 
   /** Selección explícita solo sobre las filas visibles de la página actual. */
   readonly bulkMode = signal<'approve' | 'apply'>('approve');
@@ -551,6 +552,130 @@ export class AttendanceClockImport implements OnInit {
     return this.mappingControls.get(clockNumber)!;
   }
 
+  /** Inicia la corrección de una vinculación ya existente. */
+  beginMappingCorrection(worker: ClockWorkerGroup): void {
+    if (this.loading() || this.loadingCatalog() || this.savingClockNumber()) return;
+    if (worker.employee_id === null || this.editingClockNumber() !== null) return;
+
+    this.controlFor(worker.clock_employee_number).setValue(worker.employee_id);
+    this.editingClockNumber.set(worker.clock_employee_number);
+    this.errorMessage.set(null);
+  }
+
+  cancelMappingCorrection(clockNumber: string): void {
+    if (this.loading() || this.savingClockNumber()) return;
+    if (this.editingClockNumber() !== clockNumber) return;
+    this.controlFor(clockNumber).reset(null);
+    this.editingClockNumber.set(null);
+  }
+
+  /** Confirma si reasignará un número o intercambiará dos números ocupados. */
+  requestMappingCorrection(worker: ClockWorkerGroup): void {
+    const clockNumber = worker.clock_employee_number;
+    if (this.loading() || this.loadingCatalog() || this.savingClockNumber()) return;
+    if (this.editingClockNumber() !== clockNumber || worker.employee_id === null) return;
+
+    const selectedId = this.controlFor(clockNumber).value;
+    if (selectedId === null || !Number.isSafeInteger(selectedId) || selectedId <= 0) {
+      this.errorMessage.set('Selecciona un empleado válido.');
+      return;
+    }
+    if (selectedId === worker.employee_id) {
+      this.noticeMessage.set('La vinculación no cambió.');
+      this.cancelMappingCorrection(clockNumber);
+      return;
+    }
+
+    const currentMapping = this.mappings().find((mapping) => mapping.clock_employee_number === clockNumber);
+    if (!currentMapping || currentMapping.employee_id !== worker.employee_id) {
+      this.errorMessage.set('La vinculación cambió desde que abriste el editor. Actualiza la revisión antes de continuar.');
+      return;
+    }
+
+    const selectedEmployee = this.employeeOptions().find((item) => Number(item.id) === selectedId);
+    if (!selectedEmployee) {
+      this.errorMessage.set('El empleado seleccionado no existe en el catálogo actual.');
+      return;
+    }
+
+    const otherMapping = this.mappings().find((mapping) => mapping.employee_id === selectedId);
+    const description = otherMapping
+      ? `El reloj #${clockNumber} pasará de ${worker.employee_name} a ${selectedEmployee.name}, y el reloj #${otherMapping.clock_employee_number} pasará a ${worker.employee_name}. Se INTERCAMBIARÁN ambos números.`
+      : `El reloj #${clockNumber} dejará de estar vinculado a ${worker.employee_name} y pasará a ${selectedEmployee.name}.`;
+
+    this.dialogService.confirm({
+      title: 'Confirmar cambio de vinculación',
+      message: `${description} Esta acción NO modifica asistencias ya aplicadas ni decisiones anteriores. ¿Continuar?`,
+      confirmText: otherMapping ? 'Intercambiar vinculaciones' : 'Cambiar vinculación',
+      cancelText: 'Cancelar',
+    }).subscribe((confirmed) => {
+      if (confirmed) this.persistMappingCorrection(worker, selectedId);
+    });
+  }
+
+  /** Refresca mapeos y recalcula únicamente registros del lote sin decisión. */
+  private persistMappingCorrection(worker: ClockWorkerGroup, employeeId: number): void {
+    const clockNumber = worker.clock_employee_number;
+    if (this.loading() || this.savingClockNumber() || this.editingClockNumber() !== clockNumber) return;
+
+    const importId = this.pageMode() === 'review' ? this.activeImportId() : null;
+    const page = this.staged()?.page ?? 1;
+    const limit = this.staged()?.limit ?? 20;
+    let saved = false;
+
+    this.savingClockNumber.set(clockNumber);
+    this.loading.set(true);
+    this.errorMessage.set(null);
+    this.noticeMessage.set(null);
+
+    this.importService.correctMapping(employeeId, clockNumber).pipe(
+      tap(() => { saved = true; }),
+      switchMap(() => this.importService.getMappings()),
+      tap((mappings) => this.mappings.set(mappings ?? [])),
+      switchMap(() => {
+        if (importId !== null) {
+          return this.importService.reconcile(importId).pipe(
+            switchMap((result) => {
+              this.noticeMessage.set(`Vinculación corregida. ${result.changed_rows} filas sin decisión actualizadas.`);
+              return this.importService.getRows(importId, page, limit);
+            }),
+            tap((result) => {
+              if (this.activeImportId() === importId) this.setStagedResult(result);
+            }),
+          );
+        }
+
+        const file = this.selectedFile();
+        if (file) {
+          return this.importService.preview(file).pipe(
+            tap((result) => {
+              this.preview.set(result);
+              this.prepareMappingControls();
+            }),
+          );
+        }
+        return of(null);
+      }),
+      finalize(() => {
+        this.loading.set(false);
+        this.savingClockNumber.set(null);
+      }),
+    ).subscribe({
+      next: () => {
+        this.editingClockNumber.set(null);
+        this.controlFor(clockNumber).reset(null);
+        if (!this.noticeMessage()) {
+          this.noticeMessage.set('Vinculación corregida correctamente.');
+        }
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errorMessage.set(saved
+          ? `La vinculación se guardó, pero falló la actualización de la vista: ${this.errorText(err)}. Recarga el lote antes de continuar.`
+          : this.errorText(err));
+      },
+    });
+  }
+
   /**
    * Guarda la vinculación, actualiza los mappings y reconcilia el lote activo.
    * La reconciliación solo reclasifica filas sin decisión; NO aplica asistencias.
@@ -788,3 +913,4 @@ export class AttendanceClockImport implements OnInit {
     return 'No se pudo completar la operación. Revisa la conexión e inténtalo de nuevo.';
   }
 }
+

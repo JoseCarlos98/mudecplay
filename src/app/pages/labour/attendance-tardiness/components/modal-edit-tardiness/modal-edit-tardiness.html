@@ -1,0 +1,77 @@
+<div class="c-modal edit-tardiness-modal">
+  <app-module-header
+    title="Editar retardo"
+    [config]="headerConfig"
+    (action)="closeModal()">
+  </app-module-header>
+
+  <div class="edit-tardiness-body">
+    <div class="attendance-summary">
+      <div><strong>Empleado:</strong> {{ data.employee_name }}</div>
+      <div><strong>Área:</strong> {{ areaName }}</div>
+      <div><strong>Fecha asistencia:</strong> {{ data.work_date | date:'dd/MM/yyyy' }}</div>
+      <div>
+        <strong>Sueldo diario:</strong>
+        {{ (data.daily_salary ?? 0) | currency:'$ ':'symbol':'1.2-2' }}
+      </div>
+    </div>
+
+    <div class="arrival-note">
+      Hora registrada actualmente:
+      <strong>{{ data.arrival_time }}</strong>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="field">
+        <label>Hora de llegada</label>
+        <input type="text" [value]="data.arrival_time ?? ''" readonly aria-label="Hora de llegada (no editable)" />
+      </div>
+
+      <div class="field">
+        <label for="tardinessMinutes">Minutos de retardo <span>*</span></label>
+        <input
+          id="tardinessMinutes"
+          type="number"
+          formControlName="tardinessMinutes"
+          min="0"
+          max="1439"
+          step="1"
+          autocomplete="off" />
+        @if (form.controls.tardinessMinutes.invalid && form.controls.tardinessMinutes.touched) {
+          <small class="field-error">Ingresa un número entero de 0 a 1439.</small>
+        }
+      </div>
+
+      <div class="attendance-preview" [class.attendance-preview--success]="tardinessMinutes === 0">
+        <div><strong>Estatus:</strong> {{ tardinessMinutes > 0 ? 'Retardo' : 'A tiempo' }}</div>
+        <div><strong>Descuento calculado:</strong> {{ estimatedDiscount | currency:'$ ':'symbol':'1.2-2' }}</div>
+        <small>El descuento se recalcula automáticamente al guardar.</small>
+      </div>
+
+      <div class="field">
+        <label for="tardinessReason">Motivo del ajuste <span>*</span></label>
+        <textarea
+          id="tardinessReason"
+          formControlName="reason"
+          rows="3"
+          maxlength="255"
+          placeholder="Explica por qué se modifica el retardo"></textarea>
+        @if (form.controls.reason.invalid && form.controls.reason.touched) {
+          <small class="field-error">El motivo debe tener entre 5 y 255 caracteres.</small>
+        }
+      </div>
+    </form>
+
+    <p class="info-note">
+      Esta acción conserva la hora de llegada. Solo modifica los minutos de retardo
+      y su descuento; el motivo se guarda para auditoría.
+    </p>
+  </div>
+
+  <app-btns-section
+    class="modal-actions-spacer"
+    type="save"
+    [saveDisabled]="!canSave"
+    (action)="onBtnsSectionAction($event)">
+  </app-btns-section>
+</div>

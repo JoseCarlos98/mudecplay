@@ -109,4 +109,21 @@ export class AttendanceClockImportService {
     data.append('file', file, file.name);
     return data;
   }
+
+
+
+  /** Corrige una vinculación existente del reloj checador. */
+  correctMapping(
+    employeeId: number,
+    clockNumber: string,
+  ): Observable<ClockMappingSaveResult> {
+    return this.http.patch<ClockMappingSaveResult>(
+      `${this.attendancesUrl}/clock-mappings`,
+      {
+        employee_id: employeeId,
+        clock_employee_number: clockNumber,
+      },
+    );
+  }
+
 }
