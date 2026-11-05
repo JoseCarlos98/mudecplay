@@ -276,6 +276,67 @@
         <article class="clock-import-stat"><span>Omitidos</span><strong>{{ batch.skipped_rows }}</strong></article>
         <article class="clock-import-stat"><span>Aplicados</span><strong>{{ batch.applied_rows }}</strong></article>
       </div>
+
+      @if (automaticProcessing(); as processing) {
+      <section class="clock-import-panel">
+        <div class="clock-import-panel__title">
+          <span class="clock-import-panel__icon">
+            <mat-icon>auto_awesome</mat-icon>
+          </span>
+
+          <div>
+            <h3>Resultado del procesamiento automático</h3>
+            <p>
+              Acciones realizadas al guardar esta importación.
+            </p>
+          </div>
+        </div>
+
+        <div class="clock-import-stats clock-import-stats--review">
+          <article class="clock-import-stat">
+            <span>Llegadas del reloj (07:00–12:00)</span>
+            <strong>
+              {{ processing.morning_arrivals.applied_rows }}
+            </strong>
+          </article>
+
+          <article class="clock-import-stat">
+            <span>Llegadas por asignación a proyecto</span>
+            <strong>
+              {{ processing.project_assigned_arrivals.applied_rows }}
+            </strong>
+          </article>
+
+          <article class="clock-import-stat">
+            <span>Total aplicado automáticamente</span>
+            <strong>
+              {{ processing.applied_rows }}
+            </strong>
+          </article>
+
+          <article class="clock-import-stat">
+            <span>Bloqueados en proceso automático</span>
+            <strong>
+              {{ processing.blocked_rows }}
+            </strong>
+          </article>
+        </div>
+
+        <div class="clock-import-message clock-import-message--info">
+          <mat-icon>info_outline</mat-icon>
+
+          <span>
+            Se aplicaron automáticamente
+            {{ processing.applied_rows }} registros.
+            Quedan {{ batch.pending_rows }} pendientes
+            de revisión. Las filas omitidas y las
+            asistencias previamente registradas se
+            conservan según las validaciones del backend.
+          </span>
+        </div>
+      </section>
+      }
+
       <div class="clock-import-message clock-import-message--info">
         <mat-icon>info_outline</mat-icon>
         <span>Al vincular un trabajador, la revisión se actualiza automáticamente. Usa «Actualizar revisión» solo si

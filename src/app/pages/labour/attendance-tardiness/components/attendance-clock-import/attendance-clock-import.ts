@@ -27,6 +27,7 @@ import {
   ClockApplyPreflightResult,
   ClockBulkResult,
   ClockImportHistoryResult,
+  ClockAutomaticProcessingSummary,
 } from './interfaces/attendance-clock-import.interfaces';
 
 const MAX_EXCEL_BYTES = 10 * 1024 * 1024;
@@ -98,6 +99,9 @@ export class AttendanceClockImport implements OnInit {
   readonly savingClockNumber = signal<string | null>(null);
   readonly editingClockNumber = signal<string | null>(null);
 
+  readonly automaticProcessing =
+    signal<ClockAutomaticProcessingSummary | null>(null);
+
   /** Selección explícita solo sobre las filas visibles de la página actual. */
   readonly bulkMode = signal<'approve' | 'apply'>('approve');
   readonly bulkSelectedIds = signal<number[]>([]);
@@ -158,7 +162,7 @@ export class AttendanceClockImport implements OnInit {
         worker_label: `${row.clock_employee_number ?? '—'} · ${row.clock_employee_name ?? 'Sin nombre'}`,
         employee_label: row.employee_id === null ? 'Sin vincular'
           : mapping?.employee_id !== row.employee_id ? 'Vinculación desactualizada (reconciliar)'
-          : (mapping.employee_name ?? employee?.name ?? `Empleado #${row.employee_id}`),
+            : (mapping.employee_name ?? employee?.name ?? `Empleado #${row.employee_id}`),
         marks_label: row.original_marks?.join(', ') || 'Sin marcajes',
         review_label: row.issues?.review_message ?? 'Sin observaciones',
         status_label: STATUS_LABELS[row.status] ?? row.status,
@@ -499,6 +503,7 @@ export class AttendanceClockImport implements OnInit {
   }
 
   onFileSelected(event: Event): void {
+    this.automaticProcessing.set(null);
     const input = event.target as HTMLInputElement;
     const file = input.files?.item(0) ?? null;
     input.value = '';
@@ -750,40 +755,70 @@ export class AttendanceClockImport implements OnInit {
   }
 
   /** Guarda solo staging; nunca aplica llegadas ni descuentos. */
+
+  /**
+   * Guarda la importación y muestra el resultado
+   * del procesamiento automático realizado por el backend.
+   */
   stageImport(): void {
     const file = this.selectedFile();
+
     if (!file || !this.preview() || this.loading()) return;
+
     this.errorMessage.set(null);
     this.noticeMessage.set(null);
     this.duplicateImportId.set(null);
+    this.automaticProcessing.set(null);
     this.loading.set(true);
+
     this.importService.stage(file)
       .pipe(
         switchMap((result) => {
           this.activeImportId.set(result.import_id);
+
+          // Resultado automático de esta carga.
+          this.automaticProcessing.set(
+            result.automatic_processing ?? null,
+          );
+
           this.noticeMessage.set(result.message);
-          return this.importService.getRows(result.import_id, 1, 20);
+
+          return this.importService.getRows(
+            result.import_id,
+            1,
+            20,
+          );
         }),
         finalize(() => this.loading.set(false)),
       )
       .subscribe({
         next: (result) => this.setStagedResult(result),
+
         error: (err: HttpErrorResponse) => {
           const message = this.errorText(err);
+
           if (err.status === 409) {
-            const found = /importaci[oó]n\s+(\d+)/i.exec(message);
+            const found =
+              /importaci[oó]n\s+(\d+)/i.exec(message);
+
             if (found) {
               this.duplicateImportId.set(Number(found[1]));
-              this.noticeMessage.set('Este archivo ya tiene una importación guardada. Puedes continuarla sin duplicar registros.');
+              this.noticeMessage.set(
+                'Este archivo ya tiene una importación guardada. ' +
+                'Puedes continuarla sin duplicar registros.',
+              );
               return;
             }
           }
+
           this.errorMessage.set(message);
         },
       });
   }
 
+
   openExistingImport(importId: number): void {
+    this.automaticProcessing.set(null);
     if (!Number.isSafeInteger(importId) || importId <= 0) {
       this.errorMessage.set('La importación seleccionada no es válida.');
       return;

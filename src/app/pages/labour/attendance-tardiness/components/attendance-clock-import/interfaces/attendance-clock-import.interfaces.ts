@@ -107,6 +107,27 @@ export interface ClockWorkerGroup {
 }
 
 /** POST /employee-attendances/imports/stage. No altera asistencias. */
+
+export interface ClockAutomaticApplyResult {
+  eligible_rows: number;
+  applied_rows: number;
+  blocked_rows: number;
+  applied_row_ids: number[];
+  blocked: Array<{
+    row_id: number;
+    reason: string;
+  }>;
+  message: string;
+}
+
+export interface ClockAutomaticProcessingSummary {
+  eligible_rows: number;
+  applied_rows: number;
+  blocked_rows: number;
+  morning_arrivals: ClockAutomaticApplyResult;
+  project_assigned_arrivals: ClockAutomaticApplyResult;
+}
+
 export interface ClockImportStageResult {
   import_id: number;
   status: string;
@@ -114,11 +135,14 @@ export interface ClockImportStageResult {
   total_rows: number;
   pending_rows: number;
   skipped_rows: number;
+  applied_rows: number;
   blocked_rows: number;
   manual_review_rows: number;
   awaiting_approval_rows: number;
+  automatic_processing: ClockAutomaticProcessingSummary;
   message: string;
 }
+
 
 export interface ClockImportRowIssues {
   issue?: ClockMarkIssue;
