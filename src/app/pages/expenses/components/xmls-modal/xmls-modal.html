@@ -1,3 +1,4 @@
+
 <div class="c-modal c-modal--xml">
   <app-module-header
     [title]="'Resumen de XML cargados'"
@@ -6,9 +7,12 @@
   </app-module-header>
 
   <div class="xml-body">
+
     <!-- Nuevos CFDI -->
     <section class="xml-section">
-      <h3 class="xml-section__title">Nuevos CFDI para importar</h3>
+      <h3 class="xml-section__title">
+        Nuevos CFDI para importar
+      </h3>
 
       <p class="xml-section__subtitle">
         Estos XML se pondrán en cola para crear un gasto por cada uno.
@@ -28,10 +32,202 @@
             [displayedColumns]="displayedColumns">
           </app-data-table>
         </div>
+
+        <!-- =====================================================
+             NUEVO: DESGLOSE DE IMPUESTOS LOCALES
+             Solo se muestra para XML con impuestos adicionales.
+             No cambia la tabla ni el flujo de importación.
+             ===================================================== -->
+
+        @for (draft of paginatedDrafts; track draft.uuid) {
+
+          @if (hasLocalTaxes(draft)) {
+
+            <div class="xml-local-tax-card">
+
+              <!-- Encabezado desplegable -->
+              <button
+                type="button"
+                class="xml-local-tax-card__toggle"
+                [attr.aria-expanded]="expandedLocalTaxUuid === draft.uuid"
+                [attr.aria-controls]="'xml-local-tax-' + draft.uuid"
+                (click)="toggleLocalTaxDetails(draft.uuid)">
+
+                <span class="xml-local-tax-card__heading">
+                  <mat-icon>
+                    receipt_long
+                  </mat-icon>
+
+                  <span class="xml-local-tax-card__heading-text">
+                    <strong>
+                      Impuestos locales detectados
+                    </strong>
+
+                    <span class="xml-local-tax-card__file">
+                      {{ draft.sourceFileName }}
+                    </span>
+                  </span>
+                </span>
+
+                <span class="xml-local-tax-card__actions">
+                  <span class="xml-local-tax-card__summary">
+                    @if (getLocalTaxTransfersTotal(draft) > 0) {
+                      +{{ getLocalTaxTransfersTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    }
+
+                    @if (getLocalTaxWithholdingsTotal(draft) > 0) {
+                      <span class="xml-local-tax-card__retained">
+                        -{{ getLocalTaxWithholdingsTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </span>
+                    }
+                  </span>
+
+                  <mat-icon>
+                    {{
+                      expandedLocalTaxUuid === draft.uuid
+                        ? 'expand_less'
+                        : 'expand_more'
+                    }}
+                  </mat-icon>
+                </span>
+              </button>
+
+              <!-- Desglose fiscal expandido -->
+              @if (expandedLocalTaxUuid === draft.uuid) {
+
+                <div
+                  class="xml-local-tax-card__details"
+                  [id]="'xml-local-tax-' + draft.uuid">
+
+                  <div class="xml-local-tax-card__row">
+                    <span>Subtotal CFDI</span>
+
+                    <strong>
+                      {{ draft.subtotal | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    </strong>
+                  </div>
+
+                  @if (getDiscountTotal(draft) > 0) {
+                    <div class="xml-local-tax-card__row">
+                      <span>Descuentos</span>
+
+                      <strong>
+                        -{{ getDiscountTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </strong>
+                    </div>
+                  }
+
+                  @if (getFederalTaxTotal(draft) > 0) {
+                    <div class="xml-local-tax-card__row">
+                      <span>Impuestos federales trasladados</span>
+
+                      <strong>
+                        +{{ getFederalTaxTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </strong>
+                    </div>
+                  }
+
+                  @if (getFederalWithholdingTotal(draft) > 0) {
+                    <div class="xml-local-tax-card__row">
+                      <span>Retenciones federales</span>
+
+                      <strong>
+                        -{{ getFederalWithholdingTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                      </strong>
+                    </div>
+                  }
+
+                  <!-- Detalle por nombre: ISH u otros impuestos -->
+                  @if ((draft.localTaxes?.length ?? 0) > 0) {
+
+                    <div class="xml-local-tax-card__taxes-title">
+                      Impuestos locales
+                    </div>
+
+                    @for (tax of draft.localTaxes ?? []; track $index) {
+
+                      <div
+                        class="xml-local-tax-card__row xml-local-tax-card__row--tax">
+
+                        <span>
+                          {{ tax.name }}
+
+                          @if (tax.rate !== null && tax.rate !== undefined) {
+                            ({{ tax.rate | number:'1.0-2' }}%)
+                          }
+
+                          <span class="xml-local-tax-card__tax-type">
+                            {{
+                              tax.type === 'withholding'
+                                ? '· Retención'
+                                : '· Traslado'
+                            }}
+                          </span>
+                        </span>
+
+                        <strong>
+                          {{ tax.type === 'withholding' ? '-' : '+' }}{{ tax.amount | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                        </strong>
+                      </div>
+
+                    }
+
+                  } @else {
+
+                    <!-- Respaldo cuando hay totales pero no desglose -->
+                    @if (getLocalTaxTransfersTotal(draft) > 0) {
+                      <div class="xml-local-tax-card__row">
+                        <span>Impuestos locales trasladados</span>
+
+                        <strong>
+                          +{{ getLocalTaxTransfersTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                        </strong>
+                      </div>
+                    }
+
+                    @if (getLocalTaxWithholdingsTotal(draft) > 0) {
+                      <div class="xml-local-tax-card__row">
+                        <span>Retenciones locales</span>
+
+                        <strong>
+                          -{{ getLocalTaxWithholdingsTotal(draft) | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                        </strong>
+                      </div>
+                    }
+
+                  }
+
+                  <!-- Total original del CFDI -->
+                  <div class="xml-local-tax-card__row xml-local-tax-card__row--total">
+                    <strong>Total CFDI</strong>
+
+                    <strong>
+                      {{ draft.total | currency:'MXN':'symbol-narrow':'1.2-2' }}
+                    </strong>
+                  </div>
+
+                  <p class="xml-local-tax-card__note">
+                    Los impuestos se leen directamente del CFDI.
+                    Este desglose es informativo y no modifica
+                    los importes del XML.
+                  </p>
+
+                </div>
+
+              }
+
+            </div>
+
+          }
+
+        }
+
+        <!-- FIN DE NUEVA FUNCIONALIDAD -->
+
       }
     </section>
 
-    <!-- Duplicados -->
+    <!-- Duplicados: BLOQUE ORIGINAL -->
     @if (duplicates.length > 0) {
       <section class="xml-section xml-section--duplicates">
         <div class="xml-dup-header">
@@ -72,6 +268,7 @@
     }
   </div>
 
+  <!-- Footer ORIGINAL -->
   <div class="xml-footer-row">
     <p class="xml-footnote">
       Se enviarán al formulario los XML nuevos. Los duplicados no se pierden:

@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -23,6 +24,10 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
   modal: true,
 };
 
+/*
+ * Se conservan las 5 columnas ORIGINALES.
+ * No agregamos columnas permanentes a la tabla.
+ */
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   { key: 'sourceFileName', label: 'XML' },
   {
@@ -65,12 +70,16 @@ export class XmlsModal {
   readonly drafts: entity.XmlExpenseDraftDto[] = this.data?.drafts ?? [];
   readonly duplicates: entity.XmlDuplicateDto[] = this.data?.duplicates ?? [];
 
+  /*
+   * Mapper original de la tabla.
+   * Sin alterar los XML recibidos desde el backend.
+   */
   readonly tableDrafts = this.drafts.map((d) => ({
     ...d,
     itemsCount: d.items.length,
   }));
 
-  // paginación local
+  // Paginación local ORIGINAL
   pageIndex = 0;
   pageSize = 5;
   pageSizeOptions = [5, 10, 25];
@@ -78,6 +87,7 @@ export class XmlsModal {
   get paginatedDrafts() {
     const start = this.pageIndex * this.pageSize;
     const end = start + this.pageSize;
+
     return this.tableDrafts.slice(start, end);
   }
 
@@ -86,19 +96,146 @@ export class XmlsModal {
     this.pageSize = ev.pageSize;
   }
 
-  // Footer
+  // =====================================================
+  // NUEVO: DESGLOSE DE IMPUESTOS LOCALES
+  // =====================================================
+
+  /*
+   * Solo un XML puede tener su desglose abierto
+   * en cada momento.
+   */
+  expandedLocalTaxUuid: string | null = null;
+
+  toggleLocalTaxDetails(uuid: string): void {
+    this.expandedLocalTaxUuid =
+      this.expandedLocalTaxUuid === uuid
+        ? null
+        : uuid;
+  }
+
+  /*
+   * Determina si corresponde mostrar el apartado.
+   *
+   * Para CFDI normales, sin impuestos locales,
+   * el modal conserva su presentación original.
+   */
+  hasLocalTaxes(draft: entity.XmlExpenseDraftDto): boolean {
+    return (
+      (draft.localTaxes?.length ?? 0) > 0 ||
+      this.getLocalTaxTransfersTotal(draft) !== 0 ||
+      this.getLocalTaxWithholdingsTotal(draft) !== 0
+    );
+  }
+
+  /*
+   * Prioriza el total declarado por el backend.
+   * Si no está disponible, usa los importes
+   * distribuidos entre conceptos.
+   */
+  getLocalTaxTransfersTotal(
+    draft: entity.XmlExpenseDraftDto,
+  ): number {
+    if (
+      draft.localTaxTransfersTotal !== null &&
+      draft.localTaxTransfersTotal !== undefined
+    ) {
+      return this.roundMoney(draft.localTaxTransfersTotal);
+    }
+
+    return this.roundMoney(
+      draft.items.reduce(
+        (sum, item) =>
+          sum + Number(item.local_tax_amount ?? 0),
+        0,
+      ),
+    );
+  }
+
+  getLocalTaxWithholdingsTotal(
+    draft: entity.XmlExpenseDraftDto,
+  ): number {
+    if (
+      draft.localTaxWithholdingsTotal !== null &&
+      draft.localTaxWithholdingsTotal !== undefined
+    ) {
+      return this.roundMoney(draft.localTaxWithholdingsTotal);
+    }
+
+    return this.roundMoney(
+      draft.items.reduce(
+        (sum, item) =>
+          sum + Number(item.local_withheld_amount ?? 0),
+        0,
+      ),
+    );
+  }
+
+  /*
+   * Totales de desglose federal obtenidos de
+   * los conceptos de la vista previa.
+   *
+   * Son solo para mostrar: no alteran el CFDI.
+   */
+  getFederalTaxTotal(
+    draft: entity.XmlExpenseDraftDto,
+  ): number {
+    return this.sumItemField(draft, 'tax_amount');
+  }
+
+  getDiscountTotal(
+    draft: entity.XmlExpenseDraftDto,
+  ): number {
+    return this.sumItemField(draft, 'discount_amount');
+  }
+
+  getFederalWithholdingTotal(
+    draft: entity.XmlExpenseDraftDto,
+  ): number {
+    return this.sumItemField(draft, 'withheld_amount');
+  }
+
+  private sumItemField(
+    draft: entity.XmlExpenseDraftDto,
+    field: 'tax_amount' | 'discount_amount' | 'withheld_amount',
+  ): number {
+    return this.roundMoney(
+      draft.items.reduce(
+        (sum, item) => sum + Number(item[field] ?? 0),
+        0,
+      ),
+    );
+  }
+
+  private roundMoney(value: unknown): number {
+    const amount = Number(value ?? 0);
+
+    return Number.isFinite(amount)
+      ? Number(amount.toFixed(2))
+      : 0;
+  }
+
+  // =====================================================
+  // FOOTER ORIGINAL
+  // =====================================================
+
   onBtnsSectionAction(action: string) {
     switch (action) {
       case 'cancel':
         this.closeModal();
         break;
+
       case 'continue':
         this.onContinue();
         break;
     }
   }
 
-  // Continuar: mandamos TODOS los drafts válidos para la cola
+  /*
+   * Comportamiento ORIGINAL:
+   * mandamos TODOS los drafts válidos para la cola.
+   *
+   * No hacemos ningún recálculo fiscal aquí.
+   */
   onContinue(): void {
     if (!this.drafts.length) {
       this.closeModal();
@@ -113,10 +250,14 @@ export class XmlsModal {
 
   onOpenDuplicate(expenseId: number): void {
     // Construimos la URL usando el router, por si la app no está en '/'
-    const urlTree = this.router.createUrlTree(['/gastos/editar', expenseId]);
+    const urlTree = this.router.createUrlTree([
+      '/gastos/editar',
+      expenseId,
+    ]);
+
     const url = this.router.serializeUrl(urlTree);
 
-    window.open(url, '_blank'); 
+    window.open(url, '_blank');
   }
 
   closeModal(): void {

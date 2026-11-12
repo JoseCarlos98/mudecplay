@@ -141,6 +141,8 @@ function getWarehouseAssignmentColumnPopover(
     kind: getWarehouseAssignmentPopoverKind(row),
   };
 }
+
+
 const COLUMNS_CONFIG: ColumnsConfig[] = [
   {
     key: 'cfdi_uuid_name',
@@ -195,6 +197,18 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     popoverContent: getWarehouseAssignmentColumnPopover,
   },
   {
+    key: 'local_tax_total',
+    label: 'Imp. locales',
+    type: 'money',
+    align: 'right',
+  },
+  {
+    key: 'local_withheld_total',
+    label: 'Ret. locales',
+    type: 'money',
+    align: 'right',
+  },
+  {
     key: 'total_amount',
     label: 'Monto',
     type: 'money',
@@ -211,6 +225,7 @@ const COLUMNS_CONFIG: ColumnsConfig[] = [
     sortKey: 'remaining_amount',
   },
 ];
+
 
 const DISPLAYED_COLUMNS: string[] = [
   ...COLUMNS_CONFIG.map((c) => c.key),

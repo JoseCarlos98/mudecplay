@@ -1,3 +1,4 @@
+
 <div class="c-modal c-modal--table-layout c-modal--expense-items">
   <app-module-header
     [title]="'Productos del gasto'"
@@ -7,37 +8,54 @@
 
   @if (items?.length) {
     <div class="c-module-table c-modal-table c-modal-table--wide">
+
+      <!-- Tabla ORIGINAL: sin cambios -->
       <app-data-table
         [data]="paginatedItems"
         [columnsConfig]="columnsConfig"
         [displayedColumns]="displayedColumns">
       </app-data-table>
 
+      <!-- Resumen ORIGINAL: sin eliminar información -->
       <div class="c-modal-table__summary">
+
         <div class="c-modal-table__summary-item">
-          <span class="c-modal-table__summary-label">Conceptos</span>
+          <span class="c-modal-table__summary-label">
+            Conceptos
+          </span>
+
           <span class="c-modal-table__summary-value">
             {{ items.length }}
           </span>
         </div>
 
         <div class="c-modal-table__summary-item">
-          <span class="c-modal-table__summary-label">Total gasto</span>
+          <span class="c-modal-table__summary-label">
+            Total gasto
+          </span>
+
           <span class="c-modal-table__summary-value">
             {{ totalAmount | currency:'$ ':'symbol':'1.2-2' }}
           </span>
         </div>
 
         @if (isWarehouseMode) {
+
           <div class="c-modal-table__summary-item">
-            <span class="c-modal-table__summary-label">Asignado desde almacén</span>
+            <span class="c-modal-table__summary-label">
+              Asignado desde almacén
+            </span>
+
             <span class="c-modal-table__summary-value">
               {{ totalAssignedWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
             </span>
           </div>
 
           <div class="c-modal-table__summary-item">
-            <span class="c-modal-table__summary-label">Pendiente en almacén</span>
+            <span class="c-modal-table__summary-label">
+              Pendiente en almacén
+            </span>
+
             <span class="c-modal-table__summary-value">
               {{ totalPendingWarehouseAmount | currency:'$ ':'symbol':'1.2-2' }}
             </span>
@@ -46,12 +64,81 @@
 
         @if (isLaborMode) {
           <div class="c-modal-table__summary-item c-modal-table__summary-item--soft">
-            <span class="c-modal-table__summary-label">Tipo</span>
-            <span class="c-modal-table__summary-value">Mano de obra</span>
+            <span class="c-modal-table__summary-label">
+              Tipo
+            </span>
+
+            <span class="c-modal-table__summary-value">
+              Mano de obra
+            </span>
           </div>
         }
+
       </div>
 
+      <!-- ==================================================
+           NUEVO: DESGLOSE DE IMPUESTOS LOCALES
+           Solo aparece si hay importes locales.
+           No modifica la tabla, los pagos ni el total.
+           ================================================== -->
+
+      @if (hasLocalTaxes) {
+
+        <details>
+          <summary>
+            Ver impuestos locales del gasto
+
+            @if (totalLocalTaxAmount > 0) {
+              · Trasladados:
+              {{ totalLocalTaxAmount | currency:'$ ':'symbol':'1.2-2' }}
+            }
+
+            @if (totalLocalWithheldAmount > 0) {
+              · Retenciones:
+              {{ totalLocalWithheldAmount | currency:'$ ':'symbol':'1.2-2' }}
+            }
+          </summary>
+
+          <div class="c-modal-table__summary">
+
+            @for (item of items; track item.id) {
+
+              @if (
+                (item.local_tax_amount ?? 0) !== 0 ||
+                (item.local_withheld_amount ?? 0) !== 0
+              ) {
+
+                <div class="c-modal-table__summary-item">
+
+                  <span class="c-modal-table__summary-label">
+                    {{ item.item_display }}
+                  </span>
+
+                  <span class="c-modal-table__summary-value">
+
+                    @if ((item.local_tax_amount ?? 0) !== 0) {
+                      Imp. locales:
+                      {{ item.local_tax_amount | currency:'$ ':'symbol':'1.2-2' }}
+                    }
+
+                    @if ((item.local_withheld_amount ?? 0) !== 0) {
+                      Ret. locales:
+                      {{ item.local_withheld_amount | currency:'$ ':'symbol':'1.2-2' }}
+                    }
+
+                  </span>
+                </div>
+              }
+
+            }
+
+          </div>
+        </details>
+      }
+
+      <!-- FIN DE LA NUEVA FUNCIONALIDAD -->
+
+      <!-- Paginador ORIGINAL: sin cambios -->
       <mat-paginator
         [length]="items.length"
         [pageSize]="pageSize"
@@ -60,6 +147,7 @@
         (page)="onPageChange($event)"
         showFirstLastButtons>
       </mat-paginator>
+
     </div>
   }
 </div>

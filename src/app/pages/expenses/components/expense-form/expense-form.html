@@ -337,6 +337,27 @@
 
                 <app-input-field formControlName="amount" label="Importe" type="money">
                 </app-input-field>
+                <!-- NUEVO: impuestos locales del XML; no modifica descuentos ni retenciones CFDI -->
+                @if (
+                  (itemCtrl.get('local_tax_amount')?.value ?? 0) > 0 ||
+                  (itemCtrl.get('local_withheld_amount')?.value ?? 0) > 0
+                ) {
+                  <div class="xml-local-tax-info" [matTooltip]="buildLocalTaxTooltip(itemCtrl)">
+                    @if ((itemCtrl.get('local_tax_amount')?.value ?? 0) > 0) {
+                      <span class="xml-local-tax-info__item">
+                        Impuestos locales:
+                        +{{ itemCtrl.get('local_tax_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+                    @if ((itemCtrl.get('local_withheld_amount')?.value ?? 0) > 0) {
+                      <span class="xml-local-tax-info__item">
+                        Retenciones locales:
+                        -{{ itemCtrl.get('local_withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                      </span>
+                    }
+                  </div>
+                }
+
               </div>
             </div>
 
@@ -403,6 +424,27 @@
 
                   <app-input-field formControlName="amount" label="Importe" type="money">
                   </app-input-field>
+                  <!-- NUEVO: impuestos locales del XML; no modifica descuentos ni retenciones CFDI -->
+                  @if (
+                    (itemCtrl.get('local_tax_amount')?.value ?? 0) > 0 ||
+                    (itemCtrl.get('local_withheld_amount')?.value ?? 0) > 0
+                  ) {
+                    <div class="xml-local-tax-info" [matTooltip]="buildLocalTaxTooltip(itemCtrl)">
+                      @if ((itemCtrl.get('local_tax_amount')?.value ?? 0) > 0) {
+                        <span class="xml-local-tax-info__item">
+                          Impuestos locales:
+                          +{{ itemCtrl.get('local_tax_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                        </span>
+                      }
+                      @if ((itemCtrl.get('local_withheld_amount')?.value ?? 0) > 0) {
+                        <span class="xml-local-tax-info__item">
+                          Retenciones locales:
+                          -{{ itemCtrl.get('local_withheld_amount')?.value | currency:'$':'symbol':'1.2-2' }}
+                        </span>
+                      }
+                    </div>
+                  }
+
                 </div>
 
                 <div class="project-cell">

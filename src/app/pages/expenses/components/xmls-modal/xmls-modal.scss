@@ -1,3 +1,4 @@
+
 .c-modal.c-modal--xml {
   max-height: 80vh;
   display: flex;
@@ -42,7 +43,7 @@
   }
 
   /* ============================
-   * Tabla
+   * Tabla ORIGINAL
    * ============================ */
 
   .c-module-table {
@@ -77,8 +78,171 @@
     white-space: nowrap;
   }
 
+  /* ================================================
+   * NUEVO: DESGLOSE PLEGABLE DE IMPUESTOS LOCALES
+   *
+   * Solo usa clases xml-local-tax-card.
+   * No afecta DataTable ni sus columnas originales.
+   * ================================================ */
+
+  .xml-local-tax-card {
+    margin-top: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: #ffffff;
+    overflow: hidden;
+
+    &__toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 1rem;
+
+      border: 0;
+      background: #f8fafc;
+      color: #334155;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+
+      &:hover {
+        background: #f1f5f9;
+      }
+
+      &:focus-visible {
+        outline: 2px solid #2563eb;
+        outline-offset: -2px;
+      }
+    }
+
+    &__heading {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+
+      mat-icon {
+        flex-shrink: 0;
+        color: #64748b;
+      }
+    }
+
+    &__heading-text {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+
+      strong {
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+    }
+
+    &__file {
+      color: #64748b;
+      font-size: 0.75rem;
+      font-weight: 400;
+      overflow-wrap: anywhere;
+    }
+
+    &__actions {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+
+      mat-icon {
+        color: #64748b;
+      }
+    }
+
+    &__summary {
+      color: #0f766e;
+      font-size: 0.875rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    &__retained {
+      margin-left: 0.5rem;
+      color: #b45309;
+    }
+
+    &__details {
+      padding: 0.75rem 1rem 0.85rem;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    &__row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.4rem 0;
+
+      font-size: 0.875rem;
+      line-height: 1.4;
+      color: #475569;
+
+      > span {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      > strong {
+        flex-shrink: 0;
+        font-weight: 600;
+        color: #1e293b;
+        white-space: nowrap;
+        text-align: right;
+      }
+
+      &--tax {
+        padding-left: 0.75rem;
+        border-left: 2px solid #99f6e4;
+      }
+
+      &--total {
+        margin-top: 0.5rem;
+        padding-top: 0.8rem;
+        border-top: 1px solid #e5e7eb;
+        color: #0f172a;
+
+        > strong {
+          font-size: 0.95rem;
+          font-weight: 700;
+        }
+      }
+    }
+
+    &__taxes-title {
+      margin: 0.7rem 0 0.4rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid #f1f5f9;
+
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    &__tax-type {
+      color: #64748b;
+      font-size: 0.78rem;
+    }
+
+    &__note {
+      margin: 0.65rem 0 0;
+      color: #64748b;
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+  }
+
   /* ============================
-   * Duplicados
+   * Duplicados ORIGINAL
    * ============================ */
 
   .xml-section--duplicates {
@@ -139,7 +303,7 @@
   }
 
   /* ============================
-   * Nota + paginador en misma zona
+   * Nota + paginador ORIGINAL
    * ============================ */
 
   .xml-footer-row {
@@ -195,7 +359,7 @@
 }
 
 /* ============================
- * Responsive
+ * Responsive ORIGINAL
  * ============================ */
 
 @media screen and (max-width: 875px) {
@@ -254,6 +418,22 @@
         justify-content: center;
       }
     }
+
+    /* NUEVO: ajuste del desglose en pantallas pequeñas */
+    .xml-local-tax-card {
+      &__toggle {
+        gap: 0.5rem;
+        padding: 0.7rem 0.8rem;
+      }
+
+      &__details {
+        padding: 0.7rem 0.8rem;
+      }
+
+      &__summary {
+        font-size: 0.78rem;
+      }
+    }
   }
 }
 
@@ -282,6 +462,23 @@
       max-width: 78px;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* NUEVO: los importes no desplazan el encabezado */
+    .xml-local-tax-card {
+      &__toggle {
+        flex-wrap: wrap;
+      }
+
+      &__actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+
+      &__row {
+        gap: 0.5rem;
+        font-size: 0.8rem;
+      }
     }
   }
 }

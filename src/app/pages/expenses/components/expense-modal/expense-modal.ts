@@ -1,3 +1,4 @@
+
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -45,11 +46,11 @@ type ExpenseItemWithWarehouseSummary = ExpenseItem & {
 type ExpenseModalData =
   | ExpenseItemWithWarehouseSummary[]
   | {
-    id?: number;
-    origin_type?: string | null;
-    provider_display_name?: string | null;
-    items?: ExpenseItemWithWarehouseSummary[];
-  };
+      id?: number;
+      origin_type?: string | null;
+      provider_display_name?: string | null;
+      items?: ExpenseItemWithWarehouseSummary[];
+    };
 
 type ExpenseItemTableRow = ExpenseItemWithWarehouseSummary & {
   item_display: string;
@@ -290,8 +291,11 @@ const MIXED_COLUMNS_CONFIG: ColumnsConfig[] = [
   styleUrl: './expense-modal.scss',
 })
 export class ExpenseModal implements OnInit {
-  private readonly rawData = inject<ExpenseModalData | null>(MAT_DIALOG_DATA);
-  private readonly dialogRef = inject(MatDialogRef<ExpenseModal>);
+  private readonly rawData =
+    inject<ExpenseModalData | null>(MAT_DIALOG_DATA);
+
+  private readonly dialogRef =
+    inject(MatDialogRef<ExpenseModal>);
 
   readonly headerConfig = HEADER_CONFIG;
 
@@ -316,9 +320,14 @@ export class ExpenseModal implements OnInit {
 
     this.mode = this.resolveMode(normalized.items);
     this.columnsConfig = this.resolveColumnsConfig(this.mode);
-    this.displayedColumns = this.columnsConfig.map((column) => column.key);
 
-    this.items = normalized.items.map((item) => this.mapItemToTableRow(item));
+    this.displayedColumns = this.columnsConfig.map(
+      (column) => column.key,
+    );
+
+    this.items = normalized.items.map(
+      (item) => this.mapItemToTableRow(item),
+    );
   }
 
   get paginatedItems(): ExpenseItemTableRow[] {
@@ -334,13 +343,50 @@ export class ExpenseModal implements OnInit {
   }
 
   get totalAmount(): number {
-    return this.items.reduce((sum, item) => sum + Number(item.amount ?? 0), 0);
+    return this.items.reduce(
+      (sum, item) => sum + Number(item.amount ?? 0),
+      0,
+    );
   }
+
+  // =====================================================
+  // NUEVO: IMPUESTOS LOCALES (SOLO LECTURA)
+  // =====================================================
+
+  get totalLocalTaxAmount(): number {
+    return this.items.reduce(
+      (sum, item) =>
+        sum + Number(item.local_tax_amount ?? 0),
+      0,
+    );
+  }
+
+  get totalLocalWithheldAmount(): number {
+    return this.items.reduce(
+      (sum, item) =>
+        sum + Number(item.local_withheld_amount ?? 0),
+      0,
+    );
+  }
+
+  get hasLocalTaxes(): boolean {
+    return this.items.some(
+      (item) =>
+        Number(item.local_tax_amount ?? 0) !== 0 ||
+        Number(item.local_withheld_amount ?? 0) !== 0,
+    );
+  }
+
+  // =====================================================
+  // RESÚMENES EXISTENTES
+  // =====================================================
 
   get totalAssignedWarehouseAmount(): number {
     return this.items.reduce(
       (sum, item) =>
-        sum + Number(item.warehouse_assignment_summary?.assigned_amount ?? 0),
+        sum + Number(
+          item.warehouse_assignment_summary?.assigned_amount ?? 0,
+        ),
       0,
     );
   }
@@ -348,13 +394,17 @@ export class ExpenseModal implements OnInit {
   get totalPendingWarehouseAmount(): number {
     return this.items.reduce(
       (sum, item) =>
-        sum + Number(item.warehouse_assignment_summary?.pending_amount ?? 0),
+        sum + Number(
+          item.warehouse_assignment_summary?.pending_amount ?? 0,
+        ),
       0,
     );
   }
 
   get hasWarehouseItems(): boolean {
-    return this.items.some((item) => item.item_type === 'warehouse');
+    return this.items.some(
+      (item) => item.item_type === 'warehouse',
+    );
   }
 
   get isLaborMode(): boolean {
@@ -369,7 +419,9 @@ export class ExpenseModal implements OnInit {
     this.dialogRef.close(!!saved);
   }
 
-  private normalizeModalData(data: ExpenseModalData | null): {
+  private normalizeModalData(
+    data: ExpenseModalData | null,
+  ): {
     originType: string | null;
     providerDisplayName: string | null;
     items: ExpenseItemWithWarehouseSummary[];
@@ -389,21 +441,41 @@ export class ExpenseModal implements OnInit {
     };
   }
 
-  private resolveMode(items: ExpenseItemWithWarehouseSummary[]): ExpenseModalMode {
-    const hasWarehouse = items.some((item) => item.item_type === 'warehouse');
-    const hasLabor = items.some((item) => this.isLaborItem(item));
-    const hasDirectNormal = items.some(
-      (item) => item.item_type !== 'warehouse' && !this.isLaborItem(item),
+  private resolveMode(
+    items: ExpenseItemWithWarehouseSummary[],
+  ): ExpenseModalMode {
+    const hasWarehouse = items.some(
+      (item) => item.item_type === 'warehouse',
     );
 
-    if (hasLabor && !hasWarehouse && !hasDirectNormal) return 'labor';
-    if (hasWarehouse && !hasLabor && !hasDirectNormal) return 'warehouse';
-    if (!hasWarehouse && !hasLabor && hasDirectNormal) return 'direct';
+    const hasLabor = items.some(
+      (item) => this.isLaborItem(item),
+    );
+
+    const hasDirectNormal = items.some(
+      (item) =>
+        item.item_type !== 'warehouse' &&
+        !this.isLaborItem(item),
+    );
+
+    if (hasLabor && !hasWarehouse && !hasDirectNormal) {
+      return 'labor';
+    }
+
+    if (hasWarehouse && !hasLabor && !hasDirectNormal) {
+      return 'warehouse';
+    }
+
+    if (!hasWarehouse && !hasLabor && hasDirectNormal) {
+      return 'direct';
+    }
 
     return 'mixed';
   }
 
-  private resolveColumnsConfig(mode: ExpenseModalMode): ColumnsConfig[] {
+  private resolveColumnsConfig(
+    mode: ExpenseModalMode,
+  ): ColumnsConfig[] {
     switch (mode) {
       case 'labor':
         return LABOR_COLUMNS_CONFIG;
@@ -460,9 +532,7 @@ export class ExpenseModal implements OnInit {
           : this.resolveDirectQuantityText(item),
 
       unit_price_display: this.formatUnitPrice(item.unit_price),
-
       project_display: this.getDirectProjectText(item),
-
       assignment_target_text: projectDisplay,
 
       destination_display: isWarehouse
@@ -483,8 +553,12 @@ export class ExpenseModal implements OnInit {
     };
   }
 
-  private isLaborItem(item: ExpenseItemWithWarehouseSummary): boolean {
-    if (this.expenseOriginType === 'labor_auto') return true;
+  private isLaborItem(
+    item: ExpenseItemWithWarehouseSummary,
+  ): boolean {
+    if (this.expenseOriginType === 'labor_auto') {
+      return true;
+    }
 
     const concept = item.concept?.toLowerCase().trim() || '';
 
@@ -496,9 +570,10 @@ export class ExpenseModal implements OnInit {
     );
   }
 
-  private resolveProductName(item: ExpenseItemWithWarehouseSummary): string {
+  private resolveProductName(
+    item: ExpenseItemWithWarehouseSummary,
+  ): string {
     const product: any = item.product;
-
     return product?.name?.trim() || '';
   }
 
@@ -514,9 +589,10 @@ export class ExpenseModal implements OnInit {
     return this.formatQuantity(quantity, item.unit);
   }
 
-  private getDirectProjectText(item: ExpenseItemWithWarehouseSummary): string {
+  private getDirectProjectText(
+    item: ExpenseItemWithWarehouseSummary,
+  ): string {
     const project: any = item.project;
-
     return project?.name?.trim() || 'No asignado';
   }
 
@@ -524,7 +600,6 @@ export class ExpenseModal implements OnInit {
     item: ExpenseItemWithWarehouseSummary,
   ): string {
     const project: any = item.project;
-
     return project?.id ? 'Asignado' : 'No asignado';
   }
 
@@ -545,7 +620,11 @@ export class ExpenseModal implements OnInit {
 
     return summary.projects
       .map((project) => {
-        const quantity = this.formatQuantity(project.quantity, summary.unit);
+        const quantity = this.formatQuantity(
+          project.quantity,
+          summary.unit,
+        );
+
         const amount = this.formatMoney(project.amount);
 
         return `${project.project_name} (${quantity} / ${amount})`;
@@ -558,11 +637,16 @@ export class ExpenseModal implements OnInit {
     item: ExpenseItemWithWarehouseSummary,
   ): string {
     if (!summary) {
-      const original = this.formatQuantity(item.quantity, item.unit);
+      const original = this.formatQuantity(
+        item.quantity,
+        item.unit,
+      );
+
       return `0 de ${original}`;
     }
 
     const assigned = this.formatNumber(summary.assigned_quantity);
+
     const original = this.formatQuantity(
       summary.original_quantity,
       summary.unit,
@@ -579,7 +663,10 @@ export class ExpenseModal implements OnInit {
       return this.formatQuantity(item.quantity, item.unit);
     }
 
-    return this.formatQuantity(summary.pending_quantity, summary.unit);
+    return this.formatQuantity(
+      summary.pending_quantity,
+      summary.unit,
+    );
   }
 
   private resolveLaborQuantityText(
@@ -590,7 +677,6 @@ export class ExpenseModal implements OnInit {
 
     if (match?.[1]) {
       const hours = Number(match[1]);
-
       return this.formatQuantity(hours, 'hora');
     }
 
@@ -602,7 +688,9 @@ export class ExpenseModal implements OnInit {
     unit?: string | null,
   ): string {
     if (value === null || value === undefined || value === '') {
-      return unit ? `0 ${this.resolveUnitLabel(0, unit)}` : '0';
+      return unit
+        ? `0 ${this.resolveUnitLabel(0, unit)}`
+        : '0';
     }
 
     const numberValue = Number(value ?? 0);
@@ -617,14 +705,18 @@ export class ExpenseModal implements OnInit {
     return `${quantity} ${unitLabel}`.trim();
   }
 
-  private formatNumber(value: number | string | null | undefined): string {
+  private formatNumber(
+    value: number | string | null | undefined,
+  ): string {
     return Number(value ?? 0).toLocaleString('es-MX', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 4,
     });
   }
 
-  private formatUnitPrice(value: number | string | null | undefined): string {
+  private formatUnitPrice(
+    value: number | string | null | undefined,
+  ): string {
     if (value === null || value === undefined || value === '') {
       return 'Sin dato';
     }
@@ -638,7 +730,9 @@ export class ExpenseModal implements OnInit {
     return this.formatMoney(numberValue);
   }
 
-  private formatMoney(value: number | string | null | undefined): string {
+  private formatMoney(
+    value: number | string | null | undefined,
+  ): string {
     return Number(value ?? 0).toLocaleString('es-MX', {
       style: 'currency',
       currency: 'MXN',
@@ -647,9 +741,11 @@ export class ExpenseModal implements OnInit {
     });
   }
 
-  private resolveUnitLabel(quantity: number, unit?: string | null): string {
+  private resolveUnitLabel(
+    quantity: number,
+    unit?: string | null,
+  ): string {
     const normalizedUnit = unit?.trim();
-
     if (!normalizedUnit) return '';
 
     const lower = normalizedUnit.toLowerCase();

@@ -1,8 +1,9 @@
+
 import { Catalog } from "../../../shared/interfaces/general-interfaces";
 import { DateRangeValue } from "../../../shared/ui/input-date/input-date";
 
 /* =====================================================
- *  TIPOS BASE
+ * TIPOS BASE
  * ===================================================== */
 
 export type ExpenseSortDirection =
@@ -48,7 +49,7 @@ export type WarehouseAssignmentStatusFilter =
   | 'with_pending';
 
 /* =====================================================
- *  FILTROS (LISTADO DE GASTOS)
+ * FILTROS (LISTADO DE GASTOS)
  * ===================================================== */
 
 export interface FiltersExpenses {
@@ -63,18 +64,18 @@ export interface FiltersExpenses {
   search?: string | null;
 
   paymentStatus?:
-  | 'paid'
-  | 'unpaid'
-  | null;
+    | 'paid'
+    | 'unpaid'
+    | null;
 
   status_id?:
-  | number
-  | string
-  | null;
+    | number
+    | string
+    | null;
 
   warehouseAssignmentStatus?:
-  | WarehouseAssignmentStatusFilter
-  | null;
+    | WarehouseAssignmentStatusFilter
+    | null;
 
   sorts?: ExpenseSortItem[];
 
@@ -83,7 +84,7 @@ export interface FiltersExpenses {
 }
 
 /* =====================================================
- *  RESPUESTA LISTADO DE GASTOS (GET /expenses)
+ * RESPUESTA LISTADO DE GASTOS (GET /expenses)
  * ===================================================== */
 
 export interface Supplier {
@@ -159,6 +160,10 @@ export interface ExpenseItem {
   tax_amount: number;
   withheld_amount: number;
 
+  // Impuestos locales
+  local_tax_amount: number;
+  local_withheld_amount: number;
+
   payment_amount: number | null;
   payment_date: string | null;
   remaining_amount: number;
@@ -182,6 +187,10 @@ export interface ExpenseResponseDto {
   cfdi_uuid_name?: string;
   remaining_amount: number;
   total_amount: number;
+
+  // Totales locales para la tabla de Gastos
+  local_tax_total: number;
+  local_withheld_total: number;
 
   receipt_block_reasons: string[];
   can_generate_receipt: boolean;
@@ -219,7 +228,7 @@ export interface ExpenseResponseDtoMapper {
 }
 
 /* =====================================================
- *  CREATE / UPDATE GASTO
+ * CREATE / UPDATE GASTO
  * ===================================================== */
 
 export interface CreateExpenseItem {
@@ -244,6 +253,10 @@ export interface CreateExpenseItem {
   tax_amount?: number | null;
   withheld_amount?: number | null;
 
+  // Impuestos locales
+  local_tax_amount?: number | null;
+  local_withheld_amount?: number | null;
+
   project_id?: number | null;
   payment_amount?: number | null;
   payment_date?: string | null;
@@ -259,7 +272,7 @@ export interface CreateExpense {
 export type UpdateExpense = CreateExpense;
 
 /* =====================================================
- *  UPDATE CONTROLADO PARA GASTOS CON ALMACÉN
+ * UPDATE CONTROLADO PARA GASTOS CON ALMACÉN
  * ===================================================== */
 
 export interface UpdateWarehouseExpenseSafeItem {
@@ -275,7 +288,7 @@ export interface UpdateWarehouseExpenseSafe {
 }
 
 /* =====================================================
- *  DETALLE DE GASTO (GET /expenses/:id)
+ * DETALLE DE GASTO (GET /expenses/:id)
  * ===================================================== */
 
 export interface ExpenseItemDetail {
@@ -294,6 +307,10 @@ export interface ExpenseItemDetail {
   discount_amount: number;
   tax_amount: number;
   withheld_amount: number;
+
+  // Impuestos locales
+  local_tax_amount?: number;
+  local_withheld_amount?: number;
 
   payment_amount: number | null;
   payment_date: string | null;
@@ -356,7 +373,7 @@ export interface UpdateExpenseSupplier {
 }
 
 /* =====================================================
- *  ITEM PARA EL FORMULARIO (FormArray en ExpenseForm)
+ * ITEM PARA EL FORMULARIO (FormArray en ExpenseForm)
  * ===================================================== */
 
 export interface ExpenseItemForm {
@@ -375,6 +392,10 @@ export interface ExpenseItemForm {
   tax_amount: number | null;
   withheld_amount: number | null;
 
+  // Impuestos locales
+  local_tax_amount?: number | null;
+  local_withheld_amount?: number | null;
+
   payment_amount: number | null;
   payment_date: string | null;
   project_id: Catalog | null;
@@ -382,48 +403,49 @@ export interface ExpenseItemForm {
 }
 
 /* =====================================================
- *  FILTROS DE UI (estado del formulario de filtros)
+ * FILTROS DE UI (estado del formulario de filtros)
  * ===================================================== */
 
 export interface ExpensesUiFilters {
   dateRange:
-  DateRangeValue | null;
+    DateRangeValue | null;
 
   totalAmount:
-  number | null;
+    number | null;
 
   suppliersIds:
-  any[];
+    any[];
 
   search?:
-  string | null;
+    string | null;
 
   projectIds:
-  any[];
+    any[];
 
   status_id:
-  string | number | null;
+    string | number | null;
 
   paymentStatus:
-  | 'paid'
-  | 'unpaid'
-  | null;
+    | 'paid'
+    | 'unpaid'
+    | null;
 
   warehouseAssignmentStatus:
-  | WarehouseAssignmentStatusFilter
-  | null;
+    | WarehouseAssignmentStatusFilter
+    | null;
 
   sorts:
-  ExpenseSortItem[];
+    ExpenseSortItem[];
 
   page:
-  number;
+    number;
 
   limit:
-  number;
+    number;
 }
+
 /* =====================================================
- *  XML PREVIEW
+ * XML PREVIEW
  * ===================================================== */
 
 export interface XmlExpenseItemDraftDto {
@@ -442,6 +464,10 @@ export interface XmlExpenseItemDraftDto {
   tax_amount: number;
   withheld_amount: number;
 
+  // Impuestos locales distribuidos por concepto
+  local_tax_amount?: number;
+  local_withheld_amount?: number;
+
   payment_amount: number | null;
   payment_date: string | null;
   project_id: number | null;
@@ -452,16 +478,34 @@ export interface XmlExpenseItemDraftDto {
   } | null;
 }
 
+/**
+ * Desglose de cada impuesto local encontrado
+ * en el complemento ImpuestosLocales del CFDI.
+ */
+export interface XmlLocalTaxDraftDto {
+  name: string;
+  type: 'transfer' | 'withholding';
+  rate: number | null;
+  amount: number;
+}
+
 export interface XmlExpenseDraftDto {
   uuid: string;
   sourceFileName: string;
   date: string;
   subtotal: number;
   total: number;
+
+  // Desglose de impuestos locales del XML
+  localTaxes?: XmlLocalTaxDraftDto[];
+  localTaxTransfersTotal?: number;
+  localTaxWithholdingsTotal?: number;
+
   supplier: {
     id: number;
     name: string;
   };
+
   emitterRfc: string;
   emitterName: string;
   items: XmlExpenseItemDraftDto[];
@@ -490,7 +534,7 @@ export interface XmlQueueState {
 }
 
 /* =====================================================
- *  ALMACÉN - EXISTENCIAS
+ * ALMACÉN - EXISTENCIAS
  * ===================================================== */
 
 export interface WarehouseLotFilters {
@@ -526,7 +570,7 @@ export interface WarehouseLotResponseDto {
 }
 
 /* =====================================================
- *  ALMACÉN - ASIGNACIÓN
+ * ALMACÉN - ASIGNACIÓN
  * ===================================================== */
 
 export interface AssignWarehouseLotDto {
@@ -536,7 +580,7 @@ export interface AssignWarehouseLotDto {
 }
 
 /* =====================================================
- *  ALMACÉN - MOVIMIENTOS
+ * ALMACÉN - MOVIMIENTOS
  * ===================================================== */
 
 export interface WarehouseMovementResponseDto {
@@ -566,4 +610,3 @@ export interface WarehouseMovementResponseDto {
 export interface ReturnWarehouseMovementDto {
   notes?: string | null;
 }
-

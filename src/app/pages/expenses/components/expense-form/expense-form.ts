@@ -372,9 +372,12 @@ export class ExpenseForm implements OnInit {
     const discountAmount = this.round2(Number(item.discount_amount ?? 0));
     const taxAmount = this.round2(Number(item.tax_amount ?? 0));
     const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
+    const localTaxAmount = this.round2(Number(item.local_tax_amount ?? 0));
+    const localWithheldAmount = this.round2(Number(item.local_withheld_amount ?? 0));
 
     const fiscalAmount = this.round2(
-      Math.max(0, baseAmount - discountAmount) + taxAmount - withheldAmount,
+      Math.max(0, baseAmount - discountAmount) +
+      taxAmount + localTaxAmount - withheldAmount - localWithheldAmount,
     );
 
     return (
@@ -383,7 +386,9 @@ export class ExpenseForm implements OnInit {
       baseAmount > 0 &&
       discountAmount >= baseAmount &&
       taxAmount === 0 &&
-      withheldAmount === 0
+      withheldAmount === 0 &&
+      localTaxAmount === 0 &&
+      localWithheldAmount === 0
     );
   }
 
@@ -398,23 +403,20 @@ export class ExpenseForm implements OnInit {
    * Revisa si el item trae desglose fiscal CFDI.
    */
   private hasFiscalBreakdownFromRawItem(item: any): boolean {
-    return (
-      item?.base_amount !== null &&
-      item?.base_amount !== undefined &&
-      item?.base_amount !== ''
-    ) || (
-        item?.discount_amount !== null &&
-        item?.discount_amount !== undefined &&
-        item?.discount_amount !== ''
-      ) || (
-        item?.tax_amount !== null &&
-        item?.tax_amount !== undefined &&
-        item?.tax_amount !== ''
-      ) || (
-        item?.withheld_amount !== null &&
-        item?.withheld_amount !== undefined &&
-        item?.withheld_amount !== ''
-      );
+    const fields = [
+      'base_amount',
+      'discount_amount',
+      'tax_amount',
+      'withheld_amount',
+      'local_tax_amount',
+      'local_withheld_amount',
+    ];
+
+    return fields.some(
+      (field) => item?.[field] !== null &&
+        item?.[field] !== undefined &&
+        item?.[field] !== '',
+    );
   }
 
   /**
@@ -427,9 +429,13 @@ export class ExpenseForm implements OnInit {
     const discountAmount = this.round2(Number(item.discount_amount ?? 0));
     const taxAmount = this.round2(Number(item.tax_amount ?? 0));
     const withheldAmount = this.round2(Number(item.withheld_amount ?? 0));
-    const netBase = Math.max(0, baseAmount - discountAmount);
+    const localTaxAmount = this.round2(Number(item.local_tax_amount ?? 0));
+    const localWithheldAmount = this.round2(Number(item.local_withheld_amount ?? 0));
 
-    return this.round2(netBase + taxAmount - withheldAmount);
+    return this.round2(
+      Math.max(0, baseAmount - discountAmount) +
+      taxAmount + localTaxAmount - withheldAmount - localWithheldAmount,
+    );
   }
 
   /**
@@ -952,6 +958,8 @@ export class ExpenseForm implements OnInit {
             discount_amount: (item as any).discount_amount ?? null,
             tax_amount: (item as any).tax_amount ?? null,
             withheld_amount: (item as any).withheld_amount ?? null,
+            local_tax_amount: item.local_tax_amount ?? 0,
+            local_withheld_amount: item.local_withheld_amount ?? 0,
             concept: item.concept ?? null,
             project_id: item.project
               ? toCatalogAutoComplete(item.project.id, item.project.name)
@@ -1097,6 +1105,8 @@ export class ExpenseForm implements OnInit {
         discount_amount: (item as any).discount_amount ?? null,
         tax_amount: (item as any).tax_amount ?? null,
         withheld_amount: (item as any).withheld_amount ?? null,
+        local_tax_amount: item.local_tax_amount ?? 0,
+        local_withheld_amount: item.local_withheld_amount ?? 0,
         concept: item.concept ?? null,
         project_id: null,
         product_id: item.product
@@ -1139,6 +1149,8 @@ export class ExpenseForm implements OnInit {
       ctrl.get('discount_amount')?.disable();
       ctrl.get('tax_amount')?.disable();
       ctrl.get('withheld_amount')?.disable();
+      ctrl.get('local_tax_amount')?.disable({ emitEvent: false });
+      ctrl.get('local_withheld_amount')?.disable({ emitEvent: false });
 
       this.refreshItemTypeState(ctrl, false);
     });
@@ -1208,6 +1220,8 @@ export class ExpenseForm implements OnInit {
       ctrl.get('discount_amount')?.disable({ emitEvent: false });
       ctrl.get('tax_amount')?.disable({ emitEvent: false });
       ctrl.get('withheld_amount')?.disable({ emitEvent: false });
+      ctrl.get('local_tax_amount')?.disable({ emitEvent: false });
+      ctrl.get('local_withheld_amount')?.disable({ emitEvent: false });
 
       ctrl.get('payment_amount')?.disable({ emitEvent: false });
       ctrl.get('payment_date')?.disable({ emitEvent: false });
@@ -1446,6 +1460,8 @@ export class ExpenseForm implements OnInit {
       discount_amount: [data?.discount_amount ?? null],
       tax_amount: [data?.tax_amount ?? null],
       withheld_amount: [data?.withheld_amount ?? null],
+      local_tax_amount: [data?.local_tax_amount ?? null],
+      local_withheld_amount: [data?.local_withheld_amount ?? null],
 
       payment_amount: [isZeroCostDiscount ? 0 : data?.payment_amount ?? null],
       payment_date: [isZeroCostDiscount ? null : defaultPaymentDate],
@@ -1806,6 +1822,20 @@ onProductSelected(
               ? this.round2(Number(item.withheld_amount))
               : null,
 
+          local_tax_amount:
+            item.local_tax_amount !== null &&
+              item.local_tax_amount !== undefined &&
+              item.local_tax_amount !== ''
+              ? this.round2(Number(item.local_tax_amount))
+              : null,
+
+          local_withheld_amount:
+            item.local_withheld_amount !== null &&
+              item.local_withheld_amount !== undefined &&
+              item.local_withheld_amount !== ''
+              ? this.round2(Number(item.local_withheld_amount))
+              : null,
+
           payment_amount: paymentAmount,
 
           payment_date: this.resolveFrozenPaymentDate(item, paymentAmount),
@@ -1911,6 +1941,8 @@ onProductSelected(
     const base = Number(itemCtrl.get('base_amount')?.value ?? 0);
     const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
     const tax = Number(itemCtrl.get('tax_amount')?.value ?? 0);
+    const localTax = Number(itemCtrl.get('local_tax_amount')?.value ?? 0);
+    const localWithheld = Number(itemCtrl.get('local_withheld_amount')?.value ?? 0);
     const total = Number(itemCtrl.get('amount')?.value ?? 0);
 
     const money = (n: number) =>
@@ -1923,8 +1955,10 @@ onProductSelected(
       `Base: ${money(base)}`,
       `Descuento: -${money(discount)}`,
       `IVA: ${money(tax)}`,
+      localTax > 0 ? `Impuestos locales: ${money(localTax)}` : null,
+      localWithheld > 0 ? `Retenciones locales: -${money(localWithheld)}` : null,
       `Total: ${money(total)}`,
-    ].join('\n');
+    ].filter(Boolean).join('\n');
   }
 
   /**
@@ -1935,6 +1969,8 @@ onProductSelected(
     const discount = Number(itemCtrl.get('discount_amount')?.value ?? 0);
     const tax = Number(itemCtrl.get('tax_amount')?.value ?? 0);
     const withheld = Number(itemCtrl.get('withheld_amount')?.value ?? 0);
+    const localTax = Number(itemCtrl.get('local_tax_amount')?.value ?? 0);
+    const localWithheld = Number(itemCtrl.get('local_withheld_amount')?.value ?? 0);
     const total = Number(itemCtrl.get('amount')?.value ?? 0);
 
     const money = (n: number) =>
@@ -1948,10 +1984,22 @@ onProductSelected(
       discount > 0 ? `Descuento: -${money(discount)}` : null,
       `IVA: ${money(tax)}`,
       `Retención: -${money(withheld)}`,
+      localTax > 0 ? `Impuestos locales: ${money(localTax)}` : null,
+      localWithheld > 0 ? `Retenciones locales: -${money(localWithheld)}` : null,
       `Total: ${money(total)}`,
     ]
       .filter(Boolean)
       .join('\n');
+  }
+
+  /** Desglose de impuestos locales de un CFDI. */
+  buildLocalTaxTooltip(itemCtrl: AbstractControl): string {
+    const amount = this.round2(Number(itemCtrl.get('local_tax_amount')?.value ?? 0));
+    const withheld = this.round2(Number(itemCtrl.get('local_withheld_amount')?.value ?? 0));
+    return [
+      amount > 0 ? `Traslados locales: ${this.formatMoney(amount)}` : null,
+      withheld > 0 ? `Retenciones locales: -${this.formatMoney(withheld)}` : null,
+    ].filter(Boolean).join('\n');
   }
 
   // ==========================
