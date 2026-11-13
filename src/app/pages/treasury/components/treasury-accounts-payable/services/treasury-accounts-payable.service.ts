@@ -825,6 +825,36 @@ export class TreasuryAccountsPayableService {
     );
   }
 
+
+getRegisteredPaymentItems(
+  filters: entity.TreasuryRegisteredPaymentItemsFilters,
+): Observable<entity.TreasuryRegisteredPaymentItemsResponse> {
+  let params = new HttpParams()
+    .set('page', String(filters.page))
+    .set('limit', String(filters.limit));
+
+  if (filters.folio?.trim()) {
+    params = params.set('folio', filters.folio.trim());
+  }
+
+  if (filters.status) {
+    params = params.set('status', filters.status);
+  }
+
+  if (filters.sort?.trim()) {
+    params = params.set('sort', filters.sort.trim());
+  }
+
+  return this.http.get<
+    entity.TreasuryRegisteredPaymentItemsResponse
+  >(
+    `${this.apiUrl}/registered-payment-items`,
+    { params },
+  );
+}
+
+
+
 }
 
 

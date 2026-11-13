@@ -432,6 +432,89 @@ const PENDING_EXPENSE_ITEM_DISPLAYED_COLUMNS = [
   'actions',
 ];
 
+
+interface RegisteredPaymentTableRow
+  extends entity.TreasuryRegisteredPaymentItem {
+  id: number;
+  payment_status_label: string;
+}
+
+const REGISTERED_PAYMENT_COLUMNS: ColumnsConfig[] = [
+  {
+    key: 'internal_folio',
+    label: 'Folio',
+    sortable: true,
+    sortKey: 'internal_folio',
+  },
+  {
+    key: 'expense_item_id',
+    label: 'ID concepto',
+    sortable: true,
+    sortKey: 'expense_item_id',
+  },
+  {
+    key: 'concept',
+    label: 'Concepto',
+    sortable: true,
+    sortKey: 'concept',
+  },
+  {
+    key: 'supplier_display_name',
+    label: 'Proveedor',
+    sortable: true,
+    sortKey: 'supplier_display_name',
+  },
+  {
+    key: 'project_name',
+    label: 'Proyecto',
+    sortable: true,
+    sortKey: 'project_name',
+  },
+  {
+    key: 'amount',
+    label: 'Importe',
+    type: 'money',
+    align: 'right',
+    sortable: true,
+    sortKey: 'amount',
+  },
+  {
+    key: 'paid_amount',
+    label: 'Pagado',
+    type: 'money',
+    align: 'right',
+    sortable: true,
+    sortKey: 'paid_amount',
+  },
+  {
+    key: 'pending_amount',
+    label: 'Pendiente',
+    type: 'money',
+    align: 'right',
+    sortable: true,
+    sortKey: 'pending_amount',
+  },
+  {
+    key: 'payment_status_label',
+    label: 'Estado',
+    type: 'chip',
+    sortable: true,
+    sortKey: 'payment_status',
+    variantResolver: (row: RegisteredPaymentTableRow) =>
+      row.payment_status === 'paid'
+        ? 'chip-success'
+        : row.payment_status === 'partial'
+          ? 'chip-warning'
+          : 'chip-neutral',
+  },
+];
+
+const REGISTERED_PAYMENT_DISPLAYED_COLUMNS = [
+  ...REGISTERED_PAYMENT_COLUMNS.map(column => column.key),
+  'actions',
+];
+
+
 // =========================================================
 // COLUMNAS: HISTÓRICOS
 // =========================================================
@@ -683,9 +766,12 @@ type PendingWorkspaceView =
   | 'current'
   | 'historical';
 
+
 type PendingReconciliationMode =
   | 'purchase_orders'
-  | 'expense_items';
+  | 'expense_items'
+  | 'registered';
+
 
 @Component({
   selector: 'app-treasury-accounts-payable',
@@ -733,6 +819,21 @@ export class TreasuryAccountsPayable
 
   private readonly fb =
     inject(FormBuilder);
+
+
+  readonly registeredFolio = signal('');
+
+  readonly registeredTotal = signal(0);
+
+  readonly registeredItems =
+    signal<entity.TreasuryRegisteredPaymentItem[]>([]);
+
+  readonly loadingRegistered = signal(false);
+  readonly registeredSearchFinished = signal(false);
+  readonly registeredError = signal('');
+
+  private registeredRequestSequence = 0;
+
 
   // =========================================================
   // UI
@@ -3386,10 +3487,11 @@ export class TreasuryAccountsPayable
       );
   }
 
+
   openExpensePaymentHistory(
-    row:
-      entity.TreasuryPendingExpenseItemTableRow,
+    row: entity.TreasuryExpenseItemHistoryRow,
   ): void {
+
     const modalData:
       entity.TreasuryExpenseItemPaymentHistoryModalData = {
       expenseItem: row,
@@ -3422,6 +3524,15 @@ export class TreasuryAccountsPayable
           this.clearPaymentSelection();
           this.loadAvailableOutflows();
           this.loadPendingExpenseItems();
+
+
+          if (
+            this.pendingReconciliationMode() === 'registered' &&
+            this.registeredFolio().trim()
+          ) {
+            this.searchRegisteredPayments();
+          }
+
         },
       );
   }
@@ -3536,7 +3647,7 @@ export class TreasuryAccountsPayable
       const itemId = Number(selection.item.expense_item_id);
       const pending = roundMoney(Number(selection.item.pending_amount));
       if (!Number.isInteger(itemId) || itemId <= 0 || !selection.item.is_selectable ||
-          !Number.isFinite(pending) || pending <= 0 || blockedIds.has(itemId) || uniqueIds.has(itemId)) return false;
+        !Number.isFinite(pending) || pending <= 0 || blockedIds.has(itemId) || uniqueIds.has(itemId)) return false;
       uniqueIds.add(itemId);
       return true;
     });
@@ -4073,102 +4184,102 @@ export class TreasuryAccountsPayable
       });
   }
 
-private restoreHistoricalFilters(
-  regularizationStatus:
-    entity.TreasuryHistoricalRegularizationStatus,
-): void {
-  const storageKey =
-    this.getHistoricalFiltersStorageKey(
-      regularizationStatus,
-    );
+  private restoreHistoricalFilters(
+    regularizationStatus:
+      entity.TreasuryHistoricalRegularizationStatus,
+  ): void {
+    const storageKey =
+      this.getHistoricalFiltersStorageKey(
+        regularizationStatus,
+      );
 
-  const saved =
-    this.storage.getItem<
-      entity.TreasuryHistoricalPaymentUiFilters
-    >(
-      storageKey,
-    );
+    const saved =
+      this.storage.getItem<
+        entity.TreasuryHistoricalPaymentUiFilters
+      >(
+        storageKey,
+      );
 
-  const dateRange =
-    this.normalizeDateRange(
-      saved?.dateRange,
-    );
+    const dateRange =
+      this.normalizeDateRange(
+        saved?.dateRange,
+      );
 
-  this.historicalSorts = [
-    ...(saved?.sorts ?? []),
-  ];
+    this.historicalSorts = [
+      ...(saved?.sorts ?? []),
+    ];
 
-  const uiState:
-    entity.TreasuryHistoricalPaymentUiFilters = {
-    dateRange,
-
-    search:
-      saved?.search ?? '',
-
-    supplier_id:
-      saved?.supplier_id ?? null,
-
-    project_id:
-      saved?.project_id ?? null,
-
-    /*
-     * La pestaña determina obligatoriamente
-     * el estado histórico.
-     */
-    regularization_status:
-      regularizationStatus,
-
-    regularization_type:
-      saved?.regularization_type ?? '',
-
-    missing_payment_date:
-      saved?.missing_payment_date ?? '',
-
-    sorts: [
-      ...this.historicalSorts,
-    ],
-
-    page:
-      saved?.page ?? 1,
-
-    limit:
-      saved?.limit ??
-      DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
-  };
-
-  this.historicalFilterForm.reset(
-    {
-      dateRange:
-        uiState.dateRange,
+    const uiState:
+      entity.TreasuryHistoricalPaymentUiFilters = {
+      dateRange,
 
       search:
-        uiState.search,
+        saved?.search ?? '',
 
       supplier_id:
-        uiState.supplier_id,
+        saved?.supplier_id ?? null,
 
       project_id:
-        uiState.project_id,
+        saved?.project_id ?? null,
 
+      /*
+       * La pestaña determina obligatoriamente
+       * el estado histórico.
+       */
       regularization_status:
         regularizationStatus,
 
       regularization_type:
-        uiState.regularization_type,
+        saved?.regularization_type ?? '',
 
       missing_payment_date:
-        uiState.missing_payment_date,
-    },
-    {
-      emitEvent: false,
-    },
-  );
+        saved?.missing_payment_date ?? '',
 
-  this.historicalFilters =
-    this.buildHistoricalBackendFiltersFromUi(
-      uiState,
+      sorts: [
+        ...this.historicalSorts,
+      ],
+
+      page:
+        saved?.page ?? 1,
+
+      limit:
+        saved?.limit ??
+        DEFAULT_HISTORICAL_PAYMENTS_LIMIT,
+    };
+
+    this.historicalFilterForm.reset(
+      {
+        dateRange:
+          uiState.dateRange,
+
+        search:
+          uiState.search,
+
+        supplier_id:
+          uiState.supplier_id,
+
+        project_id:
+          uiState.project_id,
+
+        regularization_status:
+          regularizationStatus,
+
+        regularization_type:
+          uiState.regularization_type,
+
+        missing_payment_date:
+          uiState.missing_payment_date,
+      },
+      {
+        emitEvent: false,
+      },
     );
-}
+
+    this.historicalFilters =
+      this.buildHistoricalBackendFiltersFromUi(
+        uiState,
+      );
+  }
 
   private saveOutflowFiltersToStorage(
     state?: entity.TreasuryAvailableOutflowUiFilters,
@@ -4454,7 +4565,7 @@ private restoreHistoricalFilters(
       case 'impuesto':
         return 'Impuesto';
 
-              case 'caja_chica':
+      case 'caja_chica':
         return 'Caja chica';
 
       default:
@@ -4748,7 +4859,15 @@ private restoreHistoricalFilters(
   setPendingReconciliationMode(
     mode: PendingReconciliationMode,
   ): void {
+    if (this.pendingReconciliationMode() === mode) {
+      return;
+    }
+
     this.pendingReconciliationMode.set(mode);
+
+    if (mode === 'registered') {
+      this.loadRegisteredPayments();
+    }
   }
 
   /** El padre conserva la selección aunque el hijo se destruya al cambiar de pestaña. */
@@ -5397,4 +5516,231 @@ private restoreHistoricalFilters(
 
     this.loadHistoricalPayments();
   }
+
+
+
+  searchRegisteredPayments(): void {
+    this.registeredPage.set(1);
+    this.loadRegisteredPayments();
+  }
+
+  loadRegisteredPayments(): void {
+    const requestId = ++this.registeredRequestSequence;
+    const filters = this.registeredFilterForm.getRawValue();
+
+    const folio = filters.folio.trim();
+
+    if (folio.length > 100) {
+      this.registeredError.set(
+        'El folio no puede exceder 100 caracteres.',
+      );
+      return;
+    }
+
+    const sort = this.registeredSorts()
+      .map(item => `${item.key}:${item.direction}`)
+      .join(',');
+
+    this.registeredError.set('');
+    this.registeredSearchFinished.set(false);
+    this.loadingRegistered.set(true);
+
+    this.registeredItems.set([]);
+    this.registeredTotal.set(0);
+
+    this.accountsPayableService
+      .getRegisteredPaymentItems({
+        page: this.registeredPage(),
+        limit: this.registeredLimit(),
+        folio: folio || undefined,
+        status:
+          filters.status === 'all'
+            ? undefined
+            : filters.status,
+        sort: sort || undefined,
+      })
+      .pipe(
+        finalize(() => {
+          if (requestId === this.registeredRequestSequence) {
+            this.loadingRegistered.set(false);
+          }
+        }),
+      )
+      .subscribe({
+        next: response => {
+          if (requestId !== this.registeredRequestSequence) {
+            return;
+          }
+
+          this.registeredItems.set(response.data ?? []);
+          this.registeredTotal.set(response.meta?.total ?? 0);
+          this.registeredSearchFinished.set(true);
+        },
+
+        error: (error: unknown) => {
+          if (requestId !== this.registeredRequestSequence) {
+            return;
+          }
+
+          console.error(
+            'Error cargando pagos registrados:',
+            error,
+          );
+
+          this.registeredError.set(
+            'No fue posible cargar los pagos registrados.',
+          );
+        },
+      });
+  }
+
+
+
+  onRegisteredFolioInput(value: string): void {
+    ++this.registeredRequestSequence;
+
+    this.registeredFolio.set(value);
+    this.registeredItems.set([]);
+    this.registeredError.set('');
+    this.registeredSearchFinished.set(false);
+    this.loadingRegistered.set(false);
+  }
+
+
+  readonly registeredPaymentColumns =
+    REGISTERED_PAYMENT_COLUMNS;
+
+  readonly registeredPaymentDisplayedColumns =
+    REGISTERED_PAYMENT_DISPLAYED_COLUMNS;
+
+  readonly registeredStatus =
+    signal<'all' | 'paid' | 'partial' | 'unpaid'>('all');
+
+  readonly registeredPage = signal(1);
+  readonly registeredLimit = signal(10);
+
+  readonly registeredSorts =
+    signal<entity.TreasuryAccountsPayableSortItem[]>([]);
+
+  readonly registeredExtraActions:
+    DataTableExtraAction<RegisteredPaymentTableRow>[] = [
+      {
+        type: 'registeredPaymentHistory',
+        icon: 'history',
+        tooltip: 'Ver historial de pagos',
+      },
+    ];
+
+
+
+
+  readonly registeredTableRows = computed<
+    RegisteredPaymentTableRow[]
+  >(() =>
+    this.registeredItems().map(item => ({
+      ...item,
+      id: item.expense_item_id,
+      payment_status_label:
+        item.payment_status === 'paid'
+          ? 'Pagado'
+          : item.payment_status === 'partial'
+            ? 'Parcial'
+            : 'Sin pago activo',
+    })),
+  );
+
+
+
+
+  onRegisteredStatusChange(value: string): void {
+    const validStatuses = [
+      'all',
+      'paid',
+      'partial',
+      'unpaid',
+    ];
+
+    if (!validStatuses.includes(value)) {
+      return;
+    }
+
+    this.registeredStatus.set(
+      value as 'all' | 'paid' | 'partial' | 'unpaid',
+    );
+
+    this.registeredPage.set(1);
+  }
+
+
+  onRegisteredSortChange(
+    event: DataTableSortEvent,
+  ): void {
+    this.registeredSorts.set([...event.sorts]);
+    this.registeredPage.set(1);
+    this.loadRegisteredPayments();
+  }
+
+  onRegisteredPageChange(event: PageEvent): void {
+    this.registeredPage.set(event.pageIndex + 1);
+    this.registeredLimit.set(event.pageSize);
+    this.loadRegisteredPayments();
+  }
+
+  onRegisteredTableAction(
+    event: DataTableActionEvent<RegisteredPaymentTableRow>,
+  ): void {
+    if (event.type === 'registeredPaymentHistory') {
+      this.openExpensePaymentHistory(event.row);
+    }
+  }
+
+  clearRegisteredFilters(): void {
+    this.registeredFilterForm.reset({
+      folio: '',
+      status: 'all',
+    });
+
+    this.registeredSorts.set([]);
+    this.registeredPage.set(1);
+    this.loadRegisteredPayments();
+  }
+
+  readonly registeredFilterForm = this.fb.group({
+    folio: this.fb.nonNullable.control(''),
+    status: this.fb.nonNullable.control<
+      'all' | 'paid' | 'partial' | 'unpaid'
+    >('all'),
+  });
+
+  readonly registeredStatusOptions: Catalog[] = [
+    { id: 'all', name: 'Todos' },
+    { id: 'paid', name: 'Pagado' },
+    { id: 'partial', name: 'Parcial' },
+    { id: 'unpaid', name: 'Sin pago activo' },
+  ];
+
+  get hasActiveRegisteredFilters(): boolean {
+    const value = this.registeredFilterForm.getRawValue();
+
+    return Boolean(
+      value.folio.trim() ||
+      value.status !== 'all' ||
+      this.registeredSorts().length > 0
+    );
+  }
+
+  onRegisteredBtnsSectionAction(action: string): void {
+    switch (action) {
+      case 'search':
+        this.searchRegisteredPayments();
+        break;
+
+      case 'clean':
+        this.clearRegisteredFilters();
+        break;
+    }
+  }
+
+
+
 }

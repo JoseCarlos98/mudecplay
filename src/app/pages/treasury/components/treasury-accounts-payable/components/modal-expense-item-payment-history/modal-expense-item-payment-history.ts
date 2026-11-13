@@ -94,9 +94,9 @@ export class ModalExpenseItemPaymentHistory
   // INYECCIONES
   // =========================================================
   private readonly permissionsService =
-  inject(
-    PermissionsService,
-  );
+    inject(
+      PermissionsService,
+    );
 
   readonly data =
     inject<
@@ -163,10 +163,11 @@ export class ModalExpenseItemPaymentHistory
   // DATOS DEL CONCEPTO
   // =========================================================
 
-  get row():
-    entity.TreasuryPendingExpenseItemTableRow {
+
+  get row(): entity.TreasuryExpenseItemHistoryRow {
     return this.data.expenseItem;
   }
+
 
   get expenseItem():
     entity.TreasuryExpenseItemPaymentHistoryExpenseItem
@@ -818,26 +819,26 @@ export class ModalExpenseItemPaymentHistory
   // REVERSIÓN
   // =========================================================
 
-canReverseEvent(
-  event:
-    entity.TreasuryExpenseItemPaymentHistoryEvent,
-): boolean {
-  return (
-    this.permissionsService.isAdmin() &&
+  canReverseEvent(
+    event:
+      entity.TreasuryExpenseItemPaymentHistoryEvent,
+  ): boolean {
+    return (
+      this.permissionsService.isAdmin() &&
 
-    event.action_type ===
+      event.action_type ===
       'payment_applied' &&
 
-    event.payment.origin ===
+      event.payment.origin ===
       'new' &&
 
-    event.payment.status ===
+      event.payment.status ===
       'active' &&
 
-    event.application.status ===
+      event.application.status ===
       'active'
-  );
-}
+    );
+  }
 
   // =========================================================
   // ACCIONES

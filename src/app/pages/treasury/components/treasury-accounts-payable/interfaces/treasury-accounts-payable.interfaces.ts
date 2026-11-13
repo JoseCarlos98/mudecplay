@@ -984,9 +984,11 @@ export interface TreasuryHistoricalPaymentHistoryModalData {
 export type TreasuryExpenseItemPaymentHistoryActionType =
   | 'payment_applied'
   | 'payment_reversed';
+
 export interface TreasuryExpenseItemPaymentHistoryModalData {
-  expenseItem: TreasuryPendingExpenseItemTableRow;
+  expenseItem: TreasuryExpenseItemHistoryRow;
 }
+
 export interface TreasuryExpenseItemPaymentHistoryCompany {
   id: number;
   code: string;
@@ -1488,4 +1490,56 @@ export interface TreasuryPendingPurchaseOrdersResponse {
   data: TreasuryPendingPurchaseOrder[];
   summary: TreasuryPendingPurchaseOrdersSummary;
   meta: TreasuryPaginationMeta;
+}
+
+
+
+export interface TreasuryRegisteredPaymentItem {
+  expense_item_id: number;
+  expense_id: number;
+  internal_folio: string;
+  concept: string;
+  item_type: 'direct' | 'warehouse';
+  amount: number;
+  paid_amount: number;
+  pending_amount: number;
+  payment_status: 'paid' | 'partial' | 'unpaid';
+  supplier_display_name: string;
+  project_name: string;
+}
+
+
+export interface TreasuryRegisteredPaymentItemsFilters {
+  page: number;
+  limit: number;
+  folio?: string;
+  status?: 'paid' | 'partial' | 'unpaid';
+  sort?: string;
+}
+
+export interface TreasuryRegisteredPaymentItemsResponse {
+  data: TreasuryRegisteredPaymentItem[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    total_pages: number;
+  };
+}
+
+
+
+export interface TreasuryExpenseItemHistoryRow {
+  expense_item_id: number;
+  internal_folio: string;
+  concept: string;
+  item_type: TreasuryPendingExpenseItemType;
+  amount: number;
+  paid_amount: number;
+  pending_amount: number;
+  payment_status: 'unpaid' | 'partial' | 'paid';
+  supplier_display_name: string;
+  project_name: string;
+  supplier?: TreasuryAccountsPayableSupplierReference | null;
+  project?: TreasuryAccountsPayableProjectReference | null;
 }

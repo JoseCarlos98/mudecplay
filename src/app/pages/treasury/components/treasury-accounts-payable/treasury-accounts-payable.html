@@ -485,25 +485,16 @@
             accounts-payable-table-shell
           ">
 
-        <app-data-table
-          [data]="availableOutflowRows"
-          [columnsConfig]="availableOutflowColumns"
-          [displayedColumns]="availableOutflowDisplayedColumns"
-          [extraActions]="outflowExtraActions"
-          [sorts]="availableOutflowSorts"
-          [actionPermissions]="tableActionPermissions"
-          (sortChange)="onAvailableOutflowSortChange($event)"
-          (action)="onOutflowTableAction($event)">
+        <app-data-table [data]="availableOutflowRows" [columnsConfig]="availableOutflowColumns"
+          [displayedColumns]="availableOutflowDisplayedColumns" [extraActions]="outflowExtraActions"
+          [sorts]="availableOutflowSorts" [actionPermissions]="tableActionPermissions"
+          (sortChange)="onAvailableOutflowSortChange($event)" (action)="onOutflowTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator
-          [length]="outflowsTableData.meta.total"
-          [pageSize]="outflowFilters.limit"
-          [pageIndex]="outflowFilters.page - 1"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onAvailableOutflowPageChange($event)"
-          showFirstLastButtons>
+        <mat-paginator [length]="outflowsTableData.meta.total" [pageSize]="outflowFilters.limit"
+          [pageIndex]="outflowFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onAvailableOutflowPageChange($event)" showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -703,9 +694,7 @@
 
       <!-- MODALIDADES DE CONCILIACIÓN: solo panel derecho -->
       <nav class="accounts-payable-mode-tabs" aria-label="Modalidad de conciliación">
-        <button
-          type="button"
-          class="accounts-payable-mode-tab"
+        <button type="button" class="accounts-payable-mode-tab"
           [class.accounts-payable-mode-tab--active]="pendingReconciliationMode() === 'purchase_orders'"
           [attr.aria-pressed]="pendingReconciliationMode() === 'purchase_orders'"
           (click)="setPendingReconciliationMode('purchase_orders')">
@@ -713,29 +702,99 @@
           Por órdenes de compra
         </button>
 
-        <button
-          type="button"
-          class="accounts-payable-mode-tab"
+        <button type="button" class="accounts-payable-mode-tab"
           [class.accounts-payable-mode-tab--active]="pendingReconciliationMode() === 'expense_items'"
           [attr.aria-pressed]="pendingReconciliationMode() === 'expense_items'"
           (click)="setPendingReconciliationMode('expense_items')">
           <mat-icon aria-hidden="true">receipt_long</mat-icon>
           Por conceptos pendientes
         </button>
+
+
+        <button type="button" class="accounts-payable-mode-tab"
+          [class.accounts-payable-mode-tab--active]="pendingReconciliationMode() === 'registered'"
+          [attr.aria-pressed]="pendingReconciliationMode() === 'registered'"
+          (click)="setPendingReconciliationMode('registered')">
+          <mat-icon aria-hidden="true">history</mat-icon>
+          Pagos registrados
+        </button>
+
       </nav>
 
+
+
+      @if (pendingReconciliationMode() === 'registered') {
+
+      <div class="registered-payments">
+
+        <!-- ENCABEZADO -->
+        <div class="accounts-payable-panel__header">
+          <div>
+            <h2>Pagos registrados</h2>
+            <p>
+              Consulta los pagos de un gasto, incluso cuando
+              sus conceptos están completamente liquidados.
+            </p>
+          </div>
+
+          <div class="accounts-payable-panel__amount">
+            Resultados
+            <strong>
+              {{ registeredTotal() }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- FILTROS -->
+
+        <!-- FILTROS: MISMOS COMPONENTES QUE CONCEPTOS PENDIENTES -->
+        <form [formGroup]="registeredFilterForm">
+
+          <div class="c-filters accounts-payable-filters">
+
+            <app-input-field formControlName="folio" label="Folio del gasto" placeholder="Ej. G-2026-09-06" type="text"
+              [isFilter]="true">
+            </app-input-field>
+
+            <app-input-select formControlName="status" label="Estado" [options]="registeredStatusOptions">
+            </app-input-select>
+
+            <app-btns-section type="search" [hasActiveFilters]="hasActiveRegisteredFilters"
+              (action)="onRegisteredBtnsSectionAction($event)">
+            </app-btns-section>
+
+          </div>
+
+        </form>
+
+        <!-- TABLA Y PAGINADOR -->
+        <div class="c-module-table accounts-payable-table-shell">
+
+          <app-data-table [data]="registeredTableRows()" [columnsConfig]="registeredPaymentColumns"
+            [displayedColumns]="registeredPaymentDisplayedColumns" [extraActions]="registeredExtraActions"
+            [sorts]="registeredSorts()" [actionPermissions]="tableActionPermissions"
+            (sortChange)="onRegisteredSortChange($event)" (action)="onRegisteredTableAction($event)">
+          </app-data-table>
+
+          <mat-paginator [length]="registeredTotal()" [pageSize]="registeredLimit()" [pageIndex]="registeredPage() - 1"
+            [pageSizeOptions]="[5, 10, 25, 50]" (page)="onRegisteredPageChange($event)" showFirstLastButtons>
+          </mat-paginator>
+
+        </div>
+
+      </div>
+      }
+
+
       @if (pendingReconciliationMode() === 'purchase_orders') {
-        <app-treasury-pending-purchase-orders
-          [bankMovement]="selectedMovement()"
-          [selectedSelections]="selectedPurchaseOrderItems()"
-          [cashSelections]="selectedPurchaseOrderCashItems()"
-          [unavailableItemIds]="unavailablePurchaseOrderItemIds()"
-          (selectionChange)="onPurchaseOrderSelectionChange($event)"
-          (cashSelectionChange)="onPurchaseOrderCashSelectionChange($event)"
-          (applyPaymentRequested)="preparePurchaseOrderPayment()"
-          (cashPaymentRequested)="openPurchaseOrderCashPayment()"
-        />
-      } @else {
+      <app-treasury-pending-purchase-orders [bankMovement]="selectedMovement()"
+        [selectedSelections]="selectedPurchaseOrderItems()" [cashSelections]="selectedPurchaseOrderCashItems()"
+        [unavailableItemIds]="unavailablePurchaseOrderItemIds()"
+        (selectionChange)="onPurchaseOrderSelectionChange($event)"
+        (cashSelectionChange)="onPurchaseOrderCashSelectionChange($event)"
+        (applyPaymentRequested)="preparePurchaseOrderPayment()"
+        (cashPaymentRequested)="openPurchaseOrderCashPayment()" />
+      } @else if (pendingReconciliationMode() === 'expense_items') {
 
       <!-- ===============================================
              SUBTABS
@@ -1004,36 +1063,22 @@
           </app-input-date>
 
 
-          <app-input-field
-            formControlName="search"
-            label="Buscar"
-            placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto"
-            type="text"
+          <app-input-field formControlName="search" label="Buscar"
+            placeholder="Folio, CFDI, concepto, proveedor, RFC o proyecto" type="text" [isFilter]="true">
+          </app-input-field>
+
+
+          <app-input-field formControlName="amount" label="Importe" placeholder="Monto del concepto" type="money"
             [isFilter]="true">
           </app-input-field>
 
 
-          <app-input-field
-            formControlName="amount"
-            label="Importe"
-            placeholder="Monto del concepto"
-            type="money"
-            [isFilter]="true">
-          </app-input-field>
-
-
-          <app-autocomplete-multiple
-            formControlName="suppliersIds"
-            label="Proveedores"
-            [remote]="true"
-            catalogType="supplier"
-            valueMode="objects">
+          <app-autocomplete-multiple formControlName="suppliersIds" label="Proveedores" [remote]="true"
+            catalogType="supplier" valueMode="objects">
           </app-autocomplete-multiple>
 
 
-          <app-btns-section
-            type="search"
-            [hasActiveFilters]="hasActivePendingItemFilters"
+          <app-btns-section type="search" [hasActiveFilters]="hasActivePendingItemFilters"
             (action)="onPendingBtnsSectionAction($event)">
           </app-btns-section>
 
@@ -1067,25 +1112,16 @@
               accounts-payable-table-shell
             ">
 
-        <app-data-table
-          [data]="pendingExpenseItemRows"
-          [columnsConfig]="pendingExpenseItemColumns"
-          [displayedColumns]="pendingExpenseItemDisplayedColumns"
-          [extraActions]="pendingItemExtraActions"
-          [sorts]="pendingExpenseItemSorts"
-          [actionPermissions]="tableActionPermissions"
-          (sortChange)="onPendingExpenseItemSortChange($event)"
-          (action)="onPendingItemTableAction($event)">
+        <app-data-table [data]="pendingExpenseItemRows" [columnsConfig]="pendingExpenseItemColumns"
+          [displayedColumns]="pendingExpenseItemDisplayedColumns" [extraActions]="pendingItemExtraActions"
+          [sorts]="pendingExpenseItemSorts" [actionPermissions]="tableActionPermissions"
+          (sortChange)="onPendingExpenseItemSortChange($event)" (action)="onPendingItemTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator
-          [length]="pendingItemsTableData.meta.total"
-          [pageSize]="pendingItemFilters.limit"
-          [pageIndex]="pendingItemFilters.page - 1"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onPendingExpenseItemPageChange($event)"
-          showFirstLastButtons>
+        <mat-paginator [length]="pendingItemsTableData.meta.total" [pageSize]="pendingItemFilters.limit"
+          [pageIndex]="pendingItemFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPendingExpenseItemPageChange($event)" showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -1169,11 +1205,7 @@
         </div>
 
 
-        <button
-          type="button"
-          class="btn-primary"
-          [disabled]="!canPreparePayment()"
-          (click)="preparePayment()">
+        <button type="button" class="btn-primary" [disabled]="!canPreparePayment()" (click)="preparePayment()">
 
           <mat-icon>
             payments
@@ -1240,16 +1272,12 @@
           </app-input-field>
 
 
-          <app-input-select
-            formControlName="missing_payment_date"
-            label="Fecha registrada"
+          <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
             [options]="missingPaymentDateOptions">
           </app-input-select>
 
 
-          <app-btns-section
-            type="search"
-            [hasActiveFilters]="hasActiveHistoricalFilters"
+          <app-btns-section type="search" [hasActiveFilters]="hasActiveHistoricalFilters"
             (action)="onHistoricalBtnsSectionAction($event)">
           </app-btns-section>
 
@@ -1283,25 +1311,16 @@
               accounts-payable-table-shell
             ">
 
-        <app-data-table
-          [data]="historicalPaymentRows"
-          [columnsConfig]="historicalPendingPaymentColumns"
-          [displayedColumns]="historicalPendingDisplayedColumns"
-          [extraActions]="historicalExtraActions"
-          [sorts]="historicalSorts"
-          [actionPermissions]="tableActionPermissions"
-          (sortChange)="onHistoricalSortChange($event)"
-          (action)="onHistoricalTableAction($event)">
+        <app-data-table [data]="historicalPaymentRows" [columnsConfig]="historicalPendingPaymentColumns"
+          [displayedColumns]="historicalPendingDisplayedColumns" [extraActions]="historicalExtraActions"
+          [sorts]="historicalSorts" [actionPermissions]="tableActionPermissions"
+          (sortChange)="onHistoricalSortChange($event)" (action)="onHistoricalTableAction($event)">
         </app-data-table>
 
 
-        <mat-paginator
-          [length]="historicalTableData.meta.total"
-          [pageSize]="historicalFilters.limit"
-          [pageIndex]="historicalFilters.page - 1"
-          [pageSizeOptions]="[5, 10, 25, 50]"
-          (page)="onHistoricalPaymentPageChange($event)"
-          showFirstLastButtons>
+        <mat-paginator [length]="historicalTableData.meta.total" [pageSize]="historicalFilters.limit"
+          [pageIndex]="historicalFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onHistoricalPaymentPageChange($event)" showFirstLastButtons>
         </mat-paginator>
 
       </div>
@@ -1349,7 +1368,8 @@
           activeTab() ===
           'historical_regularized'
           ? 'Consulta los pagos históricos que ya tienen identificada su forma de pago, empresa o movimiento bancario.'
-          : 'Los pagos ya fueron aplicados al gasto. Solo falta identificar su forma de pago, empresa o movimiento bancario.'
+          : 'Los pagos ya fueron aplicados al gasto. Solo falta identificar su forma de pago, empresa o movimiento
+          bancario.'
           }}
         </p>
 
@@ -1442,14 +1462,10 @@
 
       <div class="cash-bulk-selection__actions">
 
-        <button
-          type="button"
-          class="
+        <button type="button" class="
             accounts-payable-button
             accounts-payable-button--success
-          "
-          [disabled]="!canBulkCash()"
-          (click)="openBulkCashPayment()">
+          " [disabled]="!canBulkCash()" (click)="openBulkCashPayment()">
 
           <mat-icon>
             payments
@@ -1460,13 +1476,10 @@
         </button>
 
 
-        <button
-          type="button"
-          class="
+        <button type="button" class="
             accounts-payable-button
             accounts-payable-button--neutral
-          "
-          (click)="clearBulkCashSelection()">
+          " (click)="clearBulkCashSelection()">
 
           <mat-icon>
             close
@@ -1490,18 +1503,11 @@
             accounts-payable-filters
           ">
 
-        <app-input-date
-          formControlName="dateRange"
-          label="Fecha de pago"
-          mode="range">
+        <app-input-date formControlName="dateRange" label="Fecha de pago" mode="range">
         </app-input-date>
 
 
-        <app-input-field
-          formControlName="search"
-          label="Buscar pago"
-          type="text"
-          [isFilter]="true">
+        <app-input-field formControlName="search" label="Buscar pago" type="text" [isFilter]="true">
         </app-input-field>
 
 
@@ -1510,25 +1516,18 @@
         'historical_regularized'
         ) {
 
-        <app-input-select
-          formControlName="regularization_type"
-          label="Tipo"
-          [options]="regularizationTypeOptions">
+        <app-input-select formControlName="regularization_type" label="Tipo" [options]="regularizationTypeOptions">
         </app-input-select>
 
         }
 
 
-        <app-input-select
-          formControlName="missing_payment_date"
-          label="Fecha registrada"
+        <app-input-select formControlName="missing_payment_date" label="Fecha registrada"
           [options]="missingPaymentDateOptions">
         </app-input-select>
 
 
-        <app-btns-section
-          type="search"
-          [hasActiveFilters]="hasActiveHistoricalFilters"
+        <app-btns-section type="search" [hasActiveFilters]="hasActiveHistoricalFilters"
           (action)="onHistoricalBtnsSectionAction($event)">
         </app-btns-section>
 
@@ -1544,13 +1543,10 @@
 
     <div class="cash-page-action">
 
-      <button
-        type="button"
-        class="
+      <button type="button" class="
           accounts-payable-button
           accounts-payable-button--info
-        "
-        (click)="selectHistoricalCashPage()">
+        " (click)="selectHistoricalCashPage()">
 
         <mat-icon>
           select_all
@@ -1570,33 +1566,23 @@
           accounts-payable-table-shell
         ">
 
-      <app-data-table
-        [data]="historicalPaymentRows"
-        [columnsConfig]="
+      <app-data-table [data]="historicalPaymentRows" [columnsConfig]="
           activeTab() === 'historical_regularized'
             ? historicalRegularizedPaymentColumns
             : historicalPendingPaymentColumns
-        "
-        [displayedColumns]="
+        " [displayedColumns]="
           activeTab() === 'historical_regularized'
             ? historicalRegularizedDisplayedColumns
             : historicalPendingDisplayedColumns
-        "
-        [extraActions]="historicalExtraActions"
-        [sorts]="historicalSorts"
-        [actionPermissions]="tableActionPermissions"
-        (sortChange)="onHistoricalSortChange($event)"
+        " [extraActions]="historicalExtraActions" [sorts]="historicalSorts"
+        [actionPermissions]="tableActionPermissions" (sortChange)="onHistoricalSortChange($event)"
         (action)="onHistoricalTableAction($event)">
       </app-data-table>
 
 
-      <mat-paginator
-        [length]="historicalTableData.meta.total"
-        [pageSize]="historicalFilters.limit"
-        [pageIndex]="historicalFilters.page - 1"
-        [pageSizeOptions]="[5, 10, 25, 50]"
-        (page)="onHistoricalPaymentPageChange($event)"
-        showFirstLastButtons>
+      <mat-paginator [length]="historicalTableData.meta.total" [pageSize]="historicalFilters.limit"
+        [pageIndex]="historicalFilters.page - 1" [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onHistoricalPaymentPageChange($event)" showFirstLastButtons>
       </mat-paginator>
 
     </div>
@@ -1608,8 +1594,5 @@
 </div>
 
 
-<app-loading-overlay
-  [visible]="loadingPage()"
-  [fullscreen]="true"
-  text="Cargando cuentas por pagar...">
+<app-loading-overlay [visible]="loadingPage()" [fullscreen]="true" text="Cargando cuentas por pagar...">
 </app-loading-overlay>
