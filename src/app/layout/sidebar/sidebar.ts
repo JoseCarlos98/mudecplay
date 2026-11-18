@@ -14,10 +14,8 @@ import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
-
 import { MenuItems } from './models/siderbar-models';
 import { AuthService } from '../../auth/services/auth.service';
-
 @Component({
   selector: 'app-sidebar',
   standalone: true,
@@ -35,15 +33,11 @@ import { AuthService } from '../../auth/services/auth.service';
 export class Sidebar {
   @Input() isMobile = false;
   @Input() mobileOpen = false;
-
   @Output() mobileClose = new EventEmitter<void>();
-
   private readonly auth = inject(AuthService);
   private readonly hostRef = inject(ElementRef<HTMLElement>);
-
   readonly isExpanded = signal(false);
   readonly openSectionName = signal<string | null>(null);
-
   private readonly menuItemsSource: (MenuItems & { roles?: string[] })[] = [
     {
       name: 'Gastos',
@@ -120,7 +114,6 @@ export class Sidebar {
             'TESORERIA_MOVIMIENTOS_BANCARIOS_IMPORTADOR',
           ],
         },
-
         // Fases siguientes: las activamos cuando exista backend/frontend.
         {
           name: 'Cuentas por pagar',
@@ -170,12 +163,12 @@ export class Sidebar {
           route: '/mano-de-obra/llegadas-retardos',
           roles: ['LLEGADAS_RETARDOS_EDITOR'],
         },
-        // {
-        //   name: 'Horas extras',
-        //   icon: 'more_time',
-        //   route: '/mano-de-obra/horas-extras',
-        //   roles: ['HORAS_EXTRAS_EDITOR'],
-        // },
+        {
+          name: 'Horas extras',
+          icon: 'more_time',
+          route: '/mano-de-obra/horas-extras',
+          roles: ['ASISTENCIA_EDITOR', 'HORAS_EXTRA_AUTORIZADOR'],
+        },
         // {
         //   name: 'Préstamos',
         //   icon: 'payments',
@@ -218,7 +211,6 @@ export class Sidebar {
           route: '/ordenes-compra/fotos-sin-gasto',
           roles: ['ORDENES_COMPRA_FOTOS_SIN_GASTO_EDITOR'],
         },
-        
       ],
     },
     {
@@ -267,7 +259,6 @@ export class Sidebar {
           route: '/productos',
           roles: ['PRODUCTOS_EDITOR'],
         },
-      
         {
           name: 'Usuarios',
           icon: 'people',
@@ -277,21 +268,16 @@ export class Sidebar {
       ],
     },
   ];
-
   readonly menuItems = computed<MenuItems[]>(() => {
     const roles = this.auth.currentUser()?.roles ?? [];
-
     if (!roles.length) return [];
-
     if (roles.includes('ADMIN_GENERAL')) {
       return this.menuItemsSource as MenuItems[];
     }
-
     const canSee = (item: MenuItems & { roles?: string[] }): boolean => {
       if (!item.roles?.length) return false;
       return item.roles.some((role) => roles.includes(role));
     };
-
     const filterTree = (
       items: (MenuItems & { roles?: string[] })[],
     ): MenuItems[] => {
@@ -300,87 +286,64 @@ export class Sidebar {
           const children = item.children?.length
             ? filterTree(item.children as (MenuItems & { roles?: string[] })[])
             : undefined;
-
           const hasVisibleChild = !!children?.length;
           const visibleBySelf = canSee(item);
-
           if (!visibleBySelf && !hasVisibleChild) return null;
-
           if (item.children?.length) {
             return {
               ...item,
               children,
             };
           }
-
           return { ...item };
         })
         .filter(Boolean) as MenuItems[];
     };
-
     return filterTree(this.menuItemsSource);
   });
-
   isOpen(): boolean {
     return this.isMobile ? this.mobileOpen : this.isExpanded();
   }
-
   expand(): void {
     if (this.isMobile) return;
-
     this.isExpanded.set(true);
   }
-
   collapse(): void {
     if (this.isMobile) return;
-
     this.isExpanded.set(false);
   }
-
   onFocusOut(event: FocusEvent): void {
     if (this.isMobile) return;
-
     const next = event.relatedTarget as Node | null;
-
     if (!next || !this.hostRef.nativeElement.contains(next)) {
       this.collapse();
     }
   }
-
   hasChildren(item: MenuItems): boolean {
     return !!item.children?.length;
   }
-
   isSectionOpen(itemName: string): boolean {
     return this.openSectionName() === itemName;
   }
-
   toggleSection(item: MenuItems, ev?: Event): void {
     ev?.stopPropagation();
-
     if (!item.children?.length) return;
-
     if (!this.isOpen()) {
       this.isExpanded.set(true);
       this.openSectionName.set(item.name);
       return;
     }
-
     this.openSectionName.update((current) =>
       current === item.name ? null : item.name,
     );
   }
-
   onMenuItemClick(): void {
     if (!this.isMobile) return;
-
     this.mobileClose.emit();
   }
-
   requestMobileClose(): void {
     this.mobileClose.emit();
   }
-
   logout(): void {
     this.mobileClose.emit();
     this.auth.logout();

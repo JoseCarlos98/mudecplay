@@ -65,6 +65,6 @@ export const LABOUR_ROUTES: Routes = [
     loadComponent: () =>
       import('./overtime/overtime').then(m => m.Overtime),
     canActivate: [rolesGuard],
-    data: { roles: ['HORAS_EXTRAS_EDITOR'] },
+    data: { roles: ['ASISTENCIA_EDITOR', 'HORAS_EXTRA_AUTORIZADOR'] },
   },
 ];

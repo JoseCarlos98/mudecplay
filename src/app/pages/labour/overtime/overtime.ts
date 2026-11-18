@@ -1,22 +1,26 @@
 import { CommonModule, CurrencyPipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { catchError, finalize, forkJoin, Observable, of, take } from 'rxjs';
 
 import { ModuleHeader } from '../../../shared/ui/module-header/module-header';
 import { ModuleHeaderConfig } from '../../../shared/ui/module-header/interfaces/module-header-interface';
 import { InputDate } from '../../../shared/ui/input-date/input-date';
-import {
-  InputSelect,
-  SelectCatalogOption,
-} from '../../../shared/ui/input-select/input-select';
+import { InputSelect, SelectCatalogOption } from '../../../shared/ui/input-select/input-select';
 import { InputField } from '../../../shared/ui/input-field/input-field';
 import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
 import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
 import { DialogService } from '../../../shared/services/dialog.service';
-
+import { AuthService } from '../../../auth/services/auth.service';
+import { ModalOvertimeForm, OvertimeFormModalData } from './components/modal-overtime-form/modal-overtime-form';
+import { ModalOvertime, OvertimeAuthorizeModalData, OvertimeAuthorizeModalResult } from './components/modal-overtime/modal-overtime';
+import { ModalLabourExtraReason, LabourExtraReasonDialogData } from './components/modal-labour-extra-reason/modal-labour-extra-reason';
+import { Catalog } from '../../../shared/interfaces/general-interfaces';
+import { CatalogsService } from '../../../shared/services/catalogs.service';
 import {
   ColumnsConfig,
   ColumnVariant,
@@ -25,19 +29,28 @@ import {
   TableActionPermissions,
 } from '../../../shared/ui/data-table/interfaces/table-interfaces';
 
+import { EmployeesService } from '../employees/services/employees.service';
+import { DailyAssistanceService } from '../daily-assistance/services/daily-assistance.service';
+import { EmployeeAttendanceCatalogRow } from '../daily-assistance/interfaces/daily-assistance-interfaces';
 import {
-  ModalOvertime,
-  OvertimeAuthorizeModalData,
-  OvertimeAuthorizeModalResult,
-} from './components/modal-overtime/modal-overtime';
-
-import { ModalOvertimeForm } from './components/modal-overtime-form/modal-overtime-form';
+  AuthorizedLabourExtraDto, CancelledLabourExtraDto,
+  LabourExtraRecordDto, LabourExtraStatus, ReversedLabourExtraDto,
+} from './interfaces/overtime-interfaces';
+import { OvertimeService } from './services/overtime.service';
 
 type OvertimeTab = 'overtime' | 'sunday';
-type RowStatus = 'pending' | 'authorized' | 'cancelled';
+
+type OvertimeFilters = {
+  workDate: string;
+  employeeName: string;
+  area: string;
+  project: string;
+  status: string;
+};
 
 interface OvertimeRow {
-  id: number;
+  // BIGINT: conservar string, nunca convertir a Number.
+  id: string;
   kind: OvertimeTab;
   employee_name: string;
   area_label: string;
@@ -47,21 +60,20 @@ interface OvertimeRow {
   worked_until?: string;
   extra_days_label?: string;
   amount: number;
-  status: RowStatus;
+  status: LabourExtraStatus;
   status_label: string;
   authorized_by: string | null;
 }
 
 interface TableResponse<T> {
   data: T[];
-  meta: {
-    total: number;
-  };
+  meta: { total: number };
 }
 
+// ETAPA 3: consultas, altas, autorización, cancelación y reversión reales.
 const HEADER_CONFIG: ModuleHeaderConfig = {
   showNew: true,
-  newRoles: ['HORAS_EXTRAS_EDITOR'],
+  newRoles: ['ASISTENCIA_EDITOR'],
 };
 
 @Component({
@@ -73,7 +85,6 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
     MatIconModule,
     MatPaginatorModule,
     CurrencyPipe,
-
     ModuleHeader,
     InputDate,
     InputField,
@@ -87,44 +98,40 @@ const HEADER_CONFIG: ModuleHeaderConfig = {
 })
 export class Overtime implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly dialogService = inject(DialogService);
+  private readonly auth = inject(AuthService);
+  private readonly overtimeService = inject(OvertimeService);
+  private readonly employeesService = inject(EmployeesService);
+  private readonly dailyAssistanceService = inject(DailyAssistanceService);
+  private readonly catalogsService = inject(CatalogsService);
 
   readonly headerConfig = HEADER_CONFIG;
   readonly activeTab = signal<OvertimeTab>('overtime');
   readonly loadingTable = signal(false);
   readonly savingAction = signal(false);
 
-  filters = {
-    page: 1,
-    limit: 5,
-  };
+  filters = { page: 1, limit: 5 };
 
+  // Una fecha fija de abril de 2026 impediría ver los registros recientes.
   formFilters = this.fb.nonNullable.group({
-    workDate: ['2026-04-29'],
+    workDate: [''],
     employeeName: [''],
     area: [''],
     project: [''],
     status: [''],
   });
 
-  readonly areaOptions: SelectCatalogOption[] = [
-    { id: 'ELÉCTRICOS', name: 'ELÉCTRICOS' },
-    { id: 'ARQUITECTOS', name: 'ARQUITECTOS' },
-    { id: 'ADMINISTRATIVOS', name: 'ADMINISTRATIVOS' },
-    { id: 'TÉCNICOS', name: 'TÉCNICOS' },
-    { id: 'CHOFERES', name: 'CHOFERES' },
-    { id: 'PLOMEROS', name: 'PLOMEROS' },
-    { id: 'CARPINTEROS', name: 'CARPINTEROS' },
-  ];
+  private readonly appliedFilters = signal<OvertimeFilters>({
+    workDate: '',
+    employeeName: '',
+    area: '',
+    project: '',
+    status: '',
+  });
 
-  readonly projectOptions: SelectCatalogOption[] = [
-    { id: 'Residencial Los Álamos', name: 'Residencial Los Álamos' },
-    { id: 'Plaza Cedros', name: 'Plaza Cedros' },
-    { id: 'Torre Norte', name: 'Torre Norte' },
-    { id: 'Bodega Industrial', name: 'Bodega Industrial' },
-    { id: 'Parque Logístico', name: 'Parque Logístico' },
-    { id: 'Villas del Sol', name: 'Villas del Sol' },
-  ];
+  areaOptions: SelectCatalogOption[] = [];
+  projectOptions: SelectCatalogOption[] = [];
 
   readonly statusOptions: SelectCatalogOption[] = [
     { id: '', name: 'Todos' },
@@ -134,164 +141,40 @@ export class Overtime implements OnInit {
   ];
 
   readonly tableActionPermissions: TableActionPermissions = {
-    showEdit: true,
-    showDelete: true,
+    showEdit: false,
+    showDelete: false,
   };
-
   readonly extraActions: DataTableExtraAction<OvertimeRow>[] = [
     {
       type: 'authorize',
       icon: 'check_circle',
       tooltip: 'Autorizar',
-      visible: (row) => row.status === 'pending',
+      visible: (row) => row.status === 'pending' && this.auth.hasRole('HORAS_EXTRA_AUTORIZADOR'),
+      disabled: () => this.loadingTable() || this.savingAction(),
+    },
+    {
+      type: 'cancel',
+      icon: 'cancel',
+      tooltip: 'Cancelar pendiente',
+      visible: (row) => row.status === 'pending' && this.auth.hasRole('ASISTENCIA_EDITOR'),
+      disabled: () => this.loadingTable() || this.savingAction(),
+    },
+    {
+      type: 'reverse',
+      icon: 'undo',
+      tooltip: 'Revertir autorización',
+      visible: (row) => row.status === 'authorized' && this.auth.hasRole('HORAS_EXTRA_AUTORIZADOR'),
       disabled: () => this.loadingTable() || this.savingAction(),
     },
   ];
 
-  readonly overtimeRowsSeed: OvertimeRow[] = [
-    {
-      id: 1,
-      kind: 'overtime',
-      employee_name: 'Vegeta',
-      area_label: 'ELÉCTRICOS',
-      work_date: '2026-04-29',
-      project_name: 'Residencial Los Álamos',
-      overtime_label: '1 h 30 min',
-      amount: 535.71,
-      status: 'pending',
-      status_label: 'Pendiente',
-      authorized_by: null,
-    },
-    {
-      id: 2,
-      kind: 'overtime',
-      employee_name: 'Goku',
-      area_label: 'ARQUITECTOS',
-      work_date: '2026-04-29',
-      project_name: 'Plaza Cedros',
-      overtime_label: '2 h 00 min',
-      amount: 714.28,
-      status: 'authorized',
-      status_label: 'Autorizada',
-      authorized_by: 'JCUEVAS',
-    },
-    {
-      id: 3,
-      kind: 'overtime',
-      employee_name: 'Bulma',
-      area_label: 'ADMINISTRATIVOS',
-      work_date: '2026-04-29',
-      project_name: 'Torre Norte',
-      overtime_label: '1 h 00 min',
-      amount: 285.71,
-      status: 'authorized',
-      status_label: 'Autorizada',
-      authorized_by: 'DCUEVAS',
-    },
-    {
-      id: 4,
-      kind: 'overtime',
-      employee_name: 'Piccolo',
-      area_label: 'TÉCNICOS',
-      work_date: '2026-04-29',
-      project_name: 'Bodega Industrial',
-      overtime_label: '0 h 30 min',
-      amount: 178.57,
-      status: 'cancelled',
-      status_label: 'Cancelada',
-      authorized_by: 'HCUEVAS',
-    },
-    {
-      id: 5,
-      kind: 'overtime',
-      employee_name: 'Trunks',
-      area_label: 'CHOFERES',
-      work_date: '2026-04-29',
-      project_name: 'Parque Logístico',
-      overtime_label: '3 h 00 min',
-      amount: 892.86,
-      status: 'pending',
-      status_label: 'Pendiente',
-      authorized_by: null,
-    },
-    {
-      id: 6,
-      kind: 'overtime',
-      employee_name: 'Gohan',
-      area_label: 'PLOMEROS',
-      work_date: '2026-04-29',
-      project_name: 'Villas del Sol',
-      overtime_label: '1 h 30 min',
-      amount: 421.43,
-      status: 'authorized',
-      status_label: 'Autorizada',
-      authorized_by: 'JCUEVAS',
-    },
-  ];
+  private readonly overtimeRows = signal<OvertimeRow[]>([]);
+  private readonly sundayRows = signal<OvertimeRow[]>([]);
 
-  readonly sundayRowsSeed: OvertimeRow[] = [
-    {
-      id: 101,
-      kind: 'sunday',
-      employee_name: 'Roshi',
-      area_label: 'CHOFERES',
-      work_date: '2026-04-26',
-      project_name: 'Residencial Los Álamos',
-      worked_until: '13:30',
-      extra_days_label: '1 día extra',
-      amount: 410,
-      status: 'pending',
-      status_label: 'Pendiente',
-      authorized_by: null,
-    },
-    {
-      id: 102,
-      kind: 'sunday',
-      employee_name: 'Krillin',
-      area_label: 'CARPINTEROS',
-      work_date: '2026-04-26',
-      project_name: 'Plaza Cedros',
-      worked_until: '14:30',
-      extra_days_label: '2 días extra',
-      amount: 820,
-      status: 'authorized',
-      status_label: 'Autorizada',
-      authorized_by: 'JCUEVAS',
-    },
-    {
-      id: 103,
-      kind: 'sunday',
-      employee_name: 'Yamcha',
-      area_label: 'TÉCNICOS',
-      work_date: '2026-04-26',
-      project_name: 'Bodega Industrial',
-      worked_until: '12:00',
-      extra_days_label: '1 día extra',
-      amount: 390,
-      status: 'cancelled',
-      status_label: 'Cancelada',
-      authorized_by: 'HCUEVAS',
-    },
-    {
-      id: 104,
-      kind: 'sunday',
-      employee_name: 'Ten Shin Han',
-      area_label: 'ELÉCTRICOS',
-      work_date: '2026-04-26',
-      project_name: 'Torre Norte',
-      worked_until: '16:00',
-      extra_days_label: '2 días extra',
-      amount: 930,
-      status: 'authorized',
-      status_label: 'Autorizada',
-      authorized_by: 'DCUEVAS',
-    },
-  ];
-
-  overtimeRows: OvertimeRow[] = [...this.overtimeRowsSeed];
-  sundayRows: OvertimeRow[] = [...this.sundayRowsSeed];
-
-  overtimeTableData!: TableResponse<OvertimeRow>;
+  overtimeTableData: TableResponse<OvertimeRow> = {
+    data: [],
+    meta: { total: 0 },
+  };
 
   displayedColumns: string[] = [];
   columnsConfig: ColumnsConfig[] = [];
@@ -301,115 +184,214 @@ export class Overtime implements OnInit {
   );
 
   readonly filteredRows = computed(() => {
-    const raw = this.formFilters.getRawValue();
-    const employeeName = raw.employeeName.trim().toLowerCase();
-    const source = this.activeTab() === 'overtime' ? this.overtimeRows : this.sundayRows;
+    const filters = this.appliedFilters();
+    const term = filters.employeeName.trim().toLocaleLowerCase('es-MX');
+    const source = this.activeTab() === 'overtime'
+      ? this.overtimeRows()
+      : this.sundayRows();
 
-    return source.filter((row) => {
-      const matchDate = !raw.workDate || row.work_date === raw.workDate;
-      const matchEmployee =
-        !employeeName || row.employee_name.toLowerCase().includes(employeeName);
-      const matchArea = !raw.area || row.area_label === raw.area;
-      const matchProject = !raw.project || row.project_name === raw.project;
-      const matchStatus = !raw.status || row.status === raw.status;
-
-      return matchDate && matchEmployee && matchArea && matchProject && matchStatus;
-    });
+    return source.filter((row) =>
+      (!filters.workDate || row.work_date === filters.workDate) &&
+      (!term || row.employee_name.toLocaleLowerCase('es-MX').includes(term)) &&
+      (!filters.area || row.area_label === filters.area) &&
+      (!filters.project || row.project_name === filters.project) &&
+      (!filters.status || row.status === filters.status),
+    );
   });
 
-  readonly pendingCount = computed(
-    () => this.filteredRows().filter((row) => row.status === 'pending').length,
+  readonly pendingCount = computed(() =>
+    this.filteredRows().filter((row) => row.status === 'pending').length,
   );
 
-  readonly authorizedCount = computed(
-    () => this.filteredRows().filter((row) => row.status === 'authorized').length,
+  readonly authorizedCount = computed(() =>
+    this.filteredRows().filter((row) => row.status === 'authorized').length,
   );
 
   readonly totalAmount = computed(() =>
-    this.filteredRows().reduce((acc, row) => acc + row.amount, 0),
+    this.filteredRows()
+      .filter((row) => row.status !== 'cancelled')
+      .reduce((total, row) => total + row.amount, 0),
   );
 
   readonly totalRegisteredLabel = computed(() => {
-    if (this.activeTab() === 'overtime') {
-      const totalMinutes = this.filteredRows().reduce((acc, row) => {
-        if (!row.overtime_label) return acc;
+    const rows = this.filteredRows();
+    if (this.activeTab() === 'sunday') return String(rows.length);
 
-        const match = row.overtime_label.match(/(\d+)\s*h\s*(\d+)\s*min/i);
-        if (!match) return acc;
-
-        return acc + Number(match[1]) * 60 + Number(match[2]);
-      }, 0);
-
-      return `${(totalMinutes / 60).toFixed(1)} h`;
-    }
-
-    return `${this.filteredRows().length}`;
+    const minutes = rows.reduce((sum, row) => {
+      const match = row.overtime_label?.match(/(\d+)\s*h\s*(\d+)\s*min/i);
+      return sum + (match ? Number(match[1]) * 60 + Number(match[2]) : 0);
+    }, 0);
+    return `${(minutes / 60).toFixed(1)} h`;
   });
 
   ngOnInit(): void {
     this.setTableConfig();
-    this.refreshTable();
+    this.loadRecords();
   }
 
   get hasActiveFilters(): boolean {
     const raw = this.formFilters.getRawValue();
-    const defaultDate = this.activeTab() === 'overtime' ? '2026-04-29' : '2026-04-26';
-
     return !!(
-      raw.employeeName.trim() ||
-      raw.area ||
-      raw.project ||
-      raw.status ||
-      raw.workDate !== defaultDate
+      raw.workDate || raw.employeeName.trim() || raw.area || raw.project || raw.status
     );
+  }
+
+  /** Lectura de máximo 100 registros por tipo; la API todavía no pagina. */
+  private loadRecords(): void {
+    if (this.loadingTable()) return;
+    this.loadingTable.set(true);
+
+    forkJoin({
+      overtime: this.overtimeService.getOvertime().pipe(
+        catchError((error) => {
+          console.error('Error consultando horas extra', error);
+          return of([] as LabourExtraRecordDto[]);
+        }),
+      ),
+      sundays: this.overtimeService.getSundays().pipe(
+        catchError((error) => {
+          console.error('Error consultando domingos', error);
+          return of([] as LabourExtraRecordDto[]);
+        }),
+      ),
+      employees: this.employeesService.getCatalog().pipe(
+        catchError((error) => {
+          console.warn('Catálogo de empleados no disponible', error);
+          return of([] as Catalog[]);
+        }),
+      ),
+      attendanceEmployees: this.dailyAssistanceService.getAttendanceEmployees('').pipe(
+        catchError((error) => {
+          console.warn('Áreas de empleados no disponibles', error);
+          return of([] as EmployeeAttendanceCatalogRow[]);
+        }),
+      ),
+      projects: this.catalogsService.projectsCatalog('').pipe(
+        catchError((error) => {
+          console.warn('Catálogo de proyectos no disponible', error);
+          return of([] as Catalog[]);
+        }),
+      ),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => this.loadingTable.set(false)))
+      .subscribe({
+        next: ({ overtime, sundays, employees, attendanceEmployees, projects }) => {
+          const employeeNames = new Map(
+            employees.map((item) => [Number(item.id), item.name]),
+          );
+          const areas = new Map(
+            attendanceEmployees.map((item) => [Number(item.id), item.employee_area_name ?? 'Sin área']),
+          );
+          const projectNames = new Map(
+            projects.map((item) => [Number(item.id), item.name]),
+          );
+
+          const toRow = (item: LabourExtraRecordDto): OvertimeRow => {
+            const extraDays = item.extra_days_snapshot == null
+              ? null
+              : Number(item.extra_days_snapshot);
+            const extraDaysLabel = extraDays == null || !Number.isFinite(extraDays)
+              ? 'Sin dato'
+              : `${extraDays.toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${extraDays === 1 ? 'día extra' : 'días extra'}`;
+
+            return {
+              id: item.id,
+              kind: item.kind,
+              employee_name: employeeNames.get(item.employee_id) ?? `Empleado #${item.employee_id}`,
+              area_label: areas.get(item.employee_id) ?? 'Sin área',
+              work_date: item.work_date,
+              project_name: projectNames.get(item.project_id) ?? `Proyecto #${item.project_id}`,
+              overtime_label: item.kind === 'overtime'
+                ? `${Number(item.overtime_hours ?? 0)} h ${String(Number(item.overtime_minutes ?? 0)).padStart(2, '0')} min`
+                : undefined,
+              worked_until: item.worked_until?.slice(0, 5) ?? undefined,
+              extra_days_label: item.kind === 'sunday' ? extraDaysLabel : undefined,
+              amount: Number(item.amount_snapshot),
+              status: item.status,
+              status_label: this.statusLabel(item.status),
+              authorized_by: item.authorized_by_user_id == null
+                ? null
+                : `Usuario #${item.authorized_by_user_id}`,
+            };
+          };
+
+          this.overtimeRows.set(overtime.map(toRow));
+          this.sundayRows.set(sundays.map(toRow));
+          this.updateFilterOptions();
+          this.refreshTable();
+
+        },
+        error: (error) => {
+          console.error('Error inesperado al cargar horas extra y domingos', error);
+        },
+      });
+  }
+
+  private statusLabel(status: LabourExtraStatus): string {
+    switch (status) {
+      case 'pending': return 'Pendiente';
+      case 'authorized': return 'Autorizada';
+      case 'cancelled': return 'Cancelada';
+    }
+  }
+
+  private updateFilterOptions(): void {
+    const rows = [...this.overtimeRows(), ...this.sundayRows()];
+    this.areaOptions = [...new Set(rows.map((row) => row.area_label))]
+      .sort((a, b) => a.localeCompare(b, 'es-MX'))
+      .map((name) => ({ id: name, name }));
+    this.projectOptions = [...new Set(rows.map((row) => row.project_name))]
+      .sort((a, b) => a.localeCompare(b, 'es-MX'))
+      .map((name) => ({ id: name, name }));
   }
 
   onHeaderAction(action: string): void {
     if (action !== 'new') return;
+    if (this.savingAction() || this.loadingTable()) return;
+    if (!this.auth.hasRole('ASISTENCIA_EDITOR')) {
+      return;
+    }
 
-    this.formModal();
+    const kind = this.activeTab();
+    const date = new Date();
+    if (kind === 'sunday') {
+      // Selecciona el domingo más reciente, incluido hoy.
+      date.setDate(date.getDate() - date.getDay());
+    }
+    const defaultDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const data: OvertimeFormModalData = { kind, defaultDate };
+
+    this.dialogService.open(ModalOvertimeForm, data, 'medium')
+      .afterClosed()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((created: boolean | null) => {
+        if (created === true) this.loadRecords();
+      });
   }
 
   onBtnsSectionAction(action: string): void {
-    switch (action) {
-      case 'search':
-        this.filters.page = 1;
-        this.refreshTable();
-        break;
-
-      case 'clean':
-        this.clearFilters();
-        break;
+    if (action === 'search') {
+      this.appliedFilters.set(this.formFilters.getRawValue());
+      this.filters.page = 1;
+      this.refreshTable();
+    } else if (action === 'clean') {
+      this.clearFilters();
     }
   }
 
   setActiveTab(tab: OvertimeTab): void {
     if (this.activeTab() === tab) return;
-
     this.activeTab.set(tab);
     this.filters.page = 1;
-
-    this.formFilters.patchValue({
-      workDate: tab === 'overtime' ? '2026-04-29' : '2026-04-26',
-      employeeName: '',
-      area: '',
-      project: '',
-      status: '',
-    });
-
+    this.formFilters.reset({ workDate: '', employeeName: '', area: '', project: '', status: '' });
+    this.appliedFilters.set(this.formFilters.getRawValue());
     this.setTableConfig();
     this.refreshTable();
   }
 
   clearFilters(): void {
-    this.formFilters.reset({
-      workDate: this.activeTab() === 'overtime' ? '2026-04-29' : '2026-04-26',
-      employeeName: '',
-      area: '',
-      project: '',
-      status: '',
-    });
-
+    this.formFilters.reset({ workDate: '', employeeName: '', area: '', project: '', status: '' });
+    this.appliedFilters.set(this.formFilters.getRawValue());
     this.filters.page = 1;
     this.refreshTable();
   }
@@ -421,72 +403,25 @@ export class Overtime implements OnInit {
   }
 
   onTableAction(event: DataTableActionEvent<OvertimeRow>): void {
+    if (this.savingAction() || this.loadingTable()) return;
+
     switch (event.type) {
       case 'authorize':
         this.openAuthorizeModal(event.row);
         break;
-
-      case 'delete':
-        this.confirmCancel(event.row);
+      case 'cancel':
+        this.openReasonModal(event.row, 'cancel');
         break;
-
-      case 'edit':
-        this.formModal(event.row);
+      case 'reverse':
+        this.openReasonModal(event.row, 'reverse');
         break;
     }
   }
 
-  formModal(row?: OvertimeRow): void {
-    const employeeOptions: SelectCatalogOption[] = Array.from(
-      new Map(
-        [...this.overtimeRowsSeed, ...this.sundayRowsSeed].map((item) => [
-          item.employee_name,
-          {
-            id: item.employee_name,
-            name: item.employee_name,
-          },
-        ]),
-      ).values(),
-    );
-
-    const modalData = {
-      mode: row ? 'edit' : 'create',
-      kind: row?.kind ?? this.activeTab(),
-      defaultDate:
-        this.formFilters.getRawValue().workDate ||
-        (this.activeTab() === 'overtime' ? '2026-04-29' : '2026-04-26'),
-      employeeOptions,
-      areaOptions: this.areaOptions,
-      projectOptions: this.projectOptions,
-      hourly_rate: 357.14,
-      daily_salary: 2857.12,
-      row: row
-        ? {
-            id: row.id,
-            employee_name: row.employee_name,
-            area_label: row.area_label,
-            work_date: row.work_date,
-            project_name: row.project_name,
-            overtime_label: row.overtime_label ?? null,
-            worked_until: row.worked_until ?? null,
-            extra_days_label: row.extra_days_label ?? null,
-            amount: row.amount ?? null,
-          }
-        : null,
-    };
-
-    this.dialogService
-      .open(ModalOvertimeForm, modalData, 'medium')
-      .afterClosed()
-      .subscribe((result) => {
-        if (result) this.refreshTable();
-      });
-  }
-
   private openAuthorizeModal(row: OvertimeRow): void {
-    if (this.savingAction()) return;
+    if (row.status !== 'pending' || !this.auth.hasRole('HORAS_EXTRA_AUTORIZADOR')) return;
 
-    const modalData: OvertimeAuthorizeModalData = {
+    const data: OvertimeAuthorizeModalData = {
       id: row.id,
       kind: row.kind,
       employee_name: row.employee_name,
@@ -497,101 +432,104 @@ export class Overtime implements OnInit {
       worked_until: row.worked_until ?? null,
       extra_days_label: row.extra_days_label ?? null,
       amount: row.amount,
-      authorized_by: row.authorized_by ?? null,
+      authorized_by: row.authorized_by,
     };
 
-    this.dialogService
-      .open(ModalOvertime, modalData, 'mini')
+    this.dialogService.open(ModalOvertime, data, 'mini')
       .afterClosed()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((result: OvertimeAuthorizeModalResult | null) => {
-        if (!result || result.action !== 'authorized') return;
+        if (result?.action !== 'authorized' || result.payload.id !== row.id) return;
 
-        this.savingAction.set(true);
-
-        // TODO backend:
-        // aquí irá la petición real para autorizar el registro
-
-        const targetCollection =
-          row.kind === 'overtime' ? this.overtimeRows : this.sundayRows;
-
-        const target = targetCollection.find((item) => item.id === result.payload.id);
-        if (target) {
-          target.status = 'authorized';
-          target.status_label = 'Autorizada';
-          target.authorized_by = 'JCUEVAS';
-        }
-
-        this.savingAction.set(false);
-        this.refreshTable();
+        // No se envía authorization_note: el endpoint actual no recibe ese campo.
+        const request: Observable<AuthorizedLabourExtraDto> = row.kind === 'overtime'
+          ? this.overtimeService.authorizeOvertime(row.id)
+          : this.overtimeService.authorizeSunday(row.id);
+        this.runMutation(request);
       });
   }
 
-  private confirmCancel(row: OvertimeRow): void {
-    if (this.savingAction()) return;
+  private openReasonModal(row: OvertimeRow, action: 'cancel' | 'reverse'): void {
+    const requiredRole = action === 'cancel' ? 'ASISTENCIA_EDITOR' : 'HORAS_EXTRA_AUTORIZADOR';
+    const requiredStatus: LabourExtraStatus = action === 'cancel' ? 'pending' : 'authorized';
+    if (!this.auth.hasRole(requiredRole) || row.status !== requiredStatus) return;
 
-    const message =
-      row.kind === 'overtime'
-        ? `¿Quieres cancelar las horas extra de "${row.employee_name}"?`
-        : `¿Quieres cancelar el domingo trabajado de "${row.employee_name}"?`;
+    const data: LabourExtraReasonDialogData = {
+      action,
+      kind: row.kind,
+      employeeName: row.employee_name,
+      workDate: row.work_date,
+      amount: row.amount,
+    };
 
-    this.dialogService
-      .confirm({
-        size: 'mini',
-        message,
-        confirmText: 'Cancelar registro',
-        cancelText: 'Volver',
-      })
-      .subscribe((confirmed) => {
-        if (!confirmed) return;
+    this.dialogService.open(ModalLabourExtraReason, data, 'small')
+      .afterClosed()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((reason: string | null) => {
+        if (typeof reason !== 'string' || reason.trim().length < 5 || reason.trim().length > 255) return;
+        const trimmedReason = reason.trim();
 
-        this.savingAction.set(true);
-
-        // TODO backend:
-        // aquí irá la petición real para cancelar el registro
-
-        const targetCollection =
-          row.kind === 'overtime' ? this.overtimeRows : this.sundayRows;
-
-        const target = targetCollection.find((item) => item.id === row.id);
-        if (target) {
-          target.status = 'cancelled';
-          target.status_label = 'Cancelada';
-          target.authorized_by = target.authorized_by || 'HCUEVAS';
+        if (action === 'cancel') {
+          const request: Observable<CancelledLabourExtraDto> = row.kind === 'overtime'
+            ? this.overtimeService.cancelPendingOvertime(row.id, trimmedReason)
+            : this.overtimeService.cancelPendingSunday(row.id, trimmedReason);
+          this.runMutation(request);
+        } else {
+          const request: Observable<ReversedLabourExtraDto> = row.kind === 'overtime'
+            ? this.overtimeService.reverseOvertime(row.id, trimmedReason)
+            : this.overtimeService.reverseSunday(row.id, trimmedReason);
+          this.runMutation(request);
         }
-
-        this.savingAction.set(false);
-        this.refreshTable();
       });
   }
+
+
+
+  private runMutation(request: Observable<unknown>): void {
+    if (this.savingAction() || this.loadingTable()) return;
+
+    this.savingAction.set(true);
+
+    request.pipe(
+      take(1),
+      takeUntilDestroyed(this.destroyRef),
+      finalize(() => this.savingAction.set(false)),
+    ).subscribe({
+      next: () => {
+        // La respuesta exitosa la notifica AuthInterceptor.
+        // Recargar los datos reales desde NestJS.
+        this.loadRecords();
+      },
+
+      error: (error) => {
+        console.error(
+          'Error al actualizar horas extra o domingo trabajado',
+          error,
+        );
+
+        // AuthInterceptor ya muestra los errores HTTP.
+        if (error?.status === 409) {
+          this.loadRecords();
+        }
+      },
+    });
+  }
+
 
   private resolveStatusVariant(row: OvertimeRow): ColumnVariant {
     switch (row.status) {
-      case 'pending':
-        return 'chip-warning';
-
-      case 'authorized':
-        return 'chip-success';
-
-      case 'cancelled':
-      default:
-        return 'chip-danger';
+      case 'pending': return 'chip-warning';
+      case 'authorized': return 'chip-success';
+      case 'cancelled': return 'chip-danger';
     }
   }
 
   private setTableConfig(): void {
     if (this.activeTab() === 'overtime') {
       this.displayedColumns = [
-        'employee_name',
-        'area_label',
-        'work_date',
-        'project_name',
-        'overtime_label',
-        'amount',
-        'status_label',
-        'authorized_by',
-        'actions',
+        'employee_name', 'area_label', 'work_date', 'project_name',
+        'overtime_label', 'amount', 'status_label', 'authorized_by', 'actions',
       ];
-
       this.columnsConfig = [
         { key: 'employee_name', label: 'Empleado' },
         { key: 'area_label', label: 'Área', type: 'chip', typeVariant: 'chip-neutral' },
@@ -600,27 +538,16 @@ export class Overtime implements OnInit {
         { key: 'overtime_label', label: 'Horas extra' },
         { key: 'amount', label: 'Importe', type: 'money', align: 'right' },
         {
-          key: 'status_label',
-          label: 'Estatus',
-          type: 'chip',
+          key: 'status_label', label: 'Estatus', type: 'chip',
           variantResolver: (row: OvertimeRow) => this.resolveStatusVariant(row),
         },
         { key: 'authorized_by', label: 'Autorizó', fallback: '—' },
       ];
     } else {
       this.displayedColumns = [
-        'employee_name',
-        'area_label',
-        'work_date',
-        'project_name',
-        'worked_until',
-        'extra_days_label',
-        'amount',
-        'status_label',
-        'authorized_by',
-        'actions',
+        'employee_name', 'area_label', 'work_date', 'project_name',
+        'worked_until', 'extra_days_label', 'amount', 'status_label', 'authorized_by', 'actions',
       ];
-
       this.columnsConfig = [
         { key: 'employee_name', label: 'Empleado' },
         { key: 'area_label', label: 'Área', type: 'chip', typeVariant: 'chip-neutral' },
@@ -630,9 +557,7 @@ export class Overtime implements OnInit {
         { key: 'extra_days_label', label: 'Días extra' },
         { key: 'amount', label: 'Importe', type: 'money', align: 'right' },
         {
-          key: 'status_label',
-          label: 'Estatus',
-          type: 'chip',
+          key: 'status_label', label: 'Estatus', type: 'chip',
           variantResolver: (row: OvertimeRow) => this.resolveStatusVariant(row),
         },
         { key: 'authorized_by', label: 'Autorizó', fallback: '—' },
@@ -641,15 +566,11 @@ export class Overtime implements OnInit {
   }
 
   private refreshTable(): void {
-    const rows = [...this.filteredRows()];
+    const rows = this.filteredRows();
     const start = (this.filters.page - 1) * this.filters.limit;
-    const end = start + this.filters.limit;
-
     this.overtimeTableData = {
-      data: rows.slice(start, end),
-      meta: {
-        total: rows.length,
-      },
+      data: rows.slice(start, start + this.filters.limit),
+      meta: { total: rows.length },
     };
   }
 }

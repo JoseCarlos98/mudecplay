@@ -1,83 +1,151 @@
+
 :host {
   display: block;
+  min-width: 0;
+  height: 100%;
 }
 
-.c-loading-host {
-  .c-filters{
-    padding-top: 5px;
-  }
+/* =========================================
+   LAYOUT GENERAL
+========================================= */
+
+.overtime-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  min-height: 0;
+  padding-bottom: 14px;
 }
+
+/* =========================================
+   ENCABEZADO Y FILTROS
+========================================= */
+
+.overtime-filter-card {
+  flex: 0 0 auto;
+  margin-bottom: 0 !important;
+  padding-bottom: 18px !important;
+  min-width: 0;
+}
+
+.overtime-filters {
+  padding-top: 12px;
+  align-items: end;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* =========================================
+   INDICADORES
+========================================= */
 
 .overtime-summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 15px;
+  min-width: 0;
 }
 
 .overtime-summary-card {
+  position: relative;
+  min-width: 0;
+  min-height: 91px;
+  padding: 12px 14px;
+
   background: #fff;
-  border: 1px solid rgba(35, 31, 32, 0.08);
+  border: 1px solid rgba(39, 170, 225, 0.14);
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  min-height: 88px;
-  padding: 14px 16px;
 
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
 
   transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  /* Línea lateral como en Asistencia diaria */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 13px;
+    bottom: 13px;
+    width: 3px;
+    border-radius: 0 4px 4px 0;
+    background: rgba(39, 170, 225, 0.7);
+  }
 
   &:hover {
-    border-color: rgba(39, 170, 225, 0.18);
-    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
     transform: translateY(-1px);
+    border-color: rgba(39, 170, 225, 0.3);
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
   }
 
   &__icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+
     display: grid;
     place-items: center;
     flex-shrink: 0;
 
+    color: var(--color-primary-strong);
+    background: rgba(39, 170, 225, 0.09);
+
     mat-icon {
-      font-size: 22px;
-      width: 22px;
-      height: 22px;
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
     }
   }
 
   &__content {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    justify-content: center;
+    gap: 7px;
     min-width: 0;
   }
 
   &__label {
-    font-size: 13px;
+    display: block;
+    margin: 0;
+
     color: #6b7280;
+    font-size: 11px;
+    line-height: 1.3;
     font-weight: 700;
-    letter-spacing: 0.2px;
+    letter-spacing: 0.35px;
+    text-transform: uppercase;
   }
 
   &__value {
+    display: block;
+    margin: 0;
+
     color: var(--color-secundary);
-    font-size: 19px;
-    line-height: 1.05;
+    font-size: 23px;
+    line-height: 1;
     font-weight: 800;
+    font-variant-numeric: tabular-nums;
   }
 
+  /* PENDIENTES */
   &--warning {
+    &::before {
+      background: #f59e0b;
+    }
+
     .overtime-summary-card__icon {
+      color: #b45309;
       background: rgba(245, 158, 11, 0.12);
-      color: #d97706;
     }
 
     .overtime-summary-card__value {
@@ -85,10 +153,15 @@
     }
   }
 
+  /* AUTORIZADOS */
   &--success {
+    &::before {
+      background: #4caf50;
+    }
+
     .overtime-summary-card__icon {
-      background: rgba(16, 185, 129, 0.12);
-      color: #059669;
+      color: #2e7d32;
+      background: rgba(76, 175, 80, 0.1);
     }
 
     .overtime-summary-card__value {
@@ -96,10 +169,15 @@
     }
   }
 
+  /* HORAS / DOMINGOS */
   &--info {
+    &::before {
+      background: #0284c7;
+    }
+
     .overtime-summary-card__icon {
-      background: rgba(39, 170, 225, 0.12);
-      color: var(--color-primary-strong);
+      color: #0369a1;
+      background: rgba(2, 132, 199, 0.1);
     }
 
     .overtime-summary-card__value {
@@ -107,10 +185,15 @@
     }
   }
 
+  /* IMPORTE */
   &--purple {
+    &::before {
+      background: #6366f1;
+    }
+
     .overtime-summary-card__icon {
-      background: rgba(99, 102, 241, 0.10);
       color: #5b5fc7;
+      background: rgba(99, 102, 241, 0.1);
     }
 
     .overtime-summary-card__value {
@@ -119,18 +202,251 @@
   }
 }
 
-.c-table-loading-host {
+/* =========================================
+   PANEL PRINCIPAL DE REGISTROS
+========================================= */
+
+.overtime-board-card {
   position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 430px;
+
+  /*
+   * Permite que el paginador se ubique al
+   * fondo del panel sin tapar registros.
+   */
+  height: clamp(
+    430px,
+    calc(100dvh - 360px),
+    860px
+  );
+
+  margin-bottom: 0 !important;
+  padding: 14px 14px 0 !important;
+
+  overflow: hidden;
 }
+
+/* =========================================
+   PESTAÑAS
+========================================= */
+
+.overtime-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  flex: 0 0 auto;
+
+  padding-bottom: 13px;
+  margin-bottom: 0;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+
+  /*
+   * Reutiliza los estilos compartidos
+   * c-pill-tabs y c-pill-tab-btn.
+   */
+  .c-pill-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+
+    white-space: nowrap;
+
+    transition:
+      background 0.18s ease,
+      color 0.18s ease,
+      border-color 0.18s ease;
+  }
+}
+
+/* =========================================
+   CONTENEDOR DE TABLA
+========================================= */
+
+.overtime-table-layout {
+  display: flex;
+  flex-direction: column;
+
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+/*
+ * Solamente la tabla tiene scroll.
+ * El paginador queda fuera de esta área.
+ */
+.overtime-table-scroll {
+  position: relative;
+
+  flex: 1 1 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.5);
+    border-radius: 999px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+.overtime-table-content {
+  display: block !important;
+
+  width: 100%;
+  min-width: 950px;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  overflow: visible !important;
+
+  app-data-table {
+    display: block;
+    width: 100%;
+  }
+}
+
+/* =========================================
+   PAGINACIÓN
+========================================= */
+
+.overtime-paginator-bar {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  flex: 0 0 auto;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 56px;
+
+  margin-top: auto;
+
+  background: #fff;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+
+  /*
+   * No depende del scroll de la tabla.
+   * Nunca ocupa espacio sobre una fila.
+   */
+  mat-paginator {
+    display: block;
+    position: static !important;
+
+    flex: 0 1 auto;
+
+    min-width: 0;
+    width: auto;
+
+    margin: 0 !important;
+    padding: 0;
+
+    background: transparent;
+
+    transform: none !important;
+    bottom: auto !important;
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
 
 @media screen and (max-width: 1180px) {
   .overtime-summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .overtime-board-card {
+    height: clamp(
+      450px,
+      calc(100dvh - 400px),
+      760px
+    );
+  }
 }
 
 @media screen and (max-width: 640px) {
+  .overtime-page {
+    gap: 12px;
+  }
+
+  .overtime-filter-card {
+    padding-bottom: 14px !important;
+  }
+
+  .overtime-filters {
+    gap: 10px;
+  }
+
   .overtime-summary-grid {
     grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .overtime-summary-card {
+    min-height: 75px;
+    padding: 11px 13px;
+
+    &__value {
+      font-size: 21px;
+    }
+  }
+
+  .overtime-board-card {
+    height: 490px;
+    min-height: 490px;
+    padding: 12px 10px 0 !important;
+  }
+
+  .overtime-tabs {
+    gap: 7px;
+    padding-bottom: 12px;
+
+    .c-pill-tab-btn {
+      font-size: 11px;
+    }
+  }
+
+  .overtime-table-content {
+    min-width: 900px;
+  }
+
+  .overtime-paginator-bar {
+    min-height: 56px;
   }
 }

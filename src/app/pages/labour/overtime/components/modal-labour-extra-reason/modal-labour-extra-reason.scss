@@ -1,0 +1,66 @@
+.labour-reason-dialog {
+  display: grid;
+  gap: 1rem;
+
+  &__body {
+    display: grid;
+    gap: 1rem;
+  }
+
+  &__summary {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.8rem 1rem;
+
+    p {
+      margin: 0.25rem 0;
+      color: #374151;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__warning {
+    margin: 0;
+    padding: 0.75rem 0.9rem;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 0.6rem;
+    color: #9a3412;
+    line-height: 1.4;
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #374151;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  textarea {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.5rem;
+    padding: 0.7rem;
+    font: inherit;
+    color: #111827;
+    background: #fff;
+
+    &:focus-visible {
+      border-color: #2563eb;
+      outline: 2px solid rgba(37, 99, 235, 0.3);
+      outline-offset: 1px;
+    }
+  }
+
+  &__length {
+    margin-top: 0.35rem;
+    color: #64748b;
+    font-size: 0.8rem;
+    text-align: right;
+  }
+}

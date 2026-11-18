@@ -11,7 +11,7 @@ import { InputField } from '../../../../../shared/ui/input-field/input-field';
 export type OvertimeAuthorizeKind = 'overtime' | 'sunday';
 
 export interface OvertimeAuthorizeModalData {
-  id: number;
+  id: string;
   kind: OvertimeAuthorizeKind;
   employee_name: string;
   area_label: string | null;
@@ -27,7 +27,7 @@ export interface OvertimeAuthorizeModalData {
 export interface OvertimeAuthorizeModalResult {
   action: 'authorized';
   payload: {
-    id: number;
+    id: string;
     authorization_note: string | null;
   };
 }
