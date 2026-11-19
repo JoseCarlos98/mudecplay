@@ -3,7 +3,6 @@ import { Component, DestroyRef, OnInit, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, distinctUntilChanged, finalize, Observable, of, startWith, switchMap } from 'rxjs';
 
 import { ModuleHeader } from '../../../../../shared/ui/module-header/module-header';
@@ -49,7 +48,6 @@ export class ModalOvertimeForm implements OnInit {
   private readonly extraApi = inject(OvertimeService);
   private readonly attendanceApi = inject(DailyAssistanceService);
   private readonly catalogsApi = inject(CatalogsService);
-  private readonly snackBar = inject(MatSnackBar);
 
   readonly headerConfig = HEADER_CONFIG;
   saving = false;
@@ -58,6 +56,11 @@ export class ModalOvertimeForm implements OnInit {
   employees: EmployeeAttendanceCatalogRow[] = [];
   employeeOptions: SelectCatalogOption[] = [];
   projectOptions: SelectCatalogOption[] = [];
+
+  readonly sundayPaymentOptions: SelectCatalogOption[] = [
+    { id: 'hours', name: 'Pagar 3 horas' },
+    { id: 'day', name: 'Pagar 1 día completo' },
+  ];
 
   readonly minutesOptions: SelectCatalogOption[] = Array.from({ length: 60 }, (_, minute) => ({
     id: minute,
@@ -71,9 +74,13 @@ export class ModalOvertimeForm implements OnInit {
     overtime_hours: [1, [Validators.required, Validators.min(0), Validators.max(24)]],
     overtime_minutes: [0, [Validators.required, Validators.min(0), Validators.max(59)]],
     worked_until: ['13:00', Validators.required],
+    sunday_payment_choice: [''],
   });
 
   get isOvertime(): boolean { return this.data.kind === 'overtime'; }
+  get requiresSundayPaymentChoice(): boolean {
+    return !this.isOvertime && this.form.controls.worked_until.value.trim() === '12:00';
+  }
   get modalTitle(): string { return this.isOvertime ? 'Registrar horas extra' : 'Registrar domingo trabajado'; }
 
   get selectedEmployeeName(): string {
@@ -115,7 +122,7 @@ export class ModalOvertimeForm implements OnInit {
 
   get saveDisabled(): boolean {
     if (this.saving || this.loadingEmployees || this.loadingProjects || this.form.invalid) return true;
-    const { employee_id, project_id, overtime_hours, overtime_minutes, worked_until } = this.form.getRawValue();
+    const { employee_id, project_id, overtime_hours, overtime_minutes, worked_until, sunday_payment_choice } = this.form.getRawValue();
     if (!Number.isSafeInteger(Number(employee_id)) || Number(employee_id) < 1 ||
         !Number.isSafeInteger(Number(project_id)) || Number(project_id) < 1) return true;
     if (this.isOvertime) {
@@ -127,11 +134,23 @@ export class ModalOvertimeForm implements OnInit {
     }
     if (!this.isSundayDate || !/^\d{2}:\d{2}$/.test(worked_until)) return true;
     const [h, m] = worked_until.split(':').map(Number);
-    return h < 0 || h > 23 || m < 0 || m > 59;
+    const totalMinutes = h * 60 + m;
+    // Diego: corte cada 30 min, entre 09:30 y 18:00. La selección es obligatoria solo a las 12:00.
+    if ((m !== 0 && m !== 30) || totalMinutes < 9 * 60 + 30 || totalMinutes > 18 * 60) return true;
+    return totalMinutes === 12 * 60 && sunday_payment_choice !== 'hours' && sunday_payment_choice !== 'day';
   }
 
   ngOnInit(): void {
     this.loadProjects();
+    this.form.controls.worked_until.valueChanges.pipe(
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe((workedUntil) => {
+      // Evita mantener una elección oculta al cambiar de 12:00 a otra salida.
+      if (workedUntil.trim() !== '12:00') {
+        this.form.controls.sunday_payment_choice.setValue('');
+      }
+    });
     this.form.controls.work_date.valueChanges.pipe(
       startWith(this.form.controls.work_date.value),
       distinctUntilChanged(),
@@ -144,7 +163,6 @@ export class ModalOvertimeForm implements OnInit {
         return this.attendanceApi.getAttendanceEmployees(workDate).pipe(
           catchError((error) => {
             console.error('No se pudieron cargar empleados para la fecha', error);
-            this.snackBar.open('No se pudieron cargar los empleados para esa fecha.', 'Cerrar', { duration: 6000 });
             return of([] as EmployeeAttendanceCatalogRow[]);
           }),
           finalize(() => { this.loadingEmployees = false; }),
@@ -168,7 +186,6 @@ export class ModalOvertimeForm implements OnInit {
       },
       error: (error) => {
         console.error('No se pudieron cargar los proyectos', error);
-        this.snackBar.open('No se pudieron cargar los proyectos.', 'Cerrar', { duration: 6000 });
       },
     });
   }
@@ -195,6 +212,9 @@ export class ModalOvertimeForm implements OnInit {
       : this.extraApi.createSunday({
           ...base,
           worked_until: value.worked_until.trim(),
+          ...(value.worked_until.trim() === '12:00'
+            ? { sunday_payment_choice: value.sunday_payment_choice as 'hours' | 'day' }
+            : {}),
         } satisfies CreateLabourSundayDto);
 
     this.saving = true;
@@ -203,15 +223,11 @@ export class ModalOvertimeForm implements OnInit {
       finalize(() => { this.saving = false; }),
     ).subscribe({
       next: () => {
-        this.snackBar.open('Registro creado como pendiente.', 'Cerrar', { duration: 4000 });
         this.dialogRef.close(true);
       },
       error: (error) => {
+        // El interceptor global muestra el error sin duplicar notificaciones.
         console.error('Error al registrar horas extra o domingo', error);
-        const message = error?.error?.message;
-        const detail = Array.isArray(message) ? message.join(' · ') :
-          (typeof message === 'string' && message.trim() ? message : 'No se pudo registrar. Revisa los datos e intenta otra vez.');
-        this.snackBar.open(detail, 'Cerrar', { duration: 8000 });
       },
     });
   }

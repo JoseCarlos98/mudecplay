@@ -56,6 +56,12 @@
             <app-input-field formControlName="worked_until" label="Trabajó hasta (HH:mm)"
               type="text"></app-input-field>
           </div>
+          @if (requiresSundayPaymentChoice) {
+            <div class="md:col-span-1">
+              <app-input-select formControlName="sunday_payment_choice" label="Pago a las 12:00"
+                [options]="sundayPaymentOptions"></app-input-select>
+            </div>
+          }
         }
       </div>
 
@@ -64,7 +70,11 @@
           <div><strong>Duración:</strong> {{ formattedDuration }}</div>
         } @else {
           <div><strong>Trabajó hasta:</strong> {{ form.controls.worked_until.value }}</div>
-          <div><strong>Turno dominical:</strong> inicia a las 09:00; el backend valida la hora de salida.</div>
+          <div><strong>Turno dominical:</strong> inicia a las 09:00; cortes de 30 minutos.</div>
+          @if (requiresSundayPaymentChoice) {
+            <div><strong>Regla 12:00:</strong> selecciona pagar 3 horas o 1 día completo.</div>
+          }
+          <div><strong>Costo:</strong> el importe adicional se asigna al proyecto elegido; no se crean horas ordinarias desde este formulario.</div>
         }
         <div><strong>Importe:</strong> lo calcula y registra NestJS con el sueldo correspondiente.</div>
         <div><strong>Estado inicial:</strong> pendiente. No se crea ningún gasto hasta autorizar.</div>

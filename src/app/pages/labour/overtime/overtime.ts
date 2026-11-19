@@ -290,9 +290,52 @@ export class Overtime implements OnInit {
             const extraDays = item.extra_days_snapshot == null
               ? null
               : Number(item.extra_days_snapshot);
-            const extraDaysLabel = extraDays == null || !Number.isFinite(extraDays)
-              ? 'Sin dato'
-              : `${extraDays.toLocaleString('es-MX', { maximumFractionDigits: 3 })} ${extraDays === 1 ? 'día extra' : 'días extra'}`;
+
+            const workedUntil = item.worked_until?.slice(0, 5) ?? '';
+
+            const [hour, minute] = workedUntil.split(':').map(Number);
+
+            const workedUntilMinutes = /^\d{2}:\d{2}$/.test(workedUntil)
+              ? hour * 60 + minute
+              : null;
+
+            const isThreeHourPayment =
+              item.kind === 'sunday' &&
+              workedUntil === '12:00' &&
+              item.sunday_payment_choice === 'hours';
+
+            // Después de las 13:00 se pagan horas adicionales al día completo.
+            const additionalMinutes =
+              item.kind === 'sunday' &&
+                extraDays === 1 &&
+                workedUntilMinutes !== null &&
+                workedUntilMinutes > 13 * 60 &&
+                workedUntilMinutes < 16 * 60
+                ? workedUntilMinutes - 13 * 60
+                : 0;
+
+            const additionalHours = Math.floor(additionalMinutes / 60);
+            const remainingMinutes = additionalMinutes % 60;
+
+            const additionalTimeLabel = [
+              additionalHours > 0
+                ? `${additionalHours} ${additionalHours === 1 ? 'hora' : 'horas'}`
+                : '',
+              remainingMinutes > 0 ? `${remainingMinutes} min` : '',
+            ]
+              .filter(Boolean)
+              .join(' ');
+
+            const extraDaysLabel = isThreeHourPayment
+              ? '3 horas'
+              : extraDays == null || !Number.isFinite(extraDays)
+                ? 'Sin dato'
+                : additionalMinutes > 0
+                  ? `1 día + ${additionalTimeLabel}`
+                  : `${extraDays.toLocaleString('es-MX', {
+                    maximumFractionDigits: 3,
+                  })} ${extraDays === 1 ? 'día extra' : 'días extra'}`;
+
 
             return {
               id: item.id,
@@ -554,7 +597,7 @@ export class Overtime implements OnInit {
         { key: 'work_date', label: 'Fecha', type: 'date' },
         { key: 'project_name', label: 'Proyecto' },
         { key: 'worked_until', label: 'Trabajó hasta' },
-        { key: 'extra_days_label', label: 'Días extra' },
+        { key: 'extra_days_label', label: 'Tiempo pagado' },
         { key: 'amount', label: 'Importe', type: 'money', align: 'right' },
         {
           key: 'status_label', label: 'Estatus', type: 'chip',

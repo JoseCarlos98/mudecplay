@@ -16,6 +16,7 @@ export interface LabourExtraRecordDto {
   work_date: string; // YYYY-MM-DD
   status: LabourExtraStatus;
   worked_until: string | null; // HH:mm:ss, para domingo
+  sunday_payment_choice: 'hours' | 'day' | null; // elección explícita para las 12:00
   extra_days_snapshot: number | string | null;
   overtime_hours: number | null;
   overtime_minutes: number | null;
@@ -41,6 +42,7 @@ export interface CreateLabourSundayDto {
   project_id: number;
   work_date: string; // domingo, YYYY-MM-DD
   worked_until: string; // HH:mm (ej. 16:30)
+  sunday_payment_choice?: 'hours' | 'day'; // obligatorio si worked_until === '12:00'
 }
 
 export interface CreatedLabourOvertimeDto {
@@ -68,6 +70,7 @@ export interface CreatedLabourSundayDto {
   attendance_id: number | null;
   work_date: string;
   worked_until: string;
+  sunday_payment_choice: 'hours' | 'day' | null;
   extra_days_snapshot: number | string | null;
   extra_minutes: number;
   amount_snapshot: number;
