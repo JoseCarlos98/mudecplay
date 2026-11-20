@@ -169,12 +169,12 @@ export class Sidebar {
           route: '/mano-de-obra/horas-extras',
           roles: ['ASISTENCIA_EDITOR', 'HORAS_EXTRA_AUTORIZADOR'],
         },
-        // {
-        //   name: 'Préstamos',
-        //   icon: 'payments',
-        //   route: '/mano-de-obra/prestamos',
-        //   roles: ['PRESTAMOS_EDITOR'],
-        // },
+        {
+          name: 'Préstamos',
+          icon: 'payments',
+          route: '/mano-de-obra/prestamos',
+          roles: ['PRESTAMOS_EDITOR'],
+        },
         // {
         //   name: 'Nómina',
         //   icon: 'receipt_long',

@@ -1,0 +1,36 @@
+:host { display: block; }
+.loan-modal { padding: 22px; min-width: 0; max-height: min(88vh, 900px); overflow-y: auto; }
+.loan-modal h2 { margin: 0 0 6px; font-size: 1.25rem; font-weight: 700; }
+.loan-modal__intro { color: var(--mat-sys-on-surface-variant, #667085); font-size: .9rem; line-height: 1.45; margin: 0 0 16px; }
+.loan-modal__form { display: grid; gap: 14px; }
+.loan-modal__grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.loan-modal__field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.loan-modal__field label { font-size: .85rem; font-weight: 600; }
+.loan-modal__field input:not([type=checkbox]), .loan-modal__field select, .loan-modal__field textarea,
+.loan-modal__inline-filters input, .loan-modal__inline-filters select {
+  min-width: 0; width: 100%; box-sizing: border-box; border: 1px solid #a8b3c1;
+  border-radius: 8px; padding: 9px 10px; background: var(--mat-sys-surface, #fff);
+  color: var(--mat-sys-on-surface, #222); font: inherit; font-size: .9rem;
+}
+.loan-modal__field textarea { resize: vertical; min-height: 76px; }
+.loan-modal__field small { font-size: .75rem; color: #7a8493; }
+.loan-modal__field--full { grid-column: 1 / -1; }
+.loan-modal__check { display: flex; align-items: flex-start; gap: 9px; font-size: .88rem; line-height: 1.35; }
+.loan-modal__check input { margin-top: 4px; }
+.loan-modal__actions { display: flex; justify-content: flex-end; align-items: center; gap: 9px; flex-wrap: wrap; margin-top: 12px; }
+.loan-modal__button { border: 1px solid #bbc4d1; background: var(--mat-sys-surface, #fff); padding: 10px 15px; border-radius: 8px; font: inherit; cursor: pointer; }
+.loan-modal__button--primary { color: #fff; background: #175cd3; border-color: #175cd3; }
+.loan-modal__button--danger { color: #fff; background: #b42318; border-color: #b42318; }
+.loan-modal__button:disabled { opacity: .5; cursor: not-allowed; }
+.loan-modal__error { color: #b42318; font-size: .82rem; margin: 4px 0 0; }
+.loan-modal__warning { padding: 10px 12px; background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.3); border-radius: 8px; font-size: .82rem; }
+.loan-modal__summary { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+.loan-modal__summary > div { border-radius: 9px; border: 1px solid rgba(127,127,127,.25); padding: 11px; display: grid; gap: 7px; }
+.loan-modal__summary span { font-size: .75rem; color: #667085; }
+.loan-modal__summary strong { font-size: 1.05rem; overflow-wrap: anywhere; }
+.loan-modal__divider { border: 0; border-top: 1px solid rgba(127,127,127,.25); margin: 18px 0; }
+.loan-modal__inline-filters { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; align-items: end; margin: 12px 0; }
+.loan-modal__inline-filters label { display: grid; gap: 5px; font-size: .78rem; }
+.loan-modal__scroll { overflow-x: auto; width: 100%; }
+.loan-modal__section-title { margin: 0 0 10px; font-size: 1rem; font-weight: 650; }
+@media(max-width: 670px) { .loan-modal { padding: 14px; } .loan-modal__grid { grid-template-columns: 1fr; } .loan-modal__summary { grid-template-columns: 1fr; } .loan-modal__inline-filters { grid-template-columns: 1fr 1fr; } }

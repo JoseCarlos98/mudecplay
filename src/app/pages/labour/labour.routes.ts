@@ -67,4 +67,11 @@ export const LABOUR_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['ASISTENCIA_EDITOR', 'HORAS_EXTRA_AUTORIZADOR'] },
   },
+  {
+    path: 'prestamos',
+    loadComponent: () =>
+      import('./loans/loans').then(m => m.Loans),
+    canActivate: [rolesGuard],
+    data: { roles: ['PRESTAMOS_EDITOR'] },
+  },
 ];

@@ -1,0 +1,37 @@
+<section class="loan-modal">
+  <h2>Nueva solicitud de préstamo</h2>
+  <p class="loan-modal__intro">La solicitud quedará pendiente y con saldo $0.00. No registra entrega de dinero.</p>
+  <form class="loan-modal__form" [formGroup]="form" (ngSubmit)="save()">
+    <div class="loan-modal__field">
+      <label for="loan-employee">Empleado *</label>
+      <input id="loan-employee" matInput type="text" formControlName="employee" [matAutocomplete]="employeesAuto"
+        placeholder="Escribe al menos 2 letras" autocomplete="off" />
+      <mat-autocomplete #employeesAuto="matAutocomplete" [displayWith]="displayEmployee">
+        <mat-option *ngFor="let item of employeeOptions$ | async" [value]="item">{{ item.name }}</mat-option>
+      </mat-autocomplete>
+      <small>Selecciona un resultado; escribir un nombre sin seleccionarlo no es suficiente.</small>
+    </div>
+    <div class="loan-modal__grid">
+      <div class="loan-modal__field">
+        <label for="loan-date">Fecha de solicitud *</label>
+        <input id="loan-date" type="date" formControlName="requested_on" />
+      </div>
+      <div class="loan-modal__field">
+        <label for="loan-principal">Importe solicitado ($ MXN) *</label>
+        <input id="loan-principal" type="number" min="0.01" step="0.01" formControlName="principal_amount" />
+      </div>
+    </div>
+    <div class="loan-modal__field">
+      <label for="loan-reason">Motivo *</label>
+      <textarea id="loan-reason" formControlName="reason" maxlength="500" rows="3"
+        placeholder="Describe el motivo del préstamo (5 a 500 caracteres)"></textarea>
+    </div>
+    @if (message) { <p class="loan-modal__error">{{ message }}</p> }
+    <div class="loan-modal__actions">
+      <button type="button" class="loan-modal__button" [disabled]="saving" (click)="cancel()">Cancelar</button>
+      <button type="submit" class="loan-modal__button loan-modal__button--primary" [disabled]="saving">
+        {{ saving ? 'Guardando...' : 'Registrar solicitud' }}
+      </button>
+    </div>
+  </form>
+</section>
