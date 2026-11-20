@@ -38,12 +38,26 @@ function localDate(): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-/** Valida caracteres útiles, no solo espacios. */
+/** Valida la longitud real del motivo, sin contar espacios exteriores. */
 const validReason: ValidatorFn = (
   control: AbstractControl,
 ): ValidationErrors | null => {
   const value = String(control.value ?? '').trim();
   return value.length >= 5 ? null : { minTrimmedLength: true };
+};
+
+/** La precisión del dinero pertenece a Reactive Forms, no al click de Guardar. */
+const validMoneyPrecision: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const raw = control.value;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const amount = Number(raw);
+  if (!Number.isFinite(amount)) return { invalidMoney: true };
+  const cents = amount * 100;
+  return Math.abs(Math.round(cents) - cents) <= 1e-7
+    ? null
+    : { moneyPrecision: true };
 };
 
 const HEADER_CONFIG: ModuleHeaderConfig = { modal: true };
@@ -74,7 +88,6 @@ export class ModalLoanForm {
 
   readonly headerConfig = HEADER_CONFIG;
   saving = false;
-  message = '';
 
   /** Catálogo real para el autocompletado individual compartido. */
   employeeCatalog: Catalog[] = [];
@@ -87,6 +100,7 @@ export class ModalLoanForm {
       Validators.required,
       Validators.min(0.01),
       Validators.max(9999999999.99),
+      validMoneyPrecision,
     ]),
     reason: this.fb.nonNullable.control('', [
       Validators.required,
@@ -101,10 +115,8 @@ export class ModalLoanForm {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (catalog) => { this.employeeCatalog = catalog ?? []; },
-        error: (error: unknown) => {
-          console.error('Error cargando catálogo de empleados:', error);
-          this.message = 'No fue posible cargar los empleados. Cierra y vuelve a abrir el formulario.';
-        },
+        // El interceptor ya informa errores del backend.
+        error: () => { this.employeeCatalog = []; },
       });
 
     // El CVA compartido emite un texto al escribir y un ID al seleccionar.
@@ -115,7 +127,6 @@ export class ModalLoanForm {
         if (this.selectedEmployee && value !== this.selectedEmployee.id) {
           this.selectedEmployee = null;
         }
-        this.message = '';
       });
   }
 
@@ -123,7 +134,6 @@ export class ModalLoanForm {
     const id = Number(employee?.id);
     if (!Number.isSafeInteger(id) || id <= 0) return;
     this.selectedEmployee = employee;
-    this.message = '';
   }
 
   private get selectedEmployeeId(): number | null {
@@ -153,42 +163,22 @@ export class ModalLoanForm {
   }
 
   save(): void {
-    if (this.saving) return;
-    this.message = '';
-
     const employeeId = this.selectedEmployeeId;
-    const values = this.form.getRawValue();
-    const principal = Number(values.principal_amount);
-    const reason = values.reason.trim();
 
-    if (this.form.invalid || employeeId === null) {
+    // Seguridad ante un submit por Enter o un evento externo.
+    // El botón usa exactamente esta misma condición para habilitarse.
+    if (!this.canSave || employeeId === null) {
       this.form.markAllAsTouched();
-      this.message = 'Selecciona un empleado del catálogo y completa los datos obligatorios.';
       return;
     }
 
-    if (
-      !Number.isFinite(principal) ||
-      principal < 0.01 ||
-      principal > 9999999999.99 ||
-      Math.abs(Math.round(principal * 100) - principal * 100) > 1e-7
-    ) {
-      this.message = 'El importe debe ser mayor que cero y tener máximo dos decimales.';
-      return;
-    }
-
-    if (reason.length < 5 || reason.length > 500) {
-      this.message = 'El motivo debe contener entre 5 y 500 caracteres.';
-      return;
-    }
-
-    // Solo registra la solicitud. No entrega dinero ni crea un movimiento de Tesorería.
+    const values = this.form.getRawValue();
     this.saving = true;
     this.loans.createLoan({
       employee_id: employeeId,
       requested_on: values.requested_on,
-      principal_amount: principal,
-      reason,
+      principal_amount: Number(values.principal_amount),
+      reason: values.reason.trim(),
     })
       .pipe(
         take(1),
@@ -197,29 +187,7 @@ export class ModalLoanForm {
       )
       .subscribe({
         next: () => this.dialogRef.close(true),
-        error: (error: unknown) => {
-          console.error('No se pudo registrar la solicitud:', error);
-          this.message = this.resolveErrorMessage(error);
-        },
+        error: () => {},
       });
-  }
-
-  private resolveErrorMessage(error: unknown): string {
-    const response = error as {
-      status?: number;
-      error?: { message?: string | string[] };
-    };
-
-    if (response?.status === 401) {
-      return 'Tu sesión venció. Inicia sesión nuevamente antes de guardar.';
-    }
-    if (response?.status === 403) {
-      return 'Tu usuario no tiene permiso para registrar préstamos.';
-    }
-
-    const detail = response?.error?.message;
-    if (Array.isArray(detail)) return detail.join(' ');
-    if (typeof detail === 'string' && detail.trim()) return detail.trim();
-    return 'No fue posible registrar la solicitud. Intenta nuevamente.';
   }
 }

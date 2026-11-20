@@ -48,7 +48,7 @@
           </app-autocomplete>
         </div>
 
-        <div class="c-form-grid c-form-grid--two-wide loan-form-modal__grid mt-5">
+        <div class="c-form-grid c-form-grid--two-wide loan-form-modal__grid">
           <div class="c-form-grid__field">
             <app-input-date
               formControlName="requested_on"
@@ -74,18 +74,13 @@
               formControlName="reason"
               label="Motivo del préstamo"
               type="text"
-              placeholder="Describe el motivo del préstamo"
-              errorMessage="El motivo debe contener entre 5 y 500 caracteres">
+              placeholder="Describe el motivo del préstamo">
             </app-input-field>
-            <small class="loan-form-modal__help">De 5 a 500 caracteres. Quedará registrado en la solicitud.</small>
           </div>
         </div>
       </section>
     </form>
 
-    @if (message) {
-      <p class="loan-form-modal__error" role="alert">{{ message }}</p>
-    }
   </div>
 
   <div class="loan-form-modal__footer">
