@@ -1,85 +1,191 @@
-<section class="loan-modal">
-  <h2>Historial de abonos</h2>
-  <p class="loan-modal__intro">Préstamo #{{ data.loan.id }} · {{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }}</p>
-  <div class="loan-modal__summary">
-    <div><span>Capital entregado</span><strong>{{ data.loan.principal_amount | currency:'$ ':'symbol':'1.2-2' }}</strong></div>
-    <div><span>Saldo actual</span><strong>{{ currentBalance() | currency:'$ ':'symbol':'1.2-2' }}</strong></div>
-    <div><span>Abonos aplicados (filtro)</span><strong>{{ summary().applied_amount_total | currency:'$ ':'symbol':'1.2-2' }}</strong></div>
+<div class="c-modal loan-repayments-modal">
+  <app-module-header
+    title="Historial de abonos"
+    [config]="{ modal: true }"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="loan-repayments-modal__body">
+    <!-- Resumen: solo presentación, sin modificar saldos en el frontend. -->
+    <!-- Identificación y acción en una franja propia: Nuevo nunca compite con la X del header. -->
+    <div class="loan-repayments-modal__top-row">
+      <section class="loan-repayments-modal__identity">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <div>
+          <span>Préstamo #{{ data.loan.id }}</span>
+          <strong>{{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }}</strong>
+        </div>
+        <span class="loan-repayments-modal__status"
+          [class.loan-repayments-modal__status--settled]="currentStatus() === 'settled'">
+          {{ currentStatus() === 'active' ? 'Activo' :
+             currentStatus() === 'settled' ? 'Liquidado' :
+             currentStatus() === 'pending' ? 'Pendiente' : 'Cancelado' }}
+        </span>
+      </section>
+
+      @if (currentStatus() === 'active' && !showingNewRepayment() && !reversingRepaymentId) {
+        <button
+          type="button"
+          class="btn-primary loan-repayments-modal__new-button"
+          [disabled]="loading() || saving()"
+          (click)="openNewRepayment()">
+          <mat-icon>add</mat-icon>
+          Nuevo abono
+        </button>
+      }
+    </div>
+
+    <section class="loan-repayments-modal__summary">
+      <article class="loan-repayments-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Capital entregado</span>
+          <strong>{{ data.loan.principal_amount | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </article>
+      <article class="loan-repayments-modal__summary-card">
+        <mat-icon>account_balance_wallet</mat-icon>
+        <div>
+          <span>Saldo actual</span>
+          <strong>{{ currentBalance() | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </article>
+      <article class="loan-repayments-modal__summary-card">
+        <mat-icon>swap_horiz</mat-icon>
+        <div>
+          <span>Abonos aplicados (filtro)</span>
+          <strong>{{ summary().applied_amount_total | currency:'MXN':'symbol-narrow':'1.2-2' }}</strong>
+        </div>
+      </article>
+    </section>
+
+    <!-- Formulario de registro en ESTE MISMO COMPONENTE; no se crean carpetas nuevas. -->
+    @if (showingNewRepayment() && currentStatus() === 'active') {
+      <section class="loan-repayments-modal__operation">
+        <h3 class="loan-repayments-modal__section-title">Registrar abono manual</h3>
+        <div class="loan-repayments-modal__warning" role="note">
+          <mat-icon>warning_amber</mat-icon>
+          <p>Este abono se aplicará inmediatamente al saldo del préstamo. No es una propuesta de descuento de Nómina.</p>
+        </div>
+        <form class="c-form" [formGroup]="newRepaymentForm" (ngSubmit)="addRepayment()">
+          <div class="c-form-grid c-form-grid--two-wide loan-repayments-modal__form-grid">
+            <div class="c-form-grid__field">
+              <app-input-date
+                formControlName="applied_on"
+                label="Fecha de abono"
+                mode="single"
+                [showClear]="false">
+              </app-input-date>
+            </div>
+            <div class="c-form-grid__field">
+              <app-input-field formControlName="amount" label="Monto ($ MXN)" type="money">
+              </app-input-field>
+            </div>
+            <div class="c-form-grid__field loan-repayments-modal__full-field">
+              <app-input-field formControlName="source_reference" label="Referencia única del abono" type="text" placeholder="Ej. RECIBO-2026-001">
+              </app-input-field>
+              <small>Usa la misma referencia al reintentar si hubo un error de conexión.</small>
+            </div>
+          </div>
+        </form>
+        <app-btns-section
+          type="save"
+          cancelLabel="Volver"
+          saveLabel="Aplicar abono"
+          [cancelDisabled]="saving()"
+          [saveDisabled]="saving() || newRepaymentForm.invalid"
+          (action)="onRepaymentFormAction($event)">
+        </app-btns-section>
+      </section>
+    }
+
+    <!-- Reversión auditada: mismo flujo original, ahora con campo y botones reutilizables. -->
+    @if (reversingRepaymentId) {
+      <section class="loan-repayments-modal__operation">
+        <h3 class="loan-repayments-modal__section-title">Revertir abono manual</h3>
+        <div class="loan-repayments-modal__warning" role="alert">
+          <mat-icon>warning_amber</mat-icon>
+          <p>Vas a revertir el abono manual #{{ reversingRepaymentId }}. El saldo aumentará y quedará registrada la auditoría de reversión.</p>
+        </div>
+        <form class="c-form" [formGroup]="reversalForm" (ngSubmit)="confirmReverse()">
+          <app-input-field formControlName="reason" label="Motivo de reversión" type="text">
+          </app-input-field>
+        </form>
+        <app-btns-section
+          type="save"
+          cancelLabel="Volver"
+          saveLabel="Confirmar reversión"
+          saveVariant="danger"
+          [cancelDisabled]="saving()"
+          [saveDisabled]="saving() || reversalForm.invalid"
+          (action)="onReversalFormAction($event)">
+        </app-btns-section>
+      </section>
+    }
+
+    @if (message) {
+      <p class="loan-repayments-modal__error" role="alert">{{ message }}</p>
+    }
+
+    <!-- Mismo patrón de filtros que en los listados de MUDECPLAY. -->
+    <form [formGroup]="formFilters" (ngSubmit)="applyFilters()">
+      <div class="c-filters grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 loan-repayments-modal__filters">
+        <app-input-select formControlName="status" label="Estatus" [options]="statusOptions">
+        </app-input-select>
+        <app-input-select formControlName="source" label="Origen" [options]="sourceOptions">
+        </app-input-select>
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de fechas"
+          mode="range"
+          [showClear]="true">
+        </app-input-date>
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onFilterAction($event)">
+        </app-btns-section>
+      </div>
+    </form>
+
+    <!-- La tabla compartida mantiene sus propios estilos, sin títulos ni contadores. -->
+    <div class="loan-repayments-modal__table c-module-table">
+      <app-data-table
+        [data]="tableData.data"
+        [columnsConfig]="columnsConfig"
+        [displayedColumns]="displayedColumns"
+        [extraActions]="actions"
+        [actionPermissions]="permissions"
+        [sorts]="sorts"
+        (sortChange)="onSortChange($event)"
+        (action)="onTableAction($event)">
+      </app-data-table>
+    </div>
+
   </div>
 
-  <h3 class="loan-modal__section-title">Movimientos registrados</h3>
-  <form class="loan-modal__inline-filters" [formGroup]="formFilters" (ngSubmit)="applyFilters()">
-    <label>Estatus
-      <select formControlName="status"><option value="">Todos</option><option value="applied">Aplicado</option><option value="reversed">Revertido</option></select>
-    </label>
-    <label>Origen
-      <select formControlName="source"><option value="">Todos</option><option value="manual">Manual</option><option value="payroll">Nómina</option></select>
-    </label>
-    <label>Desde
-      <input type="date" formControlName="appliedFrom" />
-    </label>
-    <label>Hasta
-      <input type="date" formControlName="appliedTo" />
-    </label>
-    <button class="loan-modal__button loan-modal__button--primary" type="submit">Buscar</button>
-    <button class="loan-modal__button" type="button" (click)="clearFilters()">Limpiar</button>
-  </form>
-  @if (loading()) { <p>Cargando movimientos...</p> }
-  <div class="loan-modal__scroll c-module-table">
-    <app-data-table
-      [data]="tableData.data" [columnsConfig]="columnsConfig" [displayedColumns]="displayedColumns"
-      [extraActions]="actions" [actionPermissions]="permissions" [sorts]="sorts"
-      (sortChange)="onSortChange($event)" (action)="onTableAction($event)">
-    </app-data-table>
+  <!-- Paginación y cierre en filas INDEPENDIENTES. Ningún botón se superpone al paginador. -->
+  <div class="loan-repayments-modal__bottom">
+    <div class="loan-repayments-modal__paginator">
+      <mat-paginator
+        [length]="tableData.meta.total"
+        [pageSize]="filters.limit"
+        [pageIndex]="filters.page - 1"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+
+    <div class="loan-repayments-modal__footer">
+      <app-btns-section type="close" (action)="onFooterAction($event)">
+      </app-btns-section>
+    </div>
   </div>
-  <mat-paginator [length]="tableData.meta.total" [pageSize]="filters.limit" [pageIndex]="filters.page - 1"
-    [pageSizeOptions]="pageSizeOptions" (page)="onPageChange($event)" showFirstLastButtons>
-  </mat-paginator>
-  @if (reversingRepaymentId) {
-    <form class="loan-modal__form" [formGroup]="reversalForm" (ngSubmit)="confirmReverse()">
-      <div class="loan-modal__warning">Vas a revertir el abono manual #{{ reversingRepaymentId }}. El saldo aumentará y quedará una auditoría del reverso.</div>
-      <div class="loan-modal__field">
-        <label for="loan-reversal-reason">Motivo de reversión *</label>
-        <textarea id="loan-reversal-reason" rows="2" formControlName="reason" maxlength="255"></textarea>
-      </div>
-      <div class="loan-modal__actions">
-        <button type="button" class="loan-modal__button" (click)="cancelReverse()" [disabled]="saving()">Volver</button>
-        <button type="submit" class="loan-modal__button loan-modal__button--danger" [disabled]="saving() || reversalForm.invalid">
-          {{ saving() ? 'Revirtiendo...' : 'Confirmar reversión' }}
-        </button>
-      </div>
-    </form>
-  }
-  @if (currentStatus() === 'active') {
-    <hr class="loan-modal__divider" />
-    <h3 class="loan-modal__section-title">Registrar abono manual</h3>
-    <div class="loan-modal__warning">Este abono se aplicará inmediatamente al saldo del préstamo. No es una propuesta de descuento de Nómina.</div>
-    <form class="loan-modal__form" [formGroup]="newRepaymentForm" (ngSubmit)="addRepayment()">
-      <div class="loan-modal__grid">
-        <div class="loan-modal__field">
-          <label for="repay-date">Fecha de abono *</label>
-          <input id="repay-date" type="date" formControlName="applied_on" [min]="data.loan.disbursed_on || ''" />
-        </div>
-        <div class="loan-modal__field">
-          <label for="repay-amount">Monto ($ MXN) *</label>
-          <input id="repay-amount" type="number" min="0.01" step="0.01" formControlName="amount" />
-        </div>
-        <div class="loan-modal__field loan-modal__field--full">
-          <label for="repay-ref">Referencia única del abono *</label>
-          <input id="repay-ref" type="text" formControlName="source_reference" maxlength="120"
-            placeholder="Ej. RECIBO-2026-001" autocomplete="off" />
-          <small>Usa la misma referencia al reintentar si hubo un error de conexión.</small>
-        </div>
-      </div>
-      <div class="loan-modal__actions">
-        <button type="submit" class="loan-modal__button loan-modal__button--primary" [disabled]="saving() || newRepaymentForm.invalid">
-          {{ saving() ? 'Guardando...' : 'Aplicar abono' }}
-        </button>
-      </div>
-    </form>
-  }
-  @if (message) { <p class="loan-modal__error">{{ message }}</p> }
-  <div class="loan-modal__actions">
-    <button type="button" class="loan-modal__button" [disabled]="saving()" (click)="close()">Cerrar historial</button>
-  </div>
-</section>
+
+  <app-loading-overlay
+    [visible]="loading() || saving()"
+    [fullscreen]="false"
+    [text]="saving() ? 'Procesando abono...' : 'Cargando historial de abonos...'">
+  </app-loading-overlay>
+</div>
