@@ -1,20 +1,87 @@
-<section class="loan-modal">
-  <h2>Cancelar solicitud de préstamo</h2>
-  <p class="loan-modal__intro">
-    {{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }} · Solicitud #{{ data.loan.id }}
-  </p>
-  <div class="loan-modal__warning">Solo pueden cancelarse solicitudes pendientes sin desembolso. La operación queda auditada.</div>
-  <form class="loan-modal__form" [formGroup]="form" (ngSubmit)="save()">
-    <div class="loan-modal__field">
-      <label for="loan-cancel-reason">Motivo de cancelación *</label>
-      <textarea id="loan-cancel-reason" rows="3" maxlength="255" formControlName="cancellation_reason"
-        placeholder="Indica el motivo (5 a 255 caracteres)"></textarea>
+<div class="c-modal loan-reason-modal">
+  <app-module-header
+    title="Cancelar solicitud de préstamo"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="loan-reason-modal__body">
+    <section class="loan-reason-modal__identity">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <div>
+        <span>Solicitud #{{ data.loan.id }}</span>
+        <strong>{{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }}</strong>
+      </div>
+      <span class="loan-reason-modal__status">Pendiente</span>
+    </section>
+
+    <section class="loan-reason-modal__summary">
+      <div class="loan-reason-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Capital solicitado</span>
+          <strong>{{ data.loan.principal_amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="loan-reason-modal__summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span>Fecha de solicitud</span>
+          <strong>{{ data.loan.requested_on | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="loan-reason-modal__warning" role="note">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <strong>Solo se pueden cancelar solicitudes pendientes sin desembolso.</strong>
+        <p>Esta operación quedará registrada con el motivo de cancelación. No se modificará ningún préstamo activo.</p>
+      </div>
     </div>
-    <div class="loan-modal__actions">
-      <button type="button" class="loan-modal__button" (click)="close()" [disabled]="saving">Volver</button>
-      <button type="submit" class="loan-modal__button loan-modal__button--danger" [disabled]="saving || form.invalid">
-        {{ saving ? 'Cancelando...' : 'Confirmar cancelación' }}
-      </button>
-    </div>
-  </form>
-</section>
+
+    <form
+      id="loan-cancel-form"
+      class="c-form loan-reason-modal__form"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
+          <div>
+            <h3 class="c-form-section__title">Datos de la cancelación</h3>
+            <p class="c-form-section__desc">Indica el motivo por el que se cancela esta solicitud.</p>
+          </div>
+        </div>
+
+        <div class="c-form-grid loan-reason-modal__field-grid">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="cancellation_reason"
+              label="Motivo de cancelación"
+              type="text">
+            </app-input-field>
+            <small>De 5 a 255 caracteres. El motivo quedará guardado en la auditoría.</small>
+          </div>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <div class="loan-reason-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Volver"
+      saveLabel="Confirmar cancelación"
+      saveVariant="danger"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Cancelando solicitud de préstamo...">
+  </app-loading-overlay>
+</div>
