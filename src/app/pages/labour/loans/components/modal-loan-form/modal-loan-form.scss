@@ -1,1 +1,142 @@
-@use '../../loans-modal-shared' as *;
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Solo la distribución de ESTE modal. No se alteran los estilos internos de
+// app-input-field, app-input-date, app-btns-section ni mat-autocomplete.
+.loan-form-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: 90dvh;
+  min-width: 0;
+  overflow: hidden;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    min-height: 0;
+    padding: 0.85rem 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.7rem;
+    background: #f8fafc;
+
+    > mat-icon {
+      flex: 0 0 auto;
+      box-sizing: content-box;
+      padding: 0.45rem;
+      border-radius: 0.5rem;
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 0.12rem;
+    }
+
+    span { color: #64748b; font-size: 0.72rem; }
+    strong { color: #172033; font-size: 0.88rem; }
+  }
+
+  &__status {
+    margin-left: auto;
+    padding: 0.3rem 0.65rem;
+    border-radius: 99px;
+    background: #fef3c7;
+    color: #92400e !important;
+    font-size: 0.7rem !important;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  &__notice {
+    margin: 0;
+    min-width: 0;
+
+    p {
+      margin: 0.15rem 0 0;
+      line-height: 1.45;
+    }
+  }
+
+  &__form {
+    min-width: 0;
+  }
+
+  &__employee-field {
+    min-width: 0;
+    margin-bottom: 0.65rem;
+  }
+
+  &__employee-input {
+    display: block;
+    width: 100%;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  &__reason-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 0.75rem;
+  }
+
+  &__help {
+    display: block;
+    margin-top: 0.25rem;
+    color: #64748b;
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  &__error {
+    margin: 0;
+    color: #b42318;
+    font-size: 0.78rem;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 58px;
+    padding: 0.55rem 1rem 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+
+    > app-btns-section {
+      display: block;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .loan-form-modal {
+    max-height: 94dvh;
+
+    &__body { padding-inline: 0.75rem; }
+    &__grid { grid-template-columns: minmax(0, 1fr); }
+    &__identity { flex-wrap: wrap; }
+    &__status { margin-left: 0; }
+    &__footer { padding-inline: 0.75rem; }
+  }
+}
