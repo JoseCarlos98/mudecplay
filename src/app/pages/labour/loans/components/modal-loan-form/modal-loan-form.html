@@ -1,5 +1,4 @@
 <div class="c-modal loan-form-modal">
-  <!-- Encabezado reutilizable de MUDECPLAY. -->
   <app-module-header
     title="Nueva solicitud de préstamo"
     [config]="headerConfig"
@@ -7,7 +6,6 @@
   </app-module-header>
 
   <div class="loan-form-modal__body">
-    <!-- Misma presentación de ficha compacta utilizada en Historial de abonos. -->
     <section class="loan-form-modal__identity">
       <mat-icon>account_balance_wallet</mat-icon>
       <div>
@@ -40,33 +38,17 @@
           </div>
         </div>
 
-        <!-- La selección es de UN empleado, no un multiselect de filtros. -->
-        <div class="loan-form-modal__employee-field">
-          <mat-form-field appearance="outline" class="loan-form-modal__employee-input">
-            <mat-label>Empleado</mat-label>
-            <input
-              matInput
-              type="text"
-              formControlName="employee"
-              [matAutocomplete]="employeesAuto"
-              placeholder="Escribe al menos 2 letras"
-              autocomplete="off"
-              required />
-            <mat-autocomplete
-              #employeesAuto="matAutocomplete"
-              [displayWith]="displayEmployee">
-              @for (item of (employeeOptions$ | async) ?? []; track item.id) {
-                <mat-option [value]="item">{{ item.name }}</mat-option>
-              }
-            </mat-autocomplete>
-            <mat-hint>Selecciona una opción del catálogo; escribir el nombre no basta.</mat-hint>
-            @if (form.controls.employee.invalid && form.controls.employee.touched) {
-              <mat-error>Selecciona un empleado.</mat-error>
-            }
-          </mat-form-field>
+        <!-- Autocompletado individual reutilizable. No se modifica el componente compartido. -->
+        <div class="c-form-grid__field loan-form-modal__employee-field">
+          <app-autocomplete
+            formControlName="employee"
+            label="Empleado"
+            [data]="employeeCatalog"
+            (optionSelected)="onEmployeeSelected($event)">
+          </app-autocomplete>
         </div>
 
-        <div class="c-form-grid c-form-grid--two-wide loan-form-modal__grid">
+        <div class="c-form-grid c-form-grid--two-wide loan-form-modal__grid mt-5">
           <div class="c-form-grid__field">
             <app-input-date
               formControlName="requested_on"
@@ -93,9 +75,9 @@
               label="Motivo del préstamo"
               type="text"
               placeholder="Describe el motivo del préstamo"
-              errorMessage="El motivo debe contener entre 5 y 500 caracteres.">
+              errorMessage="El motivo debe contener entre 5 y 500 caracteres">
             </app-input-field>
-            <small class="loan-form-modal__help">De 5 a 500 caracteres. Esta información quedará registrada en la solicitud.</small>
+            <small class="loan-form-modal__help">De 5 a 500 caracteres. Quedará registrado en la solicitud.</small>
           </div>
         </div>
       </section>
@@ -106,7 +88,6 @@
     }
   </div>
 
-  <!-- Pie independiente, como en los modales homologados de MUDECPLAY. -->
   <div class="loan-form-modal__footer">
     <app-btns-section
       type="save"

@@ -9,20 +9,10 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatDialogRef } from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
   finalize,
-  map,
-  of,
-  startWith,
-  switchMap,
   take,
 } from 'rxjs';
 
@@ -37,21 +27,21 @@ import {
 } from '../../../../../shared/ui/btns-section/btns-section';
 import { InputDate } from '../../../../../shared/ui/input-date/input-date';
 import { InputField } from '../../../../../shared/ui/input-field/input-field';
+import { Autocomplete } from '../../../../../shared/ui/autocomplete/autocomplete';
 import { LoadingOverlay } from '../../../../../shared/ui/loading-overlay/loading-overlay';
 import { Catalog } from '../../../../../shared/interfaces/general-interfaces';
-import { CatalogsService } from '../../../../../shared/services/catalogs.service';
+import { EmployeesService } from '../../../employees/services/employees.service';
 import { LoansService } from '../../services/loans.service';
 
 function localDate(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-/** El motivo debe contener al menos cinco caracteres útiles, no solo espacios. */
-const validReason: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+/** Valida caracteres útiles, no solo espacios. */
+const validReason: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
   const value = String(control.value ?? '').trim();
   return value.length >= 5 ? null : { minTrimmedLength: true };
 };
@@ -64,14 +54,12 @@ const HEADER_CONFIG: ModuleHeaderConfig = { modal: true };
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatAutocompleteModule,
-    MatFormFieldModule,
-    MatInputModule,
     MatIconModule,
     ModuleHeader,
     BtnsSection,
     InputDate,
     InputField,
+    Autocomplete,
     LoadingOverlay,
   ],
   templateUrl: './modal-loan-form.html',
@@ -79,7 +67,7 @@ const HEADER_CONFIG: ModuleHeaderConfig = { modal: true };
 })
 export class ModalLoanForm {
   private readonly fb = inject(FormBuilder);
-  private readonly catalogs = inject(CatalogsService);
+  private readonly employeesService = inject(EmployeesService);
   private readonly loans = inject(LoansService);
   private readonly dialogRef = inject(MatDialogRef<ModalLoanForm>);
   private readonly destroyRef = inject(DestroyRef);
@@ -88,10 +76,12 @@ export class ModalLoanForm {
   saving = false;
   message = '';
 
+  /** Catálogo real para el autocompletado individual compartido. */
+  employeeCatalog: Catalog[] = [];
+  selectedEmployee: Catalog | null = null;
+
   readonly form = this.fb.group({
-    // Es una selección individual: el autocomplete-multiple es para filtros,
-    // por eso aquí conservamos el autocomplete individual de Angular Material.
-    employee: this.fb.control<Catalog | string | null>(null, Validators.required),
+    employee: this.fb.control<number | string | null>(null, Validators.required),
     requested_on: this.fb.nonNullable.control(localDate(), Validators.required),
     principal_amount: this.fb.control<number | null>(null, [
       Validators.required,
@@ -106,39 +96,42 @@ export class ModalLoanForm {
     ]),
   });
 
-  readonly displayEmployee = (value: Catalog | string | null): string =>
-    typeof value === 'string' ? value : value?.name ?? '';
-
-  /** Busca empleados en el catálogo existente; no se descarga todo el padrón. */
-  readonly employeeOptions$ = this.form.controls.employee.valueChanges.pipe(
-    startWith(this.form.controls.employee.value),
-    map((value) => (typeof value === 'string' ? value.trim() : '')),
-    debounceTime(300),
-    distinctUntilChanged(),
-    switchMap((search) =>
-      search.length >= 2
-        ? this.catalogs.employeesCatalog(search).pipe(
-            catchError((error) => {
-              console.error('No fue posible consultar el catálogo de empleados:', error);
-              return of([] as Catalog[]);
-            }),
-          )
-        : of([] as Catalog[]),
-    ),
-    takeUntilDestroyed(this.destroyRef),
-  );
-
   constructor() {
-    this.form.valueChanges
+    this.employeesService.getCatalog()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => { this.message = ''; });
+      .subscribe({
+        next: (catalog) => { this.employeeCatalog = catalog ?? []; },
+        error: (error: unknown) => {
+          console.error('Error cargando catálogo de empleados:', error);
+          this.message = 'No fue posible cargar los empleados. Cierra y vuelve a abrir el formulario.';
+        },
+      });
+
+    // El CVA compartido emite un texto al escribir y un ID al seleccionar.
+    // Nunca aceptamos texto libre como un empleado seleccionado.
+    this.form.controls.employee.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (this.selectedEmployee && value !== this.selectedEmployee.id) {
+          this.selectedEmployee = null;
+        }
+        this.message = '';
+      });
+  }
+
+  onEmployeeSelected(employee: Catalog): void {
+    const id = Number(employee?.id);
+    if (!Number.isSafeInteger(id) || id <= 0) return;
+    this.selectedEmployee = employee;
+    this.message = '';
   }
 
   private get selectedEmployeeId(): number | null {
-    const selected = this.form.controls.employee.value;
-    if (!selected || typeof selected === 'string') return null;
+    const employee = this.selectedEmployee;
+    const raw = this.form.controls.employee.value;
+    if (!employee || raw !== employee.id) return null;
 
-    const id = Number(selected.id);
+    const id = Number(employee.id);
     return Number.isSafeInteger(id) && id > 0 ? id : null;
   }
 
@@ -164,13 +157,13 @@ export class ModalLoanForm {
     this.message = '';
 
     const employeeId = this.selectedEmployeeId;
-    const value = this.form.getRawValue();
-    const principal = Number(value.principal_amount);
-    const reason = value.reason.trim();
+    const values = this.form.getRawValue();
+    const principal = Number(values.principal_amount);
+    const reason = values.reason.trim();
 
     if (this.form.invalid || employeeId === null) {
       this.form.markAllAsTouched();
-      this.message = 'Selecciona un empleado del catálogo y completa los campos obligatorios.';
+      this.message = 'Selecciona un empleado del catálogo y completa los datos obligatorios.';
       return;
     }
 
@@ -189,11 +182,11 @@ export class ModalLoanForm {
       return;
     }
 
-    // IMPORTANTE: esta operación solo solicita el préstamo; NO lo desembolsa.
+    // Solo registra la solicitud. No entrega dinero ni crea un movimiento de Tesorería.
     this.saving = true;
     this.loans.createLoan({
       employee_id: employeeId,
-      requested_on: value.requested_on,
+      requested_on: values.requested_on,
       principal_amount: principal,
       reason,
     })
@@ -205,7 +198,7 @@ export class ModalLoanForm {
       .subscribe({
         next: () => this.dialogRef.close(true),
         error: (error: unknown) => {
-          console.error('No se pudo registrar la solicitud de préstamo:', error);
+          console.error('No se pudo registrar la solicitud:', error);
           this.message = this.resolveErrorMessage(error);
         },
       });

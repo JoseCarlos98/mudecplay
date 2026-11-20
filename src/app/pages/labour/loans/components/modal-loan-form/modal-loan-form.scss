@@ -3,8 +3,7 @@
   min-width: 0;
 }
 
-// Solo la distribución de ESTE modal. No se alteran los estilos internos de
-// app-input-field, app-input-date, app-btns-section ni mat-autocomplete.
+// Solo distribución de ESTE modal. No se alteran los estilos de componentes compartidos.
 .loan-form-modal {
   position: relative;
   display: grid;
@@ -79,12 +78,7 @@
 
   &__employee-field {
     min-width: 0;
-    margin-bottom: 0.65rem;
-  }
-
-  &__employee-input {
-    display: block;
-    width: 100%;
+    margin-bottom: 0.75rem;
   }
 
   &__grid {
@@ -96,7 +90,7 @@
   &__reason-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    margin-top: 0.75rem;
+    margin-top: 0;
   }
 
   &__help {
