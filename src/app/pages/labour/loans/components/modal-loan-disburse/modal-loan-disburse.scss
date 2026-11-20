@@ -1,1 +1,153 @@
-@use '../../loans-modal-shared' as *;
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Estilos de distribución de este modal. No se sobrescriben los componentes reutilizables.
+.loan-disburse-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  max-height: 90dvh;
+  overflow: hidden;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    min-height: 0;
+    padding: 0.8rem 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.75rem;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.7rem;
+    background: #f8fafc;
+
+    > mat-icon {
+      box-sizing: content-box;
+      flex: 0 0 auto;
+      padding: 0.45rem;
+      border-radius: 0.5rem;
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 0.12rem;
+    }
+
+    span { font-size: 0.72rem; color: #64748b; }
+    strong { font-size: 0.88rem; color: #172033; overflow-wrap: anywhere; }
+  }
+
+  &__status {
+    margin-left: auto;
+    padding: 0.3rem 0.65rem;
+    border-radius: 99px;
+    background: #fef3c7;
+    color: #92400e !important;
+    font-size: 0.7rem !important;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  &__summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  &__summary-card {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+    padding: 0.8rem;
+    border: 1px solid #dbe4ee;
+    border-radius: 0.7rem;
+    background: #fff;
+
+    > mat-icon {
+      box-sizing: content-box;
+      flex: 0 0 auto;
+      padding: 0.45rem;
+      border-radius: 0.55rem;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 0.15rem;
+    }
+
+    span { color: #64748b; font-size: 0.68rem; }
+    strong { color: #172033; font-size: 1rem; overflow-wrap: anywhere; }
+  }
+
+  &__warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    padding: 0.8rem;
+    border: 1px solid #fcd34d;
+    border-radius: 0.65rem;
+    background: #fffbeb;
+    color: #92400e;
+
+    > mat-icon { flex: 0 0 auto; color: #b45309; }
+    strong { font-size: 0.8rem; }
+    p { margin: 0.25rem 0 0; font-size: 0.76rem; line-height: 1.45; }
+  }
+
+  &__form {
+    min-width: 0;
+    padding: 0;
+  }
+
+  &__date-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 0;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: 58px;
+    padding: 0.55rem 1rem 0.75rem;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+
+    > app-btns-section {
+      display: block;
+      flex: 0 0 auto;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .loan-disburse-modal {
+    max-height: 94dvh;
+    &__body { padding-inline: 0.75rem; }
+    &__summary { grid-template-columns: minmax(0, 1fr); }
+    &__identity { flex-wrap: wrap; }
+    &__status { margin-left: 0; }
+    &__footer { padding-inline: 0.75rem; }
+  }
+}

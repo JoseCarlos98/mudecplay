@@ -1,23 +1,88 @@
-<section class="loan-modal">
-  <h2>Confirmar entrega del préstamo</h2>
-  <p class="loan-modal__intro">{{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }} · Solicitud #{{ data.loan.id }}</p>
-  <p><strong>Capital a entregar:</strong> {{ data.loan.principal_amount | currency:'$ ':'symbol':'1.2-2' }}</p>
-  <div class="loan-modal__warning">Esta acción confirma que el dinero <strong>ya fue entregado</strong> al trabajador. Activará la deuda, pero no registrará un pago en Tesorería.</div>
-  <form class="loan-modal__form" [formGroup]="form" (ngSubmit)="save()">
-    <div class="loan-modal__field">
-      <label for="loan-disbursed">Fecha real de entrega *</label>
-      <input id="loan-disbursed" type="date" formControlName="disbursed_on" [min]="data.loan.requested_on" />
+<div class="c-modal loan-disburse-modal">
+  <app-module-header
+    title="Confirmar entrega del préstamo"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="loan-disburse-modal__body">
+    <!-- Ficha del préstamo: solo información, no edita importes. -->
+    <section class="loan-disburse-modal__identity">
+      <mat-icon>account_balance_wallet</mat-icon>
+      <div>
+        <span>Solicitud #{{ data.loan.id }}</span>
+        <strong>{{ data.loan.employee_name || ('Empleado #' + data.loan.employee_id) }}</strong>
+      </div>
+      <span class="loan-disburse-modal__status">Pendiente</span>
+    </section>
+
+    <section class="loan-disburse-modal__summary">
+      <div class="loan-disburse-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Capital a entregar</span>
+          <strong>{{ data.loan.principal_amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="loan-disburse-modal__summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span>Fecha de solicitud</span>
+          <strong>{{ data.loan.requested_on | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="loan-disburse-modal__warning" role="note">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <strong>Confirma únicamente una entrega que ya ocurrió.</strong>
+        <p>Esta acción confirma que el dinero ya fue entregado al trabajador. Activará la deuda por el capital indicado, pero no registrará un pago en Tesorería.</p>
+      </div>
     </div>
-    <label class="loan-modal__check">
-      <input type="checkbox" formControlName="confirmed_disbursement" />
-      Confirmo expresamente que el dinero fue entregado efectivamente al trabajador.
-    </label>
-    @if (message) { <p class="loan-modal__error">{{ message }}</p> }
-    <div class="loan-modal__actions">
-      <button type="button" class="loan-modal__button" (click)="close()" [disabled]="saving">Volver</button>
-      <button type="submit" class="loan-modal__button loan-modal__button--primary" [disabled]="saving || form.invalid">
-        {{ saving ? 'Confirmando...' : 'Confirmar entrega' }}
-      </button>
-    </div>
-  </form>
-</section>
+
+    <form
+      id="loan-disburse-form"
+      class="c-form loan-disburse-modal__form"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
+          <div>
+            <h3 class="c-form-section__title">Datos de la entrega</h3>
+            <p class="c-form-section__desc">Registra la fecha real de desembolso y confirma la entrega.</p>
+          </div>
+        </div>
+
+        <div class="c-form-grid loan-disburse-modal__date-grid">
+          <div class="c-form-grid__field">
+            <app-input-date
+              formControlName="disbursed_on"
+              label="Fecha real de entrega"
+              mode="single"
+              [showClear]="false">
+            </app-input-date>
+          </div>
+        </div>
+
+      </section>
+    </form>
+  </div>
+
+  <div class="loan-disburse-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Volver"
+      saveLabel="Confirmar entrega"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Confirmando entrega del préstamo...">
+  </app-loading-overlay>
+</div>

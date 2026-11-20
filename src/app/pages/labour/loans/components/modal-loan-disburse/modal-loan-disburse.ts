@@ -1,51 +1,127 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { finalize, take } from 'rxjs';
+
+import { ModuleHeader } from '../../../../../shared/ui/module-header/module-header';
+import {
+  ModuleHeaderAction,
+  ModuleHeaderConfig,
+} from '../../../../../shared/ui/module-header/interfaces/module-header-interface';
+import {
+  BtnsSection,
+  ModuleFooterAction,
+} from '../../../../../shared/ui/btns-section/btns-section';
+import { InputDate } from '../../../../../shared/ui/input-date/input-date';
+import { LoadingOverlay } from '../../../../../shared/ui/loading-overlay/loading-overlay';
+
 import { EmployeeLoanDto } from '../../interfaces/loans-interfaces';
 import { LoansService } from '../../services/loans.service';
-export interface LoanDialogData { loan: EmployeeLoanDto; }
-function localDate(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+/** Se mantiene el contrato del diálogo que abre loans.ts. */
+export interface LoanDialogData {
+  loan: EmployeeLoanDto;
 }
+
+function localDate(): string {
+  const date = new Date();
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+/** La fecha de entrega nunca puede ser anterior a la solicitud. */
+function notBeforeRequestedOn(requestedOn: string): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value ?? '').trim();
+    if (!value) return null; // Validators.required maneja el valor vacío.
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return { invalidDate: true };
+    return value < requestedOn ? { beforeRequestedOn: true } : null;
+  };
+}
+
+const HEADER_CONFIG: ModuleHeaderConfig = { modal: true };
+
 @Component({
-  selector: 'app-modal-loan-disburse', standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './modal-loan-disburse.html', styleUrl: './modal-loan-disburse.scss',
+  selector: 'app-modal-loan-disburse',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatIconModule,
+    ModuleHeader,
+    InputDate,
+    BtnsSection,
+    LoadingOverlay,
+  ],
+  templateUrl: './modal-loan-disburse.html',
+  styleUrl: './modal-loan-disburse.scss',
 })
 export class ModalLoanDisburse {
   readonly data = inject<LoanDialogData>(MAT_DIALOG_DATA);
-  private readonly ref = inject(MatDialogRef<ModalLoanDisburse>);
+  private readonly dialogRef = inject(MatDialogRef<ModalLoanDisburse>);
   private readonly loans = inject(LoansService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly headerConfig = HEADER_CONFIG;
   saving = false;
-  message = '';
+
   readonly form = this.fb.nonNullable.group({
-    disbursed_on: [localDate(), Validators.required],
-    confirmed_disbursement: [false, Validators.requiredTrue],
+    disbursed_on: [localDate(), [
+      Validators.required,
+      notBeforeRequestedOn(this.data.loan.requested_on),
+    ]],
   });
-  close(): void { if (!this.saving) this.ref.close(false); }
+
+  get canSave(): boolean {
+    return !this.saving && this.data.loan.status === 'pending' && this.form.valid;
+  }
+
+  onHeaderAction(action: ModuleHeaderAction | string): void {
+    if (action === 'close') this.close();
+  }
+
+  onFooterAction(action: ModuleFooterAction | string): void {
+    if (action === 'cancel') this.close();
+    if (action === 'save') this.save();
+  }
+
+  close(): void {
+    if (!this.saving) this.dialogRef.close(false);
+  }
+
   save(): void {
-    this.message = '';
-    const loan = this.data.loan;
-    const value = this.form.getRawValue();
-    if (loan.status !== 'pending' || this.form.invalid || value.disbursed_on < loan.requested_on) {
+    // Mantener la misma condición del botón incluso si se dispara un submit por Enter.
+    if (!this.canSave) {
       this.form.markAllAsTouched();
-      this.message = 'Confirma la entrega y usa una fecha igual o posterior a la solicitud.';
       return;
     }
+
+    const { disbursed_on } = this.form.getRawValue();
     this.saving = true;
-    this.loans.disburseLoan(loan.id, {
-      disbursed_on: value.disbursed_on,
+
+    this.loans.disburseLoan(this.data.loan.id, {
+      disbursed_on,
       confirmed_disbursement: true,
-    }).pipe(take(1), takeUntilDestroyed(this.destroyRef), finalize(() => this.saving = false))
+    })
+      .pipe(
+        take(1),
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => { this.saving = false; }),
+      )
       .subscribe({
-        next: () => this.ref.close(true),
-        error: (err) => console.error('No se pudo confirmar el desembolso', err),
+        next: () => this.dialogRef.close(true),
+        // El interceptor global ya muestra los mensajes de NestJS.
+        error: () => {},
       });
   }
 }
