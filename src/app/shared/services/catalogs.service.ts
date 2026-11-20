@@ -292,4 +292,17 @@ export class CatalogsService {
     );
   }
 
+
+employeesCatalog(searchTerm: string = ''): Observable<Catalog[]> {
+  const url = `${this.apiUrl}/employees/catalog`;
+  let params = new HttpParams();
+
+  if (searchTerm?.trim()) {
+    params = params.set('search', searchTerm.trim());
+  }
+
+  return this.http.get<Catalog[]>(url, { params });
+}
+
+
 }
