@@ -1,0 +1,100 @@
+<div class="c-modal compensation-form-modal">
+  <app-module-header
+    title="Nueva compensación"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="compensation-form-modal__body">
+    <section class="compensation-form-modal__identity">
+      <mat-icon>volunteer_activism</mat-icon>
+      <div>
+        <span>Compensación de personal</span>
+        <strong>Registro nuevo</strong>
+      </div>
+      <span class="compensation-form-modal__status">Pendiente</span>
+    </section>
+
+    <div class="c-form-alert c-form-alert--info compensation-form-modal__notice" role="note">
+      <mat-icon class="c-form-alert__icon">info</mat-icon>
+      <div class="c-form-alert__content">
+        <strong>Esta operación no representa un pago realizado.</strong>
+        <p>La compensación se registrará como pendiente. Sólo después de aprobarla
+          podrá considerarse en el cálculo de Nómina correspondiente.</p>
+      </div>
+    </div>
+
+    <form
+      id="compensation-request-form"
+      class="c-form compensation-form-modal__form"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+
+      <section class="c-form-section">
+        <div class="c-form-section__header">
+          <div>
+            <h3 class="c-form-section__title">Datos de la compensación</h3>
+            <p class="c-form-section__desc">Selecciona al trabajador e indica la fecha, el importe y el motivo.</p>
+          </div>
+        </div>
+
+        <div class="c-form-grid__field compensation-form-modal__employee-field">
+          <app-autocomplete
+            formControlName="employee"
+            label="Empleado"
+            [data]="employeeCatalog"
+            (optionSelected)="onEmployeeSelected($event)">
+          </app-autocomplete>
+        </div>
+
+        <div class="c-form-grid c-form-grid--two-wide compensation-form-modal__grid">
+          <div class="c-form-grid__field">
+            <app-input-date
+              formControlName="effective_date"
+              label="Fecha de compensación"
+              mode="single"
+              [showClear]="false">
+            </app-input-date>
+          </div>
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="amount"
+              label="Importe (MXN)"
+              type="money"
+              prefix="$"
+              [decimals]="2">
+            </app-input-field>
+          </div>
+        </div>
+
+        <div class="c-form-grid compensation-form-modal__reason-row">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="reason"
+              label="Motivo de la compensación"
+              type="text"
+              placeholder="Describe el motivo de la compensación">
+            </app-input-field>
+          </div>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <div class="compensation-form-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Cancelar"
+      saveLabel="Registrar compensación"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Registrando compensación...">
+  </app-loading-overlay>
+</div>

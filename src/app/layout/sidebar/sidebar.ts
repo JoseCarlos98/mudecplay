@@ -69,14 +69,14 @@ export class Sidebar {
       route: '/reportes',
       roles: ['REPORTES_EMISOR'],
     },
-      {
-          name: 'Homologación de gastos',
-          icon: 'account_tree',
-          route: '/homologacion-gastos',
-          roles: [
-            'HOMOLOGACION_GASTOS_EDITOR',
-          ],
-        },
+    {
+      name: 'Homologación de gastos',
+      icon: 'account_tree',
+      route: '/homologacion-gastos',
+      roles: [
+        'HOMOLOGACION_GASTOS_EDITOR',
+      ],
+    },
     {
       name: 'Tesorería',
       icon: 'account_balance_wallet',
@@ -174,6 +174,12 @@ export class Sidebar {
           icon: 'payments',
           route: '/mano-de-obra/prestamos',
           roles: ['PRESTAMOS_EDITOR'],
+        },
+        {
+          name: 'Compensaciones',
+          icon: 'price_check',
+          route: '/mano-de-obra/compensaciones',
+          roles: ['NOMINA_EDITOR'],
         },
         // {
         //   name: 'Nómina',

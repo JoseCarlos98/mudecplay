@@ -74,4 +74,14 @@ export const LABOUR_ROUTES: Routes = [
     canActivate: [rolesGuard],
     data: { roles: ['PRESTAMOS_EDITOR'] },
   },
+  {
+    path: 'compensaciones',
+    loadComponent: () =>
+      import('./compensations/compensations')
+        .then(m => m.Compensations),
+    canActivate: [rolesGuard],
+    data: {
+      roles: ['NOMINA_EDITOR'],
+    },
+  },
 ];
