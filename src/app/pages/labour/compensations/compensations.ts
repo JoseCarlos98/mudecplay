@@ -15,7 +15,8 @@ import { BtnsSection } from '../../../shared/ui/btns-section/btns-section';
 import { DataTable } from '../../../shared/ui/data-table/data-table';
 import { LoadingOverlay } from '../../../shared/ui/loading-overlay/loading-overlay';
 import {
-  ColumnsConfig, ColumnVariant, DataTableSortEvent,
+  ColumnsConfig, ColumnVariant, DataTableActionEvent, DataTableExtraAction,
+  DataTableSortEvent, TableActionPermissions,
 } from '../../../shared/ui/data-table/interfaces/table-interfaces';
 import { Catalog } from '../../../shared/interfaces/general-interfaces';
 import { LocalStorageService } from '../../../shared/services/local-storage.service';
@@ -30,6 +31,7 @@ import {
 } from './interfaces/compensations-interfaces';
 import { CompensationsService } from './services/compensations.service';
 import { ModalCompensationForm } from './components/modal-compensation-form/modal-compensation-form';
+import { ModalCompensationApprove } from './components/modal-compensation-approve/modal-compensation-approve';
 
 interface CompensationUiFilters {
   employees: Catalog[];
@@ -105,6 +107,17 @@ export class Compensations implements OnInit {
   readonly headerConfig: ModuleHeaderConfig = {
     showNew: true, newRoles: ['NOMINA_EDITOR', 'ADMIN_GENERAL'],
   };
+  readonly permissions: TableActionPermissions = { showEdit: false, showDelete: false };
+  readonly actions: DataTableExtraAction<CompensationRow>[] = [
+    {
+      type: 'approve',
+      icon: 'verified',
+      tooltip: 'Aprobar compensación pendiente',
+      visible: (row) => row.status === 'pending' &&
+        (this.auth.hasRole('NOMINA_EDITOR') || this.auth.hasRole('ADMIN_GENERAL')),
+      disabled: () => this.loadingTable(),
+    },
+  ];
   readonly pageSizeOptions = [5, 10, 25, 50];
   readonly statusOptions: SelectCatalogOption[] = [
     { id: '', name: 'Todos' },
@@ -122,7 +135,7 @@ export class Compensations implements OnInit {
       variantResolver: (row: CompensationRow): ColumnVariant => this.statusVariant(row.status),
     },
   ];
-  readonly displayedColumns = this.columnsConfig.map((column) => column.key);
+  readonly displayedColumns = this.columnsConfig.map((column) => column.key).concat('actions');
   readonly formFilters = this.fb.group({
     employees: this.fb.nonNullable.control<Catalog[]>([]),
     status: this.fb.control<CompensationStatus | null>(null),
@@ -262,6 +275,19 @@ export class Compensations implements OnInit {
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
       .subscribe((saved) => {
         if (saved === true) this.loadCompensations();
+      });
+  }
+
+  onTableAction(event: DataTableActionEvent<CompensationRow>): void {
+    if (event.type !== 'approve' || this.loadingTable()) return;
+    if (!this.auth.hasRole('NOMINA_EDITOR') && !this.auth.hasRole('ADMIN_GENERAL')) return;
+    const compensation = event.row;
+    if (compensation.status !== 'pending') return;
+
+    this.dialogs.open(ModalCompensationApprove, { compensation }, 'small').afterClosed()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((changed) => {
+        if (changed === true) this.loadCompensations();
       });
   }
 

@@ -1,0 +1,65 @@
+<div class="c-modal compensation-approve-modal">
+  <app-module-header
+    title="Aprobar compensación"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="compensation-approve-modal__body">
+    <section class="compensation-approve-modal__identity">
+      <mat-icon>volunteer_activism</mat-icon>
+      <div>
+        <span>Compensación #{{ data.compensation.id }}</span>
+        <strong>{{ data.compensation.employee_name || ('Empleado #' + data.compensation.employee_id) }}</strong>
+      </div>
+      <span class="compensation-approve-modal__status">Pendiente</span>
+    </section>
+
+    <section class="compensation-approve-modal__summary">
+      <div class="compensation-approve-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Importe a aprobar</span>
+          <strong>{{ data.compensation.amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="compensation-approve-modal__summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span>Fecha de compensación</span>
+          <strong>{{ data.compensation.effective_date | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="compensation-approve-modal__reason">
+      <span>Motivo registrado</span>
+      <p>{{ data.compensation.reason }}</p>
+    </section>
+
+    <div class="compensation-approve-modal__warning" role="note">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <strong>Confirma la aprobación de esta compensación pendiente.</strong>
+        <p>Una vez aprobada, podrá considerarse en una Nómina elegible. Aprobarla no registra un pago ni un movimiento en Tesorería. Una compensación aprobada no puede cancelarse mediante la acción de cancelar pendientes.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="compensation-approve-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Volver"
+      saveLabel="Confirmar aprobación"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canApprove"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Aprobando compensación...">
+  </app-loading-overlay>
+</div>

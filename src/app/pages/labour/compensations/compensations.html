@@ -87,8 +87,11 @@
             [data]="tableData.data"
             [columnsConfig]="columnsConfig"
             [displayedColumns]="displayedColumns"
+            [extraActions]="actions"
+            [actionPermissions]="permissions"
             [sorts]="sorts"
-            (sortChange)="onSortChange($event)">
+            (sortChange)="onSortChange($event)"
+            (action)="onTableAction($event)">
           </app-data-table>
         </div>
       </div>
