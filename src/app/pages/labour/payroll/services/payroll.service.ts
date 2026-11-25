@@ -7,6 +7,8 @@ import {
   CreatePayrollPeriodResponse,
   PayrollCalculationResponse,
   PayrollPeriodFilters,
+  PayrollRunListItem,
+  PayrollRunPreview,
   PayrollPeriodsPagedResponse,
 } from '../interfaces/payroll-interfaces';
 
@@ -45,4 +47,19 @@ export class PayrollService {
       {},
     );
   }
+
+/** Consulta solo lecturas; devuelve versiones reales del período sin suponer IDs. */
+getPeriodRuns(periodId: string): Observable<PayrollRunListItem[]> {
+  return this.http.get<PayrollRunListItem[]>(
+    `${this.url}/periods/${encodeURIComponent(periodId)}/runs`,
+  );
+}
+
+/** Vista previa almacenada; NO recalcula ni cambia el estado del run. */
+getRunPreview(runId: string): Observable<PayrollRunPreview> {
+  return this.http.get<PayrollRunPreview>(
+    `${this.url}/runs/${encodeURIComponent(runId)}/preview`,
+  );
+}
+
 }

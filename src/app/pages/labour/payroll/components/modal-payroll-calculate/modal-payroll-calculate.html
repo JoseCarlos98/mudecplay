@@ -47,9 +47,10 @@
         <mat-icon>warning_amber</mat-icon>
         <div>
           <strong>La semana salarial todavía no termina.</strong>
-          <p>Finaliza el {{ period.week_end | date:'dd/MM/yyyy' }}. Por precaución,
-            el cálculo se mantiene deshabilitado desde esta pantalla hasta esa fecha.
-            Las fuentes todavía podrían estar incompletas.</p>
+          <p>Finaliza el {{ period.week_end | date:'dd/MM/yyyy' }}. Puedes calcular
+            un <strong>borrador provisional</strong> con los datos registrados hasta ahora.
+            Faltas, retardos, asistencias y otros conceptos podrían estar incompletos;
+            será necesario revisarlo y recalcularlo antes de autorizar.</p>
         </div>
       </div>
     } @else {
@@ -62,13 +63,24 @@
         </div>
       </div>
     }
+
+    <div class="payroll-calculate-modal__confirmation">
+      <mat-checkbox
+        color="primary"
+        [checked]="reviewAcknowledged"
+        [disabled]="saving"
+        (change)="reviewAcknowledged = $event.checked">
+        Entiendo que este cálculo es un borrador y debo revisar sus resultados
+        y advertencias antes de cualquier autorización.
+      </mat-checkbox>
+    </div>
   </div>
 
   <div class="payroll-calculate-modal__footer">
     <app-btns-section
       type="save"
       cancelLabel="Volver"
-      saveLabel="Calcular borrador"
+      [saveLabel]="futureWeek ? 'Calcular provisional' : 'Calcular borrador'"
       [cancelDisabled]="saving"
       [saveDisabled]="!canCalculate"
       (action)="onFooterAction($event)">

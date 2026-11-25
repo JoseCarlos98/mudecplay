@@ -3,6 +3,7 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { finalize, take } from 'rxjs';
 
 import { ModuleHeader } from '../../../../../shared/ui/module-header/module-header';
@@ -33,7 +34,7 @@ function localDate(): string {
 @Component({
   selector: 'app-modal-payroll-calculate',
   standalone: true,
-  imports: [CommonModule, MatIconModule, ModuleHeader, BtnsSection, LoadingOverlay],
+  imports: [CommonModule, MatIconModule, MatCheckboxModule, ModuleHeader, BtnsSection, LoadingOverlay],
   templateUrl: './modal-payroll-calculate.html',
   styleUrl: './modal-payroll-calculate.scss',
 })
@@ -46,6 +47,7 @@ export class ModalPayrollCalculate {
 
   readonly headerConfig = HEADER_CONFIG;
   saving = false;
+  reviewAcknowledged = false;
 
   get period(): PayrollPeriodDto { return this.data.period; }
 
@@ -54,7 +56,7 @@ export class ModalPayrollCalculate {
   }
 
   get canCalculate(): boolean {
-    return !this.saving && this.period.status === 'open' && !this.futureWeek &&
+    return !this.saving && this.reviewAcknowledged && this.period.status === 'open' &&
       (this.auth.hasRole('NOMINA_EDITOR') || this.auth.hasRole('ADMIN_GENERAL'));
   }
 
@@ -81,7 +83,7 @@ export class ModalPayrollCalculate {
         finalize(() => { this.saving = false; }),
       )
       .subscribe({
-        next: () => this.dialogRef.close(true),
+        next: result => this.dialogRef.close({ run_id: result.run_id }),
         error: error => {
           console.error('No se pudo calcular el borrador de Nómina:', error);
           // El interceptor global presenta los errores del backend.

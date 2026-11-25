@@ -38,8 +38,9 @@ import {
   PayrollPeriodSummary,
 } from './interfaces/payroll-interfaces';
 import { PayrollService } from './services/payroll.service';
-import { ModalPayrollCalculate } from './components/modal-payroll-calculate/modal-payroll-calculate';
 import { ModalPayrollPeriodForm } from './components/modal-payroll-period-form/modal-payroll-period-form';
+import { ModalPayrollCalculate } from './components/modal-payroll-calculate/modal-payroll-calculate';
+import { ModalPayrollPreview } from './components/modal-payroll-preview/modal-payroll-preview';
 
 interface PayrollPeriodRow extends PayrollPeriodDto {
   status_label: string;
@@ -86,6 +87,13 @@ export class Payroll implements OnInit {
   readonly summary = signal<PayrollPeriodSummary>({ ...EMPTY_SUMMARY });
   readonly permissions: TableActionPermissions = { showEdit: false, showDelete: false };
   readonly actions: DataTableExtraAction<PayrollPeriodRow>[] = [
+    {
+      type: 'preview',
+      icon: 'visibility',
+      tooltip: 'Ver detalle de nómina',
+      visible: () => this.auth.hasRole('NOMINA_EDITOR') || this.auth.hasRole('ADMIN_GENERAL'),
+      disabled: () => this.loading(),
+    },
     {
       type: 'calculate',
       icon: 'calculate',
@@ -275,18 +283,31 @@ export class Payroll implements OnInit {
       });
   }
 
-  /** Acción visible solo en períodos abiertos y usuarios con permiso. */
+
+  /** Ver detalle consulta las ejecuciones reales; no supone run_id = period_id. */
   onTableAction(event: DataTableActionEvent<PayrollPeriodRow>): void {
-    if (this.loading() || event.type !== 'calculate') return;
+    if (this.loading()) return;
     if (!this.auth.hasRole('NOMINA_EDITOR') && !this.auth.hasRole('ADMIN_GENERAL')) return;
+
     const period = event.row;
-    if (period.status !== 'open') return;
+    if (event.type === 'preview') {
+      this.openPreview(period);
+      return;
+    }
+    if (event.type !== 'calculate' || period.status !== 'open') return;
 
     this.dialogs.open(ModalPayrollCalculate, { period }, 'small').afterClosed()
       .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe(calculated => {
-        if (calculated === true) this.loadPeriods();
+      .subscribe((result: { run_id: string } | false | undefined) => {
+        if (result && typeof result === 'object' && 'run_id' in result && result.run_id) {
+          this.loadPeriods();
+          this.openPreview(period, String(result.run_id));
+        }
       });
+  }
+
+  private openPreview(period: PayrollPeriodDto, runId?: string): void {
+    this.dialogs.open(ModalPayrollPreview, { period, runId }, 'medium');
   }
 
   private saveFilters(): void {

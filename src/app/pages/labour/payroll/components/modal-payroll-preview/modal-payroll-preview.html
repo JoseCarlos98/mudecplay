@@ -1,0 +1,114 @@
+<div class="c-modal payroll-preview-modal">
+  <app-module-header
+    title="Detalle de nómina"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="payroll-preview-modal__body">
+    <section class="payroll-preview-modal__identity">
+      <mat-icon>receipt_long</mat-icon>
+      <div>
+        <span>Período #{{ period.id }}</span>
+        <strong>Semana {{ period.week_start | date:'dd/MM/yyyy' }} – {{ period.week_end | date:'dd/MM/yyyy' }}</strong>
+      </div>
+      <span class="payroll-preview-modal__state">{{ period.status === 'closed' ? 'Cerrado' : 'Abierto' }}</span>
+    </section>
+
+    @if (noRuns) {
+      <div class="c-form-alert c-form-alert--info" role="note">
+        <mat-icon class="c-form-alert__icon">info</mat-icon>
+        <div class="c-form-alert__content">
+          <strong>Este período todavía no tiene cálculos.</strong>
+          <p>Usa la acción Calcular borrador para generar uno cuando corresponda.</p>
+        </div>
+      </div>
+    }
+
+    @if (preview; as result) {
+      <div class="payroll-preview-modal__run">
+        <span>Cálculo #{{ result.run.id }} · Versión {{ result.run.version }}</span>
+        <strong>{{ result.run.status === 'draft' ? 'Borrador' : result.run.status === 'approved' ? 'Autorizado' : result.run.status === 'closed' ? 'Cerrado' : 'Anulado' }}</strong>
+      </div>
+
+      @if (isProvisional) {
+        <div class="c-form-alert c-form-alert--info" role="note">
+          <mat-icon class="c-form-alert__icon">info</mat-icon>
+          <div class="c-form-alert__content">
+            <strong>Cálculo provisional; no representa un pago.</strong>
+            <p>Puedes revisar los conceptos y advertencias. No autorizaremos ni cerraremos desde esta vista.</p>
+          </div>
+        </div>
+      }
+
+      <section class="payroll-preview-modal__metrics" aria-label="Totales del cálculo">
+        <div><span>Empleados</span><strong>{{ result.summary.employees }}</strong></div>
+        <div><span>Ingresos</span><strong>{{ result.summary.earnings | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+        <div><span>Descuentos</span><strong>{{ result.summary.deductions | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+        <div><span>{{ isProvisional ? 'Neto provisional' : 'Neto registrado' }}</span><strong>{{ result.summary.net | currency:'MXN':'symbol':'1.2-2' }}</strong></div>
+        <div><span>Advertencias</span><strong>{{ result.summary.warnings }}</strong></div>
+      </section>
+
+      <section class="payroll-preview-modal__employees">
+        <h3>Detalle por empleado</h3>
+        <p>Selecciona <strong>Ver conceptos</strong> para consultar ingresos, descuentos y advertencias de cada trabajador.</p>
+        <div class="payroll-preview-modal__table">
+          <app-data-table
+            [data]="employees"
+            [columnsConfig]="columnsConfig"
+            [displayedColumns]="displayedColumns"
+            [extraActions]="actions"
+            [actionPermissions]="permissions"
+            (action)="onEmployeeAction($event)"
+            emptyLabel="El cálculo no contiene empleados.">
+          </app-data-table>
+        </div>
+      </section>
+
+      @if (selected; as worker) {
+        <section class="payroll-preview-modal__concepts">
+          <h3>{{ worker.employee_name }} · Conceptos</h3>
+          <p>Salario semanal registrado: {{ worker.weekly_salary | currency:'MXN':'symbol':'1.2-2' }} · Días pagados: {{ worker.paid_days }}</p>
+          <div class="payroll-preview-modal__concept-scroll">
+            <table>
+              <thead><tr><th>Concepto</th><th>Descripción</th><th>Tipo</th><th>Importe</th></tr></thead>
+              <tbody>
+                @for (concept of worker.concepts; track concept.line_key) {
+                  <tr>
+                    <td>{{ conceptLabel(concept.code) }}</td>
+                    <td>{{ concept.description || '—' }}</td>
+                    <td>{{ directionLabel(concept.direction) }}</td>
+                    <td class="payroll-preview-modal__amount">{{ concept.amount | currency:'MXN':'symbol':'1.2-2' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="4">Sin conceptos.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <h3>Advertencias del empleado ({{ worker.warnings.length }})</h3>
+          @if (worker.warnings.length) {
+            <ul class="payroll-preview-modal__warnings">
+              @for (warning of worker.warnings; track $index) { <li>{{ asWarning(warning) }}</li> }
+            </ul>
+          } @else {
+            <p>Sin advertencias registradas para este empleado.</p>
+          }
+        </section>
+      }
+    }
+  </div>
+
+  <div class="payroll-preview-modal__footer">
+    <app-btns-section
+      type="close"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="loading"
+    [fullscreen]="false"
+    text="Consultando detalle de nómina...">
+  </app-loading-overlay>
+</div>

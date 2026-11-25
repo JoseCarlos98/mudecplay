@@ -72,3 +72,62 @@ export interface PayrollCalculationResponse {
   total_net: string;
   message: string;
 }
+
+
+/** Consultar ejecuciones de un período: GET /payroll/periods/:id/runs. */
+export type PayrollRunStatus = 'draft' | 'approved' | 'closed' | 'voided';
+
+export interface PayrollRunListItem {
+  id: string;
+  period_id: string;
+  version: number;
+  status: PayrollRunStatus;
+  created_at: string;
+  approved_at: string | null;
+  closed_at: string | null;
+}
+
+/** Contrato existente de GET /payroll/runs/:id/preview. */
+export interface PayrollRunPreview {
+  run: {
+    id: string;
+    version: number;
+    status: PayrollRunStatus;
+    approved_by_user_id: number | null;
+    closed_at: string | null;
+  };
+  period: PayrollPeriodDto;
+  summary: {
+    employees: number;
+    earnings: string;
+    deductions: string;
+    net: string;
+    warnings: number;
+    loan_deductions_are_provisional: boolean;
+  };
+  employees: PayrollPreviewEmployee[];
+}
+
+export interface PayrollPreviewEmployee {
+  id: number;
+  name: string;
+  weekly_salary: string;
+  paid_days: number | string;
+  earnings: string;
+  deductions: string;
+  net: string;
+  warnings: unknown[];
+  concepts: PayrollPreviewConcept[];
+}
+
+export interface PayrollPreviewConcept {
+  code: string;
+  direction: string;
+  amount: string;
+  source_module: string | null;
+  source_record_id: string | null;
+  source_date: string | null;
+  description: string | null;
+  quantity: number | string | null;
+  line_key: string;
+}

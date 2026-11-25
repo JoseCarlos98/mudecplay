@@ -1,0 +1,67 @@
+:host { display: block; min-width: 0; }
+
+.payroll-preview-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-width: 0;
+  max-height: 90dvh;
+  overflow: hidden;
+
+  // Único scroll vertical del modal: cabecera y pie permanecen fijos.
+  &__body {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    padding: 0.8rem 1rem 1rem;
+    display: grid;
+    gap: 0.85rem;
+    align-content: start;
+  }
+  &__identity { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.8rem; border: 1px solid #dbe4ee; border-radius: 10px; background: #f8fafc; }
+  &__identity > mat-icon { color: #0284c7; padding: 0.25rem; box-sizing: content-box; border-radius: 6px; background: #e0f2fe; }
+  &__identity > div { min-width: 0; display: grid; gap: 0.2rem; flex: 1; }
+  &__identity span, &__run span { color: #64748b; font-size: 0.75rem; }
+  &__identity strong { font-size: 0.84rem; }
+  &__state { padding: 0.3rem 0.6rem; border-radius: 99px; color: #1d4ed8 !important; background: #dbeafe; font-weight: 700; }
+  &__run { display: flex; gap: 0.6rem; justify-content: space-between; align-items: center; border: 1px solid #dbe4ee; padding: 0.65rem 0.8rem; border-radius: 8px; }
+  &__run strong { color: #0f172a; font-size: 0.8rem; }
+  &__metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.6rem; }
+  &__metrics > div { border: 1px solid #dbe4ee; border-radius: 9px; background: #f8fafc; padding: 0.7rem; display: grid; gap: 0.35rem; min-width: 0; }
+  &__metrics span { font-size: 0.72rem; color: #64748b; }
+  &__metrics strong { font-size: 0.92rem; color: #172033; overflow-wrap: anywhere; }
+  &__employees, &__concepts { min-width: 0; }
+  &__employees h3, &__concepts h3 { font-size: 0.88rem; font-weight: 700; margin: 0 0 0.25rem; }
+  &__employees p, &__concepts p { font-size: 0.73rem; color: #64748b; margin: 0 0 0.55rem; }
+  // No limitar la altura de la tabla: elimina el segundo scroll vertical.
+  // El estilo del DataTable compartido no se modifica.
+  &__table { min-width: 0; overflow-x: auto; }
+  // La lista de conceptos crece naturalmente; solo scroll horizontal cuando haga falta.
+  &__concept-scroll { overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 7px; margin-bottom: 0.85rem; }
+  &__concept-scroll table { border-collapse: collapse; width: 100%; min-width: 480px; }
+  &__concept-scroll th, &__concept-scroll td { padding: 0.6rem; border-bottom: 1px solid #e2e8f0; text-align: left; font-size: 0.75rem; }
+  &__concept-scroll th { background: #f8fafc; color: #334155; }
+  &__amount { text-align: right !important; font-weight: 600; }
+  // Las advertencias participan del scroll único del contenido.
+  &__warnings { margin: 0; padding: 0 0 0 1.5rem; }
+  &__warnings li { padding: 0.3rem 0; color: #9a3412; font-size: 0.75rem; }
+  &__footer {
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+    padding: 0.65rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 56px;
+    flex: 0 0 auto;
+  }
+
+  &__footer > app-btns-section { display: block; }
+}
+
+@media (max-width: 600px) {
+  .payroll-preview-modal { max-height: 94dvh; }
+  .payroll-preview-modal__body { padding-inline: 0.75rem; }
+  .payroll-preview-modal__metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
