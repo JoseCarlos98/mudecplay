@@ -39,7 +39,7 @@ import {
 } from './interfaces/payroll-interfaces';
 import { PayrollService } from './services/payroll.service';
 import { ModalPayrollCalculate } from './components/modal-payroll-calculate/modal-payroll-calculate';
-import { ModalPayrollPeriodForm } from './components/modal-payroll-calculate/modal-payroll-period-form';
+import { ModalPayrollPeriodForm } from './components/modal-payroll-period-form/modal-payroll-period-form';
 
 interface PayrollPeriodRow extends PayrollPeriodDto {
   status_label: string;

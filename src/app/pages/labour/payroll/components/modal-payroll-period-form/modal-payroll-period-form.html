@@ -1,0 +1,89 @@
+<div class="c-modal payroll-period-modal">
+  <app-module-header
+    title="Nuevo período de nómina"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="payroll-period-modal__body">
+    <section class="payroll-period-modal__identity">
+      <mat-icon>date_range</mat-icon>
+      <div>
+        <span>Período semanal</span>
+        <strong>Registro nuevo</strong>
+      </div>
+      <span class="payroll-period-modal__status">Abierto</span>
+    </section>
+
+    <div class="c-form-alert c-form-alert--info payroll-period-modal__notice" role="note">
+      <mat-icon class="c-form-alert__icon">info</mat-icon>
+      <div class="c-form-alert__content">
+        <strong>Esta operación no calcula ni paga la nómina.</strong>
+        <p>El período se registrará como abierto. El cálculo, revisión, aprobación y cierre se gestionan por separado.</p>
+      </div>
+    </div>
+
+    <form
+      id="payroll-period-form"
+      class="c-form payroll-period-modal__form"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
+          <div>
+            <h3 class="c-form-section__title">Datos del período</h3>
+            <p class="c-form-section__desc">Selecciona el domingo con el que inicia la semana salarial.</p>
+          </div>
+        </div>
+
+        <div class="payroll-period-modal__date-field">
+          <app-input-date
+            formControlName="week_start"
+            label="Inicio de semana (domingo)"
+            mode="single"
+            [showClear]="false">
+          </app-input-date>
+          @if (form.controls.week_start.touched && form.controls.week_start.hasError('notSunday')) {
+            <small class="payroll-period-modal__error">El inicio del período debe ser domingo.</small>
+          }
+          @if (form.controls.week_start.touched && form.controls.week_start.hasError('invalidDate')) {
+            <small class="payroll-period-modal__error">Selecciona una fecha válida.</small>
+          }
+        </div>
+      </section>
+
+      @if (calendar; as dates) {
+        <section class="payroll-period-modal__preview">
+          <h3 class="payroll-period-modal__preview-title">Vista previa del calendario</h3>
+          <div class="payroll-period-modal__preview-grid">
+            <div><span>Inicio de semana</span><strong>{{ dates.week_start }}</strong></div>
+            <div><span>Fin de semana</span><strong>{{ dates.week_end }}</strong></div>
+            <div><span>Inicio corte de extras</span><strong>{{ dates.overtime_start }}</strong></div>
+            <div><span>Fin corte de extras</span><strong>{{ dates.overtime_end }}</strong></div>
+            <div><span>Fecha de pago</span><strong>{{ dates.pay_date }}</strong></div>
+          </div>
+          <small class="payroll-period-modal__help">
+            Fechas informativas. NestJS calculará y guardará los valores definitivos.
+          </small>
+        </section>
+      }
+    </form>
+  </div>
+
+  <div class="payroll-period-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Cancelar"
+      saveLabel="Crear período"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Creando período de nómina...">
+  </app-loading-overlay>
+</div>

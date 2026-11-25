@@ -1,0 +1,83 @@
+<div class="c-modal payroll-calculate-modal">
+  <app-module-header
+    title="Calcular nómina"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="payroll-calculate-modal__body">
+    <section class="payroll-calculate-modal__identity">
+      <mat-icon>calculate</mat-icon>
+      <div>
+        <span>Período #{{ period.id }}</span>
+        <strong>Semana {{ period.week_start | date:'dd/MM/yyyy' }} – {{ period.week_end | date:'dd/MM/yyyy' }}</strong>
+      </div>
+      <span class="payroll-calculate-modal__status">Abierto</span>
+    </section>
+
+    <section class="payroll-calculate-modal__summary">
+      <div class="payroll-calculate-modal__summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span>Corte de horas extras</span>
+          <strong>{{ period.overtime_start | date:'dd/MM/yyyy' }} – {{ period.overtime_end | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+      <div class="payroll-calculate-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Fecha de pago programada</span>
+          <strong>{{ period.pay_date | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <div class="payroll-calculate-modal__notice" role="note">
+      <mat-icon>info</mat-icon>
+      <div>
+        <strong>Este cálculo crea o actualiza un borrador; no es un pago.</strong>
+        <p>Antes de calcular, revisa las asistencias, faltas, retardos, horas extra,
+          domingos trabajados y compensaciones autorizadas. Si ya existe un borrador,
+          el backend puede recalcularlo.</p>
+      </div>
+    </div>
+
+    @if (futureWeek) {
+      <div class="payroll-calculate-modal__warning" role="note">
+        <mat-icon>warning_amber</mat-icon>
+        <div>
+          <strong>La semana salarial todavía no termina.</strong>
+          <p>Finaliza el {{ period.week_end | date:'dd/MM/yyyy' }}. Por precaución,
+            el cálculo se mantiene deshabilitado desde esta pantalla hasta esa fecha.
+            Las fuentes todavía podrían estar incompletas.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="payroll-calculate-modal__warning" role="note">
+        <mat-icon>warning_amber</mat-icon>
+        <div>
+          <strong>Verifica las fuentes antes de confirmar.</strong>
+          <p>Este proceso generará resultados y conceptos de Nómina que deberán revisarse
+            posteriormente. No autoriza, cierra, transfiere dinero ni realiza abonos a préstamos.</p>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="payroll-calculate-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Volver"
+      saveLabel="Calcular borrador"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canCalculate"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Calculando borrador de nómina...">
+  </app-loading-overlay>
+</div>

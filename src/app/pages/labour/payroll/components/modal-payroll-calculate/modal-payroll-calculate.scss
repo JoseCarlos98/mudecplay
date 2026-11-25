@@ -1,0 +1,82 @@
+:host { display: block; min-width: 0; }
+
+.payroll-calculate-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: 90dvh;
+  min-width: 0;
+  overflow: hidden;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+    min-height: 0;
+    padding: .8rem 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    padding: .75rem;
+    min-width: 0;
+    border: 1px solid #dbe4ee;
+    border-radius: .7rem;
+    background: #f8fafc;
+
+    > mat-icon { box-sizing: content-box; flex: 0 0 auto; padding: .45rem;
+      color: #0284c7; background: #e0f2fe; border-radius: .5rem; }
+    > div { display: flex; flex-direction: column; gap: .12rem; min-width: 0; }
+    span { font-size: .72rem; color: #64748b; }
+    strong { font-size: .86rem; color: #172033; overflow-wrap: anywhere; }
+  }
+
+  &__status { margin-left: auto; padding: .3rem .65rem; border-radius: 99px;
+    background: #dbeafe; color: #1d4ed8 !important; font-size: .7rem !important;
+    font-weight: 700; white-space: nowrap; }
+
+  &__summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  &__summary-card {
+    display: flex; align-items: center; gap: .65rem; min-width: 0;
+    padding: .8rem; border: 1px solid #dbe4ee; border-radius: .7rem; background: white;
+    > mat-icon { box-sizing: content-box; flex: 0 0 auto; padding: .45rem;
+      color: #2563eb; background: #eff6ff; border-radius: .55rem; }
+    > div { display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
+    span { font-size: .68rem; color: #64748b; }
+    strong { font-size: .86rem; color: #172033; overflow-wrap: anywhere; }
+  }
+
+  &__notice, &__warning {
+    display: flex; align-items: flex-start; gap: .65rem; min-width: 0;
+    padding: .8rem; border-radius: .65rem;
+    > mat-icon { flex: 0 0 auto; }
+    strong { font-size: .8rem; }
+    p { margin: .2rem 0 0; font-size: .76rem; line-height: 1.5; }
+  }
+  &__notice { background: #f0f9ff; border: 1px solid #bae0fa; color: #245179;
+    mat-icon { color: #0369a1; } }
+  &__warning { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e;
+    mat-icon { color: #b45309; } }
+
+  &__footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    min-height: 58px; padding: .55rem 1rem .75rem;
+    border-top: 1px solid #e2e8f0; background: white;
+    > app-btns-section { display: block; flex: 0 0 auto; }
+  }
+}
+
+@media (max-width: 640px) {
+  .payroll-calculate-modal {
+    max-height: 94dvh;
+    &__body { padding-inline: .75rem; }
+    &__summary { grid-template-columns: 1fr; }
+    &__identity { flex-wrap: wrap; }
+    &__status { margin-left: 0; }
+    &__footer { padding-inline: .75rem; }
+  }
+}

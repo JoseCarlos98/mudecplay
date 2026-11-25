@@ -1,0 +1,128 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.payroll-period-modal {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: 90dvh;
+  min-width: 0;
+  overflow: hidden;
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+    min-height: 0;
+    padding: .85rem 1rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  &__identity {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    padding: .75rem;
+    border: 1px solid #dbe4ee;
+    border-radius: .7rem;
+    background: #f8fafc;
+
+    > mat-icon {
+      flex: 0 0 auto;
+      box-sizing: content-box;
+      padding: .45rem;
+      border-radius: .5rem;
+      background: #e0f2fe;
+      color: #0284c7;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: .12rem;
+    }
+
+    span { color: #64748b; font-size: .72rem; }
+    strong { color: #172033; font-size: .88rem; }
+  }
+
+  &__status {
+    margin-left: auto;
+    padding: .3rem .65rem;
+    border-radius: 99px;
+    background: #dbeafe;
+    color: #1d4ed8 !important;
+    font-size: .7rem !important;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  &__notice {
+    margin: 0;
+    min-width: 0;
+    p { margin: .15rem 0 0; line-height: 1.45; }
+  }
+
+  &__form { min-width: 0; }
+  &__date-field { margin-top: .75rem; min-width: 0; }
+  &__error { display: block; margin-top: .4rem; color: #b42318; font-size: .75rem; }
+
+  &__preview {
+    padding: .85rem;
+    background: #f8fafc;
+    border: 1px solid #dbe4ee;
+    border-radius: .7rem;
+  }
+
+  &__preview-title {
+    margin: 0 0 .85rem;
+    color: #172033;
+    font-size: .85rem;
+    font-weight: 700;
+  }
+
+  &__preview-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+
+    > div { display: flex; flex-direction: column; gap: .25rem; min-width: 0; }
+    span { color: #64748b; font-size: .72rem; }
+    strong { color: #172033; font-size: .82rem; overflow-wrap: anywhere; }
+  }
+
+  &__help {
+    display: block;
+    margin-top: .8rem;
+    font-size: .72rem;
+    color: #64748b;
+    line-height: 1.4;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: 58px;
+    padding: .55rem 1rem .75rem;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+
+    > app-btns-section { display: block; flex: 0 0 auto; }
+  }
+}
+
+@media (max-width: 640px) {
+  .payroll-period-modal {
+    max-height: 94dvh;
+    &__body { padding-inline: .75rem; }
+    &__preview-grid { grid-template-columns: 1fr; }
+    &__identity { flex-wrap: wrap; }
+    &__status { margin-left: 0; }
+    &__footer { padding-inline: .75rem; }
+  }
+}
