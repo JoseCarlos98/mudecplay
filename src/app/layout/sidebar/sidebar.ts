@@ -181,12 +181,12 @@ export class Sidebar {
           route: '/mano-de-obra/compensaciones',
           roles: ['NOMINA_EDITOR'],
         },
-        // {
-        //   name: 'Nómina',
-        //   icon: 'receipt_long',
-        //   route: '/mano-de-obra/nomina',
-        //   roles: ['NOMINA_EDITOR'],
-        // },
+        {
+          name: 'Nómina',
+          icon: 'receipt_long',
+          route: '/mano-de-obra/nomina',
+          roles: ['NOMINA_EDITOR', 'NOMINA_AUTORIZADOR'],
+        },
       ],
     },
     {

@@ -129,8 +129,10 @@ export class LoginComponent implements OnInit {
           HORAS_EXTRAS_EDITOR:
             '/mano-de-obra/horas-extras',
 
-          PRESTAMOS_EDITOR: '/mano-de-obra',
-          NOMINA_EDITOR: '/mano-de-obra',
+          PRESTAMOS_EDITOR: '/mano-de-obra/prestamos',
+
+          NOMINA_EDITOR: '/mano-de-obra/nomina',
+
         };
 
         const rolePriority: string[] = [

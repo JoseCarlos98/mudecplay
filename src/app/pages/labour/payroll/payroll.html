@@ -1,0 +1,111 @@
+<div class="payroll-page">
+  <section class="card-content shadow-md payroll-heading-card">
+    <app-module-header
+      title="Nómina"
+      [config]="headerConfig"
+      (action)="onHeaderAction($event)">
+    </app-module-header>
+
+    <form [formGroup]="formFilters" (ngSubmit)="searchWithFilters()">
+      <div class="c-filters grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 payroll-filters">
+        <app-input-date
+          formControlName="dateRange"
+          label="Rango de inicio de semana"
+          mode="range"
+          [showClear]="true">
+        </app-input-date>
+
+        <app-input-select
+          formControlName="status"
+          label="Estatus"
+          [options]="statusOptions">
+        </app-input-select>
+
+        <app-input-field
+          formControlName="periodId"
+          label="Folio"
+          type="text"
+          placeholder="Folio del período">
+        </app-input-field>
+
+        <app-btns-section
+          type="search"
+          [hasActiveFilters]="hasActiveFilters"
+          (action)="onBtnsSectionAction($event)">
+        </app-btns-section>
+      </div>
+
+      @if (formFilters.controls.dateRange.hasError('dateRange')) {
+        <p class="payroll-filter-error">
+          La fecha final debe ser igual o posterior a la inicial.
+        </p>
+      }
+      @if (formFilters.controls.periodId.invalid && formFilters.controls.periodId.touched) {
+        <p class="payroll-filter-error">
+          Introduce un folio numérico entero mayor que cero.
+        </p>
+      }
+    </form>
+  </section>
+
+  <section class="payroll-summary-grid" aria-label="Resumen de períodos filtrados">
+    <div class="payroll-summary-card payroll-summary-card--info">
+      <div class="payroll-summary-card__icon"><mat-icon>date_range</mat-icon></div>
+      <div class="payroll-summary-card__content">
+        <span class="payroll-summary-card__label">Períodos</span>
+        <strong class="payroll-summary-card__value">{{ tableData.meta.total }}</strong>
+      </div>
+    </div>
+    <div class="payroll-summary-card payroll-summary-card--warning">
+      <div class="payroll-summary-card__icon"><mat-icon>schedule</mat-icon></div>
+      <div class="payroll-summary-card__content">
+        <span class="payroll-summary-card__label">Abiertos</span>
+        <strong class="payroll-summary-card__value">{{ summary().open_count }}</strong>
+      </div>
+    </div>
+    <div class="payroll-summary-card payroll-summary-card--success">
+      <div class="payroll-summary-card__icon"><mat-icon>verified</mat-icon></div>
+      <div class="payroll-summary-card__content">
+        <span class="payroll-summary-card__label">Cerrados</span>
+        <strong class="payroll-summary-card__value">{{ summary().closed_count }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="card-content payroll-board" aria-label="Listado de períodos de nómina">
+    <div class="payroll-table-layout">
+      <div class="payroll-table-scroll">
+        <div class="c-module-table">
+          <app-data-table
+            [data]="tableData.data"
+            [columnsConfig]="columnsConfig"
+            [displayedColumns]="displayedColumns"
+            [extraActions]="actions"
+            [actionPermissions]="permissions"
+            [sorts]="sorts"
+            (sortChange)="onSortChange($event)"
+            (action)="onTableAction($event)"
+            emptyLabel="No hay períodos de nómina para mostrar.">
+          </app-data-table>
+        </div>
+      </div>
+
+      <div class="payroll-paginator-bar">
+        <mat-paginator
+          [length]="tableData.meta.total"
+          [pageSize]="filters.limit"
+          [pageIndex]="filters.page - 1"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
+  </section>
+
+  <app-loading-overlay
+    [visible]="loading()"
+    [fullscreen]="true"
+    text="Cargando períodos de nómina...">
+  </app-loading-overlay>
+</div>

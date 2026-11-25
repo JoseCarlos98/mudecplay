@@ -81,6 +81,16 @@ export const LABOUR_ROUTES: Routes = [
         .then(m => m.Compensations),
     canActivate: [rolesGuard],
     data: {
+      roles: ['COMPENSACIONES_EDITOR'],
+    },
+  },
+
+  {
+    path: 'nomina',
+    loadComponent: () =>
+      import('./payroll/payroll').then(m => m.Payroll),
+    canActivate: [rolesGuard],
+    data: {
       roles: ['NOMINA_EDITOR'],
     },
   },
