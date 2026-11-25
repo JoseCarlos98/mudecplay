@@ -1,0 +1,90 @@
+<div class="c-modal compensation-cancel-modal">
+  <app-module-header
+    title="Cancelar compensación"
+    [config]="headerConfig"
+    (action)="onHeaderAction($event)">
+  </app-module-header>
+
+  <div class="compensation-cancel-modal__body">
+    <section class="compensation-cancel-modal__identity">
+      <mat-icon>volunteer_activism</mat-icon>
+      <div>
+        <span>Compensación #{{ data.compensation.id }}</span>
+        <strong>{{ data.compensation.employee_name || ('Empleado #' + data.compensation.employee_id) }}</strong>
+      </div>
+      <span class="compensation-cancel-modal__status">Pendiente</span>
+    </section>
+
+    <section class="compensation-cancel-modal__summary">
+      <div class="compensation-cancel-modal__summary-card">
+        <mat-icon>payments</mat-icon>
+        <div>
+          <span>Importe registrado</span>
+          <strong>{{ data.compensation.amount | currency:'MXN':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+      <div class="compensation-cancel-modal__summary-card">
+        <mat-icon>event</mat-icon>
+        <div>
+          <span>Fecha de compensación</span>
+          <strong>{{ data.compensation.effective_date | date:'dd/MM/yyyy' }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="compensation-cancel-modal__reason">
+      <span>Motivo original</span>
+      <p>{{ data.compensation.reason }}</p>
+    </section>
+
+    <div class="compensation-cancel-modal__warning" role="note">
+      <mat-icon>warning_amber</mat-icon>
+      <div>
+        <strong>Solo se pueden cancelar compensaciones pendientes.</strong>
+        <p>Se guardarán el motivo, la fecha y el usuario de la cancelación. Una compensación ya aprobada no puede cancelarse por esta acción.</p>
+      </div>
+    </div>
+
+    <form
+      id="compensation-cancel-form"
+      class="c-form compensation-cancel-modal__form"
+      [formGroup]="form"
+      (ngSubmit)="save()">
+      <section class="c-form-section">
+        <div class="c-form-section__header">
+          <div>
+            <h3 class="c-form-section__title">Datos de la cancelación</h3>
+            <p class="c-form-section__desc">Indica por qué no debe autorizarse esta compensación.</p>
+          </div>
+        </div>
+        <div class="c-form-grid compensation-cancel-modal__reason-grid">
+          <div class="c-form-grid__field">
+            <app-input-field
+              formControlName="cancellation_reason"
+              label="Motivo de cancelación"
+              type="text">
+            </app-input-field>
+          </div>
+        </div>
+      </section>
+    </form>
+  </div>
+
+  <div class="compensation-cancel-modal__footer">
+    <app-btns-section
+      type="save"
+      cancelLabel="Volver"
+      saveLabel="Confirmar cancelación"
+      saveVariant="danger"
+      [cancelDisabled]="saving"
+      [saveDisabled]="!canSave"
+      (action)="onFooterAction($event)">
+    </app-btns-section>
+  </div>
+
+  <app-loading-overlay
+    [visible]="saving"
+    [fullscreen]="false"
+    text="Cancelando compensación...">
+  </app-loading-overlay>
+</div>

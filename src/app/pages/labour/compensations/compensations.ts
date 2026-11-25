@@ -32,6 +32,7 @@ import {
 import { CompensationsService } from './services/compensations.service';
 import { ModalCompensationForm } from './components/modal-compensation-form/modal-compensation-form';
 import { ModalCompensationApprove } from './components/modal-compensation-approve/modal-compensation-approve';
+import { ModalCompensationCancel } from './components/modal-compensation-cancel/modal-compensation-cancel';
 
 interface CompensationUiFilters {
   employees: Catalog[];
@@ -113,6 +114,14 @@ export class Compensations implements OnInit {
       type: 'approve',
       icon: 'verified',
       tooltip: 'Aprobar compensación pendiente',
+      visible: (row) => row.status === 'pending' &&
+        (this.auth.hasRole('NOMINA_EDITOR') || this.auth.hasRole('ADMIN_GENERAL')),
+      disabled: () => this.loadingTable(),
+    },
+    {
+      type: 'cancel',
+      icon: 'cancel',
+      tooltip: 'Cancelar compensación pendiente',
       visible: (row) => row.status === 'pending' &&
         (this.auth.hasRole('NOMINA_EDITOR') || this.auth.hasRole('ADMIN_GENERAL')),
       disabled: () => this.loadingTable(),
@@ -279,16 +288,27 @@ export class Compensations implements OnInit {
   }
 
   onTableAction(event: DataTableActionEvent<CompensationRow>): void {
-    if (event.type !== 'approve' || this.loadingTable()) return;
+    if (this.loadingTable()) return;
     if (!this.auth.hasRole('NOMINA_EDITOR') && !this.auth.hasRole('ADMIN_GENERAL')) return;
     const compensation = event.row;
     if (compensation.status !== 'pending') return;
 
-    this.dialogs.open(ModalCompensationApprove, { compensation }, 'small').afterClosed()
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe((changed) => {
-        if (changed === true) this.loadCompensations();
-      });
+    if (event.type === 'approve') {
+      this.dialogs.open(ModalCompensationApprove, { compensation }, 'small').afterClosed()
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe((changed) => {
+          if (changed === true) this.loadCompensations();
+        });
+      return;
+    }
+
+    if (event.type === 'cancel') {
+      this.dialogs.open(ModalCompensationCancel, { compensation }, 'small').afterClosed()
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe((changed) => {
+          if (changed === true) this.loadCompensations();
+        });
+    }
   }
 
   onBtnsSectionAction(action: string): void {
